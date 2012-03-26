@@ -50,7 +50,7 @@
 #include "logoview.h"
 #include "jpeg.h"
 
-#define LV_VERSION "1.02"
+#define LV_VERSION "1.03"
 #define VERSIONSTR "\n\
       ------------------------------------------------------------\n\
       -- logoview v" LV_VERSION " * (C)2011-2012, M. Liebmann (micha-bbg) --\n\
@@ -272,26 +272,26 @@ int CLogoView::run(int argc, char* argv[])
 	}
 	if(ioctl(fb, FBIOGET_FSCREENINFO, &fix_screeninfo) == -1) {
 		perror("[logoview] <FBIOGET_FSCREENINFO>\n");
-		ClearThis();
+		ClearThis(false);
 		return -1;
 	}
 	if(ioctl(fb, FBIOGET_VSCREENINFO, &var_screeninfo) == -1) {
 		perror("[logoview] <FBIOGET_VSCREENINFO>\n");
-		ClearThis();
+		ClearThis(false);
 		return -1;
 	}
 	if(!(lfb = (unsigned char*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0))) {
 		perror("[logoview] <mapping of Framebuffer>\n");
-		ClearThis();
+		ClearThis(false);
 		return -1;
 	}
 	if (!CheckFile(start_logo)) {
 		perror("[logoview] <no logo file found>");
-		ClearThis();
+		ClearThis(false);
 		return -1;
 	}
 	if (!ReadConfig()) {
-		ClearThis();
+		ClearThis(false);
 		return -1;
 	}
 
@@ -302,17 +302,17 @@ int CLogoView::run(int argc, char* argv[])
 
 	if ((PicBuf = (unsigned char *)malloc(var_screeninfo.xres * var_screeninfo.yres * 3)) == NULL) {
 		perror(nomem.c_str());
-		ClearThis();
+		ClearThis(false);
 		return -1;
 	}
 	if ((TmpBuf = (unsigned char *)malloc(fix_screeninfo.line_length * var_screeninfo.yres)) == NULL) {
 		perror(nomem.c_str());
-		ClearThis();
+		ClearThis(false);
 		return -1;
 	}
 	if ((ScBuf = (unsigned char *)malloc(fix_screeninfo.line_length * var_screeninfo.yres)) == NULL) {
 		perror(nomem.c_str());
-		ClearThis();
+		ClearThis(false);
 		return -1;
 	}
 
@@ -321,7 +321,7 @@ TIMER_START();
 	if (jpeg_load(start_logo.c_str(), (unsigned char **)&PicBuf, &x, &y) != FH_ERROR_OK)
 	{
 		perror("[logoview] <error read logo file>");
-		ClearThis();
+		ClearThis(false);
 		return -1;
 	}
 TIMER_STOP("[logoview] load pic       ");
