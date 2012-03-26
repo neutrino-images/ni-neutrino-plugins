@@ -78,7 +78,7 @@ class CLogoView
 		unsigned char *lfb, *PicBuf, *TmpBuf, *ScBuf;
 		struct fb_fix_screeninfo fix_screeninfo;
 		struct fb_var_screeninfo var_screeninfo;
-		std::string nomem, start_logo, ScreenMode;
+		std::string nomem, start_logo;
 		unsigned int screen_StartX, screen_StartY, screen_EndX, screen_EndY;
 		int screen_preset, fb;
 		time_t timeout;

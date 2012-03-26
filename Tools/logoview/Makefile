@@ -9,10 +9,12 @@ BUILDSYSTEM = $(HOME)/coolstream/buildsystem-cs
 # includes
 includedir1 = -I$(BUILDSYSTEM)/root/include
 #includedir2 = -I$(CROSS_CDK)/arm-cx2450x-linux-gnueabi/include
+includedir3 = -I$(BUILDSYSTEM)/source/neutrino-hd-beta/lib/libconfigfile
 
 # libraries und cdk
 libdir1 = -L$(BUILDSYSTEM)/root/lib
 #libdir2 = -L$(CROSS_CDK)/arm-cx2450x-linux-gnueabi/lib
+LD_ADD = $(BUILDSYSTEM)/build_tmp/neutrino-hd/lib/libconfigfile/libtuxbox-configfile.a
 
 # Pfad zum Cross-Compiler
 CCPATH        = $(CROSS_CDK)/bin
@@ -31,7 +33,7 @@ CC            = $(CROSS_COMPILE)-gcc
 #OBJDUMP       = $(CROSS_COMPILE)-objdump
 STRIP         = $(CROSS_COMPILE)-strip
 
-INCLUDES = $(includedir1) $(includedir2)
+INCLUDES = $(includedir1) $(includedir2) $(includedir3)
 LIBS = $(libdir1) $(libdir2)
 #LIBS += -L$(CROSS_CDK)/lib
 LIBS += -lstdc++ -ljpeg
@@ -49,8 +51,8 @@ LDFLAGS = $(LIBS)
 
 all: clean logoview strip
 
-logoview: logoview.cpp logoview.h jpeg.cpp jpeg.h jpeg.o
-	$(CC) $(CFLAGS) $(LDFLAGS) logoview.cpp jpeg.cpp -o logoview
+logoview: logoview.cpp logoview.h jpeg.cpp jpeg.h jpeg.o $(LD_ADD)
+	$(CC) $(CFLAGS) $(LDFLAGS) logoview.cpp jpeg.cpp -o logoview $(LD_ADD)
 
 clean:
 	rm -f *.o *.d

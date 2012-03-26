@@ -45,10 +45,12 @@
 #include <signal.h>
 #include <getopt.h>
 
+#include <configfile.h>
+
 #include "logoview.h"
 #include "jpeg.h"
 
-#define LV_VERSION "1.01"
+#define LV_VERSION "1.02"
 #define VERSIONSTR "\n\
       ------------------------------------------------------------\n\
       -- logoview v" LV_VERSION " * (C)2011-2012, M. Liebmann (micha-bbg) --\n\
@@ -56,6 +58,18 @@
 #define FLAG_FILE "/tmp/.logoview"
 #define NEUTRINO_CONF "/var/tuxbox/config/neutrino.conf"
 #define FB_DEVICE "/dev/fb/0"
+
+#define DEFAULT_X_START_SD	60
+#define DEFAULT_Y_START_SD	20
+#define DEFAULT_X_END_SD	1220
+#define DEFAULT_Y_END_SD	560
+
+#define DEFAULT_X_START_HD	40   //5
+#define DEFAULT_Y_START_HD	25   //5
+#define DEFAULT_X_END_HD	1235 //1275
+#define DEFAULT_Y_END_HD	690  //715
+
+CConfigFile config(',', false);
 
 CLogoView* CLogoView::getInstance()
 {
@@ -81,7 +95,6 @@ CLogoView::CLogoView()
 	timeout       = 0;
 	clearScreen   = false;
 	background    = false;
-	ScreenMode    = "lcd";
 	nomem         = "logoview <Out of memory>\n";
 	start_logo    = "/share/tuxbox/neutrino/icons/start.jpg";
 }
@@ -146,33 +159,23 @@ void CLogoView::ClearThis(bool ClearDisplay/*=true*/)
 	
 bool CLogoView::ReadConfig()
 {
-	char buf1[512] = "";
-	char buf2[512] = "";
-	FILE *fv = fopen(NEUTRINO_CONF, "r");
-	if(fv) {
-		while(fgets(buf1, sizeof(buf1), fv) != NULL) {
-			sscanf(buf1, "screen_preset=%2d", &screen_preset);
-		}
-		fclose(fv);
-	}else
+	if (!config.loadConfig(NEUTRINO_CONF)) {
+		printf("[logoview] %s not found\n", NEUTRINO_CONF);
 		return false;
+	}
 
-	ScreenMode = (screen_preset) ? "lcd" : "crt";
-	fv = fopen(NEUTRINO_CONF, "r");
-	if(fv) {
-		while(fgets(buf1, sizeof(buf1), fv) != NULL) {
-			sprintf(buf2, "screen_StartX_%s=%%4d", ScreenMode.c_str());
-			sscanf(buf1, buf2, &screen_StartX);
-			sprintf(buf2, "screen_StartY_%s=%%4d", ScreenMode.c_str());
-			sscanf(buf1, buf2, &screen_StartY);
-			sprintf(buf2, "screen_EndX_%s=%%4d", ScreenMode.c_str());
-			sscanf(buf1, buf2, &screen_EndX);
-			sprintf(buf2, "screen_EndY_%s=%%4d", ScreenMode.c_str());
-			sscanf(buf1, buf2, &screen_EndY);
-		}
-		fclose(fv);
-	}else
-		return false;
+	screen_preset = config.getInt32("screen_preset", 1);
+	char buf1[512] = "";
+	sprintf(buf1, "screen_StartX_%s", (screen_preset) ? "lcd" : "crt");
+	screen_StartX = config.getInt32(buf1, (screen_preset) ? DEFAULT_X_START_HD : DEFAULT_X_START_SD);
+	sprintf(buf1, "screen_StartY_%s", (screen_preset) ? "lcd" : "crt");
+	screen_StartY = config.getInt32(buf1, (screen_preset) ? DEFAULT_Y_START_HD : DEFAULT_Y_START_SD);
+	sprintf(buf1, "screen_EndX_%s", (screen_preset) ? "lcd" : "crt");
+	screen_EndX = config.getInt32(buf1, (screen_preset) ? DEFAULT_X_END_HD : DEFAULT_X_END_SD);
+	sprintf(buf1, "screen_EndY_%s", (screen_preset) ? "lcd" : "crt");
+	screen_EndY = config.getInt32(buf1, (screen_preset) ? DEFAULT_Y_END_HD : DEFAULT_Y_END_SD);
+//	printf("\n##### [%s] screen_StartX: %d, screen_StartY: %d, screen_EndX: %d, screen_EndY: %d\n \n", __FUNCTION__, screen_StartX, screen_StartY, screen_EndX, screen_EndY);
+
 	return true;
 }
 
@@ -288,14 +291,13 @@ int CLogoView::run(int argc, char* argv[])
 		return -1;
 	}
 	if (!ReadConfig()) {
-		perror("[logoview] <error read config>");
 		ClearThis();
 		return -1;
 	}
 
 #ifdef LV_DEBUG
 	printf("Framebuffer ID: %s\nResolution    : %dx%d\nScreenMode    : %s\n \n", 
-		fix_screeninfo.id, var_screeninfo.xres, var_screeninfo.yres, ScreenMode.c_str());
+		fix_screeninfo.id, var_screeninfo.xres, var_screeninfo.yres, (screen_preset) ? "lcd" : "crt");
 #endif
 
 	if ((PicBuf = (unsigned char *)malloc(var_screeninfo.xres * var_screeninfo.yres * 3)) == NULL) {
