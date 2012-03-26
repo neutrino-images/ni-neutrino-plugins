@@ -1,0 +1,41 @@
+-------------------------------------------------------------------------
+       logoview - Tool zum Anzeigen von Bildern auf der Coolstream
+-------------------------------------------------------------------------
+
+Unterstützt werden zur Zeit nur JPG-Bilder.
+Das Bild sollte in HD Auflösung (1280x720) vorliegen, wird jedoch, wenn
+nötig, skaliert.
+logoview liest die Informationen über Bildschirmauflösung, OSD-Bereich aus
+der neutrino.conf, wenn diese nicht vorhanden ist (neues Image), wird
+keine Bild angezeigt.
+logoview benötigt keine libcoolstream, ist also unabhängig von eventuellen
+Änderungen in dieser Library.
+
+Lizenz:
+	GPL Version 2
+
+Sourcecode ansehen:
+	http://tuxcode.git.sourceforge.net/git/gitweb.cgi?p=tuxcode/cs-tools;a=log;h=refs/heads/master
+
+Sourcecode herunterladen:
+	git clone git://tuxcode.git.sourceforge.net/gitroot/tuxcode/cs-tools cs-tools
+
+
+Aufruf:
+-------
+
+   logoview [LogoName] &
+       LogoName   : Path to logofile (jpg only)
+                    default = /share/tuxbox/neutrino/icons/start.jpg
+
+   logoview <Options>
+       Options:
+       --------
+         -l | --logo         Path to logofile (jpg only)
+         -b | --background   Run in background
+         -t | --timeout      Timeout in sec. (default 0 = no timeout)
+         -c | --clearscreen  Clear screen when timeout (default = no)
+         -h | --help         This help
+
+   Example:
+     logoview --background -t 3 --logo=/var/share/icons/logo.jpg
