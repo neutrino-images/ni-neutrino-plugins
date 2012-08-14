@@ -1,0 +1,179 @@
+BLIZZARD|Schneesturm
+BLOWING SNOW|Schneeverwehungen
+CLEAR/SUNNY|sonnig und klar
+CLOUDY |wolkig
+FOG|Nebel
+FREEZING DRIZZLE|gefrierender Nieselregen
+FREEZING FOG|gefrierender Nebel
+HEAVY FREEZING DRIZZLE|starker gefrierender Nieselregen
+HEAVY RAIN|starker Regen
+HEAVY SNOW|starker Schneefall
+ICE PELLETS|Hagel
+LIGHT DRIZZLE|leichter Nieselregen
+LIGHT FREEZING RAIN|leichter gefrierender Regen
+LIGHT RAIN SHOWER|leichter Regenschauer
+LIGHT RAIN|leichter Regen
+LIGHT SHOWERS OF ICE PELLETS|leichter Hagel
+LIGHT SLEET SHOWERS|leichter Graupelschauer
+LIGHT SLEET|leichter Graupel
+LIGHT SNOW SHOWERS|leichter Schneeschauer
+LIGHT SNOW|leichter Schneefall
+MIST|Dunst
+MODERATE OR HEAVY FREEZING RAIN|mäßig gefrierender Regen
+MODERATE OR HEAVY RAIN IN AREA WITH THUNDER|mäßiger Regen/vereinzelt Gewitter
+MODERATE OR HEAVY RAIN SHOWER|mäßiger Regenschauer
+MODERATE OR HEAVY SHOWERS OF ICE PELLETS|mäßiger Hagel
+MODERATE OR HEAVY SLEET SHOWERS|mäßiger Graupelschauer
+MODERATE OR HEAVY SLEET|mäßiger Graupel
+MODERATE OR HEAVY SNOW IN AREA WITH THUNDER|mäßiger Schneefall/vereinzelt Gewitter
+MODERATE OR HEAVY SNOW SHOWERS|mäßige Schneeschauer
+MODERATE RAIN AT TIMES|vereinzelt mäßiger Regen
+MODERATE RAIN|mäßiger Regen
+MODERATE SNOW|mäßiger Schnee
+OVERCAST |bedeckt
+PARTLY CLOUDY |teilweise bewölkt
+PATCHY FREEZING DRIZZLE NEARBY|ungleichmäßiger gefrierender Nieselregen
+PATCHY HEAVY SNOW|ungleichmäßiger schwerer Schneefall
+PATCHY LIGHT DRIZZLE|ungleichmäßiger leichter Nieselregen
+PATCHY LIGHT RAIN IN AREA WITH THUNDER|ungleichmäßiger leichter Regen/vereinzelt Gewitter
+PATCHY LIGHT RAIN|ungleichmäßiger leichter Regen
+PATCHY LIGHT SNOW IN AREA WITH THUNDER|ungleichmäßiger leichter Schneefall/vereinzelt Gewitter
+PATCHY LIGHT SNOW|ungleichmäßiger leichter Schneefall
+PATCHY MODERATE SNOW|ungleichmäßiger mäßiger Schneefall
+PATCHY RAIN NEARBY|vereinzelt ungleichmäßiger Regen
+PATCHY SLEET NEARBY|vereinzelt ungleichmäßiger Graupel
+PATCHY SNOW NEARBY|vereinzelt ungleichmäßiger Schneefall
+SUNNY|sonnig
+THUNDERY OUTBREAKS IN NEARBY|vereinzelt Gewitter
+TORRENTIAL RAIN SHOWER|heftiger Regenschauer
+#
+E|Ost
+ENE|OstNordOst
+ESE|OstSüdOst
+N|Nord
+NE|NordOst
+NNE|NordNordOst
+NNW|NordNordWest
+NW|NordWest
+S|Süd
+SE|SüdOst
+SSE|SüdSüdOst
+SSW|SüdSüdWest
+SW|SüdWest
+W|West
+WNW|WestNordWest
+WSW|WestSüdWest
+#
+MONDAY|Montag
+TUESDAY|Dienstag
+WEDNESDAY|Mittwoch
+THURSDAY|Donnerstag
+FRIDAY|Freitag
+SATURDAY|Samstag
+SUNDAY|Sonntag
+#
+MONDAY_SIG|Mo
+TUESDAY_SIG|Di
+WEDNESDAY_SIG|Mi
+THURSDAY_SIG|Do
+FRIDAY_SIG|Fr
+SATURDAY_SIG|Sa
+SUNDAY_SIG|So
+#
+#Lokalisierung der Bildschirmanzeige
+#
+Januar|
+Februar|
+März|
+April|
+Mai|
+Juni|
+Juli|
+August|
+September|
+Oktober|
+November|
+Dezember|
+#
+Aktuelle Anzeige schließen|
+Aktuelle Uhrzeit:|
+Aktuelles Wetter|
+Aktuelles Wetter|
+Animation wiederholen|
+Bedingung:|
+beim Download|
+Bild|
+Bitte warten|
+Bitte warten|
+Breitengrad:|
+CS-Tuxwetter beenden|
+Datei kann nicht angezeigt werden.|
+Direktanwahl Funktionen 1-4|
+Direktanwahl Funktionen 5-10|
+eine Seite vorblättern|
+eine Seite zurückblättern|
+Farbtasten Rot, Grün, Gelb, Blau|
+fehlende Übersetzungen anzeigen|
+Fehlende Übersetzungen|
+Fehler|
+Fehlliste löschen|
+Fernsicht:|
+Formatfehler der URL in der tuxwetter.conf|
+gefühlt:|
+Heute|
+Hoch|
+Höchste Temperatur:|
+Höchstwerte|
+Home|
+Kein Eintrag|
+Keine Daten vom Wetterserver erhalten!|
+Keine fehlenden Übersetzungen|
+Längengrad:|
+Links (bei mehrseitigen Menüs)|
+Links (in Bildanzeige)|
+Luftdruck:|
+Luftfeuchtigkeit:|
+Menüpunkt ausführen|
+Menü-Taste (im Hauptmenü)|
+mit|
+Mondphase:|
+nächsten Eintrag anzeigen|
+nächster Menüeintrag|
+Nachtwerte|
+neu downloaden (für WebCams)|
+Nicht unterstütztes Dateiformat|
+OK/Home|
+OK|
+Ortszeit:|
+Rechts (bei Ani-GIF's)|
+Rechts (bei mehrseitigen Menüs)|
+Regenrisiko:|
+Rot (in fehlenden Übersetzungen)|
+Runter|
+Sonnenaufgang:|
+Sonnenuntergang:|
+Standby-Taste|
+Standort:|
+Steuertasten in Daten- und Grafikanzeige|
+Steuertasten in den Menüs|
+Tageswerte|
+Taupunkt:|
+Temperatur:|
+Tiefste Temperatur:|
+Tiefstwerte|
+Trend für die kommende Woche|
+Uhr|
+Ungültige Daten aus tuxwetter.conf|
+UV-Index:|
+von|
+vorherigen Eintrag anzeigen|
+vorheriger Menüeintrag|
+Vorschau für|
+Wetterdaten für|
+Wind:|
+windstill|
+Wochentrend anzeigen|
+Wochentrend|
+Zeitpunkt der Messung:|
+Zifferntasten 1-6|
+zurück zum vorigen Menü|

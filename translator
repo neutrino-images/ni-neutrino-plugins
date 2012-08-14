@@ -1,0 +1,90 @@
+#!/bin/sh
+#-------------------------------------------------------------------
+# Translator Skript 
+#
+# 
+# translator.sh
+#
+# englisch,franzoesisch Übersetzung mit pda.leo.org
+#
+# V1.1
+#
+# Original von SnowHead
+#
+# Geaendert von barabas
+#
+# V1.2  die Uebersetzung kann nun auch mehrere Worte umfassen
+#
+# Danke an Seddi und zombi
+#
+# V1.3  Anpassung an geaendertes Seitenformat von leo
+#
+#-------------------------------------------------------------------
+
+# URL zur Ausgabedatei
+url=http://localhost/../../../../tmp/pdaleo.html
+
+# Abfrage Sprache waehlen 
+# echo=0 also Rueckgabewert erster Button 1 , zweiter Button 2 , dritter Button 3 
+msgbox title="Leo-~Ubersetzer" msg="~cBitte Sprache ausw~ahlen." select="Abbruch,Deutsch<->Englisch,Deutsch<->Franz~osisch" default=2 timeout=20
+lng=$?
+
+if [ $lng -gt 1 ] ; then
+  
+      case "$lng" in
+      2) lang="ende"
+         ask="englisches/deutsches"
+         ;;
+      3) lang="frde"
+         ask="franz~osisches/deutsches"
+         ;;
+      esac
+    
+     suche="_"
+
+     until [ ! "$suche" ]; do
+     
+          suche=`input t='Zu ~ubersetzendes '$ask' Wort eingeben:' l='@@@@@@@@@@@@@@@@@@@@@@@@@' k=1 d="$suche"`
+          if [ "$suche" ] ; then
+            
+            # bei mehreren Wörtern Leerzeichen durch + ersetzen
+            # und Suchbegriff für TXTHTML aendern
+            # einzelnes Wort -> Treffer
+            # mehrere Worte  -> Uebereinstimmungen
+            
+            if [ `echo $suche | grep -c " "` -gt 0 ]
+            then
+#              leosuche="`echo $suche | sed 's/ /+/g'`"
+              startstring="bereinstimmungen"
+            else
+#              leosuche=$suche
+              startstring="Unmittelbare Treffer"
+            fi
+			leosuche=`echo $suche | sed "s/' '/'+'/g;s/~A/Ã„/g;s/~O/Ã–/g;s/~U/Ãœ/g;s/~a/Ã¤/g;s/~o/Ã¶/g;s/~u/Ã¼/g;s/~s/ÃŸ/g"`
+
+            # http://pda.leo.org/?lp=ende&lang=de&searchLoc=0&cmpType=relaxed&relink=on&sectHdr=on&spellToler=std&search=das+Haus
+             
+            wget -O /tmp/pdaleo.tmp 'http://pda.leo.org/?lp='$lang'&lang=de&searchLoc=0&cmpType=relaxed&relink=on&sectHdr=on&spellToler=std&search='$leosuche
+            sed 's/&nbsp;//g
+                 s/<\/td>/\n/g
+                 s/<\n\n>/\n/g
+                 s/<B>/~G/g
+                 s/<\/B>/~S/g
+                 s/\&reg;//g
+				 s/Ã„/Ä/g
+				 s/Ã–/Ö/g
+				 s/Ãœ/Ü/g
+			     s/Ã¤/ä/g
+				 s/Ã¶/ö/g
+				 s/Ã¼/ü/g
+				 s/ÃŸ/ß/g' /tmp/pdaleo.tmp > /tmp/pdaleo.html
+
+#			suche=`echo $suche | sed "s/Ã„/Ä/g;s/Ã–/Ö/g;s/Ãœ/Ü/g;s/Ã¤/ä/g;s/Ã¶/ö/g;s/Ã¼/ü/g;s/ÃŸ/ß/g;s/Â//g;s/â€“/---/g;s/Ã©/é/g;s/Ã³/ó/g"`
+            /var/plugins/tuxwet/tuxwetter "TXTHTML=~Ubersetzung f~ur ~G$suche,$url|$startstring|table>"
+            
+            rm /tmp/pdaleo.*
+          fi
+          
+     done
+
+fi
