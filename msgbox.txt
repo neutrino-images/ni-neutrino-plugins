@@ -1,0 +1,8 @@
+~cBeispiel f~ur Formatierungs-M~oglichkeiten der Message-Box
+~s
+Text ist in Standard, ~Rrot~S, ~Ggr~un~S, ~Bblau~S und ~Ygelb ~Sm~oglich
+~cZeilen k~onnen zentriert,
+~roder auf Rechtsanschlag formatiert werden
+
+Tabulatoren:~tTab1~tTab2~tTab3~tTab4~tTab5~tTab6
+~t~tTab1~t~tTab3~t~tTab5
