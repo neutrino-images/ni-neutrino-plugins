@@ -44,7 +44,7 @@
 #include "resize.h"
 #include "gifdecomp.h"
 
-#define P_VERSION "3.03"
+#define P_VERSION "3.04"
 
 #ifndef HAVE_DREAMBOX_HARDWARE
 char CONVERT_LIST[]="/var/tuxbox/config/tuxwetter/convert.list";
@@ -1229,7 +1229,7 @@ time_t atime;
 struct tm *sltime;
 char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 
-	if(var_screeninfo.xres < 800)
+	if (var_screeninfo.xres < 1280)
 		slim=1;
 
 	clear_screen();

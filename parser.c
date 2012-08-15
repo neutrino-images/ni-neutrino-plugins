@@ -373,6 +373,7 @@ int parser(char *citycode, char *trans, int metric, int inet, int ctmo)
 						data[bc][cc] = toupper(gettemp);
 					else
 						data[bc][cc] = gettemp;
+					//printf("#2 data[%d][%d] = %c(%d)\n",bc,cc,gettemp,gettemp);
 					cc++;
 					d_flag=1;
 					if(cc == MAXMEM-1) rec = 0;
@@ -386,6 +387,7 @@ int parser(char *citycode, char *trans, int metric, int inet, int ctmo)
 				if ((gettemp == '<' || gettemp == ']') && d_flag)
 				{
 					data[bc][cc] = '\0';
+					//printf("data[%d] = %s\n",bc,data[bc]);
 					bc++;
 					cc = 0;
 					rec = 0;

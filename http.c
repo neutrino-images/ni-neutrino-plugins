@@ -55,8 +55,10 @@ int HTTP_downloadFile(char *URL, char *downloadTarget, int showprogress, int tmo
 {
 	CURL *curl;
 	CURLcode res=-1;
-	char *pt1,*pt2,*pt3=NULL,*tstr=NULL,*surl=URL,myself[25];
-	FILE *headerfile,*netfile;
+	//char *pt1,*pt2,*pt3=NULL,myself[25];
+	char *tstr=NULL,*surl=URL;
+	FILE *headerfile;
+	//FILE *netfile;
 	int i=strlen(URL),y;
 
 	for(y=0; y<4; y++) // change HTTP to lower case
@@ -76,7 +78,7 @@ int HTTP_downloadFile(char *URL, char *downloadTarget, int showprogress, int tmo
 	curl = curl_easy_init();
 	if(curl)
 	{
-		pt1=strstr(URL,"localhost");
+/*		pt1=strstr(URL,"localhost");
 		if(!pt1)
 		{
 			pt1=strstr(URL,"127.0.0.1");
@@ -110,7 +112,7 @@ int HTTP_downloadFile(char *URL, char *downloadTarget, int showprogress, int tmo
 				}
 			}
 		}
-		speed=tmo;
+*/		speed=tmo;
 		while(res && repeats--)
 		{
 			curl_easy_setopt(curl, CURLOPT_URL, surl);
@@ -123,6 +125,7 @@ int HTTP_downloadFile(char *URL, char *downloadTarget, int showprogress, int tmo
 			curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, (ctimo)?ctimo:(30+tmo*45));
 			curl_easy_setopt(curl, CURLOPT_TIMEOUT, (tmo+1)*60);
 			curl_easy_setopt(curl, CURLOPT_FAILONERROR, 0);
+			curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
 			if(proxyadress && strstr(URL,"//127.0.0.1/")==NULL && strstr(URL,"//localhost/")==NULL)
 			{
 				curl_easy_setopt(curl, CURLOPT_PROXY, proxyadress);
