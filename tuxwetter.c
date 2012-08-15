@@ -350,7 +350,8 @@ int ReadConf(char *iscmd)
 */
 		}
 	}
-
+	if(fd_conf)
+		fclose(fd_conf);
 	return 1;
 }
 
@@ -2368,18 +2369,21 @@ unsigned char *tbuf=lfb;
 		if(fh_png_getsize(ICON_FILE, &x1, &y1, xsize, ysize))
 		{
 			printf("Tuxwetter <invalid PNG-Format>\n");
+			fclose(tfh);
 			return -1;
 		}
 #else
 		if(fh_gif_getsize(ICON_FILE, &x1, &y1, xsize, ysize))
 		{
 			printf("Tuxwetter <invalid GIF-Format>\n");
+			fclose(tfh);
 			return -1;
 		}
 #endif
 		if((buffer=(unsigned char *) malloc(x1*y1*4))==NULL)
 		{
 			printf(NOMEM);
+			fclose(tfh);
 			return -1;
 		}
 #ifdef WWEATHER
@@ -2424,6 +2428,7 @@ unsigned char *tbuf=lfb;
 
 		}
 		free(buffer);
+		fclose(tfh);
 		lfb=tbuf;
 	}
 	return (rv)?-1:0;

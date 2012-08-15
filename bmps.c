@@ -42,7 +42,6 @@ lcd_packed_buffer s;
 
 int bmp2lcd (char *bildfile) 
 {
-	char bild2lcd [50];
 	char filename[50];
 	char bmpfile[50];
 	
@@ -83,10 +82,12 @@ int bmp2lcd (char *bildfile)
 	}
 	if (fread(&bh, 1, sizeof(bh), fbmp)!=sizeof(bh)) {
 		perror("fread(BMP_HEADER)");
+		fclose(fbmp);
 		return(3);
 	}
 	if ((bh._B!='B')||(bh._M!='M')) {
 		fprintf(stderr, "Bad Magic (not a BMP file).\n");
+		fclose(fbmp);
 		return(4);
 	}
 
@@ -101,9 +102,13 @@ int bmp2lcd (char *bildfile)
 	colors = malloc(4<<bh.bit_count);
 	if (fread(colors, 1, 4<<bh.bit_count, fbmp)!=4<<bh.bit_count) {
 		perror("fread(BMP_COLORS)");
+		fclose(fbmp);
+		if(colors)
+			free(colors);
 		return(5);
 	}
-
+	if(colors)
+		free(colors);
 	// image
 	line_size = (bh.width*bh.bit_count / 8);
 	bmpline_size = (line_size + 3) & ~3;
@@ -112,6 +117,9 @@ int bmp2lcd (char *bildfile)
 	image = malloc(image_size);
 	if (fread(image, 1, image_size, fbmp)!=image_size) {
 		perror("fread(BMP_IMAGE)");
+		fclose(fbmp);
+		if(image)
+			free(image);
 		return(6);
 	}
 	fclose(fbmp);
@@ -122,6 +130,8 @@ int bmp2lcd (char *bildfile)
 		printf("WARNING: Image is compressed - result unpredictable.\n");
 
 	bmp2raw(bh, image, raw);
+	if(image)
+		free(image);
 	raw2packed(raw, s);
 
 	if(lcd_fd < 0)
