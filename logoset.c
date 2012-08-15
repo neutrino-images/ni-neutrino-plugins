@@ -106,6 +106,7 @@ int main (int argc, char **argv)
 					}
 				}
 			}
+			fclose(fh);
 		}
 	
 		system("touch /tmp/.logomask_kill");
