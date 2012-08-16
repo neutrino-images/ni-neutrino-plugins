@@ -1,0 +1,7 @@
+
+Tools/logoview:
+	git clone git://tuxcode.git.sourceforge.net/gitroot/tuxcode/cs-tools cs-tools
+	git checkout --track -b logoview origin/logoview
+
+  Aktualisieren:
+  	git pull
