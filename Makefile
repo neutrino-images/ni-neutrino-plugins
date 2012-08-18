@@ -1,15 +1,16 @@
 ###
-###  Makefile logoview - für Coolstream
+###  Makefile logoview - fÃ¼r Coolstream
 ###
 
-## Diese beiden Pfade müssen u.U. angepasst werden!
-CROSS_CDK = /opt/newcross/arm-cx2450x-linux-gnueabi
-BUILDSYSTEM = $(HOME)/coolstream/buildsystem-cs
+## Diese drei Pfade mÃ¼ssen u.U. angepasst werden!
+CROSS_CDK ?= /opt/newcross/arm-cx2450x-linux-gnueabi
+BUILDSYSTEM ?= $(HOME)/coolstream/buildsystem-cs
+N_HD_SOURCE ?= $(BUILDSYSTEM)/source/neutrino-hd-beta
 
 # includes
 includedir1 = -I$(BUILDSYSTEM)/root/include
 #includedir2 = -I$(CROSS_CDK)/arm-cx2450x-linux-gnueabi/include
-includedir3 = -I$(BUILDSYSTEM)/source/neutrino-hd-beta/lib/libconfigfile
+includedir3 = -I$(N_HD_SOURCE)/lib/libconfigfile
 
 # libraries und cdk
 libdir1 = -L$(BUILDSYSTEM)/root/lib
