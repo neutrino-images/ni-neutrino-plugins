@@ -38,17 +38,16 @@ static char spres[][5]={"","_crt","_lcd"};
 
 char *line_buffer=NULL, *title=NULL;
 int size=24, type=0, timeout=0, refresh=3, flash=0, selection=0, tbuttons=0, buttons=0, bpline=3, echo=0, absolute=0, mute=1, header=1, cyclic=1;
-char *butmsg[16];
 int rbutt[16],hide=0,radius=10;
 
 // Misc
-char NOMEM[]="msgbox <Out of memory>\n";
+const char NOMEM[]="msgbox <Out of memory>\n";
 char TMP_FILE[64]="/tmp/msgbox.tmp";
 unsigned char *lfb = 0, *lbb = 0, *obb = 0, *hbb = 0, *ibb = 0;
 unsigned char nstr[BUFSIZE]="";
 unsigned char *trstr;
 unsigned rc,sc[8]={'a','o','u','A','O','U','z','d'}, tc[8]={0xE4,0xF6,0xFC,0xC4,0xD6,0xDC,0xDF,0xB0};
-char INST_FILE[]="/tmp/rc.locked";
+const char INST_FILE[]="/tmp/rc.locked";
 int instance=0;
 
 int get_instance(void)
@@ -66,10 +65,9 @@ int rval=0;
 
 void put_instance(int pval)
 {
-FILE *fh;
-
 	if(pval)
 	{
+		FILE *fh;
 		if((fh=fopen(INST_FILE,"w"))!=NULL)
 		{
 			fputc(pval,fh);
@@ -82,7 +80,7 @@ FILE *fh;
 	}
 }
 
-static void quit_signal(int sig)
+static void quit_signal()
 {
 	put_instance(get_instance()-1);
 	printf("msgbox Version %.2f killed\n",M_VERSION);
@@ -92,13 +90,11 @@ static void quit_signal(int sig)
 int Read_Neutrino_Cfg(char *entry)
 {
 FILE *nfh;
-char tstr [512], *cfptr=NULL;
 int rv=-1;
 
 	if((nfh=fopen(NCF_FILE,"r"))!=NULL)
 	{
-		tstr[0]=0;
-
+		char tstr [512]={0}, *cfptr=NULL;
 		while((!feof(nfh)) && ((strstr(tstr,entry)==NULL) || ((cfptr=strchr(tstr,'='))==NULL)))
 		{
 			fgets(tstr,500,nfh);
@@ -322,7 +318,7 @@ FILE *xfh;
 		if((xfh=fopen(msg,"r"))!=NULL)
 		{
 			fclose(xfh);
-			strcpy(TMP_FILE,msg);
+			snprintf(TMP_FILE,sizeof(TMP_FILE),"%s",msg);
 		}
 		else
 		{
@@ -388,11 +384,10 @@ void ShowUsage(void)
 
 int main (int argc, char **argv)
 {
-int index,index2,tv,found=0, spr;
+int index=0,tv=0,found=0, spr=0;
 int dloop=1, rcc=-1, cupd=0;
-char rstr[BUFSIZE], *rptr, *aptr;
-time_t tm1,tm2;
-unsigned int alpha;
+char rstr[BUFSIZE]={0}, *rptr=NULL, *aptr=NULL;
+time_t tm1=0,tm2=0;
 //clock_t tk1=0;
 FILE *fh;
 

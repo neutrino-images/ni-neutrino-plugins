@@ -14,7 +14,7 @@ int TABULATOR=72;
 FT_Error MyFaceRequester(FTC_FaceID face_id, FT_Library library, FT_Pointer request_data, FT_Face *aface)
 {
 	FT_Error result;
-
+	request_data=request_data;//for unused request_data
 	result = FT_New_Face(library, face_id, 0, aface);
 
 	if(result) printf("msgbox <Font \"%s\" failed>\n", (char*)face_id);
@@ -70,8 +70,9 @@ int RenderChar(FT_ULong currentchar, int sx, int sy, int ex, int color)
 
 		if(color != -1) /* don't render char, return charwidth only */
 		{
-			if(sx + sbit->xadvance >= ex) return -1; /* limit to maxwidth */
-
+			if(sx + sbit->xadvance >= ex){
+				return -1; /* limit to maxwidth */
+			}
 			for(row = 0; row < sbit->height; row++)
 			{
 				for(pitch = 0; pitch < sbit->pitch; pitch++)
@@ -101,9 +102,9 @@ int RenderChar(FT_ULong currentchar, int sx, int sy, int ex, int color)
  * GetStringLen
  ******************************************************************************/
 
-int GetStringLen(int sx, unsigned char *string, int size)
+int GetStringLen(int sx, char *string, int size)
 {
-int i, found;
+unsigned int i = 0;
 int stringlen = 0;
 
 	//reset kerning
@@ -142,8 +143,8 @@ int stringlen = 0;
 					}
 					else
 					{
-						found=0;
-						for(i=0; i<sizeof(sc) && !found; i++)
+						int found=0;
+						for(i=0; i<sizeof(sc)/sizeof(sc[0]) && !found; i++)
 						{
 							if(*string==sc[i])
 							{
@@ -185,13 +186,13 @@ void CatchTabs(char *text)
 
 int RenderString(char *string, int sx, int sy, int maxwidth, int layout, int size, int color)
 {
-	int stringlen, ex, charwidth,i,found;
-	char rstr[BUFSIZE], *rptr=rstr, rc;
+	int stringlen = 0, ex = 0, charwidth = 0,found = 0;
+	unsigned int i = 0;
+	char rstr[BUFSIZE]={0}, *rptr=rstr, rc=' ';
 	int varcolor=color;
 
 	//set size
-	
-		strcpy(rstr,string);
+		snprintf(rstr,sizeof(rstr),"%s",string);
 
 		desc.width = desc.height = size;
 		TABULATOR=3*size;
@@ -225,11 +226,10 @@ int RenderString(char *string, int sx, int sy, int maxwidth, int layout, int siz
 				++rptr;
 				rc=*rptr;
 				found=0;
-				for(i=0; i<sizeof(sc) && !found; i++)
+				for(i=0; i< sizeof(sc)/sizeof(sc[0]) && !found; i++)
 				{
 					if(rc==sc[i])
 					{
-						rc=tc[i];
 						found=1;
 					}
 				}
@@ -247,7 +247,7 @@ int RenderString(char *string, int sx, int sy, int maxwidth, int layout, int siz
 						case 'Y': varcolor=YELLOW; break;
 						case 'B': varcolor=BLUE1; break;
 						case 'S': varcolor=color; break;
-						case 't':				
+						case 't':
 							sx=TABULATOR*((int)(sx/TABULATOR)+1);
 							break;
 						case 'T':

@@ -15,6 +15,7 @@
 #include <sys/dir.h>
 #include <sys/stat.h>
 #include <linux/input.h>
+#include "msgbox.h"
 
 #include "io.h"
 
@@ -23,7 +24,7 @@
 extern int instance;
 struct input_event ev;
 static unsigned short rccode=-1;
-static int rc;
+static int rc = 0;
 
 int InitRC(void)
 {
