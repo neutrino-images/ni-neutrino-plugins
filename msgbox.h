@@ -123,7 +123,7 @@ struct fb_var_screeninfo var_screeninfo;
 extern unsigned char rd[],gn[],bl[],tr[];
 
 int startx, starty, sx, ex, sy, ey, debounce, rblock;
-extern unsigned sc[8], tc[8];
+extern unsigned char sc[8], tc[8];
 char *butmsg[MAX_BUTTONS];
 extern int buttons,selection;
 extern int instance;

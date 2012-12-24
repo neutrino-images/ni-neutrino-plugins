@@ -89,11 +89,10 @@ int just, color=CMCT;
 	return(FH_ERROR_OK);
 }
 
-int fh_txt_load(const char *name, int sx, int wx, int sy, int dy, int size, int line, int *cut)
+int fh_txt_load(const char *name, int _sx, int wx, int _sy, int dy, int size, int line, int *cut)
 {
-int dummy;
-
-	return fh_txt_trans(name, sx, wx, sy, dy, size, line, cut, &dummy, &dummy, 1);
+	int dummy;
+	return fh_txt_trans(name, _sx, wx, _sy, dy, size, line, cut, &dummy, &dummy, 1);
 }
 
 

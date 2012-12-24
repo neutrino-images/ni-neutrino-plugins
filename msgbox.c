@@ -46,7 +46,8 @@ char TMP_FILE[64]="/tmp/msgbox.tmp";
 unsigned char *lfb = 0, *lbb = 0, *obb = 0, *hbb = 0, *ibb = 0;
 unsigned char nstr[BUFSIZE]="";
 unsigned char *trstr;
-unsigned rc,sc[8]={'a','o','u','A','O','U','z','d'}, tc[8]={0xE4,0xF6,0xFC,0xC4,0xD6,0xDC,0xDF,0xB0};
+unsigned char sc[8]={'a','o','u','A','O','U','z','d'}, tc[8]={0xE4,0xF6,0xFC,0xC4,0xD6,0xDC,0xDF,0xB0};
+unsigned char rc = ' ';
 const char INST_FILE[]="/tmp/rc.locked";
 int instance=0;
 
@@ -199,7 +200,7 @@ static int psx, psy, pxw, pyw, myo=0, buttx=80, butty=30, buttdx=20, buttdy=10, 
 int show_txt(int buttonly)
 {
 FILE *tfh;
-int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(buttons>bpline)?bpline:buttons,blines=1+((btns-1)/lbtns);
+int x1,y1,cut,rv=-1,btns=buttons,lbtns=(buttons>bpline)?bpline:buttons,blines=1+((btns-1)/lbtns);
 
 	if(hide)
 	{
@@ -226,6 +227,7 @@ int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(butto
 			if(type==1)
 			{
 				myo=blines*(butty+buttdy);
+				int itmp = 0,i;
 				for(i=0; i<btns; i++)
 				{
 					itmp=GetStringLen(sx,butmsg[i], 26)+10;
@@ -270,7 +272,7 @@ int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(butto
 				buttystart=psy+y1*dy;
 			}
 		}
-		
+		int bx,by,run=1,line=0,action=1;
 		while(run)
 		{
 			//frame layout
@@ -290,6 +292,7 @@ int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(butto
 				{
 					if(type==1)
 					{
+						int i;
 						for(i=0; i<btns; i++)
 						{
 							bx=i%lbtns;

@@ -11,11 +11,11 @@ int TABULATOR=72;
  * MyFaceRequester
  ******************************************************************************/
 
-FT_Error MyFaceRequester(FTC_FaceID face_id, FT_Library library, FT_Pointer request_data, FT_Face *aface)
+FT_Error MyFaceRequester(FTC_FaceID face_id, FT_Library _library, FT_Pointer request_data, FT_Face *aface)
 {
 	FT_Error result;
 	request_data=request_data;//for unused request_data
-	result = FT_New_Face(library, face_id, 0, aface);
+	result = FT_New_Face(_library, face_id, 0, aface);
 
 	if(result) printf("msgbox <Font \"%s\" failed>\n", (char*)face_id);
 
@@ -26,15 +26,13 @@ FT_Error MyFaceRequester(FTC_FaceID face_id, FT_Library library, FT_Pointer requ
  * RenderChar
  ******************************************************************************/
 
-int RenderChar(FT_ULong currentchar, int sx, int sy, int ex, int color)
+int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 {
 //	unsigned char pix[4]={oldcmap.red[col],oldcmap.green[col],oldcmap.blue[col],oldcmap.transp[col]};
 //	unsigned char pix[4]={0x80,0x80,0x80,0x80};
-	unsigned char pix[4]={bl[color],gn[color],rd[color],tr[color]};
-	int row, pitch, bit, x = 0, y = 0;
 	FT_UInt glyphindex;
 	FT_Vector kerning;
-	FT_Error error;
+//	FT_Error _error;
 
 	currentchar=currentchar & 0xFF;
 
@@ -47,9 +45,9 @@ int RenderChar(FT_ULong currentchar, int sx, int sy, int ex, int color)
 		}
 
 
-		if((error = FTC_SBitCache_Lookup(cache, &desc, glyphindex, &sbit, NULL)))
+		if((/*_error =*/ FTC_SBitCache_Lookup(cache, &desc, glyphindex, &sbit, NULL)))
 		{
-//			printf("msgbox <FTC_SBitCache_Lookup for Char \"%c\" failed with Errorcode 0x%.2X>\n", (int)currentchar, error);
+//			printf("msgbox <FTC_SBitCache_Lookup for Char \"%c\" failed with Errorcode 0x%.2X>\n", (int)currentchar, _error);
 			return 0;
 		}
 
@@ -70,9 +68,12 @@ int RenderChar(FT_ULong currentchar, int sx, int sy, int ex, int color)
 
 		if(color != -1) /* don't render char, return charwidth only */
 		{
-			if(sx + sbit->xadvance >= ex){
+			if(_sx + sbit->xadvance >= _ex){
 				return -1; /* limit to maxwidth */
 			}
+			unsigned char pix[4]={bl[color],gn[color],rd[color],tr[color]};
+			int row, pitch, bit, x = 0, y = 0;
+
 			for(row = 0; row < sbit->height; row++)
 			{
 				for(pitch = 0; pitch < sbit->pitch; pitch++)
@@ -81,7 +82,7 @@ int RenderChar(FT_ULong currentchar, int sx, int sy, int ex, int color)
 					{
 						if(pitch*8 + 7-bit >= sbit->width) break; /* render needed bits only */
 
-						if((sbit->buffer[row * sbit->pitch + pitch]) & 1<<bit) memcpy(lbb + (startx + sx + sbit->left + kerning.x + x)*4 + fix_screeninfo.line_length*(starty + sy - sbit->top + y),pix,4);
+						if((sbit->buffer[row * sbit->pitch + pitch]) & 1<<bit) memcpy(lbb + (startx + _sx + sbit->left + kerning.x + x)*4 + fix_screeninfo.line_length*(starty + _sy - sbit->top + y),pix,4);
 
 						x++;
 					}
@@ -102,7 +103,7 @@ int RenderChar(FT_ULong currentchar, int sx, int sy, int ex, int color)
  * GetStringLen
  ******************************************************************************/
 
-int GetStringLen(int sx, char *string, int size)
+int GetStringLen(int _sx, char *string, int size)
 {
 unsigned int i = 0;
 int stringlen = 0;
@@ -138,7 +139,7 @@ int stringlen = 0;
 						if(sscanf(string+1,"%4d",&i)==1)
 						{
 							string+=4;
-							stringlen=i-sx;
+							stringlen=i-_sx;
 						}
 					}
 					else
@@ -184,9 +185,9 @@ void CatchTabs(char *text)
  * RenderString
  ******************************************************************************/
 
-int RenderString(char *string, int sx, int sy, int maxwidth, int layout, int size, int color)
+int RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int size, int color)
 {
-	int stringlen = 0, ex = 0, charwidth = 0,found = 0;
+	int stringlen = 0, _ex = 0, charwidth = 0,found = 0;
 	unsigned int i = 0;
 	char rstr[BUFSIZE]={0}, *rptr=rstr, rc=' ';
 	int varcolor=color;
@@ -198,16 +199,16 @@ int RenderString(char *string, int sx, int sy, int maxwidth, int layout, int siz
 		TABULATOR=3*size;
 	//set alignment
 
-		stringlen = GetStringLen(sx, rstr, size);
+		stringlen = GetStringLen(_sx, rstr, size);
 
 		if(layout != LEFT)
 		{
 			switch(layout)
 			{
-				case CENTER:	if(stringlen < maxwidth) sx += (maxwidth - stringlen)/2;
+				case CENTER:	if(stringlen < maxwidth) _sx += (maxwidth - stringlen)/2;
 						break;
 
-				case RIGHT:	if(stringlen < maxwidth) sx += maxwidth - stringlen;
+				case RIGHT:	if(stringlen < maxwidth) _sx += maxwidth - stringlen;
 			}
 		}
 
@@ -217,7 +218,7 @@ int RenderString(char *string, int sx, int sy, int maxwidth, int layout, int siz
 
 	//render string
 
-		ex = sx + maxwidth;
+		_ex = _sx + maxwidth;
 
 		while(*rptr != '\0')
 		{
@@ -235,8 +236,8 @@ int RenderString(char *string, int sx, int sy, int maxwidth, int layout, int siz
 				}
 				if(found)
 				{
-					if((charwidth = RenderChar(rc, sx, sy, ex, varcolor)) == -1) return sx; /* string > maxwidth */
-					sx += charwidth;
+					if((charwidth = RenderChar(rc, _sx, _sy, _ex, varcolor)) == -1) return _sx; /* string > maxwidth */
+					_sx += charwidth;
 				}
 				else
 				{
@@ -248,13 +249,13 @@ int RenderString(char *string, int sx, int sy, int maxwidth, int layout, int siz
 						case 'B': varcolor=BLUE1; break;
 						case 'S': varcolor=color; break;
 						case 't':
-							sx=TABULATOR*((int)(sx/TABULATOR)+1);
+							_sx=TABULATOR*((int)(_sx/TABULATOR)+1);
 							break;
 						case 'T':
 							if(sscanf(rptr+1,"%4d",&i)==1)
 							{
 								rptr+=4;
-								sx=i;
+								_sx=i;
 							}
 						break;
 					}
@@ -262,8 +263,8 @@ int RenderString(char *string, int sx, int sy, int maxwidth, int layout, int siz
 			}
 			else
 			{
-				if((charwidth = RenderChar(*rptr, sx, sy, ex, varcolor)) == -1) return sx; /* string > maxwidth */
-				sx += charwidth;
+				if((charwidth = RenderChar(*rptr, _sx, _sy, _ex, varcolor)) == -1) return _sx; /* string > maxwidth */
+				_sx += charwidth;
 			}
 			rptr++;
 		}
