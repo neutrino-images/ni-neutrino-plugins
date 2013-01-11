@@ -568,10 +568,12 @@ FILE *fh;
 		TABULATOR=2*FSIZE_MED;
 		size=FSIZE_MED;
 		
+		/*
 		if(!echo)
 		{
 			printf("\nmsgbox  Message-Box Version %.2f\n",M_VERSION);
 		}
+		*/
 		if(!buttons)
 		{
 			butmsg[0]=strdup("OK");
