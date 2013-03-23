@@ -1102,7 +1102,7 @@ void ShowInfo(MENU *m)
 	}
 
 	// Title text
-	RenderString(m->headertxt[m->act_header], isx+45, isy+dy-soffs+3, ixw-sbw, LEFT, FSIZE_BIG, CMHT);
+	RenderString(m->headertxt[m->act_header], isx+45, isy+dy-soffs+3, ixw-sbw-45, LEFT, FSIZE_BIG, CMHT);
 
 	index /= 10;
 	//Show table of commands
