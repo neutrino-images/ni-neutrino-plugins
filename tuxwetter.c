@@ -3412,7 +3412,7 @@ PLISTENTRY pl=&epl;
 							Clear_List(&funcs, 1);
 							funcs.act_entry=0;
 							
-							sprintf(tstr,"%s %s",prs_translate("Wetterdaten für",CONVERT_LIST),city_name);
+							sprintf(tstr,"%s %s",prs_translate("Wetter für",CONVERT_LIST),city_name);
 							if(funcs.headertxt[0])
 							{
 								free(funcs.headertxt[0]);
