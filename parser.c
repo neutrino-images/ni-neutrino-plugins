@@ -301,7 +301,7 @@ int parser(char *citycode, char *trans, int metric, int inet, int ctmo)
 	int cc=0, bc=1, exit_ind=-1;
 	char gettemp;
 	FILE *wxfile=NULL;
-	char url[250];
+	char url[512];
 	char debug[505];
 	
 #ifdef WWEATHER
@@ -328,7 +328,7 @@ int parser(char *citycode, char *trans, int metric, int inet, int ctmo)
 	exit_ind=system(url);
 	sleep(1);
 */
-	sprintf (url,"http://free.worldweatheronline.com/feed/weather.ashx?q=%s&format=xml&num_of_days=5&includeLocation=yes&key=%s",citycode,key);
+	sprintf (url,"http://api.worldweatheronline.com/free/v1/weather.ashx?q=%s&format=xml&num_of_days=5&includeLocation=yes&key=%s",citycode,key);
 	exit_ind=HTTP_downloadFile(url, "/tmp/tuxwettr.tmp", 0, inet, ctmo, 3);
 
 	if(exit_ind != 0)
