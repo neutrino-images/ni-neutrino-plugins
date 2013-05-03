@@ -231,6 +231,7 @@ int RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int s
 				{
 					if(rc==sc[i])
 					{
+						rc=tc[i];
 						found=1;
 					}
 				}
