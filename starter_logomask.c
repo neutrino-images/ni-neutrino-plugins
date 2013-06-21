@@ -38,7 +38,7 @@ int main(void)
                 fprintf(stderr, "[%s.so] forked, executing %s\n", SCRIPT, SCRIPT);
                 for (ret=3 ; ret < 255; ret++)
                        close (ret);
-                        ret = system("/var/plugins/lmask");
+                        ret = system("/bin/logomask.sh");
                         if (ret)
                                 fprintf(stderr, "[%s.so] script return code: %d (%m)\n", SCRIPT, ret);
                         else
