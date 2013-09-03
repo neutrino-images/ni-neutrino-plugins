@@ -133,7 +133,7 @@ int jpeg_getsize(const char *filename,int *x,int *y, int wanted_width, int wante
 	struct jpeg_decompress_struct *ciptr;
 	struct r_jpeg_error_mgr emgr;
 
-	int px,py,c;
+	int px,py/*,c*/;
 	FILE *fh;
 	ciptr=&cinfo;
 	if(!(fh=fopen(filename,"rb"))) return(FH_ERROR_FILE);
@@ -168,7 +168,7 @@ int jpeg_getsize(const char *filename,int *x,int *y, int wanted_width, int wante
 
 	jpeg_start_decompress(ciptr);
 	px=ciptr->output_width; py=ciptr->output_height;
-	c=ciptr->output_components;
+//	c=ciptr->output_components;
 	*x=px; 
 	*y=py;
 //	jpeg_finish_decompress(ciptr);
