@@ -1,25 +1,33 @@
 ###
-###  Makefile logoview - für Coolstream
+###  Makefile logoview - für CST nevis / apollo
 ###
 
-## Diese drei Pfade müssen u.U. angepasst werden!
-CROSS_CDK ?= /opt/newcross/arm-cx2450x-linux-gnueabi
+PLATFORM = apollo
+#PLATFORM = nevis
+
+## Diese Pfade müssen u.U. angepasst werden!
+CROSS_CDK   ?= /opt/newcross/$(PLATFORM)
+N_HD_SOURCE ?= $(BUILDSYSTEM)/source/neutrino-hd
+ifeq ($(PLATFORM), nevis)
 BUILDSYSTEM ?= $(HOME)/coolstream/buildsystem-cs
-N_HD_SOURCE ?= $(BUILDSYSTEM)/source/neutrino-hd-beta
+HOST         = arm-cx2450x-linux-gnueabi
+endif
+
+ifeq ($(PLATFORM), apollo)
+BUILDSYSTEM ?= $(HOME)/coolstream/bs-apollo
+HOST         = arm-pnx8400-linux-uclibcgnueabi
+endif
 
 # includes
 includedir1 = -I$(BUILDSYSTEM)/root/include
-#includedir2 = -I$(CROSS_CDK)/arm-cx2450x-linux-gnueabi/include
 includedir3 = -I$(N_HD_SOURCE)/lib/libconfigfile
 
 # libraries und cdk
 libdir1 = -L$(BUILDSYSTEM)/root/lib
-#libdir2 = -L$(CROSS_CDK)/arm-cx2450x-linux-gnueabi/lib
 LD_ADD = $(BUILDSYSTEM)/build_tmp/neutrino-hd/lib/libconfigfile/libtuxbox-configfile.a
 
 # Pfad zum Cross-Compiler
 CCPATH        = $(CROSS_CDK)/bin
-HOST          = arm-cx2450x-linux-gnueabi
 CROSS_COMPILE = $(CCPATH)/$(HOST)
 
 CC            = $(CROSS_COMPILE)-gcc
@@ -39,9 +47,11 @@ LIBS = $(libdir1) $(libdir2)
 #LIBS += -L$(CROSS_CDK)/lib
 LIBS += -lstdc++ -ljpeg
 
-CFLAGS = $(INCLUDES) -Wall -W -Wshadow -Wl,-O1 -pipe -g -O2 -fno-strict-aliasing -DUSE_NEVIS_GXA
+#ACCEL = -DUSE_NEVIS_GXA
+
+CFLAGS = $(INCLUDES) -Wall -W -Wshadow -Wl,-O1 -pipe -g -ggdb3 -fno-strict-aliasing $(ACCEL)
 CPPFLAGS = 
-CXXFLAGS = $(INCLUDES) -Wall -W -Wshadow -Wl,-O1 -g -O2 -fno-strict-aliasing -DUSE_NEVIS_GXA
+CXXFLAGS = $(INCLUDES) -Wall -W -Wshadow -Wl,-O1 -g -ggdb3 -fno-strict-aliasing $(ACCEL)
 LDFLAGS = $(LIBS)
 
 .c.o:
