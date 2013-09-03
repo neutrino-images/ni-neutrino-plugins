@@ -50,10 +50,10 @@
 #include "logoview.h"
 #include "jpeg.h"
 
-#define LV_VERSION "1.03"
+#define LV_VERSION "1.04"
 #define VERSIONSTR "\n\
       ------------------------------------------------------------\n\
-      -- logoview v" LV_VERSION " * (C)2011-2012, M. Liebmann (micha-bbg) --\n\
+      -- logoview v" LV_VERSION " * (C)2011-2013, M. Liebmann (micha-bbg) --\n\
       ------------------------------------------------------------\n\n"
 #define FLAG_FILE "/tmp/.logoview"
 #define NEUTRINO_CONF "/var/tuxbox/config/neutrino.conf"
@@ -87,6 +87,7 @@ CLogoView::CLogoView()
 	screen_EndX   = 0;
 	screen_EndY   = 0;
 	screen_preset = 0;
+	stride        = 0;
 	lfb           = 0;
 	PicBuf        = 0;
 	TmpBuf        = 0;
@@ -109,7 +110,7 @@ void CLogoView::SetScreenBuf(unsigned char *buf, int r, int g, int b, int t)
 TIMER_START();
 	for(unsigned int z = 0; z < var_screeninfo.yres; z++) {
 		unsigned int s1 = 0;
-		unsigned int z1 = z * fix_screeninfo.line_length;
+		unsigned int z1 = z * stride;
 		for (unsigned int s = 0; s < var_screeninfo.xres; s++) {
 			ScBuf[z1 + s1 + 3] = t; // transp
 			ScBuf[z1 + s1 + 0] = b; // blue
@@ -118,7 +119,7 @@ TIMER_START();
 			s1 += 4;
 		}
 	}
-	memcpy(buf, ScBuf, fix_screeninfo.line_length*var_screeninfo.yres);
+	memcpy(buf, ScBuf, stride*var_screeninfo.yres);
 TIMER_STOP("[logoview] SetScreenBuf   ");
 }
 
@@ -221,6 +222,64 @@ static struct option long_options[] = {
 	{NULL,          0, NULL, 0}
 };
 
+void * CLogoView::int_convertRGB2FB(unsigned char *rgbbuff, unsigned long x, unsigned long y, bool alpha)
+{
+	unsigned long i;
+	unsigned int *fbbuff;
+	unsigned long count = x * y;
+
+	fbbuff = (unsigned int *) malloc(count * sizeof(unsigned int));
+	if(fbbuff == NULL) {
+		printf("convertRGB2FB%s: Error: malloc\n", ((alpha) ? " (Alpha)" : ""));
+		return NULL;
+	}
+
+	if (alpha) {
+		for(i = 0; i < count ; i++)
+			fbbuff[i] = ((rgbbuff[i*4+3] << 24) & 0xFF000000) |
+				    ((rgbbuff[i*4]   << 16) & 0x00FF0000) |
+				    ((rgbbuff[i*4+1] <<  8) & 0x0000FF00) |
+				    ((rgbbuff[i*4+2])       & 0x000000FF);
+	}
+	else {
+			for(i = 0; i < count ; i++)
+				fbbuff[i] = 0xFF000000 | ((rgbbuff[i*3] << 16) & 0xFF0000) | ((rgbbuff[i*3+1] << 8) & 0xFF00) | (rgbbuff[i*3+2] & 0xFF);
+	}
+	return (void *) fbbuff;
+}
+
+void * CLogoView::convertRGB2FB(unsigned char *rgbbuff, unsigned long x, unsigned long y)
+{
+	return int_convertRGB2FB(rgbbuff, x, y, false);
+}
+
+void * CLogoView::convertRGBA2FB(unsigned char *rgbbuff, unsigned long x, unsigned long y)
+{
+	return int_convertRGB2FB(rgbbuff, x, y, true);
+}
+
+void CLogoView::blitPicture(void *fbbuff, uint32_t width, uint32_t height, uint32_t xoff, uint32_t yoff, uint32_t xp, uint32_t yp)
+{
+	int xc = std::min(width, var_screeninfo.xres);
+	int yc = std::min(height, var_screeninfo.yres);
+
+	uint32_t* data = (uint32_t *) fbbuff;
+	uint8_t * d = ((uint8_t *)lfb) + xoff * sizeof(uint32_t) + stride * yoff;
+	uint32_t * d2;
+
+	for (int count = 0; count < yc; count++ ) {
+		uint32_t *pixpos = &data[(count + yp) * width];
+		d2 = (uint32_t *) d;
+		for (int count2 = 0; count2 < xc; count2++ ) {
+			uint32_t pix = *(pixpos + xp);
+			*d2 = pix;
+			d2++;
+			pixpos++;
+		}
+		d += stride;
+	}
+}
+
 int CLogoView::run(int argc, char* argv[])
 {
 #ifdef LV_DEBUG
@@ -275,6 +334,7 @@ int CLogoView::run(int argc, char* argv[])
 		ClearThis(false);
 		return -1;
 	}
+	stride = fix_screeninfo.line_length;
 	if(ioctl(fb, FBIOGET_VSCREENINFO, &var_screeninfo) == -1) {
 		perror("[logoview] <FBIOGET_VSCREENINFO>\n");
 		ClearThis(false);
@@ -305,12 +365,12 @@ int CLogoView::run(int argc, char* argv[])
 		ClearThis(false);
 		return -1;
 	}
-	if ((TmpBuf = (unsigned char *)malloc(fix_screeninfo.line_length * var_screeninfo.yres)) == NULL) {
+	if ((TmpBuf = (unsigned char *)malloc(stride * var_screeninfo.yres)) == NULL) {
 		perror(nomem.c_str());
 		ClearThis(false);
 		return -1;
 	}
-	if ((ScBuf = (unsigned char *)malloc(fix_screeninfo.line_length * var_screeninfo.yres)) == NULL) {
+	if ((ScBuf = (unsigned char *)malloc(stride * var_screeninfo.yres)) == NULL) {
 		perror(nomem.c_str());
 		ClearThis(false);
 		return -1;
@@ -326,16 +386,8 @@ TIMER_START();
 	}
 TIMER_STOP("[logoview] load pic       ");
 
-	int skalFaktor = 8;
-	int skalKorr   = 2;
-	unsigned int tmp_xres = (var_screeninfo.xres - (screen_StartX + (var_screeninfo.xres - screen_EndX)));
-	unsigned int tmp_yres = (var_screeninfo.yres - (screen_StartY + (var_screeninfo.yres - screen_EndY)));
-	unsigned int xres = (((var_screeninfo.xres - (screen_StartX + (var_screeninfo.xres - screen_EndX))) / skalFaktor) + skalKorr) * skalFaktor;
-	unsigned int yres = (((var_screeninfo.yres - (screen_StartY + (var_screeninfo.yres - screen_EndY))) / skalFaktor) + skalKorr) * skalFaktor;
-//printf("##### tmp_xres: %d, tmp_yres: %d, xres: %d, yres: %d\n", tmp_xres, tmp_yres, xres, yres);
-	tmp_xres = (xres - tmp_xres) / 2;
-	tmp_yres = (yres - tmp_yres) / 2;
-//printf("##### tmp_xres: %d, tmp_yres: %d, xres: %d, yres: %d\n", tmp_xres, tmp_yres, xres, yres);
+	unsigned int xres = (var_screeninfo.xres - (screen_StartX + (var_screeninfo.xres - screen_EndX)));
+	unsigned int yres = (var_screeninfo.yres - (screen_StartY + (var_screeninfo.yres - screen_EndY)));
 
 TIMER_START();
 	PicBuf = Resize(PicBuf, x, y, xres, yres, false);
@@ -347,25 +399,14 @@ TIMER_STOP("[logoview] Resize         ");
 	SetScreenBuf(TmpBuf, 0, 0, 0, 0xFF); // black screen
 
 TIMER_START();
-	for(unsigned int z = 0; z < yres; z++) {
-		unsigned int s1 = (screen_StartX - tmp_xres) * 4;
-		unsigned int s2 = 0;
-		unsigned int z1 = (z + screen_StartY - tmp_yres) * fix_screeninfo.line_length;
-		unsigned int z2 = z * 3 * xres;
-		for (unsigned int s = 0; s < xres; s++) {
-			TmpBuf[z1 + s1 + 3] = 0xFF; // transp
-			TmpBuf[z1 + s1 + 0] = PicBuf[z2 + s2 + 2]; // blue
-			TmpBuf[z1 + s1 + 1] = PicBuf[z2 + s2 + 1]; // green
-			TmpBuf[z1 + s1 + 2] = PicBuf[z2 + s2 + 0]; // red
-			s1 += 4;
-			s2 += 3;
-		}
-	}
-TIMER_STOP("[logoview] buffer         ");
-
+	uint8_t* tmpB = (uint8_t*)convertRGB2FB(PicBuf, xres, yres);
+TIMER_STOP("[logoview] convertRGB2FB  ");
+	if (tmpB != NULL) {
 TIMER_START();
-	memcpy(lfb, TmpBuf, fix_screeninfo.line_length*var_screeninfo.yres);
-TIMER_STOP("[logoview] display screen ");
+		blitPicture(tmpB, xres, yres, screen_StartX, screen_StartY, 0, 0);
+		free(tmpB);
+TIMER_STOP("[logoview] blitPicture    ");
+	}
 
 	time_t startTime = time(NULL);
 	while (true)

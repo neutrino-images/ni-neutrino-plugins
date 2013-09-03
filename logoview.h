@@ -78,6 +78,7 @@ class CLogoView
 		unsigned char *lfb, *PicBuf, *TmpBuf, *ScBuf;
 		struct fb_fix_screeninfo fix_screeninfo;
 		struct fb_var_screeninfo var_screeninfo;
+		int stride;
 		std::string nomem, start_logo;
 		unsigned int screen_StartX, screen_StartY, screen_EndX, screen_EndY;
 		int screen_preset, fb;
@@ -88,6 +89,10 @@ class CLogoView
 		bool ReadConfig();
 		unsigned char * Resize(unsigned char *orgin, int ox, int oy, int dx, int dy, bool alpha);
 		void SetScreenBuf(unsigned char *buf, int r, int g, int b, int t);
+		void blitPicture(void *fbbuff, uint32_t width, uint32_t height, uint32_t xoff, uint32_t yoff, uint32_t xp, uint32_t yp);
+		void * int_convertRGB2FB(unsigned char *rgbbuff, unsigned long x, unsigned long y, bool alpha);
+		void * convertRGB2FB(unsigned char *rgbbuff, unsigned long x, unsigned long y);
+		void * convertRGBA2FB(unsigned char *rgbbuff, unsigned long x, unsigned long y);
 };
 
 #ifdef LV_DEBUG
