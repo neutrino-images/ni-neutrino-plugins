@@ -71,3 +71,7 @@ clean:
 
 strip:
 	$(STRIP) logoview
+
+binfile: all
+	mkdir -p bin
+	cp -a logoview bin/logoview.$(PLATFORM)
