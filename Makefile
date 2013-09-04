@@ -2,20 +2,24 @@
 ###  Makefile logoview - für CST nevis / apollo
 ###
 
-PLATFORM = apollo
-#PLATFORM = nevis
+# inside the well-known buildsystems logoview can be compiled with
+# $(MAKE) logoview CROSS_CDK=$(CROSS_DIR) BUILDSYSTEM=$(BASE_DIR) N_HD_SOURCE=$(N_HD_SOURCE) TARGET=$(TARGET)
+# in this case there's no need to edit the following variables
 
-## Diese Pfade müssen u.U. angepasst werden!
-CROSS_CDK   ?= /opt/newcross/$(PLATFORM)
+# Diese Variablen müssen u.U. angepasst werden!
+BOXMODEL    ?= apollo
+#BOXMODEL    ?= nevis
+CROSS_CDK   ?= /opt/newcross/$(BOXMODEL)
 N_HD_SOURCE ?= $(BUILDSYSTEM)/source/neutrino-hd
-ifeq ($(PLATFORM), nevis)
-BUILDSYSTEM ?= $(HOME)/coolstream/buildsystem-cs
-HOST         = arm-cx2450x-linux-gnueabi
+
+ifeq ($(BOXMODEL), nevis)
+  BUILDSYSTEM ?= $(HOME)/coolstream/buildsystem-cs
+  TARGET      ?= arm-cx2450x-linux-gnueabi
 endif
 
-ifeq ($(PLATFORM), apollo)
-BUILDSYSTEM ?= $(HOME)/coolstream/bs-apollo
-HOST         = arm-pnx8400-linux-uclibcgnueabi
+ifeq ($(BOXMODEL), apollo)
+  BUILDSYSTEM ?= $(HOME)/coolstream/bs-apollo
+  TARGET      ?= arm-pnx8400-linux-uclibcgnueabi
 endif
 
 # includes
@@ -28,14 +32,14 @@ LD_ADD = $(BUILDSYSTEM)/build_tmp/neutrino-hd/lib/libconfigfile/libtuxbox-config
 
 # Pfad zum Cross-Compiler
 CCPATH        = $(CROSS_CDK)/bin
-CROSS_COMPILE = $(CCPATH)/$(HOST)
+CROSS_COMPILE = $(CCPATH)/$(TARGET)
 
 CC            = $(CROSS_COMPILE)-gcc
 #CPP           = $(CROSS_COMPILE)-gcc -E
 #CXX           = $(CROSS_COMPILE)-g++
 #CXXCPP        = $(CROSS_COMPILE)-g++ -E
 #LD            = $(CROSS_COMPILE)-ld
-#LD            = $(CROSS_CDK)/$(HOST)/bin/ld
+#LD            = $(CROSS_CDK)/$(TARGET)/bin/ld
 #AR            = $(CROSS_COMPILE)-ar
 #NM            = $(CROSS_COMPILE)-nm
 #RANLIB        = $(CROSS_COMPILE)-ranlib
@@ -74,4 +78,4 @@ strip:
 
 binfile: all
 	mkdir -p bin
-	cp -a logoview bin/logoview.$(PLATFORM)
+	cp -a logoview bin/logoview.$(BOXMODEL)
