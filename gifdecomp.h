@@ -26,6 +26,6 @@
 #define __GIFDECOMP_H__
 
 int gifdecomp(char *InFileName, char *OutFileName);
-void QuitGifError(GifFileType *GifFileIn, GifFileType *GifFileOut);
+void QuitGifError(GifFileType *GifFileIn, GifFileType *GifFileOut, int ErrorCode);
 
 #endif

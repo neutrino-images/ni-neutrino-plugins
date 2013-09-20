@@ -78,8 +78,9 @@ int fh_gif_load(const char *name,unsigned char *buffer,int x,int y)
 	GifRecordType rt;
 	ColorMapObject *cmap;
 	int cmaps;
+	int gifError = 0;
 
-	gft=DGifOpenFileName(name);
+	gft=DGifOpenFileName(name, &gifError);
 	if(gft==NULL) gflush;
 	do
 	{
@@ -146,8 +147,9 @@ int fh_gif_getsize(const char *name,int *x,int *y, int wanted_width, int wanted_
 	GifByteType *extension;
 	int extcode;
 	GifRecordType rt;
+	int gifError = 0;
 
-	gft=DGifOpenFileName(name);
+	gft=DGifOpenFileName(name, &gifError);
 	if(gft==NULL) gflush;
 	do
 	{
