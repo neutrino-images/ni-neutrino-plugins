@@ -228,7 +228,7 @@ return FileNum;
 ******************************************************************************/
 void QuitGifError(GifFileType *GifFileIn, GifFileType *GifFileOut)
 {
-    PrintGifError();
+    GifErrorString();
     if (GifFileIn != NULL) DGifCloseFile(GifFileIn);
     if (GifFileOut != NULL) EGifCloseFile(GifFileOut);
 //    exit(EXIT_FAILURE);
@@ -237,41 +237,39 @@ void QuitGifError(GifFileType *GifFileIn, GifFileType *GifFileOut)
 
 int LoadImage(GifFileType *GifFile, GifRowType **ImageBufferPtr)
 {
-    int Size, i, j, Count;
+    int Size, i, j;
     GifRowType *ImageBuffer;
 
     /* Allocate the image as vector of column of rows. We cannt allocate     */
     /* the all screen at once, as this broken minded CPU can allocate up to  */
     /* 64k at a time and our image can be bigger than that:		     */
-    if ((ImageBuffer = (GifRowType *)
-	malloc(GifFile->Image.Height * sizeof(GifRowType *))) == NULL)
-	    GIF_EXIT("Failed to allocate memory required, aborted.");
+    if ((ImageBuffer = (GifRowType *) malloc(GifFile->Image.Height * sizeof(GifRowType *))) == NULL) {
+	printf("Failed to allocate memory required, aborted.");
+	return GIF_ERROR;
+	}
 
     Size = GifFile->Image.Width * sizeof(GifPixelType);/* One row size in bytes.*/
     for (i = 0; i < GifFile->Image.Height; i++) {
 	/* Allocate the rows: */
-	if ((ImageBuffer[i] = (GifRowType) malloc(Size)) == NULL)
-	    GIF_EXIT("Failed to allocate memory required, aborted.");
+	if ((ImageBuffer[i] = (GifRowType) malloc(Size)) == NULL) {
+		printf("Failed to allocate memory required, aborted.");
+		return GIF_ERROR;
+	}
     }
 
     *ImageBufferPtr = ImageBuffer;
 
-    GifQprintf("\n%s: Image %d at (%d, %d) [%dx%d]:     ",
-	PROGRAM_NAME, ++ImageNum, GifFile->Image.Left, GifFile->Image.Top,
-				 GifFile->Image.Width, GifFile->Image.Height);
     if (GifFile->Image.Interlace) {
 	/* Need to perform 4 passes on the images: */
-	for (Count = i = 0; i < 4; i++)
+	for (i = 0; i < 4; i++)
 	    for (j = InterlacedOffset[i]; j < GifFile->Image.Height;
 						 j += InterlacedJumps[i]) {
-//		GifQprintf("\b\b\b\b%-4d", Count++);
 		if (DGifGetLine(GifFile, ImageBuffer[j], GifFile->Image.Width)
 		    == GIF_ERROR) return GIF_ERROR;
 	    }
     }
     else {
 	for (i = 0; i < GifFile->Image.Height; i++) {
-//	    GifQprintf("\b\b\b\b%-4d", i);
 	    if (DGifGetLine(GifFile, ImageBuffer[i], GifFile->Image.Width)
 		== GIF_ERROR) return GIF_ERROR;
 	}
@@ -288,21 +286,19 @@ int LoadImage(GifFileType *GifFile, GifRowType **ImageBufferPtr)
 ******************************************************************************/
 int DumpImage(GifFileType *GifFile, GifRowType *ImageBuffer)
 {
-    int i, j, Count;
+    int i, j;
 
     if (GifFile->Image.Interlace) {
 	/* Need to perform 4 passes on the images: */
-	for (Count = GifFile->Image.Height, i = 0; i < 4; i++)
+	for (i = 0; i < 4; i++)
 	    for (j = InterlacedOffset[i]; j < GifFile->Image.Height;
 						 j += InterlacedJumps[i]) {
-//		GifQprintf("\b\b\b\b%-4d", Count--);
 		if (EGifPutLine(GifFile, ImageBuffer[j], GifFile->Image.Width)
 		    == GIF_ERROR) return GIF_ERROR;
 	    }
     }
     else {
-	for (Count = GifFile->Image.Height, i = 0; i < GifFile->Image.Height; i++) {
-//	    GifQprintf("\b\b\b\b%-4d", Count--);
+	for (i = 0; i < GifFile->Image.Height; i++) {
 	    if (EGifPutLine(GifFile, ImageBuffer[i], GifFile->Image.Width)
 		== GIF_ERROR) return GIF_ERROR;
 	}
