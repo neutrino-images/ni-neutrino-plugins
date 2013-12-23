@@ -30,19 +30,19 @@ extern unsigned char FONT[64];
 
 enum {LEFT, CENTER, RIGHT};
 
-FT_Error 		error;
-FT_Library		library;
-FTC_Manager		manager;
-FTC_SBitCache		cache;
-FTC_SBit		sbit;
+extern FT_Error 		error;
+extern FT_Library		library;
+extern FTC_Manager		manager;
+extern FTC_SBitCache		cache;
+extern FTC_SBit		sbit;
 #if FREETYPE_MAJOR == 2 && FREETYPE_MINOR == 0
-FTC_Image_Desc		desc;
+extern FTC_Image_Desc		desc;
 #else
-FTC_ImageTypeRec	desc;
+extern FTC_ImageTypeRec	desc;
 #endif
-FT_Face			face;
-FT_UInt			prev_glyphindex;
-FT_Bool			use_kerning;
+extern FT_Face			face;
+extern FT_UInt			prev_glyphindex;
+extern FT_Bool			use_kerning;
 
 // rc codes
 
@@ -102,7 +102,7 @@ FT_Bool			use_kerning;
 
 //devs
 
-int fb;
+extern int fb;
 
 //framebuffer stuff
 
@@ -118,13 +118,13 @@ extern int TABULATOR;
 
 extern unsigned char *lfb, *lbb, *obb, *hbb;
 
-struct fb_fix_screeninfo fix_screeninfo;
-struct fb_var_screeninfo var_screeninfo;
+extern struct fb_fix_screeninfo fix_screeninfo;
+extern struct fb_var_screeninfo var_screeninfo;
 extern unsigned char rd[],gn[],bl[],tr[];
 
-int startx, starty, sx, ex, sy, ey, debounce, rblock;
+extern int startx, starty, sx, ex, sy, ey, debounce, rblock;
 extern unsigned char sc[8], tc[8];
-char *butmsg[MAX_BUTTONS];
+extern char *butmsg[MAX_BUTTONS];
 extern int buttons,selection;
 extern int instance;
 int get_instance(void);

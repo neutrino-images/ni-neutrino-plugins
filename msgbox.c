@@ -18,6 +18,27 @@
 // if font is not in usual place, we look here:
 #define FONT "/share/fonts/neutrino.ttf"
 
+FT_Error                 error;
+FT_Library               library;
+FTC_Manager              manager;
+FTC_SBitCache            cache;
+FTC_SBit         sbit;
+#if FREETYPE_MAJOR == 2 && FREETYPE_MINOR == 0
+FTC_Image_Desc           desc;
+#else
+FTC_ImageTypeRec desc;
+#endif
+
+FT_Face                  face;
+FT_Bool                  use_kerning;
+FT_UInt                  prev_glyphindex;
+
+char *butmsg[MAX_BUTTONS];
+struct fb_fix_screeninfo fix_screeninfo;
+struct fb_var_screeninfo var_screeninfo;
+int startx, starty, sx, ex, sy, ey, debounce, rblock;
+int fb;
+
 //					   CMCST,   CMCS,  CMCT,    CMC,    CMCIT,  CMCI,   CMHT,   CMH
 //					   WHITE,   BLUE0, TRANSP,  CMS,    ORANGE, GREEN,  YELLOW, RED
 
