@@ -20,10 +20,9 @@ function cst_debug(level, msg)
 	end
 end
 
-function cst_get_bouquets(file)
+function cst_get_bouquets(s)
 	local btable={}
-	repeat
-		local string=file:read()
+	for string in string.gmatch(s, "(.-)%c") do
 		if string then
 			cst_debug(1, "########## bouquet="..string)
 			local num = string.match(string, "%d+");
@@ -35,14 +34,13 @@ function cst_get_bouquets(file)
 			end
 			--break; -- one bouquet
 		end
-	until not string
+	end
 	return btable
 end
 
-function cst_get_channels(file)
+function cst_get_channels(s)
 	local ctable={}
-	repeat
-		local string=file:read()
+	for string in string.gmatch(s, "(.-)%c") do
 		idx = 1;
 		if string then
 			cst_debug(1, "########## channel="..string)
@@ -60,7 +58,7 @@ function cst_get_channels(file)
 				end
 			end
 		end
- 	until not string	
+ 	end	
 	return ctable
 end
 
@@ -80,13 +78,11 @@ function cst_updatefeed(feed,friendly_name)
 	if not friendly_name then
 		friendly_name = feed
 	end
-	local wget = "wget -q -O- "
 	local cst_url = 'http://'..feed..'/control/'
 
-	cst_debug(0, wget..cst_url..burl)
-	local bouquetsfile = io.popen(wget..cst_url..burl)
-	local bouquets = cst_get_bouquets(bouquetsfile)
-	bouquetsfile:close()
+	cst_debug(0, "url:"..cst_url..burl)
+	local bouquets_data =  http.download(cst_url..burl)
+	local bouquets =cst_get_bouquets(bouquets_data)
 
 	if not bouquets then
 		return rc
@@ -96,13 +92,12 @@ function cst_updatefeed(feed,friendly_name)
 	for bindex,bouquett in pairs(bouquets) do
 		local cindex
 		local channelt = {}
-		cst_debug(0,wget.."\""..cst_url..curl..bindex.."\"")
-		local xmlbouquetfile = io.popen(wget.."\""..cst_url..curl..bindex.."\"")
-		local bouquet = cst_get_channels(xmlbouquetfile)
-	        xmlbouquetfile:close()
+		cst_debug(0,"url:".."\""..cst_url..curl..bindex.."\"")
+		local xmlbouquet_data =  http.download(cst_url..curl..bindex)
+		local bouquet = cst_get_channels(xmlbouquet_data)
 		if bouquet then
-			local bnum = string.format("%03d", bindex)
-	    		local m3ufilename = cfg.tmp_path.."cst_"..friendly_name.."_bouquet_"..bnum..".m3u"
+			bindex = string.format("%03d", bindex)
+	    		local m3ufilename = cfg.tmp_path.."cst_"..friendly_name.."_bouquet_"..bindex..".m3u"
 			cst_debug(0, m3ufilename)
 	    		local m3ufile = io.open(m3ufilename,"w")
 			m3ufile:write("#EXTM3U name=\""..bouquett.." ("..friendly_name..")\" plugin=coolstream type=ts\n")
@@ -122,12 +117,8 @@ function cst_updatefeed(feed,friendly_name)
 end
 
 function cst_read_url(url)
-	local wget = "wget -q -O- "
-	local turl = wget..url
-	cst_debug(0, turl)
-	local file = io.popen(turl)
-	local string = file:read()
-	file:close()
+	local string =  http.download(url)
+
 	return string
 end
 
@@ -149,7 +140,7 @@ function cst_sendurl(cst_url,range)
 
 		-- wakeup from standby
 		if string.find(standby,"on") then
-			cst_read_url(surl.."?off")
+			cst_read_url(surl.."?off&cec=off")
 		end
 	end
 	-- zap to channel
