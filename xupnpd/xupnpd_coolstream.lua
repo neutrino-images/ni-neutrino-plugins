@@ -96,8 +96,8 @@ function cst_updatefeed(feed,friendly_name)
 		local xmlbouquet_data =  http.download(cst_url..curl..bindex)
 		local bouquet = cst_get_channels(xmlbouquet_data)
 		if bouquet then
-			bindex = string.format("%03d", bindex)
-	    		local m3ufilename = cfg.tmp_path.."cst_"..friendly_name.."_bouquet_"..bindex..".m3u"
+			local bnum = string.format("%03d", bindex)
+	    		local m3ufilename = cfg.tmp_path.."cst_"..friendly_name.."_bouquet_"..bnum..".m3u"
 			cst_debug(0, m3ufilename)
 	    		local m3ufile = io.open(m3ufilename,"w")
 			m3ufile:write("#EXTM3U name=\""..bouquett.." ("..friendly_name..")\" plugin=coolstream type=ts\n")
