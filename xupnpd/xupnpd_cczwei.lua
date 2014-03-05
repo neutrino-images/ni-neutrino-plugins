@@ -13,7 +13,7 @@ function cczwei_updatefeed(feed,friendly_name)
 		local feed_m3u_path= cfg.feeds_path..friendly_name..'.m3u'
 
 		local m3ufile = io.open(tmp_m3u_filename,"w")
-		m3ufile:write("#EXTM3U name=\""..friendly_name.."\"plugin=cczwei type=mp4\n")
+		m3ufile:write("#EXTM3U name=\""..friendly_name.."\" plugin=cczwei type=mp4\n")
 		for string in string.gmatch(feed_data, '(.-)<b>') do
 			if string then
 				local num,url,title = string.match(string, 'Folge.(%d+)</b>.*<a href="(index.php.*)#%w+">(.-)</a>') 
@@ -32,7 +32,7 @@ function cczwei_updatefeed(feed,friendly_name)
 					title = string.gsub(title,'€','Euro')
 
 					num = string.format("%03d", num)
-					m3ufile:write("#EXTINF:0,".."Folge."..num.." "..title.."\n")
+					m3ufile:write("#EXTINF:0,".."Folge "..num..": "..title.."\n")
 					m3ufile:write("http://cczwei.mirror.speedpartner.de/cc2tv/CC2_"..num..".mp4\n")
 				end
 			end
@@ -54,7 +54,7 @@ function cczwei_updatefeed(feed,friendly_name)
 end
 
 function cczwei_sendurl(cczwei_url,range)
-	     plugin_sendurl(cczwei_url,cczwei_url,range)
+	plugin_sendurl(cczwei_url,cczwei_url,range)
 end
 
 
@@ -64,5 +64,4 @@ plugins.cczwei.sendurl=cczwei_sendurl
 plugins.cczwei.updatefeed=cczwei_updatefeed
 plugins.cczwei.getvideourl=cczwei_get_video_url
 
-
-cczwei_updatefeed('cczwei',        'cc_zwei_club',    'CC2club')
+cczwei_updatefeed('cczwei', 'ComputerClub2')
