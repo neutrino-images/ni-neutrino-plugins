@@ -228,7 +228,7 @@ function youtube_get_video_url(youtube_url)
                     end
                 end
 
-                urls[tonumber(item['itag'])]=item['url'] -- ..'&signature='..(item['sig'] or item['s'])
+                urls[tonumber(item['itag'])]=item['url'] ..'&signature='..(item['sig'] or item['s'] or '')
 
                 --print('\n')
             end
