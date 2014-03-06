@@ -5,7 +5,7 @@ function cczwei_updatefeed(feed,friendly_name)
 	local feed_data=http.download(url)
 	if feed_data then
 		local f1 =string.find(feed_data,'<b>TV')
-		local f2 =string.find(feed_data,'class="header">AKTUELLE')
+		local f2 =string.find(feed_data,'class="header">ALLE BEITRÄGE')
 		if f1 and f2 then
 			feed_data = string.sub(feed_data,f1,f2)
 		end
@@ -31,8 +31,16 @@ function cczwei_updatefeed(feed,friendly_name)
 					title = string.gsub(title,'®',' ')
 					title = string.gsub(title,'€','Euro')
 
+					fdi=string.find(feed_data,'<SPAN CLASS=.header.>',fdi)
+					if fdi then
+						d= string.match(feed_data, '(%d%d.%d%d.%d%d%d%d)',fdi)
+						fdi=fdi+22		  
+					end
+					if d == nil then
+						d = ""
+					end
 					num = string.format("%03d", num)
-					m3ufile:write("#EXTINF:0,".."Folge "..num..": "..title.."\n")
+					m3ufile:write("#EXTINF:0,".."Folge "..num.." -- "..d ..": "..title.."\n")
 					m3ufile:write("http://cczwei.mirror.speedpartner.de/cc2tv/CC2_"..num..".mp4\n")
 				end
 			end
