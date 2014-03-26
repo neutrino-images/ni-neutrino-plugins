@@ -131,20 +131,20 @@ function cst_sendurl(cst_url,range)
 	local i,j,baseurl = string.find(cst_url,"(.+):.+")
 	cst_debug(0, "cst_sendurl: url="..cst_url.." baseurl="..baseurl)
 
-	i,j,id = string.find(cst_url,".*id=(.+)")
-	local surl = baseurl.."/control/standby"
-	local standby = cst_read_url(surl)
+--	i,j,id = string.find(cst_url,".*id=(.+)")
+--	local surl = baseurl.."/control/standby"
+--	local standby = cst_read_url(surl)
 
-	if standby then
-		cst_debug(0, "standby="..standby)
-
-		-- wakeup from standby
-		if string.find(standby,"on") then
-			cst_read_url(surl.."?off&cec=off")
-		end
-	end
-	-- zap to channel
-	cst_zapto(baseurl,id)
+--	if standby then
+--		cst_debug(0, "standby="..standby)
+--
+--		-- wakeup from standby
+--		if string.find(standby,"on") then
+--			cst_read_url(surl.."?off&cec=off")
+--		end
+--	end
+--	-- zap to channel
+--	cst_zapto(baseurl,id)
 
 	if not cst_test then
 		plugin_sendurl(cst_url,cst_url,range)
