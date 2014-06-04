@@ -20,6 +20,59 @@ function cst_debug(level, msg)
 	end
 end
 
+function isFile(name)
+    if type(name)~="string" then return false end
+    local f = io.open(name)
+    if f then
+        f:close()
+        return true
+    end
+    return false
+end
+
+function getLogoPathfroNneutrino()
+	local f = io.open("/var/tuxbox/config/neutrino.conf", "r")
+	if f then
+		for line in f:lines() do
+			local logopath = line:match("logo_hdd_dir=(.*)")
+			if (logopath) then
+			  	print(logopath)
+				return logopath
+			end
+		end
+		f:close()
+	end
+	return "/share/tuxbox/neutrino/icons/logo"
+end
+
+function getLogo(LogoPath, id, name)
+	local NeutrinoPath = "/share/tuxbox/neutrino/icons/logo"
+	Path = {LogoPath,"/var/tuxbox/icons/logo"}
+	if(NeutrinoPath ~= LogoPath) then
+		Path[3] = NeutrinoPath
+	end
+	local x=5
+	if string.sub(id ,5,5) == '0' then 
+		x = x + 1
+	end
+	id = string.sub(id ,x,16)
+	
+	chan = {name,id}
+	for v, varPath in pairs(Path) do 
+		for v2, varChan in pairs(chan) do 
+			file = varPath .."/" .. varChan
+			if(isFile(file .. ".png")) then
+				return file .. ".png"
+			end
+			if(isFile(file .. ".jpg")) then
+				return file .. ".jpg"
+			end
+		end
+	end
+	return nil
+	
+end
+
 function cst_get_bouquets(s)
 	local btable={}
 	for string in string.gmatch(s, "(.-)%c") do
@@ -65,12 +118,12 @@ end
 -- all bouquets
 -- local burl = "getbouquets"
 -- only favorites
-local burl = "getbouquets?fav=true"
+local burl = "getbouquets?fav=true&mode=all"
 
 -- without epg
 -- local curl = "getbouquet?bouquet="
 -- with epg
-local curl = "getbouquet?epg=true&bouquet="
+local curl = "getbouquet?epg=true&mode=all&bouquet="
 
 function cst_updatefeed(feed,friendly_name)
 	local rc=false
@@ -87,6 +140,9 @@ function cst_updatefeed(feed,friendly_name)
 	if not bouquets then
 		return rc
 	end
+	local LogoPath = getLogoPathfroNneutrino()
+	local sysip =www_location
+	sysip=sysip:match('(http://%d*.%d*.%d*.%d*):*.')
 	local bindex
 	local bouquett = {}
 	for bindex,bouquett in pairs(bouquets) do
@@ -104,7 +160,14 @@ function cst_updatefeed(feed,friendly_name)
 			for cindex,channelt in pairs(bouquet) do
 				local id = channelt[1];
 				local name = channelt[2];
-				m3ufile:write("#EXTINF:0,"..name.."\n")
+
+				local logo = getLogo(LogoPath, id, name)
+				if logo == nil then
+					m3ufile:write("#EXTINF:0,"..name.."\n")
+				else
+					m3ufile:write("#EXTINF:0 logo="..sysip..logo .." ,"..name.."\n")
+				end
+
 				-- m3ufile:write(cst_url.."zapto?"..id.."\n")
 				m3ufile:write("http://"..feed..":31339/id="..id.."\n")
 			end
