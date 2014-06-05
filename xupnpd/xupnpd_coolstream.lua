@@ -30,7 +30,7 @@ function isFile(name)
     return false
 end
 
-function getLogoPathfroNneutrino()
+function getNeutrinoLogoPath()
 	local f = io.open("/var/tuxbox/config/neutrino.conf", "r")
 	if f then
 		for line in f:lines() do
@@ -48,7 +48,7 @@ end
 function getLogo(LogoPath, id, name)
 	local NeutrinoPath = "/share/tuxbox/neutrino/icons/logo"
 	Path = {LogoPath,"/var/tuxbox/icons/logo"}
-	if(NeutrinoPath ~= LogoPath) then
+	if NeutrinoPath ~= LogoPath then
 		Path[3] = NeutrinoPath
 	end
 	local x=5
@@ -61,10 +61,10 @@ function getLogo(LogoPath, id, name)
 	for v, varPath in pairs(Path) do 
 		for v2, varChan in pairs(chan) do 
 			file = varPath .."/" .. varChan
-			if(isFile(file .. ".png")) then
+			if isFile(file .. ".png") then
 				return file .. ".png"
 			end
-			if(isFile(file .. ".jpg")) then
+			if isFile(file .. ".jpg") then
 				return file .. ".jpg"
 			end
 		end
@@ -140,7 +140,7 @@ function cst_updatefeed(feed,friendly_name)
 	if not bouquets then
 		return rc
 	end
-	local LogoPath = getLogoPathfroNneutrino()
+	local LogoPath = getNeutrinoLogoPath()
 	local sysip =www_location
 	sysip=sysip:match('(http://%d*.%d*.%d*.%d*):*.')
 	local bindex
