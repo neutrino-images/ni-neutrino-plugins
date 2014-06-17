@@ -4,7 +4,7 @@
 -- Copyright (C) 2013 CoolStream International Ltd
 
 -- flag to test as plain script, without xupnpd - cfg not defined in this case
-local cst_test =  false
+local cst_test = false
 
 if not cfg then
 cfg={}
@@ -36,7 +36,7 @@ function getNeutrinoLogoPath()
 		for line in f:lines() do
 			local logopath = line:match("logo_hdd_dir=(.*)")
 			if (logopath) then
-			  	print(logopath)
+				print(logopath)
 				return logopath
 			end
 		end
@@ -115,48 +115,55 @@ function cst_get_channels(s)
 	return ctable
 end
 
--- all bouquets
--- local burl = "getbouquets"
--- only favorites
-local burl = "getbouquets?fav=true&mode=all"
+function cst_read_url(url)
+	local string = ""
+	cst_debug(0, "url: "..url)
+	if cst_test then
+		local wget = "wget -q -O- "
+		local turl = wget.."\""..url.."\""
+		local file = io.popen(turl)
+		repeat
+			local st = file:read()
+			if st then
+				string = string..st.."\n";
+			end
+		until not st
+		file:close()
+	else
+		string = http.download(url)
+	end
+	cst_debug(0, "url read: "..string.len(string))
+	return string
+end
 
--- without epg
--- local curl = "getbouquet?bouquet="
--- with epg
-local curl = "getbouquet?epg=true&mode=all&bouquet="
-
-function cst_updatefeed(feed,friendly_name)
+function cst_save_bouqutes(feed, friendly_name, mode, LogoPath, sysip)
 	local rc=false
 	local feedspath = cfg.feeds_path
-	if not friendly_name then
-		friendly_name = feed
-	end
-	local cst_url = 'http://'..feed..'/control/'
 
-	cst_debug(0, "url:"..cst_url..burl)
-	local bouquets_data =  http.download(cst_url..burl)
-	local bouquets =cst_get_bouquets(bouquets_data)
+	local cst_url = 'http://'..feed..'/control/'
+	local burl = "getbouquets?fav=true&mode="..mode
+	local curl = "getbouquet?epg=true&mode="..mode.."&bouquet="
+
+	local bouquets_data = cst_read_url(cst_url..burl)
+	local bouquets = cst_get_bouquets(bouquets_data)
 
 	if not bouquets then
 		return rc
 	end
-	local LogoPath = getNeutrinoLogoPath()
-	local sysip =www_location
-	sysip=sysip:match('(http://%d*.%d*.%d*.%d*):*.')
+
 	local bindex
 	local bouquett = {}
 	for bindex,bouquett in pairs(bouquets) do
 		local cindex
 		local channelt = {}
-		cst_debug(0,"url:".."\""..cst_url..curl..bindex.."\"")
-		local xmlbouquet_data =  http.download(cst_url..curl..bindex)
+		local xmlbouquet_data = cst_read_url(cst_url..curl..bindex)
 		local bouquet = cst_get_channels(xmlbouquet_data)
 		if bouquet then
 			local bnum = string.format("%03d", bindex)
-	    		local m3ufilename = cfg.tmp_path.."cst_"..friendly_name.."_bouquet_"..bnum..".m3u"
+			local m3ufilename = cfg.tmp_path.."cst_"..friendly_name.."_"..mode.."_bouquet_"..bnum..".m3u"
 			cst_debug(0, m3ufilename)
-	    		local m3ufile = io.open(m3ufilename,"w")
-			m3ufile:write("#EXTM3U name=\""..bouquett.." ("..friendly_name..")\" plugin=coolstream type=ts\n")
+			local m3ufile = io.open(m3ufilename,"w")
+			m3ufile:write("#EXTM3U name=\""..bouquett.." "..mode.." ".."("..friendly_name..")\" plugin=coolstream type=ts\n")
 			for cindex,channelt in pairs(bouquet) do
 				local id = channelt[1];
 				local name = channelt[2];
@@ -179,10 +186,26 @@ function cst_updatefeed(feed,friendly_name)
 	return rc
 end
 
-function cst_read_url(url)
-	local string =  http.download(url)
+function cst_updatefeed(feed,friendly_name)
+	local rc=false
+	if not friendly_name then
+		friendly_name = feed
+	end
 
-	return string
+	local LogoPath = getNeutrinoLogoPath()
+	local sysip = ""
+	if not cst_test then
+		sysip = www_location
+		sysip = sysip:match('(http://%d*.%d*.%d*.%d*):*.')
+	end
+	if cst_save_bouqutes(feed, friendly_name, "TV", LogoPath, sysip) then
+		rc = true
+	end
+	if cst_save_bouqutes(feed, friendly_name, "RADIO", LogoPath, sysip) then
+		rc = true
+	end
+
+	return rc
 end
 
 function cst_zapto(urlbase,id)
