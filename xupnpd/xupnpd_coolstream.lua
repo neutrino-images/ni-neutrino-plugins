@@ -14,6 +14,10 @@ cfg.debug=1
 cst_test = true
 end
 
+function trim(s)
+	return (s:gsub("^%s*(.-)%s*$", "%1"))
+end
+
 function cst_debug(level, msg)
 	if cfg.debug>level then
 		print(msg)
@@ -163,7 +167,7 @@ function cst_save_bouqutes(feed, friendly_name, mode, LogoPath, sysip)
 			local m3ufilename = cfg.tmp_path.."cst_"..friendly_name.."_"..mode.."_bouquet_"..bnum..".m3u"
 			cst_debug(0, m3ufilename)
 			local m3ufile = io.open(m3ufilename,"w")
-			m3ufile:write("#EXTM3U name=\""..bouquett.." "..mode.." ".."("..friendly_name..")\" plugin=coolstream type=ts\n")
+			m3ufile:write("#EXTM3U name=\""..friendly_name..": "..mode.." - "..trim(bouquett).."\" plugin=coolstream type=ts\n")
 			for cindex,channelt in pairs(bouquet) do
 				local id = channelt[1];
 				local name = channelt[2];
