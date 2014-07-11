@@ -104,7 +104,7 @@ function get_movies(_id)
 				{
 					id = i;
 					title = movie:match("\"title_plain\":\"(.-)\"");
-					content = movie:match("\"content\":\"(.-)\"");
+					content = movie:match("\"content\":\"(.-)\",\"excerpt\"");
 					cover = movie:match("\"full\":{\"url\":\"(.-)\"");
 					stream = movie:match("\"Streaming\":%[\"(.-)\"");
 				};
