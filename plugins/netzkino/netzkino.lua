@@ -40,6 +40,7 @@ function get_categories()
 				id = i;
 				categorie_id = categorie:match("\"id\":(.-),");
 				title = categorie:match("\"title\":\"(.-)\",");
+				post_count = categorie:match("\"post_count\":(.*)");
 			};
 			i = i + 1;
 		end
@@ -58,7 +59,8 @@ function get_categories_menu()
 	selected_categorie_id = 0;
 	m_categories = menu.new{name="Netzkino HD Kategorien"};
 	for index, categorie_detail in pairs(categories) do
-		m_categories:addItem{type="forwarder", action="set_categorie", id=index, name=categorie_detail.title};
+		local count = "(" .. categorie_detail.post_count .. ")"
+		m_categories:addItem{type="forwarder", value=count, action="set_categorie", id=index, name=categorie_detail.title};
 	end
 	m_categories:exec()
 	if tonumber(selected_categorie_id) ~= 0 then
