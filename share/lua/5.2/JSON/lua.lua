@@ -32,7 +32,7 @@ local OBJDEF = { VERSION = VERSION }
 --
 -- DECODING
 --
---   JSON = (loadfile "JSON.lua")() -- one-time load of the routines
+--   local JSON = require "JSON.lua" -- one-time load of the routines
 --
 --   local lua_value = JSON:decode(raw_json_text)
 --
