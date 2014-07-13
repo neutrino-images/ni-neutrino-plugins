@@ -376,3 +376,4 @@ end
 init();
 get_categories();
 os.execute("rm /tmp/netzkino_*.*");
+collectgarbage();
