@@ -265,8 +265,12 @@ function show_movie_info(_id)
 		get_movies(last_categorie_id);
 	elseif selected_stream_id ~= 0 and mode == 1 then
 		stream_movie(selected_stream_id);
+		collectgarbage();
+		get_movies(last_categorie_id);
 	elseif selected_stream_id ~= 0 and mode == 2 then
 		download_stream(selected_stream_id);
+		collectgarbage();
+		get_movies(last_categorie_id)
 	end
 end
 
@@ -350,8 +354,6 @@ function download_stream(_id)
 
 	print(script_path() .. "netzkino_wget.sh " .. stream_name .. " " .. movie_file)
 	os.execute(script_path() .. "netzkino_wget.sh " .. stream_name .. " " .. movie_file)
-
-	--FIXME show_movie_info(_id)
 end
 
 
