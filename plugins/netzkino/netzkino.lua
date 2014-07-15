@@ -17,8 +17,8 @@ function init()
 	n = neutrino();
 	page = 1;
 	max_page = 1;
-	last_categorie_id = 1;
-	selected_categorie_id = 0;
+	last_category_id = 1;
+	selected_category_id = 0;
 	selected_movie_id = 0;
 	selected_stream_id = 0;
 	mode = 0;
@@ -50,7 +50,7 @@ function get_categories()
 					categories[j] =
 					{
 						id           = j;
-						categorie_id = cat.id;
+						category_id = cat.id;
 						title        = cat.title;
 						post_count   = cat.post_count;
 					};
@@ -70,21 +70,21 @@ end
 
 -- Erstellen des Kategorien-Menü
 function get_categories_menu()
-	selected_categorie_id = 0;
+	selected_category_id = 0;
 	m_categories = menu.new{name=""..caption.." Kategorien"};
-	for index, categorie_detail in pairs(categories) do
-		local count = "(" .. categorie_detail.post_count .. ")"
-		m_categories:addItem{type="forwarder", value=count, action="set_categorie", id=index, name=categorie_detail.title};
+	for index, category_detail in pairs(categories) do
+		local count = "(" .. category_detail.post_count .. ")"
+		m_categories:addItem{type="forwarder", value=count, action="set_category", id=index, name=category_detail.title};
 	end
 	m_categories:exec()
-	if tonumber(selected_categorie_id) ~= 0 then
-		get_movies(selected_categorie_id);
+	if tonumber(selected_category_id) ~= 0 then
+		get_movies(selected_category_id);
 	end
 end
 
 -- Setzen der ausgewählten Kategorie
-function set_categorie(_id)
-	selected_categorie_id = tonumber(_id);
+function set_category(_id)
+	selected_category_id = tonumber(_id);
 	return MENU_RETURN["EXIT_ALL"];
 end
 
@@ -95,11 +95,11 @@ function get_movies(_id)
 	local page_nr = tonumber(page);
 	movies = {};
 
-	last_categorie_id = index;
+	last_category_id = index;
 
 	local sh = n:FontHeight(FONT.MENU)
 	local items = math.floor(580/sh - 4);
-	os.execute("wget -q -O " .. fname .. " 'http://www.netzkino.de/capi/get_category_posts&id=" .. categories[index].categorie_id .. "&count=" .. items .. "d&page=" .. page_nr .. "&custom_fields=Streaming'");
+	os.execute("wget -q -O " .. fname .. " 'http://www.netzkino.de/capi/get_category_posts&id=" .. categories[index].category_id .. "&count=" .. items .. "d&page=" .. page_nr .. "&custom_fields=Streaming'");
 
 	local fp = io.open(fname, "r")
 	if fp == nil then
@@ -198,11 +198,11 @@ function get_movies_menu(_id)
 	-- Vorherige Seite laden
 	elseif selected_movie_id == -1 then
 		page = page - 1;
-		get_movies(last_categorie_id);
+		get_movies(last_category_id);
 	-- Nächste Seite laden
 	elseif selected_movie_id == -2 then
 		page = page + 1;
-		get_movies(last_categorie_id);
+		get_movies(last_category_id);
 	-- Filminfo anzeigen
 	else
 		show_movie_info(selected_movie_id);
@@ -262,15 +262,15 @@ function show_movie_info(_id)
 	neutrinoExec(index);
 	w:hide{no_restore="true"};
 	if selected_stream_id == 0 then
-		get_movies(last_categorie_id);
+		get_movies(last_category_id);
 	elseif selected_stream_id ~= 0 and mode == 1 then
 		stream_movie(selected_stream_id);
 		collectgarbage();
-		get_movies(last_categorie_id);
+		get_movies(last_category_id);
 	elseif selected_stream_id ~= 0 and mode == 2 then
 		download_stream(selected_stream_id);
 		collectgarbage();
-		get_movies(last_categorie_id)
+		get_movies(last_category_id)
 	end
 end
 
