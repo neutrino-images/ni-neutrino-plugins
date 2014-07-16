@@ -205,6 +205,9 @@ function get_movies_menu(_id)
 		local sText = "Seite " .. aktPage .. " von " .. maxPage
 		m_movies:addItem{type="subhead", name=sText};
 	end
+	if page < max_page or page > 1 then
+		m_movies:addItem{type="separator"};
+	end
 	if page < max_page then
 		m_movies:addItem{type="forwarder", name="Nächste Seite", action="set_movie", id="-2", icon="blau", directkey=RC["blue"]};
 		m_movies:addKey{directkey=RC["page_down"], action="set_movie", id="-2"}
