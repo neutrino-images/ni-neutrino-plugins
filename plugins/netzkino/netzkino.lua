@@ -124,8 +124,9 @@ function get_movies(_id)
 
 	last_category_id = index;
 
-	local sh = n:FontHeight(FONT.MENU)
-	local items = math.floor(580/sh - 4);
+	--local sh = n:FontHeight(FONT.MENU)
+	--local items = math.floor(580/sh - 4);
+	local items = 10 -- because of 10 hotkeys
 	os.execute("wget -q -O " .. fname .. " 'http://www.netzkino.de/capi/get_category_posts&id=" .. categories[index].category_id .. "&count=" .. items .. "d&page=" .. page_nr .. "&custom_fields=Streaming'");
 
 	local fp = io.open(fname, "r")
@@ -218,10 +219,27 @@ function get_movies_menu(_id)
 		m_movies:addItem{type="separatorline"};
 	end
 	m_movies:addItem{type="separator"};
+
+	local d = 0 -- directkey
 	for index, movie_detail in pairs(movies) do
-		m_movies:addItem{type="forwarder", action="set_movie", id=index, name=conv_utf8(movie_detail.title)};
+		d = d + 1
+		local _icon = ""
+		local _directkey = ""
+		if d < 10 then
+			_icon = d
+			_directkey = RC["".. d ..""]
+		elseif d == 10 then
+			_icon = "0"
+			_directkey = RC["0"]
+		else
+			-- reset
+			_icon = ""
+			_directkey = ""
+		end
+		m_movies:addItem{type="forwarder", action="set_movie", id=index, name=conv_utf8(movie_detail.title), icon=_icon, directkey=_directkey };
 	end
 	m_movies:exec()
+
 	-- Alle Menüs verlassen
 	if ret == MENU_RETURN["EXIT_ALL"] then
 		return ret
