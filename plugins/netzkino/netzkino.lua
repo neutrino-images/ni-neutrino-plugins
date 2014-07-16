@@ -12,6 +12,9 @@ function script_path()
 end
 
 function init()
+	-- set collectgarbage() interval from 200 (default) to 50
+	collectgarbage('setpause', 50)
+
 	categories = {};
 	movies = {};
 	n = neutrino();
