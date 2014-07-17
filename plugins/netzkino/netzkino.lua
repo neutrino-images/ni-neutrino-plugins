@@ -124,9 +124,11 @@ function get_movies(_id)
 
 	last_category_id = index;
 
-	--local sh = n:FontHeight(FONT.MENU)
-	--local items = math.floor(580/sh - 4);
-	local items = 10 -- because of 10 hotkeys
+	local sh = n:FontHeight(FONT.MENU)
+	local items = math.floor(580/sh - 4);
+	if items > 10 then
+		items = 10 -- because of 10 hotkeys
+	end
 	os.execute("wget -q -O " .. fname .. " 'http://www.netzkino.de/capi/get_category_posts&id=" .. categories[index].category_id .. "&count=" .. items .. "d&page=" .. page_nr .. "&custom_fields=Streaming'");
 
 	local fp = io.open(fname, "r")
