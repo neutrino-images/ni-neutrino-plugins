@@ -226,10 +226,10 @@ function get_movies_menu(_id)
 	m_movies:addItem{type="separator"};
 
 	local d = 0 -- directkey
+	local _icon = ""
+	local _directkey = ""
 	for index, movie_detail in pairs(movies) do
 		d = d + 1
-		local _icon = ""
-		local _directkey = ""
 		if d < 10 then
 			_icon = d
 			_directkey = RC["".. d ..""]
