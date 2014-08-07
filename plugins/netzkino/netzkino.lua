@@ -22,6 +22,45 @@ function key_setup(a)
 	return ret
 end
 
+-- ####################################################################
+-- function from http://lua-users.org/wiki/BaseSixtyFour
+
+-- character table string
+local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+
+-- decode
+function dec(data)
+	data = string.gsub(data, '[^'..b..'=]', '')
+	return (data:gsub('.', function(x)
+	if (x == '=') then return '' end
+	local r,f='',(b:find(x)-1)
+	for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+	return r;
+	end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+	if (#x ~= 8) then return '' end
+	local c=0
+	for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+	return string.char(c)
+	end))
+end
+-- ####################################################################
+
+function decodeImage(b64Image)
+	local imgTyp = b64Image:match("data:image/(.-);base64,")
+	local repData = "data:image/" .. imgTyp .. ";base64,"
+	local b64Data = string.gsub(b64Image, repData, "");
+
+	local tmpImg = os.tmpname()
+	local retImg = tmpImg .. "." .. imgTyp
+
+	local f = io.open(retImg, "w+")
+	f:write(dec(b64Data))
+	f:close()
+	os.remove(tmpImg)
+
+	return retImg
+end
+
 function init()
 	-- set collectgarbage() interval from 200 (default) to 50
 	collectgarbage('setpause', 50)
@@ -41,9 +80,11 @@ function init()
 	wget_busy_file = "/tmp/.netzkino_wget.busy"
 
 	-- use netzkino icon placed in same dir as the plugin ...
-	netzkino_png = script_path() .. "netzkino.png"
+	--netzkino_png = script_path() .. "netzkino.png"
 	-- ... or use icon placed in one of neutrino's icon dirs
 	--netzkino_png = "netzkino"
+	-- ... or use a base64 encoded icon
+	netzkino_png = decodeImage("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAIAAABvFaqvAAAAA3NCSVQICAjb4U/gAAAAYnpUWHRSYXcgcHJvZmlsZSB0eXBlIEFQUDEAAHicVcixDYAwDADB3lN4hHccHDIOQgFFQoCyf0EBDVee7O1so696j2vrRxNVVVXPkmuuaQFmXgZuGAkoXy38TEQNDyseBiAPSLYUyXpQ8HMAAAL2SURBVDiNrZU7b1xVEMf/c869d++192FlN944rGPHdiIFCSmKeBQgREFBRUNDxQegoEWiT0FHg0QBVdpIfACqNJESKWmiBCSkOGZtL3i9jvZ57z2PGYrdldeLnUTCo1Odx+/M/GfmHPr67t84D1PnQnkzEJGA/geIFKmAvTfDbiypsPdQryAGp7oAqLyzI91dMQNL8Yc310jcwOqWKXZUVQGAvA5EypvUNh+BlLpwNazUAyZZIq8K3H9ZyffCQesg3kKYQPjs0Ii8Se2L+yitxJsfRUsrBIiwkMo98qCcV98ehlXae+iyAYjOBoFs8xGW1pNL18Q769lT8MnlET3/rRG97OcyzKwtrqbFNbf7WE4GNwMilXd2QCq5dI2dKxbUZzdKn9Y7P3331e1vvxl0WsZjZCS3NlnehC6Yw23Q8fFjjYiUdHdVdVOYveDWevmLd+Lx0vWNK14wsmK9EEHYqeoGH/xO9S3xPOcROZOKGYXlOoSJ0O7l3//4yw8/36ldrA37XevYeJnIIhJVlsVbmx4rNQUR2IwQLRJBmJXw0/1h8/Lnyx98uVK/sNfuOu8hLDwZYEZUFDM6Pf3eO2cysB/fO8zS0UCTCABh50yqxGNck6TZu1m5pyCBChPNJogWAB6XG4noKJl4rqMwLtL4DgIp7ThXYfzfrEkQL5AumN4/AAECyFyCITKeB2B6bZAKkzKmm47zJ8xUafDRNimNVxqpwHe2qdKQmeKeqSPhqLYOl2XtF6QmIROh1/5zrNGUorNOE6Yf1a7OdskJsYkQvHXL/fUgI4praxruj/3B7V93xJsOl+WQlQ6zo6YcPAtW3yOlzwRBJExKuPK+232c9lu6utFVF+/tJ84gSgI/bJujbeS9YPXdcLEifKJp57tfhIOkpDc/NofPfeuJ32dEJe+t8TkAqjSixk1Seo5yCmgMI0JheYvq123aE5sqEQqTcKFCwiI894CcDZrgWISDeBHx4mSG3fxr9kagqXev2TC1c/tF/gU5kpOQwApURgAAAABJRU5ErkJggg==");
 
 	-- create download script
 	create_downloader();
