@@ -66,6 +66,7 @@ int ReadConf()
 			fprintf(fd_conf, "SUSER0=\n");
 			fprintf(fd_conf, "SPASS0=\n");
 			fprintf(fd_conf, "INBOX0=\n");
+			fprintf(fd_conf, "SSL0=0\n");
 
 			fclose(fd_conf);
 
@@ -251,6 +252,14 @@ int ReadConf()
 					sscanf(ptr + 7, "%s", account_db[index-'0'].inbox);
 				}
 			}
+			else if((ptr = strstr(line_buffer, "SSL")) && (*(ptr+4) == '='))
+			{
+				char index = *(ptr+3);
+				if((index >= '0') && (index <= '9'))
+				{
+					sscanf(ptr + 5, "%d", &account_db[index-'0'].ssl);
+				}
+			}
 		}
 
 	// check for update
@@ -359,6 +368,7 @@ int ReadConf()
 				fprintf(fd_conf, "SUSER%d=%s\n", loop, account_db[loop].suser);
 				fprintf(fd_conf, "SPASS%d=%s\n", loop, account_db[loop].spass);
 				fprintf(fd_conf, "INBOX%d=%s\n", loop, account_db[loop].inbox);
+				fprintf(fd_conf, "SSL%d=%d\n", loop, account_db[loop].ssl);
 
 				if(!account_db[loop + 1].name[0])
 				{
@@ -1444,7 +1454,7 @@ void writeFOut( char *s)
  * SendPOPCommand (0=fail, 1=done)
  ******************************************************************************/
 
-int SendPOPCommand(int command, char *param)
+int SendPOPCommand(int command, char *param, int ssl)
 {
 	struct hostent *server;
 	struct sockaddr_in SockAddr;
@@ -1509,6 +1519,48 @@ int SendPOPCommand(int command, char *param)
 					close(sock);
 
 					return 0;
+				}
+
+				if(ssl == 1)
+				{
+					// Init SSL struct
+					printf("TuxMailD <Init SSL for POP3>\n");
+					c = malloc (sizeof (connection));
+					c->sslHandle = NULL;
+					c->sslContext = NULL;
+
+					SSL_load_error_strings ();
+					SSL_library_init ();
+
+					c->sslContext = SSL_CTX_new (SSLv23_client_method ());
+					if (c->sslContext == NULL) {
+						slog ? syslog(LOG_DAEMON | LOG_INFO, "could not set SSL client method") : printf("TuxMailD <could not set SSL client method>\n");
+
+						ERR_print_errors_fp (stderr);
+						return 0;
+					}
+
+					c->sslHandle = SSL_new (c->sslContext);
+					if (c->sslHandle == NULL) {
+						slog ? syslog(LOG_DAEMON | LOG_INFO, "could not create SSL struct for the connection") : printf("TuxMailD <could not create SSL struct for the connection>\n");
+
+						ERR_print_errors_fp (stderr);
+						return 0;
+					}
+
+					if (!SSL_set_fd (c->sslHandle, sock)) {
+						slog ? syslog(LOG_DAEMON | LOG_INFO, "could not connect SSL struct to the socket") : printf("TuxMailD <could not connect SSL struct to socket>\n");
+
+						ERR_print_errors_fp (stderr);
+						return 0;
+					}
+
+					if (SSL_connect (c->sslHandle) != 1) {
+						slog ? syslog(LOG_DAEMON | LOG_INFO, "could not handle SSL handshake") : printf("TuxMailD <could not handle SSL handshake>\n");
+
+						ERR_print_errors_fp (stderr);
+						return 0;
+					}
 				}
 
 				break;
@@ -1583,11 +1635,13 @@ int SendPOPCommand(int command, char *param)
 				}
 			}
 
-			send(sock, send_buffer, strlen(send_buffer), 0);
+			if(ssl == 1)
+				SSL_write (c->sslHandle, send_buffer, strlen(send_buffer));
+			else
+				send(sock, send_buffer, strlen(send_buffer), 0);
 		}
 
 		// get server response
-
 		stringindex = 0;
 		linelen = 0;
     		state = cNorm;
@@ -1602,7 +1656,7 @@ int SendPOPCommand(int command, char *param)
     		
 		if(command == RETR)
 		{
-   		while(recv(sock, &recv_buffer[3], 1, 0) > 0)
+		while((ssl == 1 ? SSL_read (c->sslHandle, &recv_buffer[3], 1) : recv(sock, &recv_buffer[3], 1, 0)) > 0)
 			{
 				if((nRead) && (nRead < 75000)) 
 				{
@@ -1630,7 +1684,7 @@ int SendPOPCommand(int command, char *param)
 		}
 		else
 		{
-			while(recv(sock, &recv_buffer[stringindex], 1, 0) > 0)
+			while((ssl == 1 ? SSL_read (c->sslHandle, &recv_buffer[stringindex], 1) : recv(sock, &recv_buffer[stringindex], 1, 0)) > 0)
 			{
 				if(command == TOP)
 				{
@@ -1869,6 +1923,19 @@ int SendPOPCommand(int command, char *param)
 				case QUIT:
 
 					close(sock);
+
+					if(ssl == 1)
+					{
+						if (c->sslHandle)
+						{
+							SSL_shutdown (c->sslHandle);
+							SSL_free (c->sslHandle);
+						}
+						if (c->sslContext)
+							SSL_CTX_free (c->sslContext);
+
+						free (c);
+					}
 			}
 		}
 		else
@@ -1882,6 +1949,19 @@ int SendPOPCommand(int command, char *param)
 
 			close(sock);
 
+			if(ssl == 1)
+			{
+				if (c->sslHandle)
+				{
+					SSL_shutdown (c->sslHandle);
+					SSL_free (c->sslHandle);
+				}
+				if (c->sslContext)
+					SSL_CTX_free (c->sslContext);
+
+				free (c);
+			}
+
 			return 0;
 		}
 
@@ -1892,7 +1972,7 @@ int SendPOPCommand(int command, char *param)
  * SendIMAPCommand (0=fail, 1=done)
  ******************************************************************************/
 
-int SendIMAPCommand(int command, char *param, char *param2)
+int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 {
 	struct hostent *server;
 	struct sockaddr_in SockAddr;
@@ -1957,6 +2037,48 @@ int SendIMAPCommand(int command, char *param, char *param2)
 					close(sock);
 
 					return 0;
+				}
+
+				if(ssl == 1)
+				{
+					// Init SSL struct
+					printf("TuxMailD <Init SSL for IMAP>\n");
+					c = malloc (sizeof (connection));
+					c->sslHandle = NULL;
+					c->sslContext = NULL;
+
+					SSL_load_error_strings ();
+					SSL_library_init ();
+
+					c->sslContext = SSL_CTX_new (SSLv23_client_method ());
+					if (c->sslContext == NULL) {
+						slog ? syslog(LOG_DAEMON | LOG_INFO, "could not set SSL client method") : printf("TuxMailD <could not set SSL client method>\n");
+
+						ERR_print_errors_fp (stderr);
+						return 0;
+					}
+
+					c->sslHandle = SSL_new (c->sslContext);
+					if (c->sslHandle == NULL) {
+						slog ? syslog(LOG_DAEMON | LOG_INFO, "could not create SSL struct for the connection") : printf("TuxMailD <could not create SSL struct for the connection>\n");
+
+						ERR_print_errors_fp (stderr);
+						return 0;
+					}
+
+					if (!SSL_set_fd (c->sslHandle, sock)) {
+						slog ? syslog(LOG_DAEMON | LOG_INFO, "could not connect SSL struct to the socket") : printf("TuxMailD <could not connect SSL struct to socket>\n");
+
+						ERR_print_errors_fp (stderr);
+						return 0;
+					}
+
+					if (SSL_connect (c->sslHandle) != 1) {
+						slog ? syslog(LOG_DAEMON | LOG_INFO, "could not handle SSL handshake") : printf("TuxMailD <could not handle SSL handshake>\n");
+
+						ERR_print_errors_fp (stderr);
+						return 0;
+					}
 				}
 
 				break;
@@ -2053,7 +2175,10 @@ int SendIMAPCommand(int command, char *param, char *param2)
 				}
 			}
 
-			send(sock, send_buffer, strlen(send_buffer), 0);
+			if(ssl == 1)
+				SSL_write (c->sslHandle, send_buffer, strlen(send_buffer));
+			else
+				send(sock, send_buffer, strlen(send_buffer), 0);
 		}
 
 		// get server response
@@ -2072,7 +2197,7 @@ int SendIMAPCommand(int command, char *param, char *param2)
     		
 		if(command == RETR)
 		{
-	   		while(recv(sock, &recv_buffer[stringindex], 1, 0) > 0)
+			while((ssl == 1 ? SSL_read (c->sslHandle, &recv_buffer[stringindex], 1) : recv(sock, &recv_buffer[stringindex], 1, 0)) > 0)
 			{
 				// read line by line
 				if((nRead) && (nRead < 75000)) 
@@ -2127,7 +2252,7 @@ int SendIMAPCommand(int command, char *param, char *param2)
 		}
 		else
 		{
-			while(recv(sock, &recv_buffer[stringindex], 1, 0) > 0)
+			while((ssl == 1 ? SSL_read (c->sslHandle, &recv_buffer[stringindex], 1) : recv(sock, &recv_buffer[stringindex], 1, 0)) > 0)
 			{
 				// read line by line and end if leading character hast been '?' or after one line after INIT
 				if(recv_buffer[stringindex] == '\n')
@@ -2422,6 +2547,20 @@ int SendIMAPCommand(int command, char *param, char *param2)
 				case LOGOUT:
 
 					close(sock);
+
+					if(ssl == 1)
+					{
+						if (c->sslHandle)
+						{
+							SSL_shutdown (c->sslHandle);
+							SSL_free (c->sslHandle);
+						}
+						if (c->sslContext)
+							SSL_CTX_free (c->sslContext);
+
+						free (c);
+					}
+
 					return 1;
 					
 				default:
@@ -2431,6 +2570,19 @@ int SendIMAPCommand(int command, char *param, char *param2)
 
 	slog ? syslog(LOG_DAEMON | LOG_INFO, "IMAP Server (%s)", recv_buffer) : printf("TuxMailD <IMAP Server (%s)>\n", recv_buffer);
 	close(sock);
+
+	if(ssl == 1)
+	{
+		if (c->sslHandle)
+		{
+			SSL_shutdown (c->sslHandle);
+			SSL_free (c->sslHandle);
+		}
+		if (c->sslContext)
+			SSL_CTX_free (c->sslContext);
+			free (c);
+	}
+
 	return 0;
 }
 
@@ -2438,7 +2590,7 @@ int SendIMAPCommand(int command, char *param, char *param2)
  * SendSMTPCommand (0=fail, 1=done)
  ******************************************************************************/
 
-int SendSMTPCommand(int command, char *param)
+int SendSMTPCommand(int command, char *param, int ssl)
 {
 	FILE *fd_log;
 	static int sock;
@@ -2499,6 +2651,48 @@ int SendSMTPCommand(int command, char *param)
 					close(sock);
 
 					return 0;
+				}
+
+				if(ssl == 1)
+				{
+					// Init SSL struct
+					printf("TuxMailD <Init SSL for SMTP>\n");
+					c = malloc (sizeof (connection));
+					c->sslHandle = NULL;
+					c->sslContext = NULL;
+
+					SSL_load_error_strings ();
+					SSL_library_init ();
+
+					c->sslContext = SSL_CTX_new (SSLv23_client_method ());
+					if (c->sslContext == NULL) {
+						slog ? syslog(LOG_DAEMON | LOG_INFO, "could not set SSL client method") : printf("TuxMailD <could not set SSL client method>\n");
+
+						ERR_print_errors_fp (stderr);
+						return 0;
+					}
+
+					c->sslHandle = SSL_new (c->sslContext);
+					if (c->sslHandle == NULL) {
+						slog ? syslog(LOG_DAEMON | LOG_INFO, "could not create SSL struct for the connection") : printf("TuxMailD <could not create SSL struct for the connection>\n");
+
+						ERR_print_errors_fp (stderr);
+						return 0;
+					}
+
+					if (!SSL_set_fd (c->sslHandle, sock)) {
+						slog ? syslog(LOG_DAEMON | LOG_INFO, "could not connect SSL struct to the socket") : printf("TuxMailD <could not connect SSL struct to socket>\n");
+
+						ERR_print_errors_fp (stderr);
+						return 0;
+					}
+
+					if (SSL_connect (c->sslHandle) != 1) {
+						slog ? syslog(LOG_DAEMON | LOG_INFO, "could not handle SSL handshake") : printf("TuxMailD <could not handle SSL handshake>\n");
+
+						ERR_print_errors_fp (stderr);
+						return 0;
+					}
 				}
 
 				break;
@@ -2566,7 +2760,10 @@ int SendSMTPCommand(int command, char *param)
 				}
 			}
 
-			send(sock, &send_buffer, strlen(send_buffer), 0);
+			if(ssl == 1)
+				SSL_write (c->sslHandle, &send_buffer, strlen(send_buffer));
+			else
+				send(sock, &send_buffer, strlen(send_buffer), 0);
 		}
 
 	// get server response
@@ -2579,7 +2776,10 @@ int SendSMTPCommand(int command, char *param)
 			return 1;
 		}
 
-		recv(sock, &recv_buffer, sizeof(recv_buffer), 0);
+		if(ssl == 1)
+			SSL_read (c->sslHandle, &recv_buffer, sizeof(recv_buffer));
+		else
+			recv(sock, &recv_buffer, sizeof(recv_buffer), 0);
 
 		if(logging == 'Y')
 		{
@@ -2642,6 +2842,19 @@ int SendSMTPCommand(int command, char *param)
 
 				close(sock);
 
+				if(ssl == 1)
+				{
+					if (c->sslHandle)
+					{
+						SSL_shutdown (c->sslHandle);
+						SSL_free (c->sslHandle);
+					}
+					if (c->sslContext)
+						SSL_CTX_free (c->sslContext);
+
+					free (c);
+				}
+
 				if(strncmp(recv_buffer, "221", 3))
 				{
 					return 0;
@@ -2668,11 +2881,22 @@ int SendSMTPCommand(int command, char *param)
 				}
 			}
 
-			send(sock, &send_buffer, strlen(send_buffer), 0);
+			if(ssl == 1)
+			{
+				SSL_write (c->sslHandle, send_buffer, strlen(send_buffer));
 
-			memset(recv_buffer, 0, sizeof(recv_buffer));
+				memset(recv_buffer, 0, sizeof(recv_buffer));
 
-			recv(sock, &recv_buffer, sizeof(recv_buffer), 0);
+				SSL_read (c->sslHandle, &recv_buffer, sizeof(recv_buffer));
+			}
+			else
+			{
+				send(sock, &send_buffer, strlen(send_buffer), 0);
+
+				memset(recv_buffer, 0, sizeof(recv_buffer));
+
+				recv(sock, &recv_buffer, sizeof(recv_buffer), 0);
+			}
 
 			if(logging == 'Y')
 			{
@@ -2689,6 +2913,19 @@ int SendSMTPCommand(int command, char *param)
 			}
 
 			close(sock);
+
+			if(ssl == 1)
+			{
+				if (c->sslHandle)
+				{
+					SSL_shutdown (c->sslHandle);
+					SSL_free (c->sslHandle);
+				}
+				if (c->sslContext)
+					SSL_CTX_free (c->sslContext);
+
+				free (c);
+			}
 
 			return 0;
 		}
@@ -2722,7 +2959,7 @@ int SendMail(int account)
 		{
 			linebuffer[strlen(linebuffer) - 1] = '\0';
 
-			if(!SendSMTPCommand(INIT, linebuffer))
+			if(!SendSMTPCommand(INIT, linebuffer, account_db[account].ssl))
 			{
 				fclose(mail);
 
@@ -2738,7 +2975,7 @@ int SendMail(int account)
 		{
 			linebuffer[strlen(linebuffer) - 1] = '\0';
 
-			if(!SendSMTPCommand(EHLO, linebuffer))
+			if(!SendSMTPCommand(EHLO, linebuffer, account_db[account].ssl))
 			{
 				fclose(mail);
 
@@ -2764,7 +3001,7 @@ int SendMail(int account)
 				EncodeBase64(decodedstring, strlen(account_db[account].suser) + strlen(account_db[account].spass) + 2);
 			}
 
-			if(!SendSMTPCommand(AUTH, encodedstring))
+			if(!SendSMTPCommand(AUTH, encodedstring, account_db[account].ssl))
 			{
 				fclose(mail);
 
@@ -2779,7 +3016,7 @@ int SendMail(int account)
 		{
 			linebuffer[strlen(linebuffer) - 1] = '\0';
 
-			if(!SendSMTPCommand(MAIL, linebuffer))
+			if(!SendSMTPCommand(MAIL, linebuffer, account_db[account].ssl))
 			{
 				fclose(mail);
 
@@ -2795,7 +3032,7 @@ int SendMail(int account)
 		{
 			linebuffer[strlen(linebuffer) - 1] = '\0';
 
-			if(!SendSMTPCommand(RCPT, linebuffer))
+			if(!SendSMTPCommand(RCPT, linebuffer, account_db[account].ssl))
 			{
 				fclose(mail);
 
@@ -2805,7 +3042,7 @@ int SendMail(int account)
 
 	// send data
 
-		if(!SendSMTPCommand(DATA1, ""))
+		if(!SendSMTPCommand(DATA1, "", account_db[account].ssl))
 		{
 			fclose(mail);
 
@@ -2818,7 +3055,7 @@ int SendMail(int account)
 		{
 			linebuffer[strlen(linebuffer) - 1] = '\0';
 
-			if(!SendSMTPCommand(DATA2, linebuffer))
+			if(!SendSMTPCommand(DATA2, linebuffer, account_db[account].ssl))
 			{
 				fclose(mail);
 
@@ -2828,7 +3065,7 @@ int SendMail(int account)
 			memset(linebuffer, 0, sizeof(linebuffer));
 		}
 
-		if(!SendSMTPCommand(DATA3, ""))
+		if(!SendSMTPCommand(DATA3, "", account_db[account].ssl))
 		{
 			fclose(mail);
 
@@ -2837,7 +3074,7 @@ int SendMail(int account)
 
 	// send quit
 
-		if(!SendSMTPCommand(QUIT, ""))
+		if(!SendSMTPCommand(QUIT, "", account_db[account].ssl))
 		{
 			fclose(mail);
 
@@ -2875,7 +3112,7 @@ int SaveMail(int account, char* mailuid)
 
 		if( !imap1 )
 		{
-			if(!SendPOPCommand(INIT, account_db[account].pop3))
+			if(!SendPOPCommand(INIT, account_db[account].pop3, account_db[account].ssl))
 			{
 				if(fd_mail)
 				{
@@ -2885,17 +3122,7 @@ int SaveMail(int account, char* mailuid)
 				return 0;
 			}
 
-			if(!SendPOPCommand(USER, account_db[account].user))
-			{
-				if(fd_mail)
-				{
-					fclose(fd_mail);
-				}
-	
-				return 0;
-			}
-
-			if(!SendPOPCommand(PASS, account_db[account].pass))
+			if(!SendPOPCommand(USER, account_db[account].user, account_db[account].ssl))
 			{
 				if(fd_mail)
 				{
@@ -2905,7 +3132,17 @@ int SaveMail(int account, char* mailuid)
 				return 0;
 			}
 
-			if(!SendPOPCommand(STAT, ""))
+			if(!SendPOPCommand(PASS, account_db[account].pass, account_db[account].ssl))
+			{
+				if(fd_mail)
+				{
+					fclose(fd_mail);
+				}
+	
+				return 0;
+			}
+
+			if(!SendPOPCommand(STAT, "", account_db[account].ssl))
 			{
 				if(fd_mail)
 				{
@@ -2917,7 +3154,7 @@ int SaveMail(int account, char* mailuid)
 		}
 		else
 		{
-			if(!SendIMAPCommand(INIT, account_db[account].imap, ""))
+			if(!SendIMAPCommand(INIT, account_db[account].imap, "", account_db[account].ssl))
 			{
 				if(fd_mail)
 				{
@@ -2928,7 +3165,7 @@ int SaveMail(int account, char* mailuid)
 			}
 
 			// login to mail server
-			if(!SendIMAPCommand(LOGIN, account_db[account].user, account_db[account].pass))
+			if(!SendIMAPCommand(LOGIN, account_db[account].user, account_db[account].pass, account_db[account].ssl))
 			{
 				if(fd_mail)
 				{
@@ -2939,7 +3176,7 @@ int SaveMail(int account, char* mailuid)
 			}
 		
 			// select folder, get mail count and UID
-			if(!SendIMAPCommand(SELECT, account_db[account].inbox, ""))
+			if(!SendIMAPCommand(SELECT, account_db[account].inbox, "", account_db[account].ssl))
 			{
 				if(fd_mail)
 				{
@@ -2960,7 +3197,7 @@ int SaveMail(int account, char* mailuid)
 
 			if( !imap1 )
 			{
-				if(!SendPOPCommand(UIDL, mailnumber))
+				if(!SendPOPCommand(UIDL, mailnumber, account_db[account].ssl))
 				{
 					if(fd_mail)
 					{
@@ -2972,7 +3209,7 @@ int SaveMail(int account, char* mailuid)
 			}
 			else
 			{
-				if(!SendIMAPCommand(UIDL, mailnumber, ""))
+				if(!SendIMAPCommand(UIDL, mailnumber, "", account_db[account].ssl))
 				{
 					if(fd_mail)
 					{
@@ -2990,7 +3227,7 @@ int SaveMail(int account, char* mailuid)
 
 				if( !imap1 )
 				{ 
-					if(!SendPOPCommand(RETR, mailnumber))
+					if(!SendPOPCommand(RETR, mailnumber, account_db[account].ssl))
 					{
 						if(fd_mail)
 						{
@@ -3001,12 +3238,12 @@ int SaveMail(int account, char* mailuid)
 					}					
 				
 					fclose(fd_mail);
-					SendPOPCommand(QUIT, "");
+					SendPOPCommand(QUIT, "", account_db[account].ssl);
 				}
 				else
 				{
 					char seen = 0;
-					if(!SendIMAPCommand(FLAGS, mailnumber, &seen))
+					if(!SendIMAPCommand(FLAGS, mailnumber, &seen, account_db[account].ssl))
 					{
 						if(fd_mail)
 						{
@@ -3016,7 +3253,7 @@ int SaveMail(int account, char* mailuid)
 						return 0;
 					}
 					
-					if((!seen) || (!SendIMAPCommand(RETR, mailnumber, "")))
+					if((!seen) || (!SendIMAPCommand(RETR, mailnumber, "", account_db[account].ssl)))
 					{
 						if(fd_mail)
 						{
@@ -3028,7 +3265,7 @@ int SaveMail(int account, char* mailuid)
 
 					if( seen == 'U' )
 					{
-						if(!SendIMAPCommand(UNSEEN, mailnumber, ""))
+						if(!SendIMAPCommand(UNSEEN, mailnumber, "", account_db[account].ssl))
 						{
 							if(fd_mail)
 							{
@@ -3040,7 +3277,7 @@ int SaveMail(int account, char* mailuid)
 					}
 									
 					fclose(fd_mail);
-					SendIMAPCommand(LOGOUT, "", "");
+					SendIMAPCommand(LOGOUT, "", "", account_db[account].ssl);
 				}
 				return 1;
 				
@@ -3051,11 +3288,11 @@ int SaveMail(int account, char* mailuid)
 		
 		if( !imap1 )
 		{
-			SendPOPCommand(QUIT, "");
+			SendPOPCommand(QUIT, "", account_db[account].ssl);
 		}
 		else
 		{
-			SendIMAPCommand(LOGOUT, "", "");
+			SendIMAPCommand(LOGOUT, "", "", account_db[account].ssl);
 		}
 	}
 
@@ -3314,7 +3551,7 @@ int AddNewMailFile(int account, char *mailnumber, FILE *fd_status)
 		{
 			if( !imap )
 			{
-				if(!SendPOPCommand(RETR, mailnumber))
+				if(!SendPOPCommand(RETR, mailnumber, account_db[account].ssl))
 				{
 					idx1 = 0;
 					fclose(fd_mail);
@@ -3331,12 +3568,12 @@ int AddNewMailFile(int account, char *mailnumber, FILE *fd_status)
 			{				
 				char seen=0;
 
-				if(!SendIMAPCommand(FLAGS, mailnumber, &seen))
+				if(!SendIMAPCommand(FLAGS, mailnumber, &seen, account_db[account].ssl))
 				{
 					seen=0;
 				}
 									
-				if((!seen) || (!SendIMAPCommand(RETR, mailnumber, "")))
+				if((!seen) || (!SendIMAPCommand(RETR, mailnumber, "", account_db[account].ssl)))
 				{
 					// printf("error write email nr: %s at %stuxmail.idx%u.%u\n",mailnumber,maildir,account,idx1);
 					idx1 = 0;
@@ -3347,7 +3584,7 @@ int AddNewMailFile(int account, char *mailnumber, FILE *fd_status)
 					// printf("write email nr: %s at %stuxmail.idx%u.%u\n",mailnumber,maildir,account,idx1);
 					if( seen == 'U' )
 					{
-						SendIMAPCommand(UNSEEN, mailnumber, "");
+						SendIMAPCommand(UNSEEN, mailnumber, "", account_db[account].ssl);
 					}
 
 					fclose(fd_mail);
@@ -3412,19 +3649,19 @@ int CheckAccount(int account)
 		imap = 1;
 
 		// init connection to server
-		if(!SendIMAPCommand(INIT, account_db[account].imap, ""))
+		if(!SendIMAPCommand(INIT, account_db[account].imap, "", account_db[account].ssl))
 		{
 			return 0;
 		}
 
 		// login to mail server
-		if(!SendIMAPCommand(LOGIN, account_db[account].user, account_db[account].pass))
+		if(!SendIMAPCommand(LOGIN, account_db[account].user, account_db[account].pass, account_db[account].ssl))
 		{
 			return 0;
 		}
 		
 		// select folder, get mail count and UID
-		if(!SendIMAPCommand(SELECT, account_db[account].inbox, ""))
+		if(!SendIMAPCommand(SELECT, account_db[account].inbox, "", account_db[account].ssl))
 		{
 			return 0;
 		}
@@ -3432,27 +3669,27 @@ int CheckAccount(int account)
 	else
 	{
 		// get mail count
-		if(!SendPOPCommand(INIT, account_db[account].pop3))
+		if(!SendPOPCommand(INIT, account_db[account].pop3, account_db[account].ssl))
 		{
 			return 0;
 		}
 
-		if(!SendPOPCommand(USER, account_db[account].user))
+		if(!SendPOPCommand(USER, account_db[account].user, account_db[account].ssl))
 		{
 			return 0;
 		}
 
-		if(!SendPOPCommand(PASS, account_db[account].pass))
+		if(!SendPOPCommand(PASS, account_db[account].pass, account_db[account].ssl))
 		{
 			return 0;
 		}
 
-		if(!SendPOPCommand(STAT, ""))
+		if(!SendPOPCommand(STAT, "", account_db[account].ssl))
 		{
 			return 0;
 		}
 
-		if(!SendPOPCommand(RSET, ""))
+		if(!SendPOPCommand(RSET, "", account_db[account].ssl))
 		{
 			return 0;
 		}
@@ -3526,7 +3763,7 @@ int CheckAccount(int account)
 
 					if( !imap )
 					{
-						if(!SendPOPCommand(UIDL, mailnumber))
+						if(!SendPOPCommand(UIDL, mailnumber, account_db[account].ssl))
 						{
 							free(known_uids);
 	
@@ -3540,7 +3777,7 @@ int CheckAccount(int account)
 					}
 					else
 					{
-						if(!SendIMAPCommand(UIDL, mailnumber, ""))
+						if(!SendIMAPCommand(UIDL, mailnumber, "", account_db[account].ssl))
 						{
 							free(known_uids);
 	
@@ -3557,7 +3794,7 @@ int CheckAccount(int account)
 					{
 						if( !imap )
 						{
-							if(!SendPOPCommand(TOP, mailnumber))
+							if(!SendPOPCommand(TOP, mailnumber, account_db[account].ssl))
 							{
 								free(known_uids);
 	
@@ -3572,7 +3809,7 @@ int CheckAccount(int account)
 						else
 						{
 							char seen;
-							if(!SendIMAPCommand(FLAGS, mailnumber, &seen))
+							if(!SendIMAPCommand(FLAGS, mailnumber, &seen, account_db[account].ssl))
 							{
 								free(known_uids);
 	
@@ -3584,7 +3821,7 @@ int CheckAccount(int account)
 								return 0;
 							}
 
-							if(!SendIMAPCommand(FETCH, mailnumber, ""))
+							if(!SendIMAPCommand(FETCH, mailnumber, "", account_db[account].ssl))
 							{
 								free(known_uids);
 	
@@ -3598,7 +3835,7 @@ int CheckAccount(int account)
 							
 							if( seen == 'U' )
 							{
-								if(!SendIMAPCommand(UNSEEN, mailnumber, ""))
+								if(!SendIMAPCommand(UNSEEN, mailnumber, "", account_db[account].ssl))
 								{
 									free(known_uids);
 		
@@ -3618,7 +3855,7 @@ int CheckAccount(int account)
 							if( !imap )
 							{
 								
-								if(!SendPOPCommand(DELE, mailnumber))
+								if(!SendPOPCommand(DELE, mailnumber, account_db[account].ssl))
 								{
 									free(known_uids);
 	
@@ -3632,7 +3869,7 @@ int CheckAccount(int account)
 							}
 							else
 							{
-								if(!SendIMAPCommand(DELE, mailnumber, ""))
+								if(!SendIMAPCommand(DELE, mailnumber, "", account_db[account].ssl))
 								{
 									free(known_uids);
 	
@@ -3672,7 +3909,7 @@ int CheckAccount(int account)
 							{
 								if( !imap )
 								{
-									if(!SendPOPCommand(DELE, mailnumber))
+									if(!SendPOPCommand(DELE, mailnumber, account_db[account].ssl))
 									{
 										free(known_uids);
 	
@@ -3686,7 +3923,7 @@ int CheckAccount(int account)
 								}
 								else
 								{
-									if(!SendIMAPCommand(DELE, mailnumber, ""))
+									if(!SendIMAPCommand(DELE, mailnumber, "", account_db[account].ssl))
 									{
 										free(known_uids);
 	
@@ -3739,7 +3976,7 @@ int CheckAccount(int account)
 						{
 							if( !imap )
 							{
-								if(!SendPOPCommand(TOP, mailnumber))
+								if(!SendPOPCommand(TOP, mailnumber, account_db[account].ssl))
 								{
 									free(known_uids);
 	
@@ -3754,7 +3991,7 @@ int CheckAccount(int account)
 							else
 							{
 								char seen;
-								if(!SendIMAPCommand(FLAGS, mailnumber, &seen))
+								if(!SendIMAPCommand(FLAGS, mailnumber, &seen, account_db[account].ssl))
 								{
 									free(known_uids);
 		
@@ -3766,7 +4003,7 @@ int CheckAccount(int account)
 									return 0;
 								}
 
-								if(!SendIMAPCommand(FETCH, mailnumber, ""))
+								if(!SendIMAPCommand(FETCH, mailnumber, "", account_db[account].ssl))
 								{
 									free(known_uids);
 	
@@ -3780,7 +4017,7 @@ int CheckAccount(int account)
 
 								if( seen == 'U' )
 								{
-									if(!SendIMAPCommand(UNSEEN, mailnumber, ""))
+									if(!SendIMAPCommand(UNSEEN, mailnumber, "", account_db[account].ssl))
 									{
 										free(known_uids);
 			
@@ -3798,7 +4035,7 @@ int CheckAccount(int account)
 							{
 								if( !imap )
 								{
-									if(!SendPOPCommand(DELE, mailnumber))
+									if(!SendPOPCommand(DELE, mailnumber, account_db[account].ssl))
 									{
 										free(known_uids);
 	
@@ -3812,7 +4049,7 @@ int CheckAccount(int account)
 								}
 								else
 								{
-									if(!SendIMAPCommand(DELE, mailnumber, ""))
+									if(!SendIMAPCommand(DELE, mailnumber, "", account_db[account].ssl))
 									{
 										free(known_uids);
 	
@@ -3917,7 +4154,7 @@ int CheckAccount(int account)
 				
 				if(( !deleted_messages ) && ( !imap ))
 				{
-					if(!SendPOPCommand(RSET, ""))
+					if(!SendPOPCommand(RSET, "", account_db[account].ssl))
 					{
 						free(known_uids);
 						return 0;
@@ -3963,22 +4200,22 @@ int CheckAccount(int account)
 
 		if( !imap )
 		{
-			if(!SendPOPCommand(QUIT, ""))
+			if(!SendPOPCommand(QUIT, "", account_db[account].ssl))
 			{
 				return 0;
 			}	
 		}
 		else
 		{
-			if(!SendIMAPCommand(EXPUNGE, "", ""))
+			if(!SendIMAPCommand(EXPUNGE, "", "", account_db[account].ssl))
 			{
 				return 0;
 			}	
-			if(!SendIMAPCommand(CLOSE, "", ""))
+			if(!SendIMAPCommand(CLOSE, "", "", account_db[account].ssl))
 			{
 				return 0;
 			}	
-			if(!SendIMAPCommand(LOGOUT, "", ""))
+			if(!SendIMAPCommand(LOGOUT, "", "", account_db[account].ssl))
 			{
 				return 0;
 			}	
@@ -4540,7 +4777,7 @@ void SigHandler(int signal)
 
 int main(int argc, char **argv)
 {
-	char cvs_revision[] = "$Revision: 1.50 $";
+	char cvs_revision[] = "$Revision: 1.50A $";
 	int param, nodelay = 0, account, mailstatus, unread_mailstatus;
 	pthread_t thread_id;
 	void *thread_result = 0;
@@ -4656,7 +4893,7 @@ int main(int argc, char **argv)
 		{
 			case 0:
 
-				slog ? syslog(LOG_DAEMON | LOG_INFO, "%s started [%s]", versioninfo, timeinfo) : printf("TuxMailD %s started [%s]\n", versioninfo, timeinfo);
+				slog ? syslog(LOG_DAEMON | LOG_INFO, "%s started [%s]", versioninfo, timeinfo) : printf("TuxMailD %s (with SSL support) started [%s]\n", versioninfo, timeinfo);
 
 				setsid();
 				chdir("/");

@@ -21,6 +21,10 @@
 #include <arpa/inet.h>
 #include <syslog.h>
 
+#include <openssl/rand.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+
 #include "audio.h"
 
 #define DSP "/dev/sound/dsp"
@@ -157,6 +161,7 @@ struct
 	int  mail_new;
 	int  mail_unread;
 	int  mail_read;
+	int  ssl;
 
 }account_db[10];
 
@@ -194,6 +199,14 @@ struct CHUNK
 	unsigned long	ChunkID;
 	unsigned long	ChunkSize;
 };
+
+// SSL
+typedef struct {
+	SSL *sslHandle;
+	SSL_CTX *sslContext;
+} connection;
+
+connection *c;
 
 // some data
 

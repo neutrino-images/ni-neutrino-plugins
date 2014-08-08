@@ -239,6 +239,14 @@ void ReadConf()
 				sscanf ( ptr + 7, "%s", maildb[index-'0'].inbox );
 			}
 		}
+		else if ( ( ptr = strstr ( line_buffer, "SSL" ) ) && ( * ( ptr+4 ) == '=' ) )
+		{
+			char index = * ( ptr+3 );
+			if ( ( index >= '0' ) && ( index <= '9' ) )
+			{
+				sscanf ( ptr + 5, "%d", &maildb[index-'0'].ssl );
+			}
+		}
 	}
 
 	fclose ( fd_conf );
@@ -325,6 +333,7 @@ int WriteConf()
 		fprintf ( fd_conf, "SUSER%d=%s\n", loop, maildb[loop].suser );
 		fprintf ( fd_conf, "SPASS%d=%s\n", loop, maildb[loop].spass );
 		fprintf ( fd_conf, "INBOX%d=%s\n", loop, maildb[loop].inbox );
+		fprintf ( fd_conf, "SSL%d=%d\n", loop, maildb[loop].ssl );
 		if ( !maildb[loop + 1].user[0] )
 		{
 			break;
@@ -1267,14 +1276,14 @@ void PaintSmtpMailHeader ( int nEditDirectStyle , int nConfigPage )
 	if ( nConfigPage == -1 )
 	{
 		RenderString ( ( osd == 'G' ) ? "Absender:" : "From:", 2*BORDERSIZE, BORDERSIZE+FONTHEIGHT_SMALL-2  , viewx-4*BORDERSIZE, LEFT, SMALL, ORANGE );
-		RenderString ( ( osd == 'G' ) ? "Empfänger:" : "To:", 2*BORDERSIZE, BORDERSIZE+2*FONTHEIGHT_SMALL-2  , viewx-4*BORDERSIZE, LEFT, SMALL, ORANGE );
+		RenderString ( ( osd == 'G' ) ? "EmpfÃ¤nger:" : "To:", 2*BORDERSIZE, BORDERSIZE+2*FONTHEIGHT_SMALL-2  , viewx-4*BORDERSIZE, LEFT, SMALL, ORANGE );
 		RenderString ( ( osd == 'G' ) ? "Betreff:" : "Subject:", 2*BORDERSIZE, BORDERSIZE+3*FONTHEIGHT_SMALL-2  , viewx-4*BORDERSIZE, LEFT, SMALL, ORANGE );
 	}
 	else
 	{
 		char linebuffer[80];
 
-		RenderString ( ( osd == 'G' ) ? "Konfiguration für TuxMail" : "Config for tuxmail", 2*BORDERSIZE, BORDERSIZE+FONTHEIGHT_BIG-2, viewx-4*BORDERSIZE, CENTER, BIG, RED );
+		RenderString ( ( osd == 'G' ) ? "Konfiguration fÃ¼r TuxMail" : "Config for tuxmail", 2*BORDERSIZE, BORDERSIZE+FONTHEIGHT_BIG-2, viewx-4*BORDERSIZE, CENTER, BIG, RED );
 		sprintf ( linebuffer,"%d / 12",nConfigPage+1 );
 		RenderString ( linebuffer, viewx-74, BORDERSIZE+3*FONTHEIGHT_SMALL-2 , 74-2*BORDERSIZE, RIGHT, SMALL, WHITE );
 
@@ -1285,7 +1294,7 @@ void PaintSmtpMailHeader ( int nEditDirectStyle , int nConfigPage )
 			RenderString ( linebuffer, 2*BORDERSIZE+520, BORDERSIZE+3*FONTHEIGHT_SMALL-6  , viewx-74-2*BORDERSIZE, LEFT, NORMAL, WHITE );
 
 			int i;
-			for ( i=2; i<14; i++ )
+			for ( i=2; i<15; i++ )
 			{
 				switch ( i )
 				{
@@ -1341,11 +1350,16 @@ void PaintSmtpMailHeader ( int nEditDirectStyle , int nConfigPage )
 						strcpy ( linebuffer, "INBOX" );
 						strcpy ( szInfo[i],maildb[nConfigPage].inbox );
 						break;
+					case 14:
+						strcpy ( linebuffer, "SSL" );
+						sprintf ( szInfo[i],"%d",maildb[nConfigPage].ssl );
+						break;
 					default:
 						linebuffer[0]='\0';
 						szInfo[i][0]='\0';
 				}
-				RenderString ( linebuffer, 2*BORDERSIZE, 4*BORDERSIZE+ ( 2+i ) *FONTHEIGHT_SMALL  , viewx-4*BORDERSIZE, LEFT, SMALL, ORANGE );				RenderString ( ":", 2*BORDERSIZE+75, 4*BORDERSIZE+ ( 2+i ) *FONTHEIGHT_SMALL  , 10, LEFT, SMALL, ORANGE );
+				RenderString ( linebuffer, 2*BORDERSIZE, 4*BORDERSIZE+ ( 2+i ) *FONTHEIGHT_SMALL  , viewx-4*BORDERSIZE, LEFT, SMALL, ORANGE );
+				RenderString ( ":", 2*BORDERSIZE+75, 4*BORDERSIZE+ ( 2+i ) *FONTHEIGHT_SMALL  , 10, LEFT, SMALL, ORANGE );
 			}
 
 		}
@@ -1496,7 +1510,7 @@ void SaveConfigMailBox ( int nConfigPage )
 	if ( nConfigPage < 10 )
 	{
 		int i;
-		for ( i=2; i<14; i++ )
+		for ( i=2; i<15; i++ )
 		{
 			switch ( i )
 			{
@@ -1543,6 +1557,17 @@ void SaveConfigMailBox ( int nConfigPage )
 					break;
 				case 13:
 					strncpy ( maildb[nConfigPage].inbox,szInfo[i],63 );
+					break;
+				case 14:
+					maildb[nConfigPage].ssl=atoi ( szInfo[i] );
+					if ( maildb[nConfigPage].ssl < 0 )
+					{
+						maildb[nConfigPage].ssl = 0;
+					}
+					if ( maildb[nConfigPage].ssl > 1 )
+					{
+						maildb[nConfigPage].ssl = 1;
+					}
 					break;
 			}
 		}
@@ -1829,7 +1854,7 @@ void EditMailFile ( char* filename, int account, int mailindex )
 			RenderString ( szFrom, 2*BORDERSIZE+125, BORDERSIZE+FONTHEIGHT_SMALL-2  , viewx-4*BORDERSIZE-100, LEFT, SMALL, WHITE );
 
 			if ( nEditType < 2 )
-			{	// Empfänger , Betreff
+			{	// EmpfÃ¤nger , Betreff
 				RenderString ( szInfo[0], 2*BORDERSIZE+125, BORDERSIZE+2*FONTHEIGHT_SMALL-2  , viewx-4*BORDERSIZE-125, LEFT, SMALL, WHITE );
 				RenderString ( szInfo[1], 2*BORDERSIZE+125, BORDERSIZE+3*FONTHEIGHT_SMALL-2  , viewx-4*BORDERSIZE-125, LEFT, SMALL, WHITE );
 			}
@@ -1839,7 +1864,7 @@ void EditMailFile ( char* filename, int account, int mailindex )
 		else
 		{
 			RenderString ( ( osd == 'G' ) ? "Seite vor" : "next page", 3*(KEYBOX_WIDTH + KEYBOX_SPACE) + 60, VIEWY-INFOBOXY+25  , 160, LEFT, SMALL,  WHITE );
-			RenderString ( ( osd == 'G' ) ? "Seite zurück" : "page back", 3*(KEYBOX_WIDTH + KEYBOX_SPACE) + 60, VIEWY-INFOBOXY+55  , 160, LEFT,  SMALL, WHITE );
+			RenderString ( ( osd == 'G' ) ? "Seite zurÃ¼ck" : "page back", 3*(KEYBOX_WIDTH + KEYBOX_SPACE) + 60, VIEWY-INFOBOXY+55  , 160, LEFT,  SMALL, WHITE );
 		}
 
 		RenderString ( szDirectStyle[nEditDirectStyle], 3*(KEYBOX_WIDTH + KEYBOX_SPACE) + 65, VIEWY-INFOBOXY+87  , 136,  LEFT, ( nEditType == 2 ) ? NORMAL : SMALL, ( nEditType == 2 ) ? ORANGE : WHITE );
@@ -1972,7 +1997,7 @@ void EditMailFile ( char* filename, int account, int mailindex )
 					else
 			*/
 			{
-				RenderString ( ( osd == 'G' ) ? "kein T9 Wörterbuch gefunden" : "no T9 dictionary found", 2*BORDERSIZE,  2*BORDERSIZE+3*FONTHEIGHT_BIG  , 500,  LEFT, BIG, ORANGE );
+				RenderString ( ( osd == 'G' ) ? "kein T9 WÃ¶rterbuch gefunden" : "no T9 dictionary found", 2*BORDERSIZE,  2*BORDERSIZE+3*FONTHEIGHT_BIG  , 500,  LEFT, BIG, ORANGE );
 			}
 		}
 		else if ( nEditType == 2 )
@@ -1984,7 +2009,7 @@ void EditMailFile ( char* filename, int account, int mailindex )
 				// the first two lines are 100 pixels to the right
 				if ( i<2 )
 				{
-					xoff = 125; // Empfänger, Betreff editing modus
+					xoff = 125; // EmpfÃ¤nger, Betreff editing modus
 				}
 				else
 				{
@@ -1996,7 +2021,8 @@ void EditMailFile ( char* filename, int account, int mailindex )
 				else if	(nConfigPage == 10)
 					xoff = 168;
 				else if (nConfigPage != -1)
-					xoff = 100;
+					xoff = 100;
+
 
 				if ( nEditLine ==  i )
 				{
@@ -2196,7 +2222,7 @@ void EditMailFile ( char* filename, int account, int mailindex )
 			}
 			else if ( ( rccode == RC_F10 ) && ( nConfigPage == -1 ) )
 			{
-				MessageBox ( ( osd == 'G' ) ? "Löschen" : "clear", ( osd == 'G' ) ? "Text löschen?" : "clear all?" );
+				MessageBox ( ( osd == 'G' ) ? "LÃ¶schen" : "clear", ( osd == 'G' ) ? "Text lÃ¶schen?" : "clear all?" );
 				if ( ( rccode == RC_OK ) || ( rccode == RC_RET ) )
 				{
 					int i;
@@ -3125,7 +3151,7 @@ void FillDB ( int account )
 
 		maildb[account].nr[0] = account | '0';
 		memcpy ( maildb[account].time, "00:00", 5 );
-		memcpy ( maildb[account].name, ( osd == 'G' ) ? "keine Info verfügbar" : "Info isn't available", 20 );
+		memcpy ( maildb[account].name, ( osd == 'G' ) ? "keine Info verfÃ¼gbar" : "Info isn't available", 20 );
 		memcpy ( maildb[account].status, "000/000", 7 );
 		maildb[account].mails = 0;
 		maildb[account].inactive = 1;
@@ -3514,7 +3540,7 @@ int CheckPIN ( int Account )
 
 			RenderBox ( mx-bw+2, my-bh+44, mx+bw-2, my+bh-2, FILL, SKIN1);
 			RenderString ( ( osd == 'G' ) ? "Falsche PIN!" : "Wrong PIN!", mx-bw+2, my-bh+92, maxw, CENTER, BIG, WHITE );
-			RenderString ( ( osd == 'G' ) ? "Nächster Versuch in 5 Sek...." : "Try again in 5 Seconds...", mx-bw+2, my-bh+132, maxw, CENTER, SMALL, WHITE );
+			RenderString ( ( osd == 'G' ) ? "NÃ¤chster Versuch in 5 Sek...." : "Try again in 5 Seconds...", mx-bw+2, my-bh+132, maxw, CENTER, SMALL, WHITE );
 			memcpy ( lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres );
 			printf("Counter__ppincount= %d\n", *ppincount);
 			sleep ( 5 );
@@ -3598,7 +3624,7 @@ void SaveAndReloadDB ( int iSave )
 //void plugin_exec(PluginParam *par)
 int main ( void )
 {
-	char cvs_revision[] = "$Revision: 1.02 $";
+	char cvs_revision[] = "$Revision: 1.02A $";
 	int loop, account, mailindex;
 	FILE *fd_run;
 	FT_Error error;
@@ -3606,7 +3632,7 @@ int main ( void )
 	// show versioninfo
 
 	sscanf ( cvs_revision, "%*s %s", versioninfo_p );
-	printf ( "TuxMail %s\n", versioninfo_p );
+	printf ( "TuxMail (with SSL support) %s\n", versioninfo_p );
 
 	// get params
 
@@ -3779,7 +3805,8 @@ int main ( void )
 
 	use_kerning = FT_HAS_KERNING (face);
 
-	desc.flags = FT_LOAD_MONOCHROME;
+	desc.flags = FT_LOAD_MONOCHROME;
+
 	// init backbuffer
 	if ( ! ( lbb = malloc ( fix_screeninfo.line_length*var_screeninfo.yres ) ) )
 	{

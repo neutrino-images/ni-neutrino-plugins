@@ -184,7 +184,7 @@ int rcaltgrtable[] =
 #define KEYBOX_WIDTH  120
 
 
-#define MAXINFOLINES 15
+#define MAXINFOLINES 16
 #define MAXLINELEN	 80
 
 #define KEYBOX_KEYS 12
@@ -319,6 +319,7 @@ struct
 	char suser[64];
 	char spass[64];
 	char inbox[64];
+	int  ssl;
 	struct mi mailinfo[MAXMAIL];
 
 }maildb[10];
