@@ -23,29 +23,18 @@
 local json = require "json"
 local posix = require "posix"
 
---[[
-x = posix.uname()
-
-print("")
-print(x)
-print("")
-
--- terminate script
-do return end
-]]
-
 function script_path()
 	return posix.dirname(debug.getinfo(2, "S").source:sub(2)).."/"
 end
 
 ret = nil -- global return value
 function key_home(a)
-	ret = MENU_RETURN["EXIT"]
+	ret = MENU_RETURN.EXIT
 	return ret
 end
 
 function key_setup(a)
-	ret = MENU_RETURN["EXIT_ALL"]
+	ret = MENU_RETURN.EXIT_ALL
 	return ret
 end
 
@@ -98,16 +87,11 @@ function init()
 	collectgarbage('setpause', 50)
 
 	conf = {}
-	default_conf = {}
-	default_conf["language"]	= "DE"
-	default_conf["quality"]		= "max"
 	confChanged 			= 0
 
-	configFile			= "/var/tuxbox/config/ard_mediathek.conf";
+	confFile			= "/var/tuxbox/config/ard_mediathek.conf";
+	config				= configfile.new()
 	loadConfig()
-
-	language 			= conf["language"]
-	defaultPlayQuality		= conf["quality"]
 
 	baseUrl				= "http://www.ardmediathek.de"
 	tmpPath 			= "/tmp/ard_mediathek"
@@ -130,7 +114,7 @@ function init()
 	streamWindow			= nil
 
 	n = neutrino()
-	setLangStrings(language)
+	setLangStrings(conf["language"])
 	setChannels()
 	setTimeArea()
 
@@ -229,10 +213,10 @@ function programMissedMenu1()
 
 	m_channels:exec()
 
-	if ret == MENU_RETURN["EXIT_ALL"] then
+	if ret == MENU_RETURN.EXIT_ALL then
 		return ret
 	end
-	return MENU_RETURN["REPAINT"];
+	return MENU_RETURN.REPAINT;
 end
 
 function saveData(name, data)
@@ -352,7 +336,6 @@ function getTmpData1(selectedChannelId, tagId)
 		end
 
 		hideInfoBox()
---error("Tescht...")
 	end
 	return tmpData
 end
@@ -533,10 +516,10 @@ function programMissedMenu2(_id)
 
 	m_missed:exec()
 
-	if ret == MENU_RETURN["EXIT_ALL"] then
+	if ret == MENU_RETURN.EXIT_ALL then
 		return ret
 	end
-	return MENU_RETURN["REPAINT"];
+	return MENU_RETURN.REPAINT;
 end
 
 function programMissedMenu3(_id)
@@ -563,10 +546,10 @@ function programMissedMenu3(_id)
 
 	m_missed3:exec()
 
-	if ret == MENU_RETURN["EXIT_ALL"] then
+	if ret == MENU_RETURN.EXIT_ALL then
 		return ret
 	end
-	return MENU_RETURN["REPAINT"];
+	return MENU_RETURN.REPAINT;
 end
 
 function programMissedMenu4(_id)
@@ -602,10 +585,10 @@ function programMissedMenu4(_id)
 
 	m_missed4:exec()
 
-	if ret == MENU_RETURN["EXIT_ALL"] then
+	if ret == MENU_RETURN.EXIT_ALL then
 		return ret
 	end
-	return MENU_RETURN["REPAINT"];
+	return MENU_RETURN.REPAINT;
 end
 
 function rescaleImageDimensions(width, height, max_width, max_height)
@@ -809,9 +792,9 @@ function listStreams(_id)
 
 	if streamWindow ~= nil then streamWindow:hide{no_restore="true"} end
 	if ret == RC.setup then
-		return MENU_RETURN["EXIT_ALL"]
+		return MENU_RETURN.EXIT_ALL
 	end
-	return MENU_RETURN["REPAINT"]
+	return MENU_RETURN.REPAINT
 end
 
 function getStream(_id)
@@ -872,7 +855,7 @@ function getStream(_id)
 		local i1, i2
 
 		-- verfügbare StreamQualitäten
-		tmp_defaultPlayQuality = defaultPlayQuality
+		tmp_defaultPlayQuality = conf["quality"]
 		local count = 1
 		local qual = {}
 		if j_mediaArray ~= nil then
@@ -989,7 +972,7 @@ function getPrevDate(num)
 	if wd == "Saturday"  then wd = langStr_Saturday end
 	if wd == "Sunday"    then wd = langStr_Sunday end
 	local formatStr
-	if language == "DE" then
+	if conf["language"] == "DE" then
 		formatStr = "%d.%m.%Y"
 	else
 		formatStr = "%Y-%m-%d"
@@ -1134,38 +1117,20 @@ end
 -- #######################################################################################
 
 function loadConfig()
-	local f = io.open(configFile, "r")
-	if f then
-		for line in f:lines() do
-			local key, val = line:match("^([^=#]+)=([^\n]*)")
-			if (key) then
-				if (val == nil) then
-					val=""
-				end
-				conf[trim(key)]=trim(val)
-			end
-		end
-		f:close()
-		if conf["language"] == "" then conf["language"] = default_conf["language"] end
-		if conf["quality"]  == "" then conf["quality"]  = default_conf["quality"] end
-	else
-		conf["language"] = default_conf["language"]
-		conf["quality"]  = default_conf["quality"]
-		saveConfig()
-	end
+	config:loadConfig(confFile)
+
+	conf["language"] = config:getString("language", "DE")
+	conf["quality"]  = config:getString("quality",  "max")
 end
 
 function saveConfig()
 	if confChanged == 1 then
 		paintInfoBox(langStr_saveSettings)
-		local f = io.open(configFile, "w")
-		if f then
-			f:write("[global]\n")
-			f:write("language = " .. conf["language"] .. "\n")
-			f:write("quality = " ..  conf["quality"] ..  "\n")
-			f:write("\n")
-			f:close()
-		end
+
+		config:setString("language", conf["language"])
+		config:setString("quality",  conf["quality"])
+
+		config:saveConfig(confFile)
 		confChanged = 0
 		posix.sleep(1)
 		hideInfoBox()
@@ -1198,10 +1163,10 @@ function set_bool(k, v)
 end
 
 function handle_key(a)
-	if (confChanged == 0) then return MENU_RETURN["EXIT"] end
+	if (confChanged == 0) then return MENU_RETURN.EXIT end
 	local res = messagebox.exec{title=langStr_discardChanges1, text=langStr_discardChanges2, buttons={ "yes", "no" } }
-	if (res == "yes") then return MENU_RETURN["EXIT"] end
-	return MENU_RETURN["EXIT_REPAINT"]
+	if (res == "yes") then return MENU_RETURN.EXIT end
+	return MENU_RETURN.EXIT_REPAINT
 end
 
 function setOptions()
@@ -1222,13 +1187,14 @@ function setOptions()
 	m_conf:exec()
 	m_conf:hide()
 
-	return MENU_RETURN["EXIT_REPAINT"];
+	return MENU_RETURN.EXIT_REPAINT;
 end
 
 -- #######################################################################################
 
 init()
 getFirstMenu()
+config:saveConfig(confFile)
 hideBGPicture(true)
 os.execute("rm -fr " .. tmpPath)
 posix.sync()
