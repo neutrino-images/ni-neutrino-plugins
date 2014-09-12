@@ -511,7 +511,7 @@ function programMissedMenu2(_id)
 	local i
 	for i = 1, 7 do
 		local m_name, m_value = getPrevDate(i-1)
-		m_missed:addItem{type="forwarder", name=m_name, value=m_value, enabled=tostring(isActiv[i]), action="programMissedMenu3", id=i-1, icon=i, directkey=RC[i]};
+		m_missed:addItem{type="forwarder", name=m_name, value=m_value, enabled=tostring(isActiv[i]), action="programMissedMenu3", id=i-1, icon=i, directkey=RC[tostring(i)]};
 	end
 
 	m_missed:exec()
@@ -541,7 +541,7 @@ function programMissedMenu3(_id)
 
 	local i
 	for i = 1, #timeArea do
-		m_missed3:addItem{type="forwarder", name=timeArea[i], enabled=tostring(isActiv[i]), action="programMissedMenu4", id=i, icon=i, directkey=RC[i]};
+		m_missed3:addItem{type="forwarder", name=timeArea[i], enabled=tostring(isActiv[i]), action="programMissedMenu4", id=i, icon=i, directkey=RC[tostring(i)]};
 	end
 
 	m_missed3:exec()
@@ -572,10 +572,10 @@ function programMissedMenu4(_id)
 	for i = 1, #listContent do
 		if i < 10 then
 			_icon = i
-			_directkey = RC[i]
+			_directkey = RC[tostring(i)]
 		elseif i == 10 then
 			_icon = 0
-			_directkey = RC[0]
+			_directkey = RC["0"]
 		else
 			_icon = ""
 			_directkey = ""
