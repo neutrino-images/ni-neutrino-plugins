@@ -185,8 +185,8 @@ function getFirstMenu()
 	m_modes:addItem{type="separator"};
 
 	m_modes:addItem{type="forwarder", name=langStr_programMissed, action="programMissedMenu1", icon=1, directkey=RC["1"]};
-	m_modes:addItem{type="forwarder", name="Livestreams", enabled="false", action="programMissedMenu1", icon=2, directkey=RC["2"]};
-	m_modes:addItem{type="forwarder", name="Blablub...", enabled="false", action="programMissedMenu1", icon=2, directkey=RC["3"]};
+	m_modes:addItem{type="forwarder", name="Livestreams", enabled=false, action="programMissedMenu1", icon=2, directkey=RC["2"]};
+	m_modes:addItem{type="forwarder", name="Blablub...", enabled=false, action="programMissedMenu1", icon=2, directkey=RC["3"]};
 
 	m_modes:addItem{type="separatorline"};
 	m_modes:addItem{type="forwarder", name=langStr_options, action="setOptions", id="-2", icon="blau", directkey=RC["blue"]};
@@ -511,7 +511,7 @@ function programMissedMenu2(_id)
 	local i
 	for i = 1, 7 do
 		local m_name, m_value = getPrevDate(i-1)
-		m_missed:addItem{type="forwarder", name=m_name, value=m_value, enabled=tostring(isActiv[i]), action="programMissedMenu3", id=i-1, icon=i, directkey=RC[tostring(i)]};
+		m_missed:addItem{type="forwarder", name=m_name, value=m_value, enabled=isActiv[i], action="programMissedMenu3", id=i-1, icon=i, directkey=RC[tostring(i)]};
 	end
 
 	m_missed:exec()
@@ -541,7 +541,7 @@ function programMissedMenu3(_id)
 
 	local i
 	for i = 1, #timeArea do
-		m_missed3:addItem{type="forwarder", name=timeArea[i], enabled=tostring(isActiv[i]), action="programMissedMenu4", id=i, icon=i, directkey=RC[tostring(i)]};
+		m_missed3:addItem{type="forwarder", name=timeArea[i], enabled=isActiv[i], action="programMissedMenu4", id=i, icon=i, directkey=RC[tostring(i)]};
 	end
 
 	m_missed3:exec()
@@ -687,14 +687,14 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 			picX = (boxW - picW) / 2
 			picY = ((picHmax - picH) / 2) + fontHeight/2
 
-			local w1  = cwindow.new{x=boxX, y=boxY, dx=boxW, dy=boxH, show_header="false", show_footer="false", color_body=colBgTmp}
+			local w1  = cwindow.new{x=boxX, y=boxY, dx=boxW, dy=boxH, show_header=false, show_footer=false, color_body=colBgTmp}
 
 --			printf("#####[ard_mediathek] aktBox: %d, txtY1: %d, txtY2: %d, picHmax: %d, picY: %d\n", aktBox, txtY1, txtY2, picHmax, picY)
 			if (tmpAStream == -1) or ((tmpAStream ~= -1) and ((aStream == aktBox) or (tmpAStream == aktBox))) then
 				ctext.new{parent=w1, x=txtX, y=txtY1, dx=txtW, dy=txtH1, text=hl, color_text=colTextTmp, color_body=colBgTmp, mode="ALIGN_CENTER ALIGN_BOTTOM"}
 				ctext.new{parent=w1, x=txtX, y=txtY2, dx=txtW, dy=txtH2, text=st, color_text=colTextTmp, color_body=colBgTmp, mode="ALIGN_CENTER ALIGN_TOP"}
 				cPic = cpicture.new{parent=w1, x=picX, y=picY , dx=picWmax, dy=picHmax, image=picName}
-				w1:paint{do_save_bg="false"}
+				w1:paint{do_save_bg=false}
 			end
 
 			aktBox = aktBox + 1
@@ -747,7 +747,7 @@ function newWinListContent(x, y, w, h, _id)
 	local wRet = cwindow.new{x=x, y=y, dx=w, dy=h, 
 			name=langStr_caption..", "..selectedChannel..": "..listContent[dId].title.." - "..listContent[dId].prev_wd.." "..listContent[dId].prev_date..", "..listContent[dId].date.." (#"..dId.."/"..#listContent..", "..listContent[dId].streamCount..tmpStr, 
 			icon=pluginIcon};
-	wRet:paint{do_save_bg="true"}
+	wRet:paint{do_save_bg=true}
 	return wRet
 end
 
@@ -777,7 +777,7 @@ function listStreams(_id)
 			local tmp = dId
 			dId = changePage(msg, dId)
 			if tmp ~= dId then
-				if streamWindow ~= nil then streamWindow:hide{no_restore="true"} end
+				if streamWindow ~= nil then streamWindow:hide{no_restore=true} end
 				streamWindow = newWinListContent(x, y, w, h, dId)
 				activStream = 1
 				paintListContent(x, y, w, h, dId, activStream, -1)
@@ -790,7 +790,7 @@ function listStreams(_id)
 		ret = msg
 	until msg == RC.home or msg == RC.setup
 
-	if streamWindow ~= nil then streamWindow:hide{no_restore="true"} end
+	if streamWindow ~= nil then streamWindow:hide{no_restore=true} end
 	if ret == RC.setup then
 		return MENU_RETURN.EXIT_ALL
 	end
@@ -799,7 +799,7 @@ end
 
 function getStream(_id)
 	local tmpId = tonumber(_id);
-	if streamWindow ~= nil then streamWindow:hide{no_restore="true"} end
+	if streamWindow ~= nil then streamWindow:hide{no_restore=true} end
 
 	local id1 = 0
 	local id2 = 0
