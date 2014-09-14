@@ -371,7 +371,7 @@ function show_movie_info(_id)
 
 	w:paint();
 	ret = getInput(index);
-	w:hide{no_restore="true"};
+	w:hide{no_restore=true};
 
 	if ret == MENU_RETURN["EXIT_ALL"] then
 		return ret
