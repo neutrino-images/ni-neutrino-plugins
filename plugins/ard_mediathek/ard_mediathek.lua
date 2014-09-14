@@ -185,8 +185,8 @@ function getFirstMenu()
 	m_modes:addItem{type="separator"};
 
 	m_modes:addItem{type="forwarder", name=langStr_programMissed, action="programMissedMenu1", icon=1, directkey=RC["1"]};
-	m_modes:addItem{type="forwarder", name="Livestreams", enabled=false, action="programMissedMenu1", icon=2, directkey=RC["2"]};
-	m_modes:addItem{type="forwarder", name="Blablub...", enabled=false, action="programMissedMenu1", icon=2, directkey=RC["3"]};
+	m_modes:addItem{type="forwarder", name="Einslike", enabled=false, action="programMissedMenu1", icon=2, directkey=RC["2"]};
+	m_modes:addItem{type="forwarder", name="Livestreams", enabled=false, action="programMissedMenu1", icon=3, directkey=RC["3"]};
 
 	m_modes:addItem{type="separatorline"};
 	m_modes:addItem{type="forwarder", name=langStr_options, action="setOptions", id="-2", icon="blau", directkey=RC["blue"]};
