@@ -607,6 +607,17 @@ function rescaleImageDimensions(width, height, max_width, max_height)
 	return width, height
 end
 
+function paintFrame(x, y, w, h, f, c)
+	-- top
+	n:PaintBox(x-f, y-f, w+f*2, f, c, CORNER.RADIUS_LARGE, bit32.bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
+	-- right
+	n:PaintBox(x+w, y, f, h, c)
+	-- bottom
+	n:PaintBox(x-f, y+h, w+f*2, f, c, CORNER.RADIUS_LARGE, bit32.bor(CORNER.BOTTOM_LEFT, CORNER.BOTTOM_RIGHT))
+	-- left
+	n:PaintBox(x-f, y, f, h, c)
+end
+
 function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 	local relH = h - (streamWindow:headerHeight() + streamWindow:footerHeight())
 	local headerH = streamWindow:headerHeight()
@@ -635,7 +646,6 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 	local colText      = COL.MENUCONTENT_TEXT
 	local colFrame     = COL.MENUCONTENT_PLUS_6
 	local colBgTmp     = colBgBack
-	local colTextTmp   = colText
 
 	fontHeight = n:FontHeight(FONT.MENU)
 
@@ -643,10 +653,8 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 		for i2 = 1, 3 do
 			if aktBox == aStream then
 				colBgTmp   = colBgActiv
-				colTextTmp = colTextActiv
 			else
 				colBgTmp   = colBgBack
-				colTextTmp = colText
 			end
 
 			local hl      = listContent[dId].streams[aktBox].headline
@@ -687,16 +695,20 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 			picX = (boxW - picW) / 2
 			picY = ((picHmax - picH) / 2) + fontHeight/2
 
-			local w1  = cwindow.new{x=boxX, y=boxY, dx=boxW, dy=boxH, show_header=false, show_footer=false, color_body=colBgTmp}
-
---			printf("#####[ard_mediathek] aktBox: %d, txtY1: %d, txtY2: %d, picHmax: %d, picY: %d\n", aktBox, txtY1, txtY2, picHmax, picY)
-			if (tmpAStream == -1) or ((tmpAStream ~= -1) and ((aStream == aktBox) or (tmpAStream == aktBox))) then
-				ctext.new{parent=w1, x=txtX, y=txtY1, dx=txtW, dy=txtH1, text=hl, color_text=colTextTmp, color_body=colBgTmp, mode="ALIGN_CENTER ALIGN_BOTTOM"}
-				ctext.new{parent=w1, x=txtX, y=txtY2, dx=txtW, dy=txtH2, text=st, color_text=colTextTmp, color_body=colBgTmp, mode="ALIGN_CENTER ALIGN_TOP"}
-				cPic = cpicture.new{parent=w1, x=picX, y=picY , dx=picWmax, dy=picHmax, image=picName}
+			if (tmpAStream == -1) then
+				local w1 = cwindow.new{x=boxX, y=boxY, dx=boxW, dy=boxH, show_header=false, show_footer=false, color_body=colBgBack}
+				ctext.new{parent=w1, x=txtX, y=txtY1, dx=txtW, dy=txtH1, text=hl, color_text=colText, color_body=colBgBack, mode="ALIGN_CENTER ALIGN_BOTTOM"}
+				ctext.new{parent=w1, x=txtX, y=txtY2, dx=txtW, dy=txtH2, text=st, color_text=colText, color_body=colBgBack, mode="ALIGN_CENTER ALIGN_TOP"}
+				cpicture.new{parent=w1, x=picX, y=picY , dx=picWmax, dy=picHmax, image=picName}
 				w1:paint{do_save_bg=false}
+				if (aStream == aktBox) then
+					paintFrame(boxX, boxY, boxW, boxH, 12, colBgTmp)
+				end
+			else
+				if ((aStream == aktBox) or (tmpAStream == aktBox)) then
+					paintFrame(boxX, boxY, boxW, boxH, 12, colBgTmp)
+				end
 			end
-
 			aktBox = aktBox + 1
 			if aktBox > listContent[dId].streamCount then
 				break2 = true
