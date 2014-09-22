@@ -8,7 +8,7 @@
 #include "gfx.h"
 #include "txtform.h" 
 
-#define M_VERSION 1.12
+#define M_VERSION 1.18
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define HDF_FILE	"/tmp/.msgbox_hidden"
@@ -216,7 +216,8 @@ char *pt1=strdup(sptr),*pt2,*pt3;
 }
 
 static int yo=80,dy;
-static int psx, psy, pxw, pyw, myo=0, buttx=80, butty=30, buttdx=20, buttdy=10, buttsize=0, buttxstart=0, buttystart=0;
+int psx;
+static int psy, pxw, pyw, myo=0, buttx=80, butty=30, buttdx=20, buttdy=10, buttsize=0, buttxstart=0, buttystart=0;
 
 int show_txt(int buttonly)
 {

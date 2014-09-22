@@ -10,7 +10,7 @@ void RenderBox(int _sx, int _sy, int _ex, int _ey, int rad, int col)
 		
 	if (dxx<0) 
 	{
-		printf("[shellexec] RenderBox called with dx < 0 (%d)\n", dxx);
+		printf("[msgbox] RenderBox called with dx < 0 (%d)\n", dxx);
 		dxx=0;
 	}
 
