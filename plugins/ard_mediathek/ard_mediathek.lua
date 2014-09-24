@@ -1049,13 +1049,19 @@ function setLangStrings(lang)
 end
 
 function paintInfoBox(txt)
-	infoBox_h = hintbox.new{caption=langStr_caption, text=txt, icon=pluginIcon};
-	infoBox_h:paint();
+	local dx = 450
+	local dy = 120
+	local x = ((SCREEN.END_X - SCREEN.OFF_X) - dx) / 2
+	local y = ((SCREEN.END_Y - SCREEN.OFF_Y) - dy) / 2
+
+	infoBox_h = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=langStr_caption, icon=pluginIcon, has_shadow=true, show_footer=false}
+	ctext.new{parent=infoBox_h, x=30, y=2, dx=dx-60, dy=dy-infoBox_h:headerHeight()-4, text=txt, font_text=FONT.MENU, mode="ALIGN_CENTER"}
+	infoBox_h:paint()
 end
 
 function hideInfoBox()
 	if infoBox_h ~= nil then
-		infoBox_h:hide()
+		infoBox_h:hide{no_restore=true}
 		infoBox_h = nil
 	end
 end
