@@ -184,7 +184,6 @@ void CatchTabs(char *text)
 /******************************************************************************
  * RenderString
  ******************************************************************************/
-extern int psx;
 int RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int size, int color)
 {
 	int stringlen = 0, _ex = 0, charwidth = 0,found = 0;
@@ -256,7 +255,6 @@ int RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int s
 							if(sscanf(rptr+1,"%4d",&i)==1)
 							{
 								rptr+=4;
-								sx = psx + 10 + i;
 								_sx=i;
 							}
 						break;
