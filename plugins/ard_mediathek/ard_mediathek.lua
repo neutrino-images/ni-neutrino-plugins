@@ -1147,11 +1147,7 @@ function saveConfig()
 		posix.sleep(1)
 		hideInfoBox()
 	end
-end
-
-function saveConfigData()
-	saveConfig()
-	init()
+	return MENU_RETURN.EXIT_REPAINT
 end
 
 function num2onoff(a)
@@ -1188,7 +1184,7 @@ function setOptions()
 	m_conf:addKey{directkey = RC["home"], id = "home", action = "handle_key"}
 	m_conf:addItem{type = "back"}
 	m_conf:addItem{type = "separatorline"}
-	m_conf:addItem{type = "forwarder", name = langStr_save, action = "saveConfigData", icon = "rot", directkey = RC["red"]}
+	m_conf:addItem{type = "forwarder", name = langStr_save, action = "saveConfig", icon = "rot", directkey = RC["red"]}
 	m_conf:addItem{type = "separatorline"}
 	opt = { "DE" ,"EN" }
 	m_conf:addItem{type="chooser", action="set_string", options={opt[1], opt[2]}, id="language", value=conf["language"], icon=1, directkey=RC["1"], name=langStr_language}
@@ -1197,7 +1193,7 @@ function setOptions()
 	m_conf:addItem{type="chooser", action="set_string", options={opt[1], opt[2]}, id="quality", value=conf["quality"], icon=2, directkey=RC["2"], name=langStr_quality}
 
 	m_conf:exec()
-	m_conf:hide()
+--	m_conf:hide()
 
 	return MENU_RETURN.EXIT_REPAINT;
 end
