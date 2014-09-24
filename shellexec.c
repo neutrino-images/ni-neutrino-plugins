@@ -37,7 +37,7 @@ static char spres[][5]={"","_crt","_lcd"};
 
 #define LIST_STEP 	10
 #define BUFSIZE 	4095
-#define SH_VERSION  1.19
+#define SH_VERSION  1.20
 typedef struct {int fnum; FILE *fh[16];} FSTRUCT, *PFSTRUCT;
 
 static int direct[32];
@@ -443,6 +443,10 @@ FSTRUCT fstr;
 					{
 						sscanf(strchr(line_buffer,'=')+1,"%d",&FSIZE_MED);
 					}
+					if(strstr(line_buffer,"MENUTIMEOUT=")==line_buffer)
+					{
+						sscanf(strchr(line_buffer,'=')+1,"%d",&mtmo);
+					}
 					if(strstr(line_buffer,"PAGING=")==line_buffer)
 					{
 						sscanf(strchr(line_buffer,'=')+1,"%d",&paging);
@@ -817,6 +821,8 @@ time_t tm1,tm2;
 
 			case -1:
 				knew=0;
+				if(mtmo == 0)
+				break;
 				time(&tm2);
 				if((tm2-tm1)<mtmo)
 				{
