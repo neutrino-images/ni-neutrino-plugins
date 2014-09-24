@@ -875,10 +875,10 @@ function getStream(_id)
 				j_mediaStreamArray = j_mediaArray[i1]._mediaStreamArray
 				if j_mediaStreamArray ~= nil then
 					for i2 = 1, #j_mediaStreamArray do
-						if j_mediaStreamArray[i2].valid == true then
+--						if j_mediaStreamArray[i2].valid == true then
 							qual[count] = j_mediaStreamArray[i2]._quality
 							count = count + 1
-						end
+--						end
 					end
 				end
 			end
@@ -932,7 +932,7 @@ function getStream(_id)
 				j_mediaStreamArray = j_mediaArray[i1]._mediaStreamArray
 				if j_mediaStreamArray ~= nil then
 					for i2 = 1, #j_mediaStreamArray do
-						if j_mediaStreamArray[i2].valid == true then
+--						if j_mediaStreamArray[i2].valid == true then
 							if tostring(j_mediaStreamArray[i2]._quality) == tostring(playQuality) then
 								streamUrl = j_mediaStreamArray[i2]._server .. j_mediaStreamArray[i2]._stream;
 								streamQuality = j_mediaStreamArray[i2]._quality
@@ -940,7 +940,7 @@ function getStream(_id)
 								streamBreak = true
 								break
 							end
-						end
+--						end
 					end
 				end
 				if streamBreak == true then break end
