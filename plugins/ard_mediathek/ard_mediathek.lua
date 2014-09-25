@@ -611,7 +611,7 @@ function paintFrame(x, y, w, h, f, c)
 	-- top
 	n:PaintBox(x-f, y-f, w+f*2, f, c, CORNER.RADIUS_LARGE, bit32.bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
 	-- right
-	n:PaintBox(x+w, y, f, h, c)
+	n:PaintBox(x+w-1, y, f, h, c)
 	-- bottom
 	n:PaintBox(x-f, y+h, w+f*2, f, c, CORNER.RADIUS_LARGE, bit32.bor(CORNER.BOTTOM_LEFT, CORNER.BOTTOM_RIGHT))
 	-- left
@@ -664,6 +664,8 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 
 			local boxX = x + boxSpacerX * i2 + boxW * (i2-1)
 			local boxY = y + headerH + boxSpacerY * i1 + boxH * (i1-1)
+			local frameX = boxX - SCREEN.OFF_X
+			local frameY = boxY - SCREEN.OFF_Y
 
 			if fileExist(picName) == false then
 --				printf("#####[ard_mediathek] %s%s '%s'", wget_cmd, picName, picUrl);
@@ -702,11 +704,11 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 				cpicture.new{parent=w1, x=picX, y=picY , dx=picWmax, dy=picHmax, image=picName}
 				w1:paint{do_save_bg=false}
 				if (aStream == aktBox) then
-					paintFrame(boxX, boxY, boxW, boxH, 12, colBgTmp)
+					paintFrame(frameX, frameY, boxW, boxH, 12, colBgTmp)
 				end
 			else
 				if ((aStream == aktBox) or (tmpAStream == aktBox)) then
-					paintFrame(boxX, boxY, boxW, boxH, 12, colBgTmp)
+					paintFrame(frameX, frameY, boxW, boxH, 12, colBgTmp)
 				end
 			end
 			aktBox = aktBox + 1
