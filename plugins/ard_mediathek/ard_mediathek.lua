@@ -1153,6 +1153,9 @@ function conv_str(_string)
 	return _string
 end
 
+-- Print contents of `tbl`, with indentation.
+-- `indent` sets the initial level of indentation.
+-- function ist from https://gist.github.com/ripter/4270799
 function tprint(tbl, indent)
 	if not indent then indent = 0 end
 	for k, v in pairs(tbl) do
