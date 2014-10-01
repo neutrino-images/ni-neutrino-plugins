@@ -956,7 +956,6 @@ function getStream(_id)
 									break
 								end
 								streamUrl = _server .. j_mediaStreamArray[i2]._stream;
-								streamUrl = j_mediaStreamArray[i2]._server .. j_mediaStreamArray[i2]._stream;
 								streamQuality = j_mediaStreamArray[i2]._quality
 								printf("#####[ard_mediathek] q: %d, stream: %s", playQuality, streamUrl)
 								streamBreak = true
