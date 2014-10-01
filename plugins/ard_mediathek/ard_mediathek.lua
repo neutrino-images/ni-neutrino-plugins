@@ -950,12 +950,14 @@ function getStream(_id)
 								if j_mediaStreamArray[i2]._server ~= nil then
 									_server = j_mediaStreamArray[i2]._server
 								end
-								if j_mediaStreamArray[i2]._stream == nil then
+								local _stream = j_mediaStreamArray[i2]._stream
+								if _stream == nil then
 									print("#####[ard_mediathek] No stream available, exit.")
 									streamBreak = true
 									break
 								end
-								streamUrl = _server .. j_mediaStreamArray[i2]._stream;
+								if _stream[1] ~= nil then _stream = _stream[1] end
+								streamUrl = _server .. _stream;
 								streamQuality = j_mediaStreamArray[i2]._quality
 								printf("#####[ard_mediathek] q: %d, stream: %s", playQuality, streamUrl)
 								streamBreak = true
