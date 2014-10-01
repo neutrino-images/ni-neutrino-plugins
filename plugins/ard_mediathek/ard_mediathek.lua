@@ -856,6 +856,16 @@ function getStream(_id)
 	local j_table = json:decode(s)
 	local j_type = j_table._type
 	if j_type == "video" then
+
+		-- test for evaluation geo blocking
+		local j_geoblocked = j_table.geoblocked
+		if j_geoblocked == true then
+			paintInfoBox("geoblocked: " .. tostring(j_geoblocked) .. "???\nPlease info the plugin author.")
+			posix.sleep(5)
+			hideInfoBox()
+			return
+		end
+
 		local j_isLive		= j_table._isLive
 		local j_defaultQuality	= j_table._defaultQuality
 		local j_previewImage	= j_table._previewImage
