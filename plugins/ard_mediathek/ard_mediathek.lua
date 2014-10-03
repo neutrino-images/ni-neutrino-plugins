@@ -88,9 +88,10 @@ function init()
 	-- set collectgarbage() interval from 200 (default) to 50
 	collectgarbage('setpause', 50)
 
+	playQuality 			= "auto"
+
 	conf = {}
 	confChanged 			= 0
-
 	confFile			= "/var/tuxbox/config/ard_mediathek.conf";
 	config				= configfile.new()
 	loadConfig()
@@ -109,14 +110,11 @@ function init()
 	selectedChannelId		= 0
 	selectedTagId			= 0
 
-	playQuality 			= "auto"
-	on				= "ein"
-	off				= "aus"
 	infoBox_h			= nil
 	streamWindow			= nil
 
 	n = neutrino()
-	setLangStrings(conf["language"])
+--	setLangStrings(conf["language"])
 	setChannels()
 	setTimeArea()
 
@@ -880,63 +878,57 @@ function getStream(_id)
 		local j_mediaArray	= j_table._mediaArray
 		local i1, i2
 
-		-- verfügbare StreamQualitäten
-		tmp_defaultPlayQuality = conf["quality"]
+		-- available stream qualities
 		local count = 1
+		local j = 4
+		if hdsAvailable == false or conf["auto"] == langStr_off then j = 3 end
+		local q
 		local qual = {}
-		if j_mediaArray ~= nil then
-			for i1 = 1, #j_mediaArray do
-				j_mediaStreamArray = j_mediaArray[i1]._mediaStreamArray
-				if j_mediaStreamArray ~= nil then
-					for i2 = 1, #j_mediaStreamArray do
---						if j_mediaStreamArray[i2].valid == true then
-							qual[count] = j_mediaStreamArray[i2]._quality
-							count = count + 1
---						end
+		while j >= 0 do
+			if j_mediaArray ~= nil then
+				for i1 = 1, #j_mediaArray do
+					j_mediaStreamArray = j_mediaArray[i1]._mediaStreamArray
+					if j_mediaStreamArray ~= nil then
+						for i2 = 1, #j_mediaStreamArray do
+							if j == 4 then q = "auto" else q = tostring(j) end
+							if tostring(j_mediaStreamArray[i2]._quality) == q then
+								qual[count] = q
+								count = count + 1
+								goto qual_next
+							end
+						end
 					end
 				end
 			end
-		end
-		local availableAuto = ""
-		for i1 = 1, #qual do
-			if tostring(qual[i1]) == "auto" then
-				availableAuto = "auto"
-				break
-			end
-		end
-		local availableMax = 0
-		for i1 = 1, #qual do
-			if tostring(qual[i1]) ~= "auto" then
---				if tostring(qual[i1]) == "2"then
---					availableMax = 2
---					break
---				end
-				if tonumber(qual[i1]) > tonumber(availableMax) then
-					availableMax = tonumber(qual[i1])
-				end
-			end
-		end
-		local availableMin = 1000
-		for i1 = 1, #qual do
-			if tostring(qual[i1]) ~= "auto" then
-				if tonumber(qual[i1]) < tonumber(availableMin) then
-					availableMin = tonumber(qual[i1])
-				end
-			end
+			::qual_next::
+			j = j - 1
 		end
 
-		-- setzen playQuality
-		if j_defaultQuality ~= nil then
-			if tmp_defaultPlayQuality == "auto" then
-				if availableAuto == "auto" then
-					playQuality = "auto"
-				else
-					playQuality = availableMax
+		-- set playQuality
+		local bool qual_found = false
+		if conf["auto"] == langStr_on and qual[1] == "auto" then
+			playQuality = "auto"
+			qual_found = true
+		else
+			i1 = #qual
+			while i1 > 0 do
+				if qual[i1] == conf["streamQuality"] then
+					playQuality = qual[i1]
+					qual_found = true
+					break
 				end
-			elseif tmp_defaultPlayQuality == "max" then
-				playQuality = availableMax
-			else
-				playQuality = availableMin
+				i1 = i1 - 1
+			end
+			if qual_found == false then
+				if tonumber(conf["streamQuality"]) >= 2 then
+					playQuality = qual[1]
+				elseif tonumber(conf["streamQuality"]) == 0 then
+					playQuality = qual[#qual]
+				else
+					i1 = #qual - 1
+					if i1 < 1 then i1 = #qual end
+					playQuality = qual[i1]
+				end
 			end
 		end
 
@@ -946,31 +938,29 @@ function getStream(_id)
 				j_mediaStreamArray = j_mediaArray[i1]._mediaStreamArray
 				if j_mediaStreamArray ~= nil then
 					for i2 = 1, #j_mediaStreamArray do
---						if j_mediaStreamArray[i2].valid == true then
-							if tostring(j_mediaStreamArray[i2]._quality) == tostring(playQuality) then
-								local _server = ""
-								if j_mediaStreamArray[i2]._server ~= nil then
-									_server = j_mediaStreamArray[i2]._server
-								end
-								local _stream = j_mediaStreamArray[i2]._stream
-								if _stream == nil then
-									print("#####[ard_mediathek] No stream available, exit.")
-									streamBreak = true
-									break
-								end
-								if _stream[1] ~= nil then _stream = _stream[1] end
-								streamUrl = _server .. _stream;
-								streamQuality = j_mediaStreamArray[i2]._quality
-								if tostring(streamQuality) == "auto" then
-									if n:strSub(streamUrl, #streamUrl-4) == ".f4m" then
-										streamUrl = streamUrl .. "?hdcore"
-									end
-								end
-								printf("#####[ard_mediathek] q: %s, stream: %s", tostring(playQuality), streamUrl)
+						if tostring(j_mediaStreamArray[i2]._quality) == tostring(playQuality) then
+							local _server = ""
+							if j_mediaStreamArray[i2]._server ~= nil then
+								_server = j_mediaStreamArray[i2]._server
+							end
+							local _stream = j_mediaStreamArray[i2]._stream
+							if _stream == nil then
+								print("#####[ard_mediathek] No stream available, exit.")
 								streamBreak = true
 								break
 							end
---						end
+							if _stream[1] ~= nil then _stream = _stream[1] end
+							streamUrl = _server .. _stream;
+							streamQuality = j_mediaStreamArray[i2]._quality
+							if tostring(streamQuality) == "auto" then
+								if n:strSub(streamUrl, #streamUrl-4) == ".f4m" then
+									streamUrl = streamUrl .. "?hdcore"
+								end
+							end
+							printf("#####[ard_mediathek] q: %s, stream: %s", tostring(playQuality), streamUrl)
+							streamBreak = true
+							break
+						end
 					end
 				end
 				if streamBreak == true then break end
@@ -1039,6 +1029,7 @@ function setLangStrings(lang)
 		langStr_save			= "Einstellungen jetzt speichern"
 		langStr_discardChanges1		= "Änderungen verwerfen?"
 		langStr_discardChanges2		= "Sollen die Änderungen verworfen werden?"
+		langStr_auto			= "'auto' Qualität (HDS)"
 		langStr_quality			= "Streamqualität"
 
 		langStr_Today			= "Heute"
@@ -1050,6 +1041,8 @@ function setLangStrings(lang)
 		langStr_Friday			= "Freitag"
 		langStr_Saturday		= "Samstag"
 		langStr_Sunday			= "Sonntag"
+		langStr_on			= "ein"
+		langStr_off			= "aus"
 	elseif lang == "EN" then
 		langStr_caption			= "ARD Mediathek"
 		langStr_modeSelection		= "Selection"
@@ -1062,6 +1055,7 @@ function setLangStrings(lang)
 		langStr_save			= "Save settings now"
 		langStr_discardChanges1		= "Discard changes? "
 		langStr_discardChanges2		= "If the changes are discarded?"
+		langStr_auto			= "'auto' quality (HDS)"
 		langStr_quality			= "Stream quality"
 
 		langStr_Today			= "Today"
@@ -1073,6 +1067,8 @@ function setLangStrings(lang)
 		langStr_Friday			= "Friday"
 		langStr_Saturday		= "Saturday"
 		langStr_Sunday			= "Sunday"
+		langStr_on			= "on"
+		langStr_off			= "off"
 	else
 		error("No language selected!");
 	end
@@ -1094,17 +1090,6 @@ function hideInfoBox()
 		infoBox_h:hide{no_restore=true}
 		infoBox_h = nil
 	end
-end
-
-function pidOf(prog)
-	local r = ""
-	local h = io.popen("pidof " .. prog, "r")
-	if h ~= nil then
-		io.input(h)
-		r = io.read()
-		io.close(h)
-	end
-	return r
 end
 
 function fileExist(file)
@@ -1186,10 +1171,13 @@ function loadConfig()
 	config:loadConfig(confFile)
 
 	conf["language"] = config:getString("language", "DE")
-	conf["quality"]  = config:getString("quality",  "max")
-	if hdsAvailable ~= true and conf["quality"] == "auto" then
-		conf["quality"] = "max"
+	setLangStrings(conf["language"])
+	conf["streamQuality"]  = config:getString("streamQuality",  "3")
+	local tmp        = config:getBool( "auto",      true)
+	if hdsAvailable ~= true then
+		if tmp == true then tmp = false end
 	end
+	if tmp == true then conf["auto"] = langStr_on else conf["auto"] = langStr_off end
 end
 
 function saveConfig()
@@ -1197,7 +1185,9 @@ function saveConfig()
 		paintInfoBox(langStr_saveSettings)
 
 		config:setString("language", conf["language"])
-		config:setString("quality",  conf["quality"])
+		config:setString("streamQuality",  conf["streamQuality"])
+		if conf["auto"] == langStr_on then tmp = true else tmp = false end
+		config:setBool("auto",       tmp)
 
 		config:saveConfig(confFile)
 		confChanged = 0
@@ -1207,23 +1197,8 @@ function saveConfig()
 	return MENU_RETURN.EXIT_REPAINT
 end
 
-function num2onoff(a)
-	if (tonumber(a) == 0) then return off end
-	return on
-end
-
-function onoff2num(a)
-	if (a == on) then return 1 end
-	return 0
-end
-
 function set_string(k, v)
 	conf[k] = v
-	confChanged = 1
-end
-
-function set_bool(k, v)
-	conf[k] = onoff2num(v)
 	confChanged = 1
 end
 
@@ -1245,17 +1220,12 @@ function setOptions()
 	m_conf:addItem{type = "separatorline"}
 	opt = { "DE" ,"EN" }
 	m_conf:addItem{type="chooser", action="set_string", options={opt[1], opt[2]}, id="language", value=conf["language"], icon=1, directkey=RC["1"], name=langStr_language}
-
-	if hdsAvailable == true then
-		opt = { "auto", "max" ,"min" }
-		m_conf:addItem{type="chooser", action="set_string", options={opt[1], opt[2], opt[3]}, id="quality", value=conf["quality"], icon=2, directkey=RC["2"], name=langStr_quality}
-	else
-		opt = { "max" ,"min" }
-		m_conf:addItem{type="chooser", action="set_string", options={opt[1], opt[2]}, id="quality", value=conf["quality"], icon=2, directkey=RC["2"], name=langStr_quality}
-	end
+	opt = { langStr_on, langStr_off }
+	m_conf:addItem{type="chooser", enabled=hdsAvailable, action="set_string", options={opt[1], opt[2]}, id="auto", value=conf["auto"], icon=2, directkey=RC["2"], name=langStr_auto}
+	opt = { "0" ,"1", "2" ,"3" }
+	m_conf:addItem{type="chooser", action="set_string", options={opt[1], opt[2], opt[3], opt[4]}, id="streamQuality", value=conf["streamQuality"], icon=3, directkey=RC["3"], name=langStr_quality}
 
 	m_conf:exec()
-
 	return MENU_RETURN.EXIT_REPAINT;
 end
 
