@@ -23,8 +23,6 @@
 local json = require "json"
 local posix = require "posix"
 
-local hdsAvailable = true
-
 function script_path()
 	return posix.dirname(debug.getinfo(2, "S").source:sub(2)).."/"
 end
@@ -87,6 +85,9 @@ end
 function init()
 	-- set collectgarbage() interval from 200 (default) to 50
 	collectgarbage('setpause', 50)
+
+	hdsAvailable = true
+	if isNevis() == true then hdsAvailable = false end
 
 	playQuality 			= "auto"
 
@@ -1160,6 +1161,17 @@ function tprint(tbl, indent)
 			print(formatting .. v)
 		end
 	end
+end
+
+function isNevis()
+	local fp = io.open("/proc/cpuinfo", "r")
+	if fp == nil then error("Error opening /proc/cpuinfo.") end
+	local s = fp:read("*a")
+	fp:close()
+	if s:find("CoolStream HDx IRD") ~= nil or s:find("CST HDx IRD") ~= nil then
+		return true
+	end
+	return false
 end
 
 -- #######################################################################################
