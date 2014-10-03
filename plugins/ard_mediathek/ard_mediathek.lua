@@ -87,7 +87,7 @@ function init()
 	collectgarbage('setpause', 50)
 
 	hdsAvailable = true
-	if isNevis() == true then hdsAvailable = false end
+--	if isNevis() == true then hdsAvailable = false end
 
 	playQuality 			= "auto"
 
