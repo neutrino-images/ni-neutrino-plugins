@@ -114,7 +114,6 @@ function init()
 	streamWindow			= nil
 
 	n = neutrino()
---	setLangStrings(conf["language"])
 	setChannels()
 	setTimeArea()
 
@@ -881,7 +880,7 @@ function getStream(_id)
 		-- available stream qualities
 		local count = 1
 		local j = 4
-		if hdsAvailable == false or conf["auto"] == langStr_off then j = 3 end
+		if hdsAvailable == false or conf.auto == langStr_off then j = 3 end
 		local q
 		local qual = {}
 		while j >= 0 do
@@ -906,13 +905,13 @@ function getStream(_id)
 
 		-- set playQuality
 		local bool qual_found = false
-		if conf["auto"] == langStr_on and qual[1] == "auto" then
+		if conf.auto == langStr_on and qual[1] == "auto" then
 			playQuality = "auto"
 			qual_found = true
 		else
 			i1 = #qual
 			while i1 > 0 do
-				if qual[i1] == conf["streamQuality"] then
+				if qual[i1] == tostring(conf.streamQuality) then
 					playQuality = qual[i1]
 					qual_found = true
 					break
@@ -920,9 +919,9 @@ function getStream(_id)
 				i1 = i1 - 1
 			end
 			if qual_found == false then
-				if tonumber(conf["streamQuality"]) >= 2 then
+				if conf.streamQuality >= 2 then
 					playQuality = qual[1]
-				elseif tonumber(conf["streamQuality"]) == 0 then
+				elseif conf.streamQuality == 0 then
 					playQuality = qual[#qual]
 				else
 					i1 = #qual - 1
@@ -1004,7 +1003,7 @@ function getPrevDate(num)
 	if wd == "Saturday"  then wd = langStr_Saturday end
 	if wd == "Sunday"    then wd = langStr_Sunday end
 	local formatStr
-	if conf["language"] == "DE" then
+	if conf.language == "DE" then
 		formatStr = "%d.%m.%Y"
 	else
 		formatStr = "%Y-%m-%d"
@@ -1170,24 +1169,24 @@ end
 function loadConfig()
 	config:loadConfig(confFile)
 
-	conf["language"] = config:getString("language", "DE")
-	setLangStrings(conf["language"])
-	conf["streamQuality"]  = config:getString("streamQuality",  "3")
-	local tmp        = config:getBool( "auto",      true)
+	conf.language = config:getString("language", "DE")
+	setLangStrings(conf.language)
+	conf.streamQuality = config:getInt32("streamQuality", 3)
+	local tmp = config:getBool( "auto", true)
 	if hdsAvailable ~= true then
 		if tmp == true then tmp = false end
 	end
-	if tmp == true then conf["auto"] = langStr_on else conf["auto"] = langStr_off end
+	if tmp == true then conf.auto = langStr_on else conf.auto = langStr_off end
 end
 
 function saveConfig()
 	if confChanged == 1 then
 		paintInfoBox(langStr_saveSettings)
 
-		config:setString("language", conf["language"])
-		config:setString("streamQuality",  conf["streamQuality"])
-		if conf["auto"] == langStr_on then tmp = true else tmp = false end
-		config:setBool("auto",       tmp)
+		config:setString("language", conf.language)
+		config:setInt32("streamQuality", conf.streamQuality)
+		if conf.auto == langStr_on then tmp = true else tmp = false end
+		config:setBool("auto", tmp)
 
 		config:saveConfig(confFile)
 		confChanged = 0
@@ -1197,7 +1196,12 @@ function saveConfig()
 	return MENU_RETURN.EXIT_REPAINT
 end
 
-function set_string(k, v)
+function setInt(k, v)
+	conf[k] = v
+	confChanged = 1
+end
+
+function setString(k, v)
 	conf[k] = v
 	confChanged = 1
 end
@@ -1219,11 +1223,12 @@ function setOptions()
 	m_conf:addItem{type = "forwarder", name = langStr_save, action = "saveConfig", icon = "rot", directkey = RC["red"]}
 	m_conf:addItem{type = "separatorline"}
 	opt = { "DE" ,"EN" }
-	m_conf:addItem{type="chooser", action="set_string", options={opt[1], opt[2]}, id="language", value=conf["language"], icon=1, directkey=RC["1"], name=langStr_language}
+	m_conf:addItem{type="chooser", action="setString", options={opt[1], opt[2]}, id="language", value=conf.language, icon=1, directkey=RC["1"], name=langStr_language}
 	opt = { langStr_on, langStr_off }
-	m_conf:addItem{type="chooser", enabled=hdsAvailable, action="set_string", options={opt[1], opt[2]}, id="auto", value=conf["auto"], icon=2, directkey=RC["2"], name=langStr_auto}
-	opt = { "0" ,"1", "2" ,"3" }
-	m_conf:addItem{type="chooser", action="set_string", options={opt[1], opt[2], opt[3], opt[4]}, id="streamQuality", value=conf["streamQuality"], icon=3, directkey=RC["3"], name=langStr_quality}
+	m_conf:addItem{type="chooser", enabled=hdsAvailable, action="setString", options={opt[1], opt[2]}, id="auto", value=conf.auto, icon=2, directkey=RC["2"], name=langStr_auto}
+	opt = { 0 ,1, 2 ,3 }
+	m_conf:addItem{type="chooser", action="setInt", options={opt[1], opt[2], opt[3], opt[4]}, id="streamQuality", value=conf.streamQuality, icon=3, directkey=RC["3"], name=langStr_quality}
+--	m_conf:addItem{type="numeric", action="setInt", range="0,3", id="streamQuality", value=conf.streamQuality, name=langStr_quality}
 
 	m_conf:exec()
 	return MENU_RETURN.EXIT_REPAINT;
