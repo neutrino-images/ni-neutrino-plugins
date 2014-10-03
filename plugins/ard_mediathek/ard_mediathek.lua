@@ -23,6 +23,8 @@
 local json = require "json"
 local posix = require "posix"
 
+local hdsAvailable = true
+
 function script_path()
 	return posix.dirname(debug.getinfo(2, "S").source:sub(2)).."/"
 end
@@ -959,7 +961,12 @@ function getStream(_id)
 								if _stream[1] ~= nil then _stream = _stream[1] end
 								streamUrl = _server .. _stream;
 								streamQuality = j_mediaStreamArray[i2]._quality
-								printf("#####[ard_mediathek] q: %d, stream: %s", playQuality, streamUrl)
+								if tostring(streamQuality) == "auto" then
+									if n:strSub(streamUrl, #streamUrl-4) == ".f4m" then
+										streamUrl = streamUrl .. "?hdcore"
+									end
+								end
+								printf("#####[ard_mediathek] q: %s, stream: %s", tostring(playQuality), streamUrl)
 								streamBreak = true
 								break
 							end
@@ -974,8 +981,8 @@ function getStream(_id)
 
 	if streamUrl ~= "x" then
 		local info1 = headline
-		local info2 = infoline
---		local info2 = infoline .. " [q=" .. playQuality .. "]"
+--		local info2 = infoline
+		local info2 = infoline .. " [q=" .. playQuality .. "]"
 		if title == nil then title = "" end
 		if info1 == nil then info1 = "" end
 		if info2 == nil then info2 = "" end
@@ -1180,6 +1187,9 @@ function loadConfig()
 
 	conf["language"] = config:getString("language", "DE")
 	conf["quality"]  = config:getString("quality",  "max")
+	if hdsAvailable ~= true and conf["quality"] == "auto" then
+		conf["quality"] = "max"
+	end
 end
 
 function saveConfig()
@@ -1235,12 +1245,16 @@ function setOptions()
 	m_conf:addItem{type = "separatorline"}
 	opt = { "DE" ,"EN" }
 	m_conf:addItem{type="chooser", action="set_string", options={opt[1], opt[2]}, id="language", value=conf["language"], icon=1, directkey=RC["1"], name=langStr_language}
---	opt = { "auto", "min" ,"max" }
-	opt = { "min" ,"max" }
-	m_conf:addItem{type="chooser", action="set_string", options={opt[1], opt[2]}, id="quality", value=conf["quality"], icon=2, directkey=RC["2"], name=langStr_quality}
+
+	if hdsAvailable == true then
+		opt = { "auto", "max" ,"min" }
+		m_conf:addItem{type="chooser", action="set_string", options={opt[1], opt[2], opt[3]}, id="quality", value=conf["quality"], icon=2, directkey=RC["2"], name=langStr_quality}
+	else
+		opt = { "max" ,"min" }
+		m_conf:addItem{type="chooser", action="set_string", options={opt[1], opt[2]}, id="quality", value=conf["quality"], icon=2, directkey=RC["2"], name=langStr_quality}
+	end
 
 	m_conf:exec()
---	m_conf:hide()
 
 	return MENU_RETURN.EXIT_REPAINT;
 end
