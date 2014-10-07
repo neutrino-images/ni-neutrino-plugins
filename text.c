@@ -154,8 +154,8 @@ void CatchTabs(char *text)
 
 int RenderString(char *string, int sx, int sy, int maxwidth, int layout, int size, int color)
 {
-	int stringlen, ex, charwidth,i,found;
-	char rstr[BUFSIZE], *rptr=rstr, rc;
+	int stringlen = 0, ex = 0, charwidth = 0, i = 0, found = 0;
+	char rstr[BUFSIZE]={0}, *rptr=rstr, rc=' ';
 	int varcolor=color;
 
 	//set size
@@ -237,6 +237,50 @@ int RenderString(char *string, int sx, int sy, int maxwidth, int layout, int siz
 			}
 			else
 			{
+				int uml = 0;
+				switch(*rptr)    /* skip Umlauts */
+				{
+					case '\xc4':
+					case '\xd6':
+					case '\xdc':
+					case '\xe4':
+					case '\xf6':
+					case '\xfc':
+					case '\xdf': uml=1; break;
+				}
+				if (uml == 0)
+				{
+					// UTF8_to_Latin1 encoding
+					if (((*rptr) & 0xf0) == 0xf0)      /* skip (can't be encoded in Latin1) */
+					{
+						rptr++;
+						if ((*rptr) == 0)
+							*rptr='\x3f'; // ? question mark
+						rptr++;
+						if ((*rptr) == 0)
+							*rptr='\x3f';
+						rptr++;
+						if ((*rptr) == 0)
+							*rptr='\x3f';
+					}
+					else if (((*rptr) & 0xe0) == 0xe0) /* skip (can't be encoded in Latin1) */
+					{
+						rptr++;
+						if ((*rptr) == 0)
+							*rptr='\x3f';
+						rptr++;
+						if ((*rptr) == 0)
+							*rptr='\x3f';
+					}
+					else if (((*rptr) & 0xc0) == 0xc0)
+					{
+						char c = (((*rptr) & 3) << 6);
+						rptr++;
+						if ((*rptr) == 0)
+							*rptr='\x3f';
+						*rptr = (c | ((*rptr) & 0x3f));
+					}
+				}
 				if((charwidth = RenderChar(*rptr, sx, sy, ex, varcolor)) == -1) return sx; /* string > maxwidth */
 				sx += charwidth;
 			}
