@@ -206,7 +206,7 @@ void writeXML(struct movieinfo *mi)
 		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"			<bookmarkstart>0</bookmarkstart>\n");
 		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"			<bookmarkend>0</bookmarkend>\n");
 		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"			<bookmarklast>0</bookmarklast>\n");
-		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"			<bookmarkuser bookmarkuserpos=\"0\" bookmarkusertype=\"0\" bookmarkusername=""/>\n");
+		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"                 <bookmarkuser bookmarkuserpos=\"0\" bookmarkusertype=\"0\" bookmarkusername=\"\"/>\n");
 		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"		</bookmark>\n");
 		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"	</record>\n");
 		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"</neutrino>\n");
