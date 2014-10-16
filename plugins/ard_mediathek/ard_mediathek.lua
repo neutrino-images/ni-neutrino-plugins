@@ -698,8 +698,29 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 			picY = ((picHmax - picH) / 2) + fontHeight/2
 
 			if (tmpAStream == -1) then
+				local tmpTxt
+				if (n:getRenderWidth(FONT.MENU, hl) > txtW) then
+					local pos=0
+					local text_w=0
+					local old_pos
+					local tmpTxt1, tmpTxt2
+					for i1 = 1, #hl do
+						old_pos = pos
+						pos = string.find(hl, "[ .!?,-]", pos+1)
+						tmpTxt1 = string.sub(hl, 1, pos)
+						text_w = n:getRenderWidth(FONT.MENU, tmpTxt1)
+						if text_w > txtW then
+							tmpTxt1 = string.sub(hl, 1, old_pos)
+							break
+						end
+					end
+					tmpTxt2 = string.sub(hl, old_pos+1)
+					tmpTxt = tmpTxt1 .. "\n" .. tmpTxt2
+				else
+					tmpTxt = hl
+				end
 				local w1 = cwindow.new{x=boxX, y=boxY, dx=boxW, dy=boxH, show_header=false, show_footer=false, color_body=colBgBack}
-				ctext.new{parent=w1, x=txtX, y=txtY1, dx=txtW, dy=txtH1, text=hl, color_text=colText, color_body=colBgBack, mode="ALIGN_CENTER ALIGN_BOTTOM"}
+				ctext.new{parent=w1, x=txtX, y=txtY1, dx=txtW, dy=txtH1, text=tmpTxt, color_text=colText, color_body=colBgBack, mode="ALIGN_CENTER ALIGN_BOTTOM ALIGN_NO_AUTO_LINEBREAK"}
 				ctext.new{parent=w1, x=txtX, y=txtY2, dx=txtW, dy=txtH2, text=st, color_text=colText, color_body=colBgBack, mode="ALIGN_CENTER ALIGN_TOP"}
 				cpicture.new{parent=w1, x=picX, y=picY , dx=picWmax, dy=picHmax, image=picName}
 				w1:paint{do_save_bg=false}
