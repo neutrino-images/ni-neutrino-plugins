@@ -631,8 +631,8 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 	local gesH = boxAnzH*btH + spAnzH
 	local gesV = boxAnzV*btV + spAnzV
 
-	local boxSpacerX = w / gesH
-	local boxSpacerY = relH / gesV
+	local boxSpacerX = math.floor(w/gesH + 0.5)
+	local boxSpacerY = math.floor(relH/gesV + 0.5)
 	local boxW = boxSpacerX * btH
 	local boxH = boxSpacerY * btV
 
