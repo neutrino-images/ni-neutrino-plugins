@@ -96,26 +96,50 @@ function get_movies(_id)
 		local s = fp:read("*a")
 		fp:close()
 
-		max_page = tonumber(s:match("\"pages\":(.-),"));
-	
-		i = 1;
-		for movie in string.gmatch(s, "\"type\":\"post\",(.-)%]}}") do
-			if string.find(movie, "\"custom_fields\":{}},") then
-			else
-				local json_movie = JSON:decode("{" .. movie .. "]}}")
-				movies[i] =
+		local j_table = JSON:decode(s)
+		max_page = tonumber(j_table.pages);
+		local posts = j_table.posts
+
+		j = 1;
+		for i = 1, #posts do
+			local j_streaming = nil;
+			local custom_fields = posts[i].custom_fields
+			if custom_fields ~= nil then
+				local stream = custom_fields.Streaming
+				if stream ~= nil then
+					j_streaming = stream[1]
+				end
+			end
+
+			if j_streaming ~= nil then
+				j_title = posts[i].title
+				j_content = posts[i].content
+
+				local j_cover="";
+				local attachments = posts[i].attachments[1]
+				if attachments ~= nil then
+					local images = attachments.images;
+					if images ~= nil then
+						local full = images.full
+						if full ~= nil then
+							j_cover = full.url
+						end
+					end
+				end
+
+				movies[j] =
 				{
-					id = i;
-					title   = json_movie.title;
-					content = json_movie.content;
-					cover   = movie:match("\"full\":{\"url\":\"(.-)\"");
-					stream  = movie:match("\"Streaming\":%[\"(.-)\"");
+					id      = j;
+					title   = j_title;
+					content = j_content;
+					cover   = j_cover;
+					stream  = j_streaming;
 				};
-				i = i + 1;
+				j = j + 1;
 			end
 		end
 
-		if i > 1 then
+		if j > 1 then
 			get_movies_menu(index);
 		else
 			messagebox.exec{title="Fehler", text="Keinen Stream gefunden!", icon="error", timeout=5, buttons={"ok"}}
