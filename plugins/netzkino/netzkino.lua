@@ -185,14 +185,14 @@ function show_movie_info(_id)
 	ct1 = ctext.new{parent=w, x=240, y=25, dx=980, dy=380, text=conv_utf8(movies[index].content), mode = "ALIGN_TOP | ALIGN_SCROLL | DECODE_HTML"};
 	
 	ct2 = ctext.new{parent=w, x=500, y=450, dx=900, dy=10, text="Netzkino HD Plugin by Ezak for coolstream.to"};
-	
-	w:paint();
-		
+
 	if movies[index].cover ~= nil then
 		getPicture(conv_utf8(movies[index].cover));
-		n:DisplayImage("/tmp/netzkino_cover.jpg", 180, 150, 190, 260);
+		cpicture.new{parent=w, x=25, y=40, dx=190, dy=260, image="/tmp/netzkino_cover.jpg"}
 	end
-	
+
+	w:paint();
+
 	neutrinoExec(index);
 	w:hide{no_restore="true"};
 	if selected_stream_id == 0 then
