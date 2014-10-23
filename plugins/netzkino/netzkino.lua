@@ -125,7 +125,13 @@ function get_movies_menu(_id)
 	selected_movie_id = 0;
 	
 	m_movies = menu.new{name=menu_title};
-	
+
+	if max_page > 1 then
+		local aktPage = tostring(page);
+		local maxPage = tostring(max_page);
+		local sText = "Seite " .. aktPage .. " von " .. maxPage
+		m_movies:addItem{type="subhead", name=sText};
+	end
 	if page < max_page then
 		m_movies:addItem{type="forwarder", name="Nächste Seite", action="set_movie", id="-2", icon="blau", directkey=RC["blue"]};
 		m_movies:addKey{directkey=RC["right"], action="set_movie", id="-2"}
