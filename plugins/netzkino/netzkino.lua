@@ -2,6 +2,8 @@
 --From Ezak for coolstream.to
 --READ LICENSE on https://github.com/Ezak91/CST-Netzkino-HD-Plugin
 
+local JSON = require "JSON.lua"
+
 --Objekte
 function init()
 	categories = {};
@@ -31,16 +33,16 @@ function get_categories()
 		fp:close()
 		
 		i = 1;
-		
-		
-		s = s:match("%[(.-)%]");		
+
+		s = s:match("%[(.-)%]");
 		for categorie in string.gmatch(s, "%{(.-)%}") do
+			local json_cat = JSON:decode("{" .. categorie .. "}")
 			categories[i] =
 			{
 				id = i;
-				categorie_id = categorie:match("\"id\":(.-),");
-				title = categorie:match("\"title\":\"(.-)\",");
-				post_count = categorie:match("\"post_count\":(.*)");
+				categorie_id = json_cat.id;
+				title        = json_cat.title;
+				post_count   = json_cat.post_count;
 			};
 			i = i + 1;
 		end
@@ -93,20 +95,21 @@ function get_movies(_id)
 	else
 		local s = fp:read("*a")
 		fp:close()
+
 		max_page = tonumber(s:match("\"pages\":(.-),"));
 	
 		i = 1;
-						
-		for movie in string.gmatch(s, "\"type\":\"post\"(.-)%]}}") do
+		for movie in string.gmatch(s, "\"type\":\"post\",(.-)%]}}") do
 			if string.find(movie, "\"custom_fields\":{}},") then
-			else			
+			else
+				local json_movie = JSON:decode("{" .. movie .. "]}}")
 				movies[i] =
 				{
 					id = i;
-					title = movie:match("\"title_plain\":\"(.-)\"");
-					content = movie:match("\"content\":\"(.-)\",\"excerpt\"");
-					cover = movie:match("\"full\":{\"url\":\"(.-)\"");
-					stream = movie:match("\"Streaming\":%[\"(.-)\"");
+					title   = json_movie.title;
+					content = json_movie.content;
+					cover   = movie:match("\"full\":{\"url\":\"(.-)\"");
+					stream  = movie:match("\"Streaming\":%[\"(.-)\"");
 				};
 				i = i + 1;
 			end
