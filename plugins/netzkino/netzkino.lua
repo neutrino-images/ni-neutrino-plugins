@@ -31,29 +31,34 @@ function get_categories()
 	else
 		local s = fp:read("*a")
 		fp:close()
-		
-		i = 1;
 
-		s = s:match("%[(.-)%]");
-		for categorie in string.gmatch(s, "%{(.-)%}") do
-			local json_cat = JSON:decode("{" .. categorie .. "}")
-			categories[i] =
-			{
-				id = i;
-				categorie_id = json_cat.id;
-				title        = json_cat.title;
-				post_count   = json_cat.post_count;
-			};
-			i = i + 1;
+		local j_table = JSON:decode(s)
+		local j_categories = j_table.categories
+		local j = 1;
+		for i = 1, #j_categories do
+			local cat = j_categories[i];
+			if cat ~= nil then
+				-- Kategorie 9 (Blog) -> keine Streams
+				if cat.id ~= 9 then
+					categories[j] =
+					{
+						id           = j;
+						categorie_id = cat.id;
+						title        = cat.title;
+						post_count   = cat.post_count;
+					};
+					j = j + 1;
+				end
+			end
 		end
 		
 		page = 1;
-		
-		if categories[1].categorie_id ~= nil then
+		if j > 1 then
 			get_categories_menu();
+		else
+			messagebox.exec{title="Fehler", text="Keinen Kategorien gefunden!", icon="error", timeout=5, buttons={"ok"}}
 		end
-		
-	end	
+	end
 end
 
 -- Erstellen des Kategorien-Menü
