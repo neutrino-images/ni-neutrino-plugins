@@ -2,9 +2,15 @@
 --From Ezak for coolstream.to
 --READ LICENSE on https://github.com/Ezak91/CST-Netzkino-HD-Plugin
 
+caption = "Netzkino HD"
 local JSON = require "JSON.lua"
 
 --Objekte
+function script_path()
+	local str = debug.getinfo(2, "S").source:sub(2)
+	return str:match("(.*/)")
+end
+
 function init()
 	categories = {};
 	movies = {};
@@ -17,6 +23,7 @@ function init()
 	selected_stream_id = 0;
 	mode = 0;
 	config_file = "/var/tuxbox/config/netzkino.conf";
+	wget_busy_file = "/tmp/.netzkino_wget.busy"
 end
 
 --Kategorien anzeigen
@@ -64,7 +71,7 @@ end
 -- Erstellen des Kategorien-Menü
 function get_categories_menu()
 	selected_categorie_id = 0;
-	m_categories = menu.new{name="Netzkino HD Kategorien"};
+	m_categories = menu.new{name=""..caption.." Kategorien"};
 	for index, categorie_detail in pairs(categories) do
 		local count = "(" .. categorie_detail.post_count .. ")"
 		m_categories:addItem{type="forwarder", value=count, action="set_categorie", id=index, name=categorie_detail.title};
@@ -156,7 +163,7 @@ end
 --Auswahlmenü der Filme anzeigen
 function get_movies_menu(_id)
 	local index = tonumber(_id);
-	local menu_title = "Netzkino HD: " .. categories[index].title;
+	local menu_title = caption .. ": " .. categories[index].title;
 	selected_movie_id = 0;
 	
 	m_movies = menu.new{name=menu_title};
@@ -169,10 +176,12 @@ function get_movies_menu(_id)
 	end
 	if page < max_page then
 		m_movies:addItem{type="forwarder", name="Nächste Seite", action="set_movie", id="-2", icon="blau", directkey=RC["blue"]};
+		m_movies:addKey{directkey=RC["page_down"], action="set_movie", id="-2"}
 		m_movies:addKey{directkey=RC["right"], action="set_movie", id="-2"}
 	end
 	if page > 1 then
 		m_movies:addItem{type="forwarder", name="Vorherige Seite", action="set_movie", id="-1", icon="gelb", directkey=RC["yellow"]};
+		m_movies:addKey{directkey=RC["page_up"], action="set_movie", id="-1"}
 		m_movies:addKey{directkey=RC["left"], action="set_movie", id="-1"}
 	end
 	if page < max_page or page > 1 then
@@ -220,8 +229,14 @@ function show_movie_info(_id)
 	local dy = 600;
 	local ct1_x = 240;
 
-	local window_title = "Netzkino HD * " .. movies[index].title;
-	w = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=conv_utf8(window_title), icon="btn_play", btnRed="Film abspielen", btnGreen="Film downloaden" };
+	local window_title = caption .. "* " .. movies[index].title;
+	local wget_busy = io.open(wget_busy_file, "r")
+	if wget_busy then
+		wget_busy:close()
+		w = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=conv_utf8(window_title), icon="mp_play", btnRed="Film abspielen" };
+	else
+		w = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=conv_utf8(window_title), icon="mp_play", btnRed="Film abspielen", btnGreen="Film downloaden" };
+	end
 	local tmp_h = w:headerHeight() + w:footerHeight();
 	ct1 = ctext.new{parent=w, x=ct1_x, y=20, dx=dx-ct1_x-2, dy=dy-tmp_h-40, text=conv_utf8(movies[index].content), mode = "ALIGN_TOP | ALIGN_SCROLL | DECODE_HTML"};
 
@@ -267,7 +282,7 @@ function neutrinoExec(_id)
 	repeat
 		msg, data = n:GetInput(500)
 		-- Taste Rot installiert den Download
-		if (msg == RC['red']) then
+		if (msg == RC['ok']) or (msg == RC['red']) then
 			selected_stream_id = index;
 			mode = 1;
 			msg = RC['home'];
@@ -323,40 +338,20 @@ function download_stream(_id)
 	end
 	
 	local movie_file = "'" .. d_path .. "/" .. conv_utf8(movies[index].title) .. ".mp4'" ;
-	
-	local inhalt = "Netzkino HD: Download " .. conv_utf8(movies[index].title) .. "   Bitte warten!!"; 
-	local info_text = ctext.new{x=30, y=20, dx=900, dy=10, text=inhalt};
-	info_text:paint()
 
-	wget_ret = os.execute("wget -c -O " .. movie_file .. " 'http://pmd.netzkino-and.netzkino.de/" .. stream_name ..".mp4' &>/../tmp/netzkino_wget.log");
-	
-	info_text:hide{no_restore="true"};
-	local download_text = ctext.new{x=30, y=20, dx=900, dy=10};
-	
-	local wlog = "/tmp/netzkino_wget.log";
-	local wl = io.open(wlog, "r")
-	if wl == nil then
-		download_text:setText{text="Error opening file /tmp/netzkino_wget.log . OK für Ende"};
-	else
-		local s = wl:read("*a")
-		wl:close()
-		if string.find(s,"error") or string.find(s,"ERROR") then
-			download_text:setText{text="Fehler beim Herunterladen des Streams. OK für Ende"};
-		elseif string.find(s,"100%%") then
-			download_text:setText{text="Der Stream wurde erfolgreich heruntergeladen. OK für Ende"};
-		else
-			download_text:setText{text="Unbekannter Zustand bitte überprüfen sie die Datei. OK für Ende"};
-		end
-	end
-	
-	download_text:paint();
-	
+	local h = hintbox.new{caption=caption, text="Download: "..conv_utf8(movies[index].title)..""}
+	h:paint()
+	local i = 0
 	repeat
+		i = i + 1
 		msg, data = n:GetInput(500)
-	until msg == RC['home'] or msg == RC['setup'] or msg == RC['ok'];	
-	
-	download_text:hide{no_restore="true"};
-	
+	until msg == RC.ok or msg == RC.home or i == 4 -- 2 seconds
+	h:hide()
+
+	print(script_path() .. "netzkino_wget.sh " .. stream_name .. " " .. movie_file)
+	os.execute(script_path() .. "netzkino_wget.sh " .. stream_name .. " " .. movie_file)
+
+	--FIXME show_movie_info(_id)
 end
 
 
