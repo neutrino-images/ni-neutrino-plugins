@@ -37,22 +37,30 @@ function init()
 	selected_stream_id = 0;
 	mode = 0;
 	config_file = "/var/tuxbox/config/netzkino.conf";
+	wget_script_file = "/tmp/netzkino_wget.sh"
 	wget_busy_file = "/tmp/.netzkino_wget.busy"
 
 	-- use netzkino icon placed in same dir as the plugin ...
 	netzkino_png = script_path() .. "netzkino.png"
 	-- ... or use icon placed in one of neutrino's icon dirs
 	--netzkino_png = "netzkino"
+
+	-- create download script
+	create_downloader();
 end
 
 --Kategorien anzeigen
 function get_categories()
 	local fname = "/tmp/netzkino_categories.txt";
-    
+
+	local h = hintbox.new{caption=caption, text="Kategorien werden geladen ...", icon=netzkino_png};
+	h:paint();
+
 	os.execute("wget -q -O " .. fname .. " 'http://www.netzkino.de/capi/get_category_index'" );
 
 	local fp = io.open(fname, "r")
 	if fp == nil then
+		h:hide();
 		error("Error opening file '" .. fname .. "'.")
 	else
 		local s = fp:read("*a")
@@ -77,7 +85,8 @@ function get_categories()
 				end
 			end
 		end
-		
+		h:hide();
+
 		page = 1;
 		if j > 1 then
 			get_categories_menu();
@@ -129,10 +138,15 @@ function get_movies(_id)
 	if items > 10 then
 		items = 10 -- because of 10 hotkeys
 	end
+
+	local h = hintbox.new{caption=caption, text="Kategorie wird geladen ...", icon=netzkino_png};
+	h:paint();
+
 	os.execute("wget -q -O " .. fname .. " 'http://www.netzkino.de/capi/get_category_posts&id=" .. categories[index].category_id .. "&count=" .. items .. "d&page=" .. page_nr .. "&custom_fields=Streaming'");
 
 	local fp = io.open(fname, "r")
 	if fp == nil then
+		h:hide();
 		error("Error opening file '" .. fname .. "'.")
 	else
 		local s = fp:read("*a")
@@ -180,6 +194,7 @@ function get_movies(_id)
 				j = j + 1;
 			end
 		end
+		h:hide();
 
 		if j > 1 then
 			get_movies_menu(index);
@@ -373,6 +388,38 @@ function stream_movie(_id)
 	n:PlayFile(conv_utf8(movies[index].title), "http://pmd.netzkino-and.netzkino.de/" .. stream_name ..".mp4");
 end
 
+--Stream Download-Script erstellen
+function create_downloader()
+
+	local ds = io.open(wget_script_file, "w");
+	if ds then
+		ds:write(
+[[
+#!/bin/sh
+
+wget_busy_file=]] .. wget_busy_file .. "\n" .. [[
+movie_file="$2"
+stream_name="$1"
+
+netzkino_wget() {
+	touch $wget_busy_file
+	wget -c -O "${movie_file}" "http://pmd.netzkino-and.netzkino.de/${stream_name}.mp4"
+	rm $wget_busy_file
+}
+
+if [ ! -e $wget_busy_file ]; then
+	netzkino_wget &
+fi
+]]
+		)
+		ds:close()
+
+		os.execute(string.format('chmod 755 %s', wget_script_file))
+	else
+		print(wget_script_file .. " konnte nicht angelegt werden")
+	end
+end
+
 --Stream downloaden
 function download_stream(_id)
 
@@ -415,8 +462,8 @@ function download_stream(_id)
 	until msg == RC.ok or msg == RC.home or i == 4 -- 2 seconds
 	h:hide()
 
-	print(script_path() .. "netzkino_wget.sh " .. stream_name .. " " .. movie_file)
-	os.execute(script_path() .. "netzkino_wget.sh " .. stream_name .. " " .. movie_file)
+	print(wget_script_file .. " " .. stream_name .. " " .. movie_file)
+	os.execute(wget_script_file .. " " .. stream_name .. " " .. movie_file)
 end
 
 
