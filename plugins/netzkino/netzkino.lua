@@ -3,7 +3,7 @@
 --READ LICENSE on https://github.com/Ezak91/CST-Netzkino-HD-Plugin
 
 caption = "Netzkino HD"
-local JSON = require "JSON.lua"
+local json = require "json"
 
 --Objekte
 function script_path()
@@ -107,7 +107,7 @@ function get_categories()
 		local s = fp:read("*a")
 		fp:close()
 
-		local j_table = JSON:decode(s)
+		local j_table = json:decode(s)
 		local j_categories = j_table.categories
 		local j = 1;
 		for i = 1, #j_categories do
@@ -193,7 +193,7 @@ function get_movies(_id)
 		local s = fp:read("*a")
 		fp:close()
 
-		local j_table = JSON:decode(s)
+		local j_table = json:decode(s)
 		max_page = tonumber(j_table.pages);
 		local posts = j_table.posts
 
