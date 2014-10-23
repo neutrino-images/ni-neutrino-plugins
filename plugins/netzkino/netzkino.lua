@@ -311,15 +311,36 @@ end
 
 -- UTF8 in Umlaute wandeln
 function conv_utf8(_string)
-
 	if _string ~= nil then
 		_string = string.gsub(_string,"\\u0026","&");
-		_string = string.gsub(_string,"\\u00e4","ä"); 
+		_string = string.gsub(_string,"\\u00a0"," ");
+		_string = string.gsub(_string,"\\u00b4","´");
 		_string = string.gsub(_string,"\\u00c4","Ä");
-		_string = string.gsub(_string,"\\u00f6","ö"); 
 		_string = string.gsub(_string,"\\u00d6","Ö");
-		_string = string.gsub(_string,"\\u00fc","ü"); 
 		_string = string.gsub(_string,"\\u00dc","Ü");
+		_string = string.gsub(_string,"\\u00df","ß");
+		_string = string.gsub(_string,"\\u00e1","á");
+		_string = string.gsub(_string,"\\u00e4","ä");
+		_string = string.gsub(_string,"\\u00e8","è");
+		_string = string.gsub(_string,"\\u00e9","é");
+		_string = string.gsub(_string,"\\u00f4","ô");
+		_string = string.gsub(_string,"\\u00f6","ö");
+		_string = string.gsub(_string,"\\u00fb","û");
+		_string = string.gsub(_string,"\\u00fc","ü");
+		_string = string.gsub(_string,"\\u2013","–");
+		_string = string.gsub(_string,"\\u201c","“");
+		_string = string.gsub(_string,"\\u201e","„");
+		_string = string.gsub(_string,"\\u2026","…");
+		_string = string.gsub(_string,"&#038;","&");
+		_string = string.gsub(_string,"&#8211;","–");
+		_string = string.gsub(_string,"&#8212;","—");
+		_string = string.gsub(_string,"&#8216;","‘");
+		_string = string.gsub(_string,"&#8217;","’");
+		_string = string.gsub(_string,"&#8230;","…");
+		_string = string.gsub(_string,"&#8243;","″");
+		_string = string.gsub(_string,"<[^>]*>","");
+		_string = string.gsub(_string,"\\/","/");
+		_string = string.gsub(_string,"\\n","");
 		_string = string.gsub(_string,"\\u00df","ß"); 
 		_string = string.gsub(_string,"&#8211;","-"); 
 		_string = string.gsub(_string,"<[^>]*>",""); 
