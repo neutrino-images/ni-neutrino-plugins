@@ -114,9 +114,12 @@ function get_movies(_id)
 				i = i + 1;
 			end
 		end
-		
-		if movies[1].title ~= nil then
+
+		if i > 1 then
 			get_movies_menu(index);
+		else
+			messagebox.exec{title="Fehler", text="Keinen Stream gefunden!", icon="error", timeout=5, buttons={"ok"}}
+			get_categories();
 		end
 	end		
 end
