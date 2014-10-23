@@ -11,6 +11,17 @@ function script_path()
 	return str:match("(.*/)")
 end
 
+ret = nil -- global return value
+function key_home(a)
+	ret = MENU_RETURN["EXIT"]
+	return ret
+end
+
+function key_setup(a)
+	ret = MENU_RETURN["EXIT_ALL"]
+	return ret
+end
+
 function init()
 	-- set collectgarbage() interval from 200 (default) to 50
 	collectgarbage('setpause', 50)
@@ -80,12 +91,20 @@ end
 function get_categories_menu()
 	selected_category_id = 0;
 	m_categories = menu.new{name=""..caption.." Kategorien", icon=netzkino_png};
+
+	m_categories:addKey{directkey=RC["home"], id="home", action="key_home"}
+	m_categories:addKey{directkey=RC["setup"], id="setup", action="key_setup"}
+	m_categories:addItem{type="separator"};
+
 	for index, category_detail in pairs(categories) do
 		local count = "(" .. category_detail.post_count .. ")"
 		m_categories:addItem{type="forwarder", value=count, action="set_category", id=index, name=category_detail.title};
 	end
 	m_categories:exec()
-	if tonumber(selected_category_id) ~= 0 then
+	-- Alle Menüs verlassen
+	if ret == MENU_RETURN["EXIT_ALL"] then
+		return ret
+	elseif tonumber(selected_category_id) ~= 0 then
 		get_movies(selected_category_id);
 	end
 end
@@ -176,6 +195,9 @@ function get_movies_menu(_id)
 
 	m_movies = menu.new{name=menu_title, icon=netzkino_png};
 
+	m_movies:addKey{directkey=RC["home"], id="home", action="key_home"}
+	m_movies:addKey{directkey=RC["setup"], id="setup", action="key_setup"}
+
 	if max_page > 1 then
 		local aktPage = tostring(page);
 		local maxPage = tostring(max_page);
@@ -199,9 +221,12 @@ function get_movies_menu(_id)
 	for index, movie_detail in pairs(movies) do
 		m_movies:addItem{type="forwarder", action="set_movie", id=index, name=conv_utf8(movie_detail.title)};
 	end
-	m_movies:exec()	
+	m_movies:exec()
+	-- Alle Menüs verlassen
+	if ret == MENU_RETURN["EXIT_ALL"] then
+		return ret
 	-- Zurück zum Kategorien-Menü
-	if selected_movie_id == 0 then
+	elseif selected_movie_id == 0 then
 		get_categories();
 	-- Vorherige Seite laden
 	elseif selected_movie_id == -1 then
@@ -266,10 +291,12 @@ function show_movie_info(_id)
 	end
 
 	w:paint();
-
-	neutrinoExec(index);
+	ret = getInput(index);
 	w:hide{no_restore="true"};
-	if selected_stream_id == 0 then
+
+	if ret == MENU_RETURN["EXIT_ALL"] then
+		return ret
+	elseif selected_stream_id == 0 then
 		get_movies(last_category_id);
 	elseif selected_stream_id ~= 0 and mode == 1 then
 		stream_movie(selected_stream_id);
@@ -282,22 +309,17 @@ function show_movie_info(_id)
 	end
 end
 
---herunterladen des Bildes
-function getPicture(_picture)
-	local fname = "/tmp/netzkino_cover.jpg";
-	os.execute("wget -q -U Mozilla -O " .. fname .. " '" .. _picture .. "'");
-end
-
---Fenster anzeigen und auf Tasteneingaben reagieren
-function neutrinoExec(_id)
+--auf Tasteneingaben reagieren
+function getInput(_id)
 	local index = tonumber(_id);
 	repeat
 		msg, data = n:GetInput(500)
-		-- Taste Rot installiert den Download
+		-- Taste Rot startet Stream
 		if (msg == RC['ok']) or (msg == RC['red']) then
 			selected_stream_id = index;
 			mode = 1;
 			msg = RC['home'];
+		-- Taste Gruen startet Download
 		elseif (msg == RC['green']) then
 			selected_stream_id = index;
 			mode = 2;
@@ -309,6 +331,16 @@ function neutrinoExec(_id)
 		end
 	-- Taste Exit oder Menü beendet das Fenster
 	until msg == RC['home'] or msg == RC['setup'];
+
+	if msg == RC['setup'] then
+		return MENU_RETURN["EXIT_ALL"]
+	end
+end
+
+--herunterladen des Bildes
+function getPicture(_picture)
+	local fname = "/tmp/netzkino_cover.jpg";
+	os.execute("wget -q -U Mozilla -O " .. fname .. " '" .. _picture .. "'");
 end
 
 --Stream starten
