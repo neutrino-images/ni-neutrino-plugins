@@ -25,8 +25,7 @@ function get_categories()
 
 	local fp = io.open(fname, "r")
 	if fp == nil then
-		print("Error opening file '" .. fname .. "'.")
-		os.exit(1)
+		error("Error opening file '" .. fname .. "'.")
 	else
 		local s = fp:read("*a")
 		fp:close()
@@ -88,8 +87,7 @@ function get_movies(_id)
 
 	local fp = io.open(fname, "r")
 	if fp == nil then
-		print("Error opening file '" .. fname .. "'.")
-		os.exit(1)
+		error("Error opening file '" .. fname .. "'.")
 	else
 		local s = fp:read("*a")
 		fp:close()
