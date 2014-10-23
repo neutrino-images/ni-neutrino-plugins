@@ -1,6 +1,27 @@
---Netzkino Plugin
---From Ezak for coolstream.to
---READ LICENSE on https://github.com/Ezak91/CST-Netzkino-HD-Plugin
+--[[
+	Netzkino-Plugin
+	Copyright (c) 2014 Marc Szymkowiak 'Ezak91' marc.szymkowiak91@googlemail.com
+        for release-version
+	Copyright (c) 2014 micha_bbg, svenhoefer, bazi98 an many other db2w-user
+        with hints and codesniplets for db2w-Edition
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+	The above copyright notice and this permission notice shall be included in all
+	copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+	SOFTWARE.
+]]
 
 caption = "Netzkino HD"
 local json = require "json"
@@ -113,7 +134,8 @@ function get_categories()
 		for i = 1, #j_categories do
 			local cat = j_categories[i];
 			if cat ~= nil then
-				-- Kategorie 9 (Blog) -> keine Streams
+				-- Kategorie 9  -> keine Streams
+				-- todo remove Kategorie 6481 & 6491(altes Glueckskino & Glueckskino) -> keine Streams
 				if cat.id ~= 9 then
 					categories[j] =
 					{
@@ -243,7 +265,7 @@ function get_movies(_id)
 			messagebox.exec{title="Fehler", text="Keinen Stream gefunden!", icon="error", timeout=5, buttons={"ok"}}
 			get_categories();
 		end
-	end		
+	end
 end
 
 --Auswahlmenü der Filme anzeigen
@@ -333,7 +355,7 @@ function show_movie_info(_id)
 	local index = tonumber(_id);
 	selected_stream_id = 0;
 	mode = 0;
-	
+
 	local spacer = 8;
 	local x  = 150;
 	local y  = 70;
@@ -426,7 +448,7 @@ end
 function stream_movie(_id)
 	local index = tonumber(_id);
 	local stream_name = conv_utf8(movies[index].stream);
-	n:PlayFile(conv_utf8(movies[index].title), "http://pmd.netzkino-and.netzkino.de/" .. stream_name ..".mp4");
+	n:PlayFile(conv_utf8(movies[index].title), "http://pmd.netzkino-seite.netzkino.de/" .. stream_name ..".mp4");
 end
 
 --Stream Download-Script erstellen
@@ -444,7 +466,7 @@ stream_name="$1"
 
 netzkino_wget() {
 	touch $wget_busy_file
-	wget -c -O "${movie_file}" "http://pmd.netzkino-and.netzkino.de/${stream_name}.mp4"
+	wget -c -O "${movie_file}" "http://pmd.netzkino-seite.netzkino.de/${stream_name}.mp4"
 	rm $wget_busy_file
 }
 
@@ -466,7 +488,7 @@ function download_stream(_id)
 
 	local index = tonumber(_id);
 	local stream_name = conv_utf8(movies[index].stream);
-	
+
 	local cf = io.open(config_file, "r")
 	if cf then
 		for line in cf:lines() do
@@ -491,7 +513,7 @@ function download_stream(_id)
 			nc:close()
 		end
 	end
-	
+
 	local movie_file = "'" .. d_path .. "/" .. conv_utf8(movies[index].title) .. ".mp4'" ;
 
 	local h = hintbox.new{caption=caption, text="Download: "..conv_utf8(movies[index].title).."", icon=netzkino_png}
@@ -540,11 +562,6 @@ function conv_utf8(_string)
 		_string = string.gsub(_string,"<[^>]*>","");
 		_string = string.gsub(_string,"\\/","/");
 		_string = string.gsub(_string,"\\n","");
-		_string = string.gsub(_string,"\\u00df","ß"); 
-		_string = string.gsub(_string,"&#8211;","-"); 
-		_string = string.gsub(_string,"<[^>]*>",""); 
-		_string = string.gsub(_string,"\\/","/");
-		_string = string.gsub(_string,"\\n","");
 	end
 	return _string
 end
@@ -553,4 +570,5 @@ end
 init();
 get_categories();
 os.execute("rm /tmp/netzkino_*.*");
+os.execute("rm /tmp/lua*.png");
 collectgarbage();
