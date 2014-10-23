@@ -177,18 +177,28 @@ function show_movie_info(_id)
 	local y  = 70;
 	local dx = 1000;
 	local dy = 600;
-	
-	local window_title = "Netzkino HD " .. movies[index].title;
-		
-	w = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=conv_utf8(window_title), icon="btn_play", btnRed="Film abspielen", btnGreen="Film downloaden" };
+	local ct1_x = 240;
 
-	ct1 = ctext.new{parent=w, x=240, y=25, dx=980, dy=380, text=conv_utf8(movies[index].content), mode = "ALIGN_TOP | ALIGN_SCROLL | DECODE_HTML"};
-	
-	ct2 = ctext.new{parent=w, x=500, y=450, dx=900, dy=10, text="Netzkino HD Plugin by Ezak for coolstream.to"};
+	local window_title = "Netzkino HD * " .. movies[index].title;
+	w = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=conv_utf8(window_title), icon="btn_play", btnRed="Film abspielen", btnGreen="Film downloaden" };
+	local tmp_h = w:headerHeight() + w:footerHeight();
+	ct1 = ctext.new{parent=w, x=ct1_x, y=20, dx=dx-ct1_x-2, dy=dy-tmp_h-40, text=conv_utf8(movies[index].content), mode = "ALIGN_TOP | ALIGN_SCROLL | DECODE_HTML"};
 
 	if movies[index].cover ~= nil then
 		getPicture(conv_utf8(movies[index].cover));
-		cpicture.new{parent=w, x=25, y=40, dx=190, dy=260, image="/tmp/netzkino_cover.jpg"}
+
+		local pic_x =  20
+		local pic_y =  35
+		local pic_w = 190
+		local pic_h = 260
+		local tmp_w;
+		tmp_w, tmp_h = n:GetSize("/tmp/netzkino_cover.jpg");
+		if tmp_w < pic_w then
+			pic_x = (ct1_x - tmp_w) / 2;
+		else
+			pic_x = (ct1_x - pic_w) / 2;
+		end
+		cpicture.new{parent=w, x=pic_x, y=pic_y, dx=pic_w, dy=pic_h, image="/tmp/netzkino_cover.jpg"}
 	end
 
 	w:paint();
