@@ -71,7 +71,7 @@ end
 -- Erstellen des Kategorien-Menü
 function get_categories_menu()
 	selected_category_id = 0;
-	m_categories = menu.new{name=""..caption.." Kategorien"};
+	m_categories = menu.new{name=""..caption.." Kategorien", icon="netzkino"};
 	for index, category_detail in pairs(categories) do
 		local count = "(" .. category_detail.post_count .. ")"
 		m_categories:addItem{type="forwarder", value=count, action="set_category", id=index, name=category_detail.title};
@@ -165,8 +165,8 @@ function get_movies_menu(_id)
 	local index = tonumber(_id);
 	local menu_title = caption .. ": " .. categories[index].title;
 	selected_movie_id = 0;
-	
-	m_movies = menu.new{name=menu_title};
+
+	m_movies = menu.new{name=menu_title, icon="netzkino"};
 
 	if max_page > 1 then
 		local aktPage = tostring(page);
@@ -233,9 +233,9 @@ function show_movie_info(_id)
 	local wget_busy = io.open(wget_busy_file, "r")
 	if wget_busy then
 		wget_busy:close()
-		w = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=conv_utf8(window_title), icon="mp_play", btnRed="Film abspielen" };
+		w = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=conv_utf8(window_title), icon="netzkino", btnRed="Film abspielen" };
 	else
-		w = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=conv_utf8(window_title), icon="mp_play", btnRed="Film abspielen", btnGreen="Film downloaden" };
+		w = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=conv_utf8(window_title), icon="netzkino", btnRed="Film abspielen", btnGreen="Film downloaden" };
 	end
 	local tmp_h = w:headerHeight() + w:footerHeight();
 	ct1 = ctext.new{parent=w, x=ct1_x, y=20, dx=dx-ct1_x-2, dy=dy-tmp_h-40, text=conv_utf8(movies[index].content), mode = "ALIGN_TOP | ALIGN_SCROLL | DECODE_HTML"};
@@ -343,7 +343,7 @@ function download_stream(_id)
 	
 	local movie_file = "'" .. d_path .. "/" .. conv_utf8(movies[index].title) .. ".mp4'" ;
 
-	local h = hintbox.new{caption=caption, text="Download: "..conv_utf8(movies[index].title)..""}
+	local h = hintbox.new{caption=caption, text="Download: "..conv_utf8(movies[index].title).."", icon="netzkino"}
 	h:paint()
 	local i = 0
 	repeat
