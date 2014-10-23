@@ -73,19 +73,21 @@ function set_categorie(_id)
 	return MENU_RETURN["EXIT_ALL"];
 end
 
--- Filme zur Kategorie laden (20 Pro Seite)
- function get_movies(_id)
-	 local fname = "/tmp/netzkino_movies.txt";
-     local index = tonumber(_id);
-	 local page_nr = tonumber(page);
-	 movies = {};
-	 
-	 last_categorie_id = index;
-	 
-	 os.execute("wget -q -O " .. fname .. " 'http://www.netzkino.de/capi/get_category_posts&id=" .. categories[index].categorie_id .. "&count=20d&page=" .. page_nr .. "&custom_fields=Streaming'");
+-- Filme zur Kategorie laden (variabel Pro Seite)
+function get_movies(_id)
+	local fname = "/tmp/netzkino_movies.txt";
+	local index = tonumber(_id);
+	local page_nr = tonumber(page);
+	movies = {};
 
-	 local fp = io.open(fname, "r")
-	 if fp == nil then
+	last_categorie_id = index;
+
+	local sh = n:FontHeight(FONT.MENU)
+	local items = math.floor(580/sh - 4);
+	os.execute("wget -q -O " .. fname .. " 'http://www.netzkino.de/capi/get_category_posts&id=" .. categories[index].categorie_id .. "&count=" .. items .. "d&page=" .. page_nr .. "&custom_fields=Streaming'");
+
+	local fp = io.open(fname, "r")
+	if fp == nil then
 		print("Error opening file '" .. fname .. "'.")
 		os.exit(1)
 	else
