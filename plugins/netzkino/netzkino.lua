@@ -1,9 +1,13 @@
 --[[
 	Netzkino-Plugin
+
+	The MIT License (MIT)
+
 	Copyright (c) 2014 Marc Szymkowiak 'Ezak91' marc.szymkowiak91@googlemail.com
-        for release-version
+	for release-version
+
 	Copyright (c) 2014 micha_bbg, svenhoefer, bazi98 an many other db2w-user
-        with hints and codesniplets for db2w-Edition
+	with hints and codesniplets for db2w-Edition
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
