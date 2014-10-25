@@ -3,11 +3,9 @@ Metric=1
 # InetConnection=ISDN/ANALOG		fuer langsamere Verbindungen zur Konfiguration von Timeoutzeiten
 InetConnection=DSL
 ConnectTimeout=5
-# Account bei weather.com		Bei worldweatheronline.com wird der LicenseKey als ACode verwendet
+# Account bei weather.com		Bei www.wunderground.com wird der LicenseKey als ACode verwendet
 #PartnerID=1005530704
-#LicenseKey=a9c95f7636ad307b
-#LicenseKey=A2550021575
-LicenseKey=32z7znf5z7bwm2nednkyevb7
+LicenseKey=4cf30427c97b3bc5
 # SplashScreen=1/0			Startbildschirm anzeigen / nicht anzeigen
 SplashScreen=0
 # ShowIcons=1/0				Wetter-Icons für Textanzeige downloaden / nicht downloaden

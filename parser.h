@@ -11,48 +11,57 @@
 
 #ifdef WWEATHER
 #	define NA		0
-#	define PRE_STEP		14
-#	define NIGHT_STEP	13
+	//offset simpleforecast
+#	define PRE_STEP		61
+#	define NIGHT_STEP	3
+	//offset forecast
+#	define PRE_STEP2	14
+#	define NIGHT_STEP2	7
 
 	// atual Values
-#	define ACT_CITY		2
-#	define ACT_OBST		3
-#	define ACT_LAT		6
-#	define ACT_LON		7
-#	define ACT_UPTIME	10
-#	define ACT_TEMP		11
-#	define ACT_ICON		14
-#	define ACT_COND		15 | TRANSLATION
-#	define ACT_WSPEED	17
-#	define ACT_WINDD	19 | TRANSLATION
-#	define ACT_PRECIPMM	20
-#	define ACT_HMID		21
-#	define ACT_VIS		22
-#	define ACT_PRESS	23
-#	define ACT_CLOUDC	24
-#	define ACT_SUNR		NA
-#	define ACT_SUNS		NA
-#	define ACT_FTEMP	NA
-#	define ACT_PRTEND	NA
+#	define ACT_CITY		7
+#	define ACT_OBST		21
+#	define ACT_LAT		16
+#	define ACT_LON		17
+#	define ACT_UPTIME	31
+#	define ACT_LOCALTIME	33
+#	define ACT_TEMP		41
+#	define ACT_ICON		75
+#	define ACT_COND		38 | TRANSLATION
+#	define ACT_WSPEED	48
+#	define ACT_WINDD	44 | TRANSLATION
+#	define ACT_PRECIPMM	73
+#	define ACT_HMID		42
+#	define ACT_VIS		66
+#	define ACT_PRESS	50
+#	define ACT_CLOUDC	NA
+#	define ACT_SUNR		845
+#	define ACT_SUNR_MM	846
+#	define ACT_SUNS		848
+#	define ACT_SUNS_MM	849
+#	define ACT_FTEMP	64
+#	define ACT_PRTEND	52
 #	define ACT_UVIND	NA
 #	define ACT_UVTEXT	NA
-#	define ACT_DEWP		NA
-#	define ACT_MOON		NA
+#	define ACT_DEWP		55
+#	define ACT_MOON		839 | TRANSLATION
 
 	// Preview Values
-#	define PRE_DAY		25
-#	define PRE_TEMPH	26
-#	define PRE_TEMPL	28
-#	define PRE_WSPEED	31
-#	define PRE_WINDD	32 | TRANSLATION
-#	define PRE_ICON		36
-#	define PRE_COND		37 | TRANSLATION
-#	define PRE_PRECIPMM	38
+#	define PRE_DAY_SIG	239
+#	define PRE_DAY		240
+#	define PRE_TEMPH	247
+#	define PRE_TEMPL	250
+#	define PRE_SNOW		266
+#	define PRE_WSPEED	281
+#	define PRE_WINDD	282 | TRANSLATION
+#	define PRE_ICON		253
+#	define PRE_COND		89
+#	define PRE_PRECIPMM	261 | TRANSLATION
 #	define PRE_SUNR		NA
 #	define PRE_SUNS		NA
 #	define PRE_BT		NA
-#	define PRE_PPCP		NA
-#	define PRE_HMID		NA
+#	define PRE_PPCP		90
+#	define PRE_HMID		284
 #else
 #	define PRE_STEP		32
 #	define NIGHT_STEP	13
@@ -106,6 +115,7 @@ void prs_get_act_dtime(int what, char *out);
 */
 int  prs_get_day 	(int, char *, int);
 int  prs_get_val (int i, int what, int nacht, char *out);
+int  prs_get_val2 (int i, int what, int nacht, char *out);
 int  prs_get_dbl (int i, int what, int nacht, char *out);
 int  prs_get_time(int i, int what, char *out, int metric);
 int  prs_get_dtime(int i, int what, char *out, int metric);
