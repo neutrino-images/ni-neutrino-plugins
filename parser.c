@@ -190,6 +190,7 @@ int z;
 	return (strlen(out)==0);
 }
 
+#ifdef WWEATHER
 int prs_get_val2 (int i, int what, int nacht, char *out)
 {
 	int z;
@@ -212,6 +213,7 @@ int prs_get_val2 (int i, int what, int nacht, char *out)
 	}
 	return (strlen(out)==0);
 }
+#endif
 
 int prs_get_dbl (int i, int what, int nacht, char *out)
 {
@@ -426,6 +428,11 @@ int parser(char *citycode, char *trans, int metric, int inet, int ctmo)
 						continue;
 					}
 
+					//remove last ","
+					if(data[bc][cc-1]==',') {
+						cc--;
+					}
+
 					data[bc][cc]='\0';
 					//printf("[%s%d]%s = %s\n",(skip==1?"skip ":""),bc,tagname,data[bc]);
 
@@ -444,8 +451,11 @@ int parser(char *citycode, char *trans, int metric, int inet, int ctmo)
 					tcc=0;
 				}
 
-				if(rec==1 && gettemp!='"' && gettemp!=',')
+				if(rec==1 && gettemp!='"')
 				{
+					if(getold==':' && gettemp==' ')
+						continue;
+
 					data[bc][cc]=gettemp;
 					//printf("#2 data[%d][%d] = %c(%d)\n",bc,cc,gettemp,gettemp);
 					cc++;

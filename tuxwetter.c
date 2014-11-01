@@ -382,6 +382,7 @@ int PaintWideString(int dy/*linespace*/, const char *string, int sx, int sy, int
 			}
 			else
 			{	//new line
+				TrimString(vstr);
 				RenderString(vstr, sx, sy, maxwidth, layout, size, color);
 				sy+=dy;
 
@@ -401,6 +402,7 @@ int PaintWideString(int dy/*linespace*/, const char *string, int sx, int sy, int
 	tstr[tc]= '\0';
 	strcat(vstr,tstr);
 
+	TrimString(vstr);
 	RenderString(vstr, sx, sy, maxwidth, layout, size, color);
 
 	return(sy);
