@@ -74,10 +74,15 @@ function decodeImage(b64Image, path)
 	else
 		retImg = tmpImg .. "." .. imgTyp
 	end
-	local f = io.open(retImg, "w+")
-	f:write(dec(b64Data))
-	f:close()
 	os.remove(tmpImg)
+	local f = io.open(retImg, "w+")
+	if f ~= nil then
+		f:write(dec(b64Data))
+		f:close()
+	else
+		print("Create image ["..retImg.."] failed.")
+		return ""
+	end
 
 	return retImg
 end
