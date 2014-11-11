@@ -370,7 +370,7 @@ int ReadConf()
 				fprintf(fd_conf, "INBOX%d=%s\n", loop, account_db[loop].inbox);
 				fprintf(fd_conf, "SSL%d=%d\n", loop, account_db[loop].ssl);
 
-				if(!account_db[loop + 1].name[0])
+				if(loop < 9 && !account_db[loop + 1].name[0])
 				{
 					break;
 				}
@@ -3745,7 +3745,7 @@ int CheckAccount(int account)
 				}
 
 				fd_idx = fopen("/tmp/tuxmaild.idx", "w+");
-				
+
 			// generate listing
 
 				if(fd_status)
@@ -3767,11 +3767,13 @@ int CheckAccount(int account)
 						{
 							free(known_uids);
 	
-							if(fd_status)
-							{
+							if(fd_status) {
 								fclose(fd_status);
 							}
-	
+							if(fd_idx) {
+								fclose(fd_idx);
+							}
+
 							return 0;
 						}
 					}
@@ -3781,11 +3783,13 @@ int CheckAccount(int account)
 						{
 							free(known_uids);
 	
-							if(fd_status)
-							{
+							if(fd_status) {
 								fclose(fd_status);
 							}
-	
+							if(fd_idx) {
+								fclose(fd_idx);
+							}
+
 							return 0;
 						}
 					}
@@ -3798,11 +3802,13 @@ int CheckAccount(int account)
 							{
 								free(known_uids);
 	
-								if(fd_status)
-								{
+								if(fd_status) {
 									fclose(fd_status);
 								}
-	
+								if(fd_idx) {
+									fclose(fd_idx);
+								}
+
 								return 0;
 							}
 						}
@@ -3813,11 +3819,13 @@ int CheckAccount(int account)
 							{
 								free(known_uids);
 	
-								if(fd_status)
-								{
+								if(fd_status) {
 									fclose(fd_status);
 								}
-	
+								if(fd_idx) {
+									fclose(fd_idx);
+								}
+
 								return 0;
 							}
 
@@ -3825,11 +3833,13 @@ int CheckAccount(int account)
 							{
 								free(known_uids);
 	
-								if(fd_status)
-								{
+								if(fd_status) {
 									fclose(fd_status);
 								}
-	
+								if(fd_idx) {
+									fclose(fd_idx);
+								}
+
 								return 0;
 							}
 							
@@ -3839,11 +3849,13 @@ int CheckAccount(int account)
 								{
 									free(known_uids);
 		
-									if(fd_status)
-									{
+									if(fd_status) {
 										fclose(fd_status);
 									}
-	
+									if(fd_idx) {
+										fclose(fd_idx);
+									}
+
 									return 0;
 								}					
 							}
@@ -3859,11 +3871,13 @@ int CheckAccount(int account)
 								{
 									free(known_uids);
 	
-									if(fd_status)
-									{
+									if(fd_status) {
 										fclose(fd_status);
 									}
-	
+									if(fd_idx) {
+										fclose(fd_idx);
+									}
+
 									return 0;
 								}
 							}
@@ -3873,11 +3887,13 @@ int CheckAccount(int account)
 								{
 									free(known_uids);
 	
-									if(fd_status)
-									{
+									if(fd_status) {
 										fclose(fd_status);
 									}
-	
+									if(fd_idx) {
+										fclose(fd_idx);
+									}
+
 									return 0;
 								}
 							}
@@ -3913,11 +3929,12 @@ int CheckAccount(int account)
 									{
 										free(known_uids);
 	
-										if(fd_status)
-										{
+										if(fd_status) {
 											fclose(fd_status);
 										}
-	
+										if(fd_idx) {
+											fclose(fd_idx);
+										}
 										return 0;
 									}
 								}
@@ -3931,7 +3948,9 @@ int CheckAccount(int account)
 										{
 											fclose(fd_status);
 										}
-	
+										if(fd_idx) {
+											fclose(fd_idx);
+										}
 										return 0;
 									}
 								}
@@ -3984,7 +4003,9 @@ int CheckAccount(int account)
 									{
 										fclose(fd_status);
 									}
-	
+									if(fd_idx) {
+										fclose(fd_idx);
+									}
 									return 0;
 								}
 							}
@@ -3999,7 +4020,9 @@ int CheckAccount(int account)
 									{
 										fclose(fd_status);
 									}
-		
+									if(fd_idx) {
+										fclose(fd_idx);
+									}
 									return 0;
 								}
 
@@ -4007,11 +4030,12 @@ int CheckAccount(int account)
 								{
 									free(known_uids);
 	
-									if(fd_status)
-									{
+									if(fd_status) {
 										fclose(fd_status);
 									}
-	
+									if(fd_idx) {
+										fclose(fd_idx);
+									}
 									return 0;
 								}
 
@@ -4021,11 +4045,12 @@ int CheckAccount(int account)
 									{
 										free(known_uids);
 			
-										if(fd_status)
-										{
+										if(fd_status) {
 											fclose(fd_status);
 										}
-		
+										if(fd_idx) {
+											fclose(fd_idx);
+										}
 										return 0;
 									}					
 								}
@@ -4039,11 +4064,12 @@ int CheckAccount(int account)
 									{
 										free(known_uids);
 	
-										if(fd_status)
-										{
+										if(fd_status) {
 											fclose(fd_status);
 										}
-	
+										if(fd_idx) {
+											fclose(fd_idx);
+										}
 										return 0;
 									}
 								}
@@ -4053,11 +4079,12 @@ int CheckAccount(int account)
 									{
 										free(known_uids);
 	
-										if(fd_status)
-										{
+										if(fd_status) {
 											fclose(fd_status);
 										}
-	
+										if(fd_idx) {
+											fclose(fd_idx);
+										}
 										return 0;
 									}
 								}
@@ -4157,6 +4184,13 @@ int CheckAccount(int account)
 					if(!SendPOPCommand(RSET, "", account_db[account].ssl))
 					{
 						free(known_uids);
+
+						if(fd_status) {
+							fclose(fd_status);
+						}
+						if(fd_idx) {
+							fclose(fd_idx);
+						}
 						return 0;
 					}
 				}
@@ -4170,13 +4204,10 @@ int CheckAccount(int account)
 
 				free(known_uids);
 
-				if(fd_idx)
-				{
+				if(fd_idx) {
 					fclose(fd_idx);
 				}
-				
-				if(fd_status)
-				{
+				if(fd_status) {
 					fclose(fd_status);
 				}
 		}
@@ -4777,7 +4808,7 @@ void SigHandler(int signal)
 
 int main(int argc, char **argv)
 {
-	char cvs_revision[] = "$Revision: 1.50A $";
+	char cvs_revision[] = "$Revision: 1.54 $";
 	int param, nodelay = 0, account, mailstatus, unread_mailstatus;
 	pthread_t thread_id;
 	void *thread_result = 0;
