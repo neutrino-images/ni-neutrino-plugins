@@ -1269,10 +1269,10 @@ int nc=10;			//table columns
 int gys=vy;			//table space top
 int gysf=34;			//table space bottom
 int gxs=40;			//table space left
-int gxw=((wxw-(gxs*2))/nc)*nc;	//table width
+int gicw=((wxw-(gxs*2))/nc);	//table data width
+int gxw=gicw*nc;		//table width
 int gywf=100;			//table footer height
 int gyw=wyw-vy-gywf-gysf;	//table height
-int gicw=gxw/nc;		//table data width
 int dy=26;			//linespace
 int vxs=0,wsx,wsy;
 int prelate=0;
@@ -1282,6 +1282,11 @@ int slim=0;			//using 720x576
 time_t atime;
 struct tm *sltime;
 char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
+
+	//recalculate wigth
+	gicw += ((gicw%10) > 5 ? 10-(gicw%10) : -(gicw%10)); //rounded table data width, needing for smoothed curves
+	gxw=gicw*nc;
+	gxs=(wxw-gxw)/2;
 
 	if (var_screeninfo.xres < 1280)
 		slim=1;
