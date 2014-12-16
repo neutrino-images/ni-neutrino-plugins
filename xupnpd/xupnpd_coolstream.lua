@@ -58,6 +58,12 @@ function getLogo(LogoPath, id, name)
 	local x=5
 	if string.sub(id ,5,5) == '0' then 
 		x = x + 1
+		if string.sub(id ,6,6) == '0' then
+			x = x + 1
+			if string.sub(id ,7,7) == '0' then
+				x = x + 1
+			end
+		end
 	end
 	id = string.sub(id ,x,16)
 	
