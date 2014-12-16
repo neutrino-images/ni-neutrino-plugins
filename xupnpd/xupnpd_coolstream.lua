@@ -25,13 +25,13 @@ function cst_debug(level, msg)
 end
 
 function isFile(name)
-    if type(name)~="string" then return false end
-    local f = io.open(name)
-    if f then
-        f:close()
-        return true
-    end
-    return false
+	if type(name)~="string" then return false end
+	local f = io.open(name)
+	if f then
+		f:close()
+		return true
+	end
+	return false
 end
 
 function getNeutrinoLogoPath()
@@ -56,7 +56,7 @@ function getLogo(LogoPath, id, name)
 		Path[3] = NeutrinoPath
 	end
 	local x=5
-	if string.sub(id ,5,5) == '0' then 
+	if string.sub(id ,5,5) == '0' then
 		x = x + 1
 		if string.sub(id ,6,6) == '0' then
 			x = x + 1
@@ -66,10 +66,10 @@ function getLogo(LogoPath, id, name)
 		end
 	end
 	id = string.sub(id ,x,16)
-	
+
 	chan = {name,id}
-	for v, varPath in pairs(Path) do 
-		for v2, varChan in pairs(chan) do 
+	for v, varPath in pairs(Path) do
+		for v2, varChan in pairs(chan) do
 			file = varPath .."/" .. varChan
 			if isFile(file .. ".png") then
 				return file .. ".png"
@@ -80,7 +80,6 @@ function getLogo(LogoPath, id, name)
 		end
 	end
 	return nil
-	
 end
 
 function cst_get_bouquets(s)
@@ -121,7 +120,7 @@ function cst_get_channels(s)
 				end
 			end
 		end
- 	end	
+	end
 	return ctable
 end
 
