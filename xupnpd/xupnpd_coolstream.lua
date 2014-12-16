@@ -34,27 +34,32 @@ function isFile(name)
 	return false
 end
 
-function getNeutrinoLogoPath()
+function cst_get_logo_hdd_dir()
+	local d = nil
 	local f = io.open("/var/tuxbox/config/neutrino.conf", "r")
 	if f then
 		for line in f:lines() do
-			local logopath = line:match("logo_hdd_dir=(.*)")
-			if (logopath) then
-				print(logopath)
-				return logopath
+			local _d = line:match("logo_hdd_dir=(.*)")
+			if _d then
+				d = _d
+				goto continue
 			end
 		end
+		::continue::
 		f:close()
 	end
-	return "/share/tuxbox/neutrino/icons/logo"
+	if d then
+		cst_debug(0, "cst_get_logo_hdd_dir: logo_hdd_dir="..d)
+	end
+	return d
 end
 
-function getLogo(LogoPath, id, name)
-	local NeutrinoPath = "/share/tuxbox/neutrino/icons/logo"
-	Path = {LogoPath,"/var/tuxbox/icons/logo"}
-	if NeutrinoPath ~= LogoPath then
-		Path[3] = NeutrinoPath
-	end
+local logo_hdd_dir = cst_get_logo_hdd_dir()
+local logo_flash_dir = "/share/tuxbox/neutrino/icons/logo"
+local logo_flash_dir_var = "/var/tuxbox/icons/logo"
+
+function cst_get_logo(id, name)
+	Path = {logo_hdd_dir, logo_flash_dir_var, logo_flash_dir}
 	local x=5
 	if string.sub(id ,5,5) == '0' then
 		x = x + 1
@@ -145,7 +150,7 @@ function cst_read_url(url)
 	return string
 end
 
-function cst_save_bouqutes(feed, friendly_name, mode, LogoPath, sysip)
+function cst_save_bouqutes(feed, friendly_name, mode, sysip)
 	local rc=false
 	local feedspath = cfg.feeds_path
 
@@ -177,7 +182,7 @@ function cst_save_bouqutes(feed, friendly_name, mode, LogoPath, sysip)
 				local id = channelt[1];
 				local name = channelt[2];
 
-				local logo = getLogo(LogoPath, id, name)
+				local logo = cst_get_logo(id, name)
 				if logo == nil then
 					m3ufile:write("#EXTINF:0,"..name.."\n")
 				else
@@ -201,16 +206,15 @@ function cst_updatefeed(feed,friendly_name)
 		friendly_name = feed
 	end
 
-	local LogoPath = getNeutrinoLogoPath()
 	local sysip = ""
 	if not cst_test then
 		sysip = www_location
 		sysip = sysip:match('(http://%d*.%d*.%d*.%d*):*.')
 	end
-	if cst_save_bouqutes(feed, friendly_name, "TV", LogoPath, sysip) then
+	if cst_save_bouqutes(feed, friendly_name, "TV", sysip) then
 		rc = true
 	end
-	if cst_save_bouqutes(feed, friendly_name, "RADIO", LogoPath, sysip) then
+	if cst_save_bouqutes(feed, friendly_name, "RADIO", sysip) then
 		rc = true
 	end
 
