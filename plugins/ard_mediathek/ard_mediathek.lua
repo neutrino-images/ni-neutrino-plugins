@@ -983,6 +983,7 @@ function getStream(_id)
 									streamUrl = streamUrl .. "?hdcore"
 								end
 							end
+							if _server ~= "" then goto array_next end
 							printf("#####[ard_mediathek] q: %s, stream: %s", tostring(playQuality), streamUrl)
 							streamBreak = true
 							break
@@ -990,6 +991,7 @@ function getStream(_id)
 					end
 				end
 				if streamBreak == true then break end
+			::array_next::
 			end
 		end
 	end
