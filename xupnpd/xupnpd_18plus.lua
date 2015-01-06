@@ -4,7 +4,7 @@
 -- ******************************
 
 cfg.user_age=18
-cfg.youporn_max_pages=3
+cfg.youporn_max_pages=5
 
 youporn_category=
 {
@@ -57,17 +57,24 @@ function youporn_updatefeed(feed,friendly_name)
             if cfg.debug>0 then print('YouPorn try url '..url) end
 
             local feed_data=http.download(url)
-
-            if feed_data then
+	    local skipto = feed_data.find(feed_data, "sidebarLists")
+	    if skipto and #feed_data > skipto then
+		feed_data = string.sub(feed_data,skipto,#feed_data)
+	    end
+	    local anythingtoparse = feed_data.find(feed_data,"<div class=")
+            if feed_data  and anythingtoparse then
                 local n=0
-
-                for urn,logo,name in string.gmatch(feed_data,'.-<a href="(/watch/.-)">%s*<img src="(.-)" alt="(.-)".-') do
-                    local m=string.find(urn,'?',1,true)
-                    if m then urn=urn:sub(1,m-1) end
-
-                    dfd:write('#EXTINF:0 logo=',logo,' ,',name,'\n','http://www.youporn.com',urn,'\n')
-                    n=n+1
-                end                 
+		for entry in feed_data:gmatch("<div class=(.-)</div>") do
+		    urn,logo,name = string.match(entry,'.-<a href="(/watch/.-)">%s<img src="(.-)" alt="(.-)".class=.-')
+		    if urn then
+			local m=string.find(urn,'?',1,true)
+			if m then urn=urn:sub(1,m-1) end
+			    local f = string.find(logo, 'blankvideobox.png')
+			    if f then logo = "" end
+			    dfd:write('#EXTINF:0 logo=',logo,' ,',name,'\n','http://www.youporn.com',urn,'\n')
+			    n=n+1
+		    end
+		end
 
                 if n<1 then page=cfg.youporn_max_pages end
 
