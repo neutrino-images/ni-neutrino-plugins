@@ -134,6 +134,27 @@ function init()
 	showBGPicture()
 end
 
+function get_timing_menu()
+	local ret = 0
+
+	local conf = io.open("/var/tuxbox/config/neutrino.conf", "r")
+	if conf then
+		for line in conf:lines() do
+			local key, val = line:match("^([^=#]+)=([^\n]*)")
+			if (key) then
+				if key == "timing.menu" then
+					if (val ~= nil) then
+						ret = val;
+					end
+				end
+			end
+		end
+		conf:close()
+	end
+
+	return ret
+end
+
 function showBGPicture()
 	os.execute("pzapit -mute")
 	n:ShowPicture(script_path().."ard_mediathek.jpg")
@@ -805,8 +826,15 @@ function listStreams(_id)
 	local activStream = 1
 	paintListContent(x, y, w, h, dId, activStream, -1)
 
+	local i = 0
+	local d = 500 -- ms
+	local t = (get_timing_menu() * 1000) / d
 	repeat
-		local msg, data = n:GetInput(500)
+		i = i + 1
+		local msg, data = n:GetInput(d)
+		if msg >= RC["0"] and msg <= RC.MaxRC then
+			i = 0 -- reset timeout
+		end
 		if (msg == RC.right) or (msg == RC.left) or (msg == RC.up) or (msg == RC.down) then
 			local tmp = activStream
 			activStream = changeSel(msg, listContent[dId].streamCount, activStream)
@@ -828,7 +856,7 @@ function listStreams(_id)
 			paintListContent(x, y, w, h, dId, activStream, -1)
 		end
 		ret = msg
-	until msg == RC.home or msg == RC.setup
+	until msg == RC.home or msg == RC.setup or i == t;
 
 	if streamWindow ~= nil then streamWindow:hide{no_restore=true} end
 	if ret == RC.setup then
