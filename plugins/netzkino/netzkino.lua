@@ -414,28 +414,56 @@ function show_movie_info(_id)
 	end
 end
 
+function get_timing_menu()
+	local ret = 0
+
+	local conf = io.open("/var/tuxbox/config/neutrino.conf", "r")
+	if conf then
+		for line in conf:lines() do
+			local key, val = line:match("^([^=#]+)=([^\n]*)")
+			if (key) then
+				if key == "timing.menu" then
+					if (val ~= nil) then
+						ret = val;
+					end
+				end
+			end
+		end
+		conf:close()
+	end
+
+	return ret
+end
+
 --auf Tasteneingaben reagieren
 function getInput(_id)
 	local index = tonumber(_id);
+	local i = 0
+	local d = 500 -- ms
+	local t = (get_timing_menu() * 1000) / d
 	repeat
-		msg, data = n:GetInput(500)
+		i = i + 1
+		msg, data = n:GetInput(d)
+		if msg >= RC["0"] and msg <= RC.MaxRC then
+			i = 0 -- reset timeout
+		end
 		-- Taste Rot startet Stream
 		if (msg == RC['ok']) or (msg == RC['red']) then
 			selected_stream_id = index;
 			mode = 1;
-			msg = RC['home'];
+			break;
 		-- Taste Gruen startet Download
 		elseif (msg == RC['green']) then
 			selected_stream_id = index;
 			mode = 2;
-			msg = RC['home'];
+			break;
 		elseif (msg == RC['up'] or msg == RC['page_up']) then
 			ct1:scroll{dir="up"};
 		elseif (msg == RC['down'] or msg == RC['page_down']) then
 			ct1:scroll{dir="down"};
 		end
 	-- Taste Exit oder Menü beendet das Fenster
-	until msg == RC['home'] or msg == RC['setup'];
+	until msg == RC['home'] or msg == RC['setup'] or i == t;
 
 	if msg == RC['setup'] then
 		return MENU_RETURN["EXIT_ALL"]
