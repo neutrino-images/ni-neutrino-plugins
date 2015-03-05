@@ -7,10 +7,28 @@
 
 local n = neutrino()
 
-name = {}
-desc = {}
 favs = "/var/tuxbox/config/zapit/ubouquets.xml"
 dest = "/media/sda1"
+
+locale = {}
+locale["deutsch"] = {
+	caption = "Favoriten sichern",
+	directory = "Verzeichnis",
+	directory_hint = "Verzeichnis wählen, in dem das bin-Paket erstellt werden soll",
+	create = "Erstelle bin-Paket",
+	create_hint = "Packt das Favoriten-Bouquet in ein installierbares bin-Paket",
+	create_success ="bin-Paket erfolgreich erstellt.",
+	create_error = "Fehler! bin-Paket nicht erstellt.",
+}
+locale["english"] = {
+	caption = "Save favorites",
+	directory = "Directory",
+	directory_hint = "Choose directory where the bin-package should be created",
+	create = "Create bin-package",
+	create_hint = "Put the favorites bouquet into an installable bin-package",
+	create_success ="bin-package successful created.",
+	create_error = "Error! bin-package not created.",
+}
 
 -- ----------------------------------------------------------------------------
 
@@ -22,24 +40,28 @@ function key_setup(a)
 	return MENU_RETURN.EXIT_ALL
 end
 
-function read_cfg()
-	local file, dummy = string.gsub(debug.getinfo(1).short_src, "lua", "cfg")
-	local cfg = io.open(file, "r")
-	if cfg then
-		for line in cfg:lines() do
+function get_neutrino_setting(k)
+	local ret = nil
+	if k == nil then
+		return ret
+	end
+
+	local conf = io.open("/var/tuxbox/config/neutrino.conf", "r")
+	if conf then
+		for line in conf:lines() do
 			local key, val = line:match("^([^=#]+)=([^\n]*)")
-			if (key) then
-				if key == "name" then
-					name = val
-				elseif key == "desc" then
-					desc = val
+			if key then
+				if key == k then
+					if val ~= nil then
+						ret = val
+					end
 				end
 			end
 		end
-		cfg:close()
-	else
-		error("Error opening file '" .. cfg .. "'.")
+		conf:close()
 	end
+
+	return ret
 end
 
 function file_exists(name)
@@ -61,12 +83,12 @@ function create(file)
 	os.execute(sh .. " " .. dest .. " " .. file)
 
 	if file_exists(dest .. "/" .. file) then
-		text="bin-Paket erfolgreich erstellt."
+		text=locale[lang].create_success
 	else
-		text="Fehler! bin-Paket nicht erstellt."
+		text=locale[lang].create_error
 	end
 
-	local h = hintbox.new{caption=name, text=text}
+	local h = hintbox.new{caption=locale[lang].caption, text=text}
 	h:paint()
 	local i = 0
 	repeat
@@ -80,9 +102,12 @@ end
 
 -- ----------------------------------------------------------------------------
 
-read_cfg()
+lang = get_neutrino_setting("language")
+if locale[lang] == nil then
+	lang = "english"
+end
 
-local m = menu.new{name=name, icon="settings"}
+local m = menu.new{name=locale[lang].caption, icon="settings"}
 m:addKey{directkey=RC["home"], id="home", action="key_home"}
 m:addKey{directkey=RC["setup"], id="setup", action="key_setup"}
 m:addItem{type="separator"}
@@ -91,24 +116,24 @@ m:addItem{type="separatorline"}
 m:addItem{
 	type="filebrowser",
 	dir_mode="1",
-	name="Verzeichnis",
+	name=locale[lang].directory,
 	action="set_dest",
 	enabled=file_exists(favs),
 	value=dest,
 	icon="rot",
 	directkey=RC["red"],
 	hint_icon="hint_service",
-	hint="Verzeichnis wählen, in dem das bin-Paket erstellt werden soll"
+	hint=locale[lang].directory_hint
 }
 m:addItem{
 	type="forwarder",
-	name="Erstelle bin-Paket",
+	name=locale[lang].create,
 	action="create",
 	enabled=file_exists(favs),
 	id="favorites.bin",
 	icon="gruen",
 	directkey=RC["green"],
 	hint_icon="hint_service",
-	hint=desc
+	hint=locale[lang].create_hint
 }
 m:exec()
