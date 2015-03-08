@@ -1136,8 +1136,8 @@ end
 function paintInfoBox(txt)
 	local dx = 450
 	local dy = 120
-	local x = ((SCREEN.END_X - SCREEN.OFF_X) - dx) / 2
-	local y = ((SCREEN.END_Y - SCREEN.OFF_Y) - dy) / 2
+	local x = SCREEN.OFF_X + (((SCREEN.END_X - SCREEN.OFF_X) - dx) / 2)
+	local y = SCREEN.OFF_Y + (((SCREEN.END_Y - SCREEN.OFF_Y) - dy) / 2)
 
 	infoBox_h = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=langStr_caption, icon=pluginIcon, has_shadow=true, show_footer=false}
 	ctext.new{parent=infoBox_h, x=30, y=2, dx=dx-60, dy=dy-infoBox_h:headerHeight()-4, text=txt, font_text=FONT.MENU, mode="ALIGN_CENTER"}
