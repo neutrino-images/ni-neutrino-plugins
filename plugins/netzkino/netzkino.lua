@@ -441,6 +441,9 @@ function getInput(_id)
 	local i = 0
 	local d = 500 -- ms
 	local t = (get_timing_menu() * 1000) / d
+	if t == 0 then
+		t = -1 -- no timeout
+	end
 	repeat
 		i = i + 1
 		msg, data = n:GetInput(d)
