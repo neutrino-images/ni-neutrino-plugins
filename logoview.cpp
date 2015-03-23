@@ -1,39 +1,24 @@
 /*
 	logoview - Logoviewer for Coolstream
 
-	Copyright (C) 2011-2012 Michael Liebmann
+	Copyright (C) 2011-2015 Michael Liebmann
 
-        License: GPL
+	License: GPL
 
-        This library is free software; you can redistribute it and/or
-	modify it under the terms of the GNU Library General Public
+	This program is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public
 	License as published by the Free Software Foundation; either
 	version 2 of the License, or (at your option) any later version.
 
-	This library is distributed in the hope that it will be useful,
+	This program is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-	Library General Public License for more details.
+	General Public License for more details.
 
-	You should have received a copy of the GNU Library General Public
-	License along with this library; if not, write to the
+	You should have received a copy of the GNU General Public
+	License along with this program; if not, write to the
 	Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
 	Boston, MA  02110-1301, USA.
-
-
-	NOTE for ignorant distributors:
-	It's not allowed to distribute any compiled parts of this code, if you don't accept the terms of GPL.
-	Please read it and understand it right!
-	This means for you: Hold it, if not, leave it! You could face legal action! 
-	Otherwise ask the copyright owners, anything else would be theft!
-
-	HINWEIS für ignorante Distributoren:
-	Es ist nicht gestattet, kompilierte Teile dieses Codes zu verteilen, 
-	wenn Sie nicht mit den Bedingungen der GPL einverstanden sind.
-	Bitte lesen und verstehen Sie die GPL richtig!
-	Das bedeutet für Sie: Halten Sie die GPL ein, wenn nicht, unterlassen Sie die Verteilung! 
-	Man kann ohne weiteres rechtliche Schritte gegen Sie unternehmen!
-	Ansonsten fragen Sie die Inhaber der Urheberrechte, alles andere wäre Diebstahl!
 */
 
 #include <stdio.h>
@@ -50,10 +35,11 @@
 #include "logoview.h"
 #include "jpeg.h"
 
-#define LV_VERSION "1.04"
+#define LV_VERSION "1.0.6"
+
 #define VERSIONSTR "\n\
       ------------------------------------------------------------\n\
-      -- logoview v" LV_VERSION " * (C)2011-2013, M. Liebmann (micha-bbg) --\n\
+      -- logoview v" LV_VERSION " * (C)2011-2015, M. Liebmann (micha-bbg) --\n\
       ------------------------------------------------------------\n\n"
 #define FLAG_FILE "/tmp/.logoview"
 #define NEUTRINO_CONF "/var/tuxbox/config/neutrino.conf"
@@ -95,6 +81,7 @@ CLogoView::CLogoView()
 	doneMode      = CLogoView::EMPTY;
 	timeout       = 0;
 	clearScreen   = false;
+	onlyClearScreen = false;
 	background    = false;
 	nomem         = "logoview <Out of memory>\n";
 	start_logo    = "/share/tuxbox/neutrino/icons/start.jpg";
@@ -126,16 +113,16 @@ TIMER_STOP("[logoview] SetScreenBuf   ");
 void CLogoView::ClearThis(bool ClearDisplay/*=true*/)
 {
 	unlink(FLAG_FILE);
-	if (lfb > 0) {
+	if (lfb) {
 		if (ClearDisplay)
 			SetScreenBuf(lfb, 0x00, 0x00, 0x00, 0x00); // clear screen
 		munmap(lfb, fix_screeninfo.smem_len);
 	}
-	if (PicBuf > 0)
+	if (PicBuf)
 		free(PicBuf);
-	if (TmpBuf > 0)
+	if (TmpBuf)
 		free(TmpBuf);
-	if (ScBuf > 0)
+	if (ScBuf)
 		free(ScBuf);
 	if (fb > 0)
 		close(fb);
@@ -204,6 +191,7 @@ void CLogoView::PrintHelp()
           -b | --background   Run in background\n\
           -t | --timeout      Timeout in sec. (default 0 = no timeout)\n\
           -c | --clearscreen  Clear screen when timeout (default = no)\n\
+          -o | --only-clear   No logo view, clear screen and exit\n\
           -h | --help         This help\n\
 \n\
     Example:\n\
@@ -216,6 +204,7 @@ void CLogoView::PrintHelp()
 static struct option long_options[] = {
 	{"help",        0, NULL, 'h'},
 	{"clearscreen", 0, NULL, 'c'},
+	{"only-clear",  0, NULL, 'o'},
 	{"background",  0, NULL, 'b'},
 	{"timeout",     1, NULL, 't'},
 	{"logo",        1, NULL, 'l'},
@@ -290,7 +279,7 @@ int CLogoView::run(int argc, char* argv[])
 	if ((argc == 2) && (argv[1][0] != '-') && (CheckFile(argv[1]))) {
 		start_logo = argv[1];
 	} else {
-		while ((opt = getopt_long(argc, argv, "t:h?cbl:", long_options, &c)) >= 0)
+		while ((opt = getopt_long(argc, argv, "t:h?cobl:", long_options, &c)) >= 0)
 		{
 			switch (opt) {
 				case 't':
@@ -298,6 +287,9 @@ int CLogoView::run(int argc, char* argv[])
 					break;
 				case 'c':
 					clearScreen = true;
+					break;
+				case 'o':
+					onlyClearScreen = true;
 					break;
 				case 'b':
 					background = true;
@@ -323,12 +315,29 @@ int CLogoView::run(int argc, char* argv[])
 			default: return 0;
 		}
 	}
-
+#if 1
+	fb = -1;
+	int count = 0;
+	// waiting for framebuffer device
+	while (fb == -1) {
+		fb = open(FB_DEVICE, O_RDWR);
+		if (fb != -1) break;
+		if (count >= 80) { // 8 sec
+			perror("[logoview] <timeout open framebuffer device>");
+			exit(1);
+		}
+		count++;
+		usleep(100000);
+	}
+	if (count > 0)
+		printf("[logoview] <open framebuffer device OK>, waiting: %.1f sec\n", count/10.0);
+#else
 	fb = open(FB_DEVICE, O_RDWR);
 	if(fb == -1) {
 		perror("[logoview] <open framebuffer device>");
 		exit(1);
 	}
+#endif
 	if(ioctl(fb, FBIOGET_FSCREENINFO, &fix_screeninfo) == -1) {
 		perror("[logoview] <FBIOGET_FSCREENINFO>\n");
 		ClearThis(false);
@@ -377,6 +386,12 @@ int CLogoView::run(int argc, char* argv[])
 	}
 
 	int x=0, y=0;
+
+	if (onlyClearScreen) {
+		ClearThis(true);
+		return 0;
+	}
+
 TIMER_START();
 	if (jpeg_load(start_logo.c_str(), (unsigned char **)&PicBuf, &x, &y) != FH_ERROR_OK)
 	{

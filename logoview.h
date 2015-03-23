@@ -1,39 +1,24 @@
 /*
 	logoview - Logoviewer for Coolstream
 
-	Copyright (C) 2011-2012 Michael Liebmann
+	Copyright (C) 2011-2015 Michael Liebmann
 
-        License: GPL
+	License: GPL
 
-        This library is free software; you can redistribute it and/or
-	modify it under the terms of the GNU Library General Public
+	This program is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public
 	License as published by the Free Software Foundation; either
 	version 2 of the License, or (at your option) any later version.
 
-	This library is distributed in the hope that it will be useful,
+	This program is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-	Library General Public License for more details.
+	General Public License for more details.
 
-	You should have received a copy of the GNU Library General Public
-	License along with this library; if not, write to the
+	You should have received a copy of the GNU General Public
+	License along with this program; if not, write to the
 	Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
 	Boston, MA  02110-1301, USA.
-
-
-	NOTE for ignorant distributors:
-	It's not allowed to distribute any compiled parts of this code, if you don't accept the terms of GPL.
-	Please read it and understand it right!
-	This means for you: Hold it, if not, leave it! You could face legal action! 
-	Otherwise ask the copyright owners, anything else would be theft!
-
-	HINWEIS für ignorante Distributoren:
-	Es ist nicht gestattet, kompilierte Teile dieses Codes zu verteilen, 
-	wenn Sie nicht mit den Bedingungen der GPL einverstanden sind.
-	Bitte lesen und verstehen Sie die GPL richtig!
-	Das bedeutet für Sie: Halten Sie die GPL ein, wenn nicht, unterlassen Sie die Verteilung! 
-	Man kann ohne weiteres rechtliche Schritte gegen Sie unternehmen!
-	Ansonsten fragen Sie die Inhaber der Urheberrechte, alles andere wäre Diebstahl!
 */
 
 #ifndef __logoview_h__
@@ -47,6 +32,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
+//#include <stdint.h>
 #include <unistd.h>
 #include <linux/fb.h>
 #include <sys/ioctl.h>
@@ -83,7 +69,7 @@ class CLogoView
 		unsigned int screen_StartX, screen_StartY, screen_EndX, screen_EndY;
 		int screen_preset, fb;
 		time_t timeout;
-		bool clearScreen, background;
+		bool clearScreen, onlyClearScreen, background;
 
 		bool CheckFile(std::string datei);
 		bool ReadConfig();

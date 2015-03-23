@@ -2,44 +2,51 @@
 ###  Makefile logoview - für CST nevis / apollo
 ###
 
-# inside the well-known buildsystems logoview can be compiled with
-# $(MAKE) logoview CROSS_CDK=$(CROSS_DIR) BUILDSYSTEM=$(BASE_DIR) N_HD_SOURCE=$(N_HD_SOURCE) TARGET=$(TARGET)
-# in this case there's no need to edit the following variables
+#PLATFORM ?= apollo
+PLATFORM ?= kronos
+#PLATFORM ?= nevis
 
-# Diese Variablen müssen u.U. angepasst werden!
-BOXMODEL    ?= apollo
-#BOXMODEL    ?= nevis
-CROSS_CDK   ?= /opt/newcross/$(BOXMODEL)
+## Diese Pfade müssen u.U. angepasst werden!
+CROSS_CDK   ?= /opt/newcross/$(PLATFORM)
 N_HD_SOURCE ?= $(BUILDSYSTEM)/source/neutrino-hd
-
-ifeq ($(BOXMODEL), nevis)
-  BUILDSYSTEM ?= $(HOME)/coolstream/buildsystem-cs
-  TARGET      ?= arm-cx2450x-linux-gnueabi
+ifeq ($(PLATFORM), nevis)
+BUILDSYSTEM ?= $(HOME)/coolstream/buildsystem-cs
+HOST         = arm-cx2450x-linux-gnueabi
 endif
 
-ifeq ($(BOXMODEL), apollo)
-  BUILDSYSTEM ?= $(HOME)/coolstream/bs-apollo
-  TARGET      ?= arm-pnx8400-linux-uclibcgnueabi
+ifeq ($(PLATFORM), apollo)
+BUILDSYSTEM ?= $(HOME)/coolstream/bs-apollo
+#HOST         = arm-pnx8400-linux-uclibcgnueabi
+HOST         = arm-cortex-linux-uclibcgnueabi
+#HOST         = arm-cortex-linux-gnueabi
+endif
+
+ifeq ($(PLATFORM), kronos)
+BUILDSYSTEM ?= $(HOME)/coolstream/bs-apollo
+HOST         = arm-cortex-linux-uclibcgnueabi
+#HOST         = arm-cortex-linux-gnueabi
+
 endif
 
 # includes
 includedir1 = -I$(BUILDSYSTEM)/root/include
+includedir2 = -I$(BUILDSYSTEM)/root/usr/include
 includedir3 = -I$(N_HD_SOURCE)/lib/libconfigfile
 
 # libraries und cdk
-libdir1 = -L$(BUILDSYSTEM)/root/lib
+libdir1 = -L$(BUILDSYSTEM)/root/lib -L$(BUILDSYSTEM)/root/usr/lib
 LD_ADD = $(BUILDSYSTEM)/build_tmp/neutrino-hd/lib/libconfigfile/libtuxbox-configfile.a
 
 # Pfad zum Cross-Compiler
 CCPATH        = $(CROSS_CDK)/bin
-CROSS_COMPILE = $(CCPATH)/$(TARGET)
+CROSS_COMPILE = $(CCPATH)/$(HOST)
 
 CC            = $(CROSS_COMPILE)-gcc
 #CPP           = $(CROSS_COMPILE)-gcc -E
 #CXX           = $(CROSS_COMPILE)-g++
 #CXXCPP        = $(CROSS_COMPILE)-g++ -E
 #LD            = $(CROSS_COMPILE)-ld
-#LD            = $(CROSS_CDK)/$(TARGET)/bin/ld
+#LD            = $(CROSS_CDK)/$(HOST)/bin/ld
 #AR            = $(CROSS_COMPILE)-ar
 #NM            = $(CROSS_COMPILE)-nm
 #RANLIB        = $(CROSS_COMPILE)-ranlib
@@ -78,4 +85,4 @@ strip:
 
 binfile: all
 	mkdir -p bin
-	cp -a logoview bin/logoview.$(BOXMODEL)
+	cp -a logoview bin/logoview.$(PLATFORM)
