@@ -146,6 +146,10 @@ function cst_read_url(url)
 	else
 		string = http.download(url)
 	end
+
+	if string == nil then
+		string =""
+	end
 	cst_debug(0, "url read: "..string.len(string))
 	return string
 end
