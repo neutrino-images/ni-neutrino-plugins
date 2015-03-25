@@ -190,10 +190,25 @@ function youtube_get_best_fmt(urls,fmt)
     return urls[18]
 end
 
+function pop(cmd)
+	local f = assert(io.popen(cmd, 'r'))
+	local s = assert(f:read('*a'))
+	f:close()
+	return s
+end
+
 function youtube_get_video_url(youtube_url)
     local url=nil
 
     local clip_page=plugin_download(youtube_url)
+    -- workaround for https
+	if clip_page ==  nil then
+	local redirecturl = 'https' .. youtube_url:sub(5, #youtube_url) .. youtube_url
+	local  cmd = "curl -k "
+		cmd = cmd .. redirecturl
+		clip_page = pop(cmd)
+	end
+
     if clip_page then
         local s=json.decode(string.match(clip_page,'ytplayer.config%s*=%s*({.-});'))
 
