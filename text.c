@@ -80,7 +80,7 @@ int RenderChar(FT_ULong currentchar, int sx, int sy, int ex, int color)
 					{
 						if(pitch*8 + 7-bit >= sbit->width) break; /* render needed bits only */
 
-						if((sbit->buffer[row * sbit->pitch + pitch]) & 1<<bit) memcpy(lbb + (startx + sx + sbit->left + kerning.x + x)*4 + fix_screeninfo.line_length*(starty + sy - sbit->top + y),pix,4);
+						if((sbit->buffer[row * sbit->pitch + pitch]) & 1<<bit) memcpy(lbb + (sx + sbit->left + kerning.x + x)*4 + fix_screeninfo.line_length*(sy - sbit->top + y),pix,4);
 
 						x++;
 					}

@@ -116,9 +116,6 @@ extern int TABULATOR;
 struct fb_fix_screeninfo fix_screeninfo;
 struct fb_var_screeninfo var_screeninfo;
 
-int startx, starty, sx, ex, sy, ey;
-char online;
-
 #define FB_DEVICE	"/dev/fb/0"
 
 #define BUFSIZE 4096

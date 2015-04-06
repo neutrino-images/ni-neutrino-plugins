@@ -10,7 +10,7 @@ extern int FSIZE_SMALL;
 #define NCF_FILE "/var/tuxbox/config/neutrino.conf"
 #define CFG_FILE "/var/tuxbox/config/logomask.conf"
 
-#define CL_VERSION  "1.00"
+#define CL_VERSION  "1.01"
 #define MAX_MASK 16
 
 //					TRANSP,	BLACK,	RED, 	GREEN, 	YELLOW,	BLUE, 	MAGENTA, TURQUOISE,
@@ -138,10 +138,6 @@ int main (int argc, char **argv)
 		}
 
 		memset(lbb, 0, fix_screeninfo.line_length*var_screeninfo.yres);
-//		memset(mc, BLACK, sizeof(mc));
-		startx = sx;
-		starty = sy;
-
 
 	// if problem with config file return from plugin
 

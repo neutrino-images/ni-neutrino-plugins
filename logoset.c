@@ -13,7 +13,7 @@ extern int FSIZE_SMALL;
 #define CFG_FILE "/var/tuxbox/config/logomask.conf"
 unsigned char FONT[64]= "/share/fonts/pakenham.ttf";
 
-#define CL_VERSION  "1.00"
+#define CL_VERSION  "1.01"
 #define MAX_MASK 16
 
 //					TRANSP,	BLACK,	RED, 	GREEN, 	YELLOW,	BLUE, 	MAGENTA, TURQUOISE,
@@ -74,7 +74,7 @@ int main (int argc, char **argv)
 	FILE *fh,*fh2;
 	char *cpt1,*cpt2;
 	gpixel mp, mc[MAX_MASK], tp;
-	int tsx=startx+450, tsy=starty+120, tdy=24, tsz=28, txw=500, tcol=TURQUOISE;
+	int tsx=430, tsy=120, tdy=24, tsz=28, txw=500, tcol=TURQUOISE;
 	int xp[MAX_MASK][8],yp[MAX_MASK][8],xw[MAX_MASK][8],yw[MAX_MASK][8],valid[MAX_MASK],cmc[MAX_MASK],xxp,xxw,yyp,yyw,nmsk=0,amsk=0;
 	double xs=1.0, ys=1.0;
 	time_t t1,t2;
@@ -183,9 +183,6 @@ int main (int argc, char **argv)
 		}
 
 		memset(lbb, 0, fix_screeninfo.line_length*var_screeninfo.yres);
-
-		startx = sx;
-		starty = sy;
 
 		system("pzapit -gi > /tmp/logomask.chan");
 		if((fh=fopen("/tmp/logomask.chan","r"))!=NULL)
@@ -624,6 +621,28 @@ int main (int argc, char **argv)
 						}
 					break;
 
+					case KEY_VOLUMEDOWN:
+						if(nmsk)
+						{
+							if(mc[amsk].cpixel.tr < 0xF8)
+								mc[amsk].cpixel.tr+=0x08;
+							else
+								mc[amsk].cpixel.tr=0xFF;
+							changed=1;
+						}
+					break;
+
+					case KEY_VOLUMEUP:
+						if(nmsk)
+						{
+							if(mc[amsk].cpixel.tr > 0x08)
+								mc[amsk].cpixel.tr-=0x08;
+							else
+								mc[amsk].cpixel.tr=0x00;
+							changed=1;
+						}
+					break;
+
 					case KEY_MUTE:
 						if(nmsk)
 						{
@@ -684,7 +703,7 @@ int main (int argc, char **argv)
 			{
 				xs=1.0;
 				ys=1.0;
-				tsy=starty+120;
+				tsy=120;
 				if(move)
 				{
 					RenderBox(xp[amsk][pmode], yp[amsk][pmode], xp[amsk][pmode]+xw[amsk][pmode], yp[amsk][pmode]+yw[amsk][pmode], FILL, &mc[amsk]);
@@ -697,7 +716,7 @@ int main (int argc, char **argv)
 				}
 				if(help)
 				{
-					RenderBox(tsx,tsy,tsx+txw,tsy+20*tdy,FILL,make_color(TRANSP, &tp));
+					RenderBox(tsx,tsy,tsx+txw,tsy+21*tdy,FILL,make_color(TRANSP, &tp));
 					if(nmsk)
 						RenderBox(xp[amsk][pmode], yp[amsk][pmode], xp[amsk][pmode]+xw[amsk][pmode], yp[amsk][pmode]+yw[amsk][pmode], GRID, make_color((kmode)?LBLUE:LYELLOW, &tp));
 					RenderString("Maskensteuerung", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
@@ -708,20 +727,22 @@ int main (int argc, char **argv)
 					RenderString("PgUp :  nächste Maske auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("PgDn :  vorherige Maske auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("Maskenfarbe", tsx, tsy+=(2*tdy), txw, LEFT, tsz, tcol);
+					RenderString("Mute  :  Maskenfarbe aus Vorgabe auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("1,4,7   :  Farbton Rot erhöhen, auf Mitte setzen, verringern", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("2,5,8  :  Farbton Grün erhöhen, auf Mitte setzen, verringern", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("3,6,9  :  Farbton Blau erhöhen, auf Mitte setzen, verringern", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
-					RenderString("Mute  :  Maskenfarbe aus Vorgabe auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+					RenderString("Vol +  :  Transparenz erhöhen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+					RenderString("Vol -  :  Transparenz verringern", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("Allgemein", tsx, tsy+=(2*tdy), txw, LEFT, tsz, tcol);
 					RenderString("?        :  Hilfetext ein/ausschalten", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
-					RenderString("Home:  Abbrechen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+					RenderString("Exit    :  Abbrechen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("OK     :  Speichern und Beenden", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 				}
 				else
 				{
 					if(help_changed)
 					{
-						RenderBox(tsx, tsy, tsx+txw, tsy+20*tdy, FILL, make_color(TRANSP, &tp));
+						RenderBox(tsx, tsy, tsx+txw, tsy+21*tdy, FILL, make_color(TRANSP, &tp));
 						if(nmsk)
 							RenderBox(xp[amsk][pmode], yp[amsk][pmode], xp[amsk][pmode]+xw[amsk][pmode], yp[amsk][pmode]+yw[amsk][pmode], GRID, make_color((kmode)?LBLUE:LYELLOW, &tp));
 					}
