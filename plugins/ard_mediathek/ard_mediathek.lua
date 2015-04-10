@@ -131,7 +131,7 @@ function init()
 	searchData_1[3] = searchData_1_0 .. "VORABEND" .. searchData_1_1
 	searchData_1[4] = searchData_1_0 .. "ABEND" .. searchData_1_1
 
-	showBGPicture()
+	showBGPicture(false)
 end
 
 function get_timing_menu()
@@ -155,8 +155,9 @@ function get_timing_menu()
 	return ret
 end
 
-function showBGPicture()
+function showBGPicture(sleep)
 	os.execute("pzapit -mute")
+	if sleep == true then posix.sleep(1) end
 	n:ShowPicture(script_path().."ard_mediathek.jpg")
 end
 
@@ -1038,7 +1039,7 @@ function getStream(_id)
 		hideBGPicture(false)
 		n:PlayFile(title, streamUrl, conv_str(info1), conv_str(info2));
 		collectgarbage();
-		showBGPicture()
+		showBGPicture(true)
 	end
 end
 
