@@ -30,6 +30,12 @@ function cczwei_updatefeed(feed,friendly_name)
 					title = string.gsub(title,'²','2')
 					title = string.gsub(title,'®',' ')
 					title = string.gsub(title,'€','Euro')
+					for i = 1, #title do
+						local c=string.sub(title, i, i)
+						if (string.byte(c)>128) then
+							title = string.gsub(title,c,' ')
+						end
+					end
 
 					fdi=string.find(feed_data,'<SPAN CLASS=.header.>',fdi)
 					if fdi then
