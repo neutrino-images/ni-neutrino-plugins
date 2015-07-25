@@ -27,7 +27,8 @@ youporn_category=
     ['shemale']='/category/31/shemale/', ['solo_male']='/category/60/solo-male/', ['solo_girl']='/category/27/solo-girl/',
     ['squirting']='/category/39/squirting/', ['strt_sex']='/category/47/strt-sex/', ['swallow']='/category/59/swallow/',
     ['teen']='/category/32/teen/', ['threesome']='/category/38/threesome/', ['vintage']='/category/33/vintage/',
-    ['voyeur']='/category/34/voyeur/', ['webcam']='/category/35/webcam/', ['3d']='/category/63/3d/'
+    ['voyeur']='/category/34/voyeur/', ['webcam']='/category/35/webcam/', ['3d']='/category/63/3d/', ['hd']='/category/65/hd/',
+    ['young-old']='/category/45/young-old/'
 }
 
 function youporn_updatefeed(feed,friendly_name)
@@ -65,12 +66,17 @@ function youporn_updatefeed(feed,friendly_name)
             if feed_data  and anythingtoparse then
                 local n=0
 		for entry in feed_data:gmatch("<div class=(.-)</div>") do
-		    urn,logo,name = string.match(entry,'.-<a href="(/watch/.-)">%s<img src="(.-)" alt="(.-)".class=.-')
+		    urn,logo,name = string.match(entry,'.-<a href="(/watch/.-)">.-<img src="(.-)" alt="(.-)"')
 		    if urn then
 			local m=string.find(urn,'?',1,true)
 			if m then urn=urn:sub(1,m-1) end
 			    local f = string.find(logo, 'blankvideobox.png')
-			    if f then logo = "" end
+			    if f then
+			      logo = string.match(entry,'thumbnail="(.-)"')
+			      if logo == nil then
+				logo=""
+			      end
+			    end
 			    dfd:write('#EXTINF:0 logo=',logo,' ,',name,'\n','http://www.youporn.com',urn,'\n')
 			    n=n+1
 		    end
