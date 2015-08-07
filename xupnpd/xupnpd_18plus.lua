@@ -115,7 +115,7 @@ function youporn_sendurl(youporn_url,range)
 
     local clip_page=plugin_download(youporn_url)
     if clip_page then
-        url=string.match(clip_page,'<video id="player.html5" src="(http://.-)" x.webkit.airplay+')
+        url=string.match(clip_page,'<video id="player.html5"%s+.- src="(http://.-)"%s+x.webkit.airplay+')
         clip_page=nil
 
         if url then url=string.gsub(url,'&amp;','&') end
