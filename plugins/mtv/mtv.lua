@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_verrsion="mtv.de Version 0.3" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_verrsion="mtv.de Version 0.4" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -90,8 +90,8 @@ function pop(cmd)
 end
 
 function read_file(filename)
-	if filename == nil then 
-		print("Error: FileName  is empty") 
+	if filename == nil then
+		print("Error: FileName  is empty")
 		return nil
 	end
 	local fp = io.open(filename, "r")
@@ -155,14 +155,23 @@ function getdata(url)
 	return clip_page
 end
 
+function exist_id(table, id)
+	for i, v in ipairs(table) do
+		if tonumber(v.vid) == tonumber(id) then
+			return i
+		end
+	end
+	return nil
+end
+
 function getliste(url)
 	local clip_page = getdata(url)
 	if clip_page == nil then return nil end
 
-	clip_page = string.match(clip_page,"window.pagePlaylist = %[(.-)%];")
-	local json = require "json"
+	local videosection = string.match(clip_page,"window.pagePlaylist = %[(.-)%];")
 	local liste = {}
-	for j in string.gmatch(clip_page, "(%{.id.-%})") do
+	local json = require "json"
+	for j in string.gmatch(videosection, "(%{.id.-%})") do
 		local jnTab = json:decode(j)
 		if(jnTab.title and jnTab.subtitle and jnTab.riptide_image_id) then
 			local pic = ""
@@ -172,9 +181,25 @@ function getliste(url)
 			jnTab.title=jnTab.title:gsub("&quot;",'"')
 			jnTab.title=jnTab.title:gsub("&amp;",'&')
 			table.insert(liste,{name=jnTab.title .. ": " .. jnTab.subtitle, url=jnTab.mrss,
-			type=jnTab.video_type, logo=pic,enabled=conf.dlflag
+			type=jnTab.video_type, logo=pic,enabled=conf.dlflag, vid=jnTab.id
 			})
 		end
+	end
+	local listechart = {}
+	local begin = clip_page:find('<ul class="video%-collection">')
+	if begin then
+		local section = clip_page:sub(begin,#clip_page)
+		for _chartpos , id in section:gmatch('<div class="chart%-position">(%d+)</div>.-data%-object%-id="(%d+)">') do
+			local vid = exist_id(liste, id)
+			if vid then
+				table.insert(listechart,{name=liste[vid].name, url=liste[vid].url,
+			type=liste[vid].type, logo=liste[vid].logo,enabled=conf.dlflag, vid=liste[vid].vid, chartpos=_chartpos
+			})
+			end
+		end
+	end
+	if #listechart > 0 then
+		return listechart
 	end
 	return liste
 end
@@ -316,10 +341,10 @@ function dlstart(name)
 	end
 	local h = hintbox.new{caption="Info", text=infotext}
 	h:paint()
-	if havefile == true then 
+	if havefile == true then
 		os.execute("sleep 4")
 		h:hide()
-		return 
+		return
 	end
 
 	local dl=io.open(dlname,"w")
@@ -338,7 +363,6 @@ function dlstart(name)
 					end
 					local fname = v.name:gsub([[%s+]], "_")
 					fname = fname:gsub("[:'()]", "_")
-					
 					dl:write("rtmpdump -e -r " .. url .. " -o " .. conf.path .. "/" .. fname  .. videoformat .."\n")
 					script_start = true
 				end
@@ -390,7 +414,7 @@ function exist(_url)
 end
 
 function addfav(id)
-	local addinfo = false 
+	local addinfo = false
 	for i, v in ipairs(glob.mtv_artist) do
 		if v.enabled and exist(v.url) == false then
 			table.insert(glob.mtv,{name=v.name, url=v.url,fav=true})
@@ -405,7 +429,7 @@ function addfav(id)
 end
 
 function favdel(id)
-	local delinfo = false 
+	local delinfo = false
 	for i, v in ipairs(glob.mtv) do
 		if v.fav and v.enabled then
 			table.remove(glob.mtv,i)
@@ -427,51 +451,51 @@ function chooser_menu(id)
 		local hintname = "Speichert die ausgewählten Videos unter: " .. conf.path
 		local _id = id:sub(30,#id)
 		local name = id
-		local value=conf.dlflag 
+		local value=conf.dlflag
 		gen_chooser_menu(glob.MTVliste, name, _id, chooser_action, forwarder_action, forwarder_name, hintname, value, glob.menu_liste)
 	elseif id:sub(1,15) =="Neue Favoriten" then
 		local forwarder_action = "addfav"
 		local forwarder_name = "Zu Favoriten hinzufügen"
 		local chooser_action = "set_bool_in_searchliste"
 		local hintname = "Speichert die ausgewählten Videos unter: " .. conf.path
-		local name = id .. " hinzufügen" 
-		local value=false 
+		local name = id .. " hinzufügen"
+		local value=false
 		gen_chooser_menu(glob.mtv_artist, name , id, chooser_action, forwarder_action, forwarder_name, hintname, value, glob.search_artists_menu)
 	elseif id =="favdel" then
 		local forwarder_action = "favdel"
 		local forwarder_name = "Favoriten löschen"
 		local chooser_action = "set_bool_in_mtv"
 		local hintname = "Lösche die ausgewählten Videos."
-		local name = id .. " hinzufügen" 
-		local value=false 
+		local name = id .. " hinzufügen"
+		local value=false
 		gen_chooser_menu(glob.mtv, name , id, chooser_action, forwarder_action, forwarder_name, hintname, value, glob.settings_menu)
 
 	end
 end
 
-function set_bool_in_liste(k, v) 
+function set_bool_in_liste(k, v)
 	local i = tonumber(k)
 	if v == on then
 		glob.MTVliste[i].enabled=true
-	else 
+	else
 		glob.MTVliste[i].enabled=false
 	end
 end
 
-function set_bool_in_searchliste(k, v) 
+function set_bool_in_searchliste(k, v)
 	local i = tonumber(k)
 	if v == on then
 		glob.mtv_artist[i].enabled=true
-	else 
+	else
 		glob.mtv_artist[i].enabled=false
 	end
 end
 
-function set_bool_in_mtv(k, v) 
+function set_bool_in_mtv(k, v)
 	local i = tonumber(k)
 	if v == on then
 		glob.mtv[i].enabled=true
-	else 
+	else
 		glob.mtv[i].enabled=false
 	end
 end
@@ -491,7 +515,7 @@ function gen_chooser_menu(table, name , _id, _chooser_action, _forwarder_action,
 			d = d + 1
 			local dkey = godirectkey(d)
 			menu:addItem{type="chooser", action=_chooser_action, options={ on, off }, id=i, value=bool2onoff(_value), 
-			name=i .. ": " ..v.name, hint_icon="hint_service",hint=v.name .. " speichern ? Ein/Aus"}
+			name= i .. ": " ..v.name, hint_icon="hint_service",hint=v.name .. " speichern ? Ein/Aus"}
 		end
 	end
 	menu:exec()
@@ -518,11 +542,16 @@ function __menu(_menu,menu_name,table,_action)
 	_menu:addItem{type="forwarder", name="Erstelle Download Liste", action="chooser_menu", enabled=glob.have_rtmpdump,
 			id="Erstelle Download Liste für "..menu_name, directkey=godirectkey(d),hint="Welche Videos sollen heruntergeladen werden ?"}
 	_menu:addItem{type="separatorline"}
+	d = d + 1 --skip blue
 
 	for i, v in ipairs(table) do
 		d = d + 1
 		local dkey = godirectkey(d)
-		_menu:addItem{type="forwarder", name=i .. ": " .. v.name, action=_action,enabled=true,id=i,directkey=dkey,hint=v.type}
+		local cont = i .. ": "
+		if v.chartpos then
+			cont = " (" .. v.chartpos .. ") "
+		end
+		_menu:addItem{type="forwarder", name=cont .. v.name, action=_action,enabled=true,id=i,directkey=dkey,hint=v.type}
 	end
 	_menu:exec()
 	_menu:hide()
@@ -547,7 +576,7 @@ end
 function set_option(k, v)
 	if v == on then
 		conf[k]=true
-	else 
+	else
 		conf[k]=false
 	end
 	conf.changed = true
@@ -560,7 +589,7 @@ end
 
 function setings()
 	hideMenu(glob.main_menu)
-	
+
 	local d =  1
 	local menu =  menu.new{name="Einstellungen", icon="icon_red"}
 	glob.settings_menu = menu
@@ -583,7 +612,7 @@ function setings()
 	return MENU_RETURN.EXIT_REPAINT
 end
 
-function gen_search_list(search) 
+function gen_search_list(search)
 	local url = "http://www.mtv.de/searches?q=+"..search .. "+&ajax=1"
 	local clip_page = getdata(url)
 	if clip_page == nil then return nil end
@@ -641,7 +670,6 @@ function search_artists()
 	for i, v in ipairs(glob.mtv_artist) do
 		d = d + 1
 		local dkey = godirectkey(d)
-		local _hint = 
 		menu:addItem{type="forwarder", name=i .. ": " .. v.name, action="searchliste",enabled=true,id=i,directkey=dkey,hint="Suchwort-Liste für " .. conf.search}
 	end
 	end
@@ -656,7 +684,7 @@ function mtv_listen_menu()
 	end
 	hideMenu(glob.main_menu)
 	glob.mtv_listen_menu  = menu.new{name="MTV Listen", icon="icon_red"}
-	local menu = glob.mtv_listen_menu 
+	local menu = glob.mtv_listen_menu
 	menu:addItem{type="back"}
 	menu:addItem{type="separatorline"}
 	local d = 0 -- directkey
@@ -673,7 +701,7 @@ end
 function main_menu()
 -- 	hideMenu(glob.menu_liste)
 	glob.main_menu  = menu.new{name="MTV", icon="icon_red"}
-	local menu = glob.main_menu 
+	local menu = glob.main_menu
 	local d = 1 -- directkey
 
 	menu:addKey{directkey=RC["info"], id=mtv_verrsion, action="info"}
