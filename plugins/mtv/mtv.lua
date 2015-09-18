@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_verrsion="mtv.de Version 0.4" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_verrsion="mtv.de Version 0.5" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -57,6 +57,8 @@ function saveConfig()
 		config:setString("path", conf.path)
 		config:setBool  ("dlflag",conf.dlflag)
 		config:setBool  ("flvflag",conf.flvflag)
+		config:setBool  ("playflvflag",conf.playflvflag)
+		config:setBool  ("shuffleflag",conf.shuffleflag)
 		config:setString("search", conf.search)
 		config:saveConfig(get_confFile())
 		conf.changed = false
@@ -78,6 +80,8 @@ function loadConfig()
 	conf.path = config:getString("path", "/media/sda1/movies/")
 	conf.dlflag = config:getBool("dlflag", false)
 	conf.flvflag = config:getBool("flvflag", false)
+	conf.playflvflag = config:getBool("playflvflag", false)
+	conf.shuffleflag = config:getBool("shuffleflag", false)
 	conf.search = config:getString("search", "Jessie J")
 	conf.changed = false
 end
@@ -298,22 +302,48 @@ function gen_m3u_list(filename)
 	return MENU_RETURN.EXIT_REPAINT
 end
 
+function make_shuffle_list(tab)
+	local randTable={}
+	for k=1 , #tab do
+		randTable[k]=k
+	end
+	local shffleTable = {}
+	for k=1,#randTable do
+		math.randomseed(os.time() *100000000000)
+		local r=table.remove(randTable,math.random(#randTable))
+		shffleTable[k]=tab[r]
+	end
+	return shffleTable
+end
+
 function playlist(filename)
 	if (n:checkVersion(1, 1) == 0) then do return end end
 	hideMenu(glob.menu_liste)
+
+	local tab = {}
+	if conf.shuffleflag == true then
+		tab = make_shuffle_list(glob.MTVliste)
+	else
+		tab = glob.MTVliste
+	end
+
 	local i = 1
 	local KeyPressed = 0
 	repeat
-		local url = getvideourl(glob.MTVliste[i].url)
+		local url = getvideourl(tab[i].url)
 		if url then
-			if glob.MTVliste[i].name == nil then
-				glob.MTVliste[i].name = "NoName"
+			if tab[i].name == nil then
+				tab[i].name = "NoName"
 			end
-			KeyPressed = n:PlayFile( glob.MTVliste[i].name,url);
+			local videoformat = url:sub(-4)
+			if videoformat ~= ".flv" or conf.playflvflag then
+				KeyPressed = n:PlayFile( "(" .. i.. "/" .. #tab .. ") " .. tab[i].name,url)
+			end
 		end
 		if KeyPressed == PLAYSTATE.NORMAL then --play continue
 			i=i+1
 		elseif KeyPressed == PLAYSTATE.STOP then
+			i=0
 			break
 		elseif KeyPressed == PLAYSTATE.NEXT then
 			i=i+1
@@ -321,10 +351,11 @@ function playlist(filename)
 			i=i-1
 		else
 			print("Error")
+			i=0
 			break
 		end
 
-	until i==0 or i == #glob.MTVliste+1
+	until i==0 or i == #tab+1
 
 	return MENU_RETURN.EXIT_REPAINT
 end
@@ -532,9 +563,12 @@ function __menu(_menu,menu_name,table,_action)
 	_menu:addItem{type="back"}
 	_menu:addItem{type="separatorline"}
 	local d = 1 -- directkey
-
+	local playhint = "Playlist: "
+	if conf.shuffleflag then
+		playhint = "Playlist in zufällig Reihenfolge: "
+	end
 	_menu:addItem{type="forwarder", name="Playlist", action="playlist", enabled=true,
-	id="Playlist " .. menu_name, directkey=godirectkey(d),hint="Playlist: " .. menu_name}
+	id="Playlist " .. menu_name, directkey=godirectkey(d),hint=playhint .. menu_name}
         d=d+1
 	_menu:addItem{type="forwarder", name="Erstelle M3U Playlist", action="gen_m3u_list", enabled=true,
 	id=menu_name, directkey=godirectkey(d),hint="Erstelle eine M3U Playlist im Verzeichnis: /tmp/" .. menu_name .. ".m3u"}
@@ -591,7 +625,7 @@ function setings()
 	hideMenu(glob.main_menu)
 
 	local d =  1
-	local menu =  menu.new{name="Einstellungen", icon="icon_red"}
+	local menu =  menu.new{name="Einstellungen", icon="icon_blue"}
 	glob.settings_menu = menu
 	menu:addItem{type="back"}
 	menu:addItem{type="separatorline"}
@@ -603,6 +637,13 @@ function setings()
 	menu:addItem{type="chooser", action="set_option", options={ on, off }, id="dlflag", value=bool2onoff(conf.dlflag), directkey=godirectkey(d), name="Auswahl vorbelegen mit",hint_icon="hint_service",hint="Erstelle Auswahlliste mit 'ein' oder 'aus'"}
 	d=d+1
 	menu:addItem{type="chooser", action="set_option", options={ on, off }, id="flvflag", value=bool2onoff(conf.flvflag), directkey=godirectkey(d), name="Videos in FLV-Format herunterladen ? ",hint_icon="hint_service",hint="Videos in FLV-Format sind meisten mit nicht kompatiblen Video-Codec (zB: vp6f)."}
+	d=d+1
+	menu:addItem{type="chooser", action="set_option", options={ on, off }, id="playflvflag", value=bool2onoff(conf.playflvflag),
+	directkey=godirectkey(d), name="Videos in FLV-Format abspielen ? ",hint_icon="hint_service",hint="Videos in FLV-Format sind meisten mit nicht kompatiblen Video-Codec (zB: vp6f)."}
+	d=d+1
+	menu:addItem{type="chooser", action="set_option", options={ on, off }, id="shuffleflag", value=bool2onoff(conf.shuffleflag),
+	directkey=godirectkey(d), name="Zufällig abspielen ? ",hint_icon="hint_service",hint="Video wiedergabelisten zufällig abspielen. "}
+
 	menu:addItem{type="separatorline"}
 	d=d+1
 	menu:addItem{type="forwarder", name="Ausgewählte Favoriten löschen.", action="chooser_menu", enabled=true,
@@ -699,7 +740,6 @@ function mtv_listen_menu()
 end
 
 function main_menu()
--- 	hideMenu(glob.menu_liste)
 	glob.main_menu  = menu.new{name="MTV", icon="icon_red"}
 	local menu = glob.main_menu
 	local d = 1 -- directkey
