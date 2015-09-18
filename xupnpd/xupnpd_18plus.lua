@@ -66,7 +66,7 @@ function youporn_updatefeed(feed,friendly_name)
             if feed_data  and anythingtoparse then
                 local n=0
 		for entry in feed_data:gmatch("<div class=(.-)</div>") do
-		    urn,logo,name = string.match(entry,'.-<a href="(/watch/.-)">.-<img src="(.-)" alt="(.-)"')
+		    local urn,name,logo = string.match(entry,'<a%s+href="(/watch/.-)".-title="(.-)">.-<img%s+src="(.-)".-</a>')
 		    if urn then
 			local m=string.find(urn,'?',1,true)
 			if m then urn=urn:sub(1,m-1) end
