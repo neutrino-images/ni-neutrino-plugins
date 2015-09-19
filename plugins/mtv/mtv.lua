@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_verrsion="mtv.de Version 0.5" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_verrsion="mtv.de Version 0.6" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -208,7 +208,7 @@ function getliste(url)
 	return liste
 end
 
-function getvideourl(url)
+function getvideourl(url,vidname)
 	if url == nil then return nil end
 	local video_url = nil
 	local clip_page = getdata(url)
@@ -233,7 +233,7 @@ function getvideourl(url)
 	  print("###########################")
 	end
 	if video_url and video_url:find("copyright_error") then
-		info("Video Not Available", "Copyright Error\n" .. url)
+		info("Video Not Available", "Copyright Error\n" .. vidname,1)
 	end
 	return video_url
 end
@@ -263,8 +263,10 @@ end
 function action_exec(id)
 	if id  then
 		local i = tonumber(id)
-		print(glob.MTVliste[i].url)
-		local url = getvideourl(glob.MTVliste[i].url)
+		if glob.MTVliste[i].name == nil then
+			glob.MTVliste[i].name = "NoName_" .. i
+		end
+		local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name)
 		if url then
 			hideMenu(glob.menu_liste)
 			n:PlayFile(glob.MTVliste[i].name, url,glob.MTVliste[i].type);
@@ -282,11 +284,11 @@ function gen_m3u_list(filename)
 	local m3ufile=io.open(m3ufilename,"w")
 	m3ufile:write("#EXTM3U name=" .. filename .. "\n")
         for k, v in ipairs(glob.MTVliste) do
-		local url = getvideourl(v.url)
+		if v.name == nil then
+			v.name = "NoName"
+		end
+		local url = getvideourl(v.url,v.name)
 		if url then
-			if v.name == nil then
-				v.name = "NoName"
-			end
 			local extinf = ", "
 -- 			if v.logo then --TODO Add Logo parse to CMoviePlayerGui::parsePlaylist
 -- 				extinf = " logo=" .. v.logo ..".jpg ,"
@@ -307,13 +309,13 @@ function make_shuffle_list(tab)
 	for k=1 , #tab do
 		randTable[k]=k
 	end
-	local shffleTable = {}
+	local shuffleTable = {}
 	for k=1,#randTable do
 		math.randomseed(os.time() *100000000000)
 		local r=table.remove(randTable,math.random(#randTable))
-		shffleTable[k]=tab[r]
+		shuffleTable[k]=tab[r]
 	end
-	return shffleTable
+	return shuffleTable
 end
 
 function playlist(filename)
@@ -330,14 +332,22 @@ function playlist(filename)
 	local i = 1
 	local KeyPressed = 0
 	repeat
-		local url = getvideourl(tab[i].url)
+		if tab[i].name == nil then
+			tab[i].name = "NoName"
+		end
+		local url = getvideourl(tab[i].url,tab[i].name)
 		if url then
-			if tab[i].name == nil then
-				tab[i].name = "NoName"
-			end
 			local videoformat = url:sub(-4)
 			if videoformat ~= ".flv" or conf.playflvflag then
-				KeyPressed = n:PlayFile( "(" .. i.. "/" .. #tab .. ") " .. tab[i].name,url)
+				local prevn , nextn = "",""
+				if i-1 ~= 0 then
+					prevn = "Vorherige Titel: " .. tab[i-1].name
+				end
+				if i < #tab then
+					nextn = "Nächste Titel: ".. tab[i+1].name
+				end
+
+				KeyPressed = n:PlayFile( "(" .. i.. "/" .. #tab .. ") " .. tab[i].name,url, nextn, prevn)
 			end
 		end
 		if KeyPressed == PLAYSTATE.NORMAL then --play continue
@@ -364,7 +374,6 @@ function dlstart(name)
 	local infotext = name .." - Dateien werden heruntergeladen\n"
 	name = name:gsub([[%s+]], "_")
 	name = name:gsub("[:'&()/]", "_")
-	print(name)
 	local dlname = "/tmp/" .. name ..".dl"
 	local havefile = file_exists("/tmp/.rtmpdl")
 	if havefile == true then
@@ -382,16 +391,16 @@ function dlstart(name)
 	local script_start = false
 	for i, v in ipairs(glob.MTVliste) do
 		if v.enabled == true then
-			local url = getvideourl(glob.MTVliste[i].url)
+			if glob.MTVliste[i].name == nil then
+				glob.MTVliste[i].name = "NoName_" .. i
+			end
+			local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name)
 			if url then
 				local videoformat = url:sub(-4)
 				if videoformat == nil then
 					videoformat = ".mp4"
 				end
 				if videoformat ~= ".flv" or conf.flvflag then
-					if glob.MTVliste[i].name == nil then
-						glob.MTVliste[i].name = "NoName_" .. i
-					end
 					local fname = v.name:gsub([[%s+]], "_")
 					fname = fname:gsub("[:'()]", "_")
 					dl:write("rtmpdump -e -r " .. url .. " -o " .. conf.path .. "/" .. fname  .. videoformat .."\n")
@@ -716,7 +725,6 @@ function search_artists()
 	end
 	menu:exec()
 	menu:hide()
-	return MENU_RETURN.EXIT_REPAINT
 end
 
 function mtv_listen_menu()
@@ -748,18 +756,18 @@ function main_menu()
 	menu:addItem{type="back"}
 	menu:addItem{type="separatorline"}
 	menu:addItem{type="forwarder", name="MTV Listen", action="mtv_listen_menu", enabled=true,
-	id="dumm", directkey=godirectkey(d),hint="MTV Listen"}
+	id="dummy"..d, directkey=godirectkey(d),hint="MTV Listen"}
         d=d+1
 	menu:addItem{type="separatorline"}
 	menu:addItem{type="forwarder", name="Suche nach Künstler", action="search_artists", enabled=true,
 	id="find", directkey=godirectkey(d),hint="Suche nach Künstler"}
 	d=d+1
-	menu:addItem{type="keyboardinput", action="setvar", id="search", name="Künstler Name:", value=conf.name,directkey=godirectkey(d),hint_icon="hint_service",hint="Nach welchem Künstler soll gesucht werden ?"}
+	menu:addItem{type="keyboardinput", action="setvar", id="search", name="Künstler Name:", value=conf.search,directkey=godirectkey(d),hint_icon="hint_service",hint="Nach welchem Künstler soll gesucht werden ?"}
 
 	menu:addItem{type="separatorline"}
 	d=d+1
 	menu:addItem{type="forwarder", name="Einstellungen", action="setings", enabled=true,
-	id="", directkey=godirectkey(d),hint="Einstellungen"}
+	id="dummy"..d, directkey=godirectkey(d),hint="Einstellungen"}
 	menu:exec()
 end
 
