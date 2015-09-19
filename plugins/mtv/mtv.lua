@@ -117,6 +117,7 @@ function init()
 		{name = "Brandneu",url="http://www.mtv.de/musik",fav=false},
 		{name = "Hitlist Germany - Top 100",url="http://www.mtv.de/charts/5-hitlist-germany-top-100",fav=false},
 		{name = "MTV.de Videocharts",url="http://www.mtv.de/charts/8-mtv-de-videocharts",fav=false},
+		{name = "Top 100 Jahrescharts 2014",url="http://www.mtv.de/charts/241-top-100-single-jahrescharts-2014",fav=false},
 		{name = "Top 100 Jahrescharts 2013",url="http://www.mtv.de/charts/199-top-100-single-jahrescharts-2013",fav=false},
 		{name = "Dance Charts",url="http://www.mtv.de/charts/6-dance-charts",fav=false},
 		{name = "Deutsche Urban Charts",url="http://www.mtv.de/charts/9-deutsche-black-charts",fav=false},
