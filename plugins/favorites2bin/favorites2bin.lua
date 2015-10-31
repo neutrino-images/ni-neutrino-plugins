@@ -40,30 +40,6 @@ function key_setup(a)
 	return MENU_RETURN.EXIT_ALL
 end
 
-function get_neutrino_setting(k)
-	local ret = nil
-	if k == nil then
-		return ret
-	end
-
-	local conf = io.open("/var/tuxbox/config/neutrino.conf", "r")
-	if conf then
-		for line in conf:lines() do
-			local key, val = line:match("^([^=#]+)=([^\n]*)")
-			if key then
-				if key == k then
-					if val ~= nil then
-						ret = val
-					end
-				end
-			end
-		end
-		conf:close()
-	end
-
-	return ret
-end
-
 function file_exists(name)
 	local f = io.open(name, "r")
 	if f ~= nil then
@@ -102,10 +78,9 @@ end
 
 -- ----------------------------------------------------------------------------
 
-lang = get_neutrino_setting("language")
-if locale[lang] == nil then
-	lang = "english"
-end
+local neutrino_conf = configfile.new()
+neutrino_conf:loadConfig("/var/tuxbox/config/neutrino.conf")
+lang = neutrino_conf:getString("language", "english")
 
 local m = menu.new{name=locale[lang].caption, icon="settings"}
 m:addKey{directkey=RC["home"], id="home", action="key_home"}
