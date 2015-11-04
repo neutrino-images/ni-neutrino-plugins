@@ -25,7 +25,7 @@ char rc,*rptr=src,*tptr=src;
 			++rptr;
 			rc=*rptr;
 			found=0;
-			for(i=0; i<sizeof(sc) && !found; i++)
+			for(i=0; i<sizeof(sc)/sizeof(sc[0]) && !found; i++)
 			{
 				if(rc==sc[i])
 				{
@@ -49,7 +49,7 @@ char rc,*rptr=src,*tptr=src;
 			if (!quota && *rptr==0xC3 && *(rptr+1))
 			{
 				found=0;
-				for(i=0; i<sizeof(su) && !found; i++)
+				for(i=0; i<sizeof(su)/sizeof(su[0]) && !found; i++)
 				{
 					if(*(rptr+1)==su[i])
 					{
@@ -213,7 +213,7 @@ int GetStringLen(int sx, unsigned char *string, int size)
 				else
 				{
 					found=0;
-					for(i=0; i<sizeof(sc) && !found; i++)
+					for(i=0; i<sizeof(sc)/sizeof(sc[0]) && !found; i++)
 					{
 						if(*string==sc[i])
 						{
