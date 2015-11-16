@@ -29,16 +29,31 @@ local gui = require "n_gui"
 
 functions:
 ----------
+paintMiniInfoBox(txt, [w], [h])
 paintInfoBox(txt, [w], [h])
 hideInfoBox(h)
 modulName()
-function G.paintFrame(x, y, w, h, f, c, radius)
+function G.paintFrame(x, y, w, h, f, c, [radius])
 ]]
 
 local posix = require "posix"
 local gui = {VERSION = VERSION}
 local G = gui
 
+function G.paintMiniInfoBox(txt, w, h)
+	local dx, dy
+	if not w then dx = 250 else dx = w end
+	if not h then dy = 50 else dy = h end
+	local x = ((SCREEN.END_X - SCREEN.OFF_X) - dx) / 2
+	local y = ((SCREEN.END_Y - SCREEN.OFF_Y) - dy) / 2
+
+	local text = COL.MENUCONTENTSELECTED_TEXT
+	local body = COL.MENUCONTENTSELECTED_PLUS_0
+	local ib = cwindow.new{color_body=body, x=x, y=y, dx=dx, dy=dy, has_shadow=true, shadow_mode=1, show_footer=false, show_header=false}
+	ctext.new{color_text=text, color_body=body, parent=ib, x=15, y=2, dx=dx-30, dy=dy-ib:headerHeight()-4, text=txt, font_text=FONT.MENU_TITLE, mode="ALIGN_CENTER"}
+	ib:paint()
+	return ib
+end
 
 function G.paintInfoBox(txt, w, h)
 	local dx, dy
@@ -47,7 +62,7 @@ function G.paintInfoBox(txt, w, h)
 	local x = ((SCREEN.END_X - SCREEN.OFF_X) - dx) / 2
 	local y = ((SCREEN.END_Y - SCREEN.OFF_Y) - dy) / 2
 
-	local ib = cwindow.new{x=x, y=y, dx=dx, dy=dy, title="Information", icon="information", has_shadow=true, show_footer=false}
+	local ib = cwindow.new{x=x, y=y, dx=dx, dy=dy, title="Information", icon="information", has_shadow=true, shadow_mode=1, show_footer=false}
 	ctext.new{parent=ib, x=30, y=2, dx=dx-60, dy=dy-ib:headerHeight()-4, text=txt, font_text=FONT.MENU, mode="ALIGN_CENTER"}
 	ib:paint()
 	return ib
