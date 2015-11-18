@@ -1,3 +1,4 @@
 *.bak
 *.BAK.*
 .local
+zz-*.sh
