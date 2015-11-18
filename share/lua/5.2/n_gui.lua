@@ -50,7 +50,9 @@ function G.paintMiniInfoBox(txt, w, h)
 	local text = COL.MENUCONTENTSELECTED_TEXT
 	local body = COL.MENUCONTENTSELECTED_PLUS_0
 	local ib = cwindow.new{color_body=body, x=x, y=y, dx=dx, dy=dy, has_shadow=true, shadow_mode=1, show_footer=false, show_header=false}
-	ctext.new{color_text=text, color_body=body, parent=ib, x=15, y=2, dx=dx-30, dy=dy-ib:headerHeight()-4, text=txt, font_text=FONT.MENU_TITLE, mode="ALIGN_CENTER"}
+	if (txt ~= "") then
+		ctext.new{color_text=text, color_body=body, parent=ib, x=15, y=2, dx=dx-30, dy=dy-ib:headerHeight()-4, text=txt, font_text=FONT.MENU_TITLE, mode="ALIGN_CENTER"}
+	end
 	ib:paint()
 	return ib
 end
