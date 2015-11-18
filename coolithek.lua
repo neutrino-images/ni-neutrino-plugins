@@ -1,9 +1,7 @@
 
 n = neutrino();
 -- check lua api version
-n:checkVersion(1, 5);
-
---do return end
+n:checkVersion(1, 10);
 
 json    = require "json"
 posix   = require "posix"
