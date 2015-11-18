@@ -1,9 +1,10 @@
 
 function playLivestream(_id)
 
-	local returnAll = true
+	local returnAll = false
 
 	i = tonumber(_id);
+	local screen = saveFullScreen()
 	hideMenu(m_live)
 	hideMainWindow()
 
@@ -14,7 +15,7 @@ function playLivestream(_id)
 
 	n:PlayFile(title, url, "", url);
 
-	if (helpers.checkAPIversion(1, 8)) then n:enableInfoClock(false) end
+	n:enableInfoClock(false)
 --	collectgarbage();
 	os.execute("pzapit -mute")
 	posix.sleep(1)
@@ -23,7 +24,7 @@ function playLivestream(_id)
 	if (returnAll == true) then
 		return MENU_RETURN.EXIT_ALL;
 	else
-		paintMainWindow()
+		restoreFullScreen(screen, true)
 		return MENU_RETURN.REPAINT;
 	end
 end
@@ -53,7 +54,7 @@ function getLivestreams()
 	end
 
 	m_live:exec()
-	paintMainWindow()
+	restoreFullScreen(mainScreen, false)
 
 	if ret == MENU_RETURN.EXIT_ALL then
 		return ret

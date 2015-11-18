@@ -1,6 +1,6 @@
 
 function getJsonData(url)
-	local box = gui.paintInfoBox("read data...");
+	local box = paintMiniInfoBox("read data...");
 	os.remove(jsonData);
 	local cmd = wget_cmd .. jsonData .. " '" .. url .. "'";
 	print(cmd);
