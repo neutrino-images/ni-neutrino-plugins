@@ -85,13 +85,6 @@ end
 
 function get_m3u8url(url)
 	local ret = {}
-	if (conf.streamQuality == 2) then
-		ret['streamQuality'] = "max";
-	elseif (conf.streamQuality == 1) then
-		ret['streamQuality'] = "normal";
-	else
-		ret['streamQuality'] = "min";
-	end
 	local si = parse_m3u8Data(url);
 
 	if (#si <= 1) then

@@ -6,16 +6,33 @@ function playLivestream(_id)
 	i = tonumber(_id);
 	local title = videoTable[i][1] .. " Livestream";
 	local url = videoTable[i][2];
+	local parse_m3u8 = tonumber(videoTable[i][3]);
 
-	m3u8Ret = get_m3u8url(url);
-	url = m3u8Ret['url'];
-	local bw = tonumber(m3u8Ret['bandwidth']);
+	local bw;
+	local res;
+	local qual;
+	if (conf.streamQuality == 2) then
+		qual = "max";
+	elseif (conf.streamQuality == 1) then
+		qual = "normal";
+	else
+		qual = "min";
+	end
+	if (parse_m3u8 == 1) then
+		m3u8Ret = get_m3u8url(url);
+		url = m3u8Ret['url'];
+		bw = tonumber(m3u8Ret['bandwidth']);
+		res = m3u8Ret['resolution'];
+	else
+		bw = nil;
+		res = "*";
+	end
 	if (bw == nil) then
 		bw = "-";
 	else
 		bw = tostring(math.floor(bw/1000 + 0.5)) .. "K";
 	end
-	local msg1 = string.format("Bitrate: %s, Auflösung: %s, Qualität: %s", bw, m3u8Ret['resolution'], m3u8Ret['streamQuality']);
+	local msg1 = string.format("Bitrate: %s, Auflösung: %s, Qualität: %s", bw, res, qual);
 
 	local screen = saveFullScreen()
 	hideMenu(m_live)
@@ -60,6 +77,7 @@ function getLivestreams()
 		videoTable[i] = {};
 		videoTable[i][1] = name;
 		videoTable[i][2] = j_table.entry[i].url;
+		videoTable[i][3] = j_table.entry[i].parse_m3u8;
 		m_live:addItem{type="forwarder", action="playLivestream", id=i, name=name};
 	end
 
