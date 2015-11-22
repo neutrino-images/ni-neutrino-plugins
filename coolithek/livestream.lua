@@ -4,16 +4,26 @@ function playLivestream(_id)
 	local returnAll = false
 
 	i = tonumber(_id);
+	local title = videoTable[i][1] .. " Livestream";
+	local url = videoTable[i][2];
+
+	m3u8Ret = get_m3u8url(url);
+	url = m3u8Ret['url'];
+	local bw = tonumber(m3u8Ret['bandwidth']);
+	if (bw == nil) then
+		bw = "-";
+	else
+		bw = tostring(math.floor(bw/1000 + 0.5)) .. "K";
+	end
+	local msg1 = string.format("Bitrate: %s, Auflösung: %s, Qualität: %s", bw, m3u8Ret['resolution'], m3u8Ret['streamQuality']);
+
 	local screen = saveFullScreen()
 	hideMenu(m_live)
 	hideMainWindow()
-
-	local title = videoTable[i][1] .. " Livestream";
-	local url = videoTable[i][2];
 	n:setBlank(true)
 	os.execute("pzapit -unmute")
 
-	n:PlayFile(title, url, "", url);
+	n:PlayFile(title, url, msg1, url);
 
 	n:enableInfoClock(false)
 --	collectgarbage();
