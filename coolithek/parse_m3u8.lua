@@ -112,22 +112,11 @@ function get_m3u8url(url)
 	local minUrl   = ""
 	local maxUrl   = ""
 	local xUrl     = ""
-	local hasCodec = false
-
-	-- info has codec or not?
-	for i = 1, #si do
-		if ((si[i]['codec'] == nil) or (si[i]['codec'] ~= nil and type(si[i]['codec']) == "table" and #si[i]['codec'] < 2)) then
-			hasCodec = false
-		else
-			hasCodec = true
-			break
-		end
-	end
 
 	-- min/max bandwidth
 	for i = 1, #si do
-		if (hasCodec == false or (si[i]['codec'] ~= nil and type(si[i]['codec']) == "table" and #si[i]['codec'] > 1)) then
-			if (si[i]['bandwidth'] == nil) then si[i]['bandwidth'] = 0 end
+		if (si[i]['bandwidth'] == nil) then si[i]['bandwidth'] = 0 end
+		if (si[i]['bandwidth'] > 90000) then -- skip audio streams
 			if (si[i]['bandwidth'] <= minBW) then
 				minBW = si[i]['bandwidth']
 				minUrl = si[i]['url']
@@ -145,9 +134,8 @@ function get_m3u8url(url)
 	tmpBW = (maxBW+minBW)/2
 	local diff = 1000000000
 	for i = 1, #si do
-		if (hasCodec == false or (si[i]['codec'] ~= nil and type(si[i]['codec']) == "table" and #si[i]['codec'] > 1)) then
-			if (si[i]['bandwidth'] == nil) then si[i]['bandwidth'] = 0 end
-
+		if (si[i]['bandwidth'] == nil) then si[i]['bandwidth'] = 0 end
+		if (si[i]['bandwidth'] > 90000) then -- skip audio streams
 			if (math.abs(tmpBW - si[i]['bandwidth']) < diff) then
 				diff = math.abs(tmpBW - si[i]['bandwidth'])
 				xUrl = si[i]['url']
@@ -158,7 +146,7 @@ function get_m3u8url(url)
 	end
 
 --	helpers.tprint(si)
---	helpers.printf("minBW: %d, maxBW: %d, tmpBW: %d, hasCodec: %s", minBW, maxBW, tmpBW, tostring(hasCodec))
+--	helpers.printf("minBW: %d, maxBW: %d, tmpBW: %d", minBW, maxBW, tmpBW)
 
 	if (conf.streamQuality == 2) then
 		-- max
