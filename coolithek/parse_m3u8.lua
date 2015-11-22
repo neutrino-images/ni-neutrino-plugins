@@ -2,19 +2,13 @@
 EXT_X_STREAM_INF	= "#EXT-X-STREAM-INF:"
 
 
-function parse_m3u8Data(url)
+function parse_m3u8Data(url, parse_mode)
 	local box = paintMiniInfoBox("read data...");
 
-if url == "" then
-	m3u8Data = pluginScriptPath .. "/ARD.m3u8"
---	m3u8Data = pluginScriptPath .. "/ARTE.DE.m3u8"
-	url = "http://niesfisch.de/video/doof.m3u8"
-else
 	os.remove(m3u8Data);
 	local cmd = wget_cmd .. m3u8Data .. " '" .. url .. "'";
 --	print(cmd);
 	os.execute(cmd);
-end
 
 	local streamInfo = {};
 	local fp, s;
@@ -65,14 +59,18 @@ end
 		else
 			if ((count > 1) and (#line > 2)) then
 				-- url
-				local found = n:strFind(line, "http");
-				if (found == nil) then
-					found = n:strFind(line, "rtmp");
+				if (parse_mode == 1) then
+					local found = n:strFind(line, "http");
+					if (found == nil) then
+						found = n:strFind(line, "rtmp");
+					end
+					if (found == nil or (found ~= nil and found ~= 0)) then
+						line = posix.dirname(url) .. "/" .. line
+					end
+					streamInfo[count-1]['url'] = line
+				elseif (parse_mode == 2) then
+					streamInfo[count-1]['url'] = url
 				end
-				if (found == nil or (found ~= nil and found ~= 0)) then
-					line = posix.dirname(url) .. "/" .. line
-				end
-				streamInfo[count-1]['url'] = line
 			end
 
 		end
@@ -83,11 +81,11 @@ end
 	return streamInfo;
 end
 
-function get_m3u8url(url)
+function get_m3u8url(url, parse_mode)
 	local ret = {}
-	local si = parse_m3u8Data(url);
+	local si = parse_m3u8Data(url, parse_mode);
 
-	if (#si <= 1) then
+	if (#si < 1) then
 		ret['url']           = url;
 		ret['bandwidth']     = "-";
 		ret['resolution']    = "-";

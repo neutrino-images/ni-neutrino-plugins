@@ -18,14 +18,14 @@ function playLivestream(_id)
 	else
 		qual = "min";
 	end
-	if (parse_m3u8 == 1) then
-		m3u8Ret = get_m3u8url(url);
+	if ((parse_m3u8 == 1) or (parse_m3u8 == 2)) then
+		m3u8Ret = get_m3u8url(url, parse_m3u8);
 		url = m3u8Ret['url'];
 		bw = tonumber(m3u8Ret['bandwidth']);
 		res = m3u8Ret['resolution'];
 	else
 		bw = nil;
-		res = "*";
+		res = "-";
 	end
 	if (bw == nil) then
 		bw = "-";
