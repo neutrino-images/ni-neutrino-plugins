@@ -15,7 +15,12 @@ else
 	url_base = "http://mediathek.slknet.de";
 end
 
-user_agent 		= "\"" .. pluginName .. " plugin v" .. pluginVersion .. " for NeutrinoHD\"";
+conf = {}
+confChanged 		= 0
+confFile		= "/var/tuxbox/config/" .. helpers.scriptBase() .. ".conf";
+config			= configfile.new()
+
+user_agent 		= "\"Mozilla/5.0 (compatible; " .. pluginName .. " plugin v" .. pluginVersion .. " for NeutrinoHD)\"";
 if (wgetQuiet ~= nil) then
 	wget_cmd = "wget -q -U " .. user_agent .. " -O ";
 else
@@ -31,6 +36,7 @@ url_listChannels1b	= "&mode=weekly";
 url_livestream		= url_base .. "/?action=listLivestream";
 
 jsonData		= pluginTmpPath .. "/mediathek_data.txt";
+m3u8Data		= pluginTmpPath .. "/mediathek_data.m3u8";
 pluginIcon		= "multimedia";
 backgroundImage		= "";
 videoTable		= {};

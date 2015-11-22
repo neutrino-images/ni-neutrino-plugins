@@ -1,4 +1,16 @@
 
+function min(a, b)
+	local ret = b
+	if (a < b) then ret = a end;
+	return ret
+end
+
+function max(a, b)
+	local ret = b
+	if (a > b) then ret = a end;
+	return ret
+end
+
 function saveFullScreen()
 	return n:saveScreen(0, 0, SCREEN.X_RES, SCREEN.Y_RES);
 end
@@ -48,3 +60,33 @@ end
 function dummy()
 end
 
+
+-- #######################################################################################
+-- config
+-- #######################################################################################
+
+function loadConfig()
+	config:loadConfig(confFile)
+
+	conf.streamQuality = config:getInt32("streamQuality", 2)
+
+conf.streamQuality = 2
+--conf.streamQuality = 1
+--conf.streamQuality = 0
+end
+
+function saveConfig()
+	if confChanged == 1 then
+		gui.paintInfoBox(langStr_saveSettings)
+
+		config:setInt32("streamQuality", conf.streamQuality)
+
+		config:saveConfig(confFile)
+		confChanged = 0
+		posix.sleep(1)
+		gui.hideInfoBox()
+	end
+	return MENU_RETURN.EXIT_REPAINT
+end
+
+-- #######################################################################################

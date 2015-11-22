@@ -2,3 +2,4 @@
 *.BAK.*
 .local
 zz-*.sh
+amend-date
