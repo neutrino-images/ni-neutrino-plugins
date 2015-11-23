@@ -1,9 +1,8 @@
 
 EXT_X_STREAM_INF	= "#EXT-X-STREAM-INF:"
 
-
 function parse_m3u8Data(url, parse_mode)
-	local box = paintMiniInfoBox("read data...");
+	local box = paintMiniInfoBox(readData);
 
 	os.remove(m3u8Data);
 	local cmd = wget_cmd .. m3u8Data .. " '" .. url .. "'";

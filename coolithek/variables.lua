@@ -46,6 +46,9 @@ fontID_MainMenu		= 0
 fontID_MiniInfo		= 1
 mainScreen		= 0
 
+readData		= "Lese Daten..."
+saveData		= "Einstellungen werden gespeichert..."
+
 
 -- ################################################
 
