@@ -14,8 +14,10 @@ function saveConfig()
 end
 
 function _saveConfig(skipMsg)
+	local screen = 0;
 	if (skipMsg == false) then
-		local box = paintMiniInfoBox("Settings are saved...", 320);
+		screen = saveFullScreen()
+		local box = paintMiniInfoBox(saveData);
 	end
 
 	saveLivestreamConfig()
@@ -27,6 +29,7 @@ function _saveConfig(skipMsg)
 	if (skipMsg == false) then
 		posix.sleep(1)
 		gui.hideInfoBox(box)
+		restoreFullScreen(screen, true)
 	end
 end
 
