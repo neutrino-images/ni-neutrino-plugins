@@ -11,9 +11,9 @@ function playLivestream(_id)
 	local bw;
 	local res;
 	local qual;
-	if (conf.streamQuality == 2) then
+	if (conf.streamQuality == "max") then
 		qual = "max";
-	elseif (conf.streamQuality == 1) then
+	elseif (conf.streamQuality == "normal") then
 		qual = "normal";
 	else
 		qual = "min";
@@ -61,31 +61,45 @@ function getLivestreams()
 	local j_table = decodeJson(s);
 	if checkJsonError(j_table) == false then return false end
 
+	for i = 1, #j_table.entry do
+		local name = j_table.entry[i].title;
+		name = string.gsub(name, " Livestream", "");
+		local configName = "livestream_" .. name
+		configName = string.gsub(configName, "[. -]", "_");
+		videoTable[i] = {};
+		videoTable[i][1] = name;			-- name
+		videoTable[i][2] = j_table.entry[i].url;	-- url
+		videoTable[i][3] = j_table.entry[i].parse_m3u8;	-- parse_m3u8 flag
+		videoTable[i][4] = configName;			-- config name
+	end
+	return true
+end
+
+function livestreamMenu()
+	if (#videoTable == 0) then
+		getLivestreamConfig()
+	end
+
 	m_live = menu.new{name=pluginName .. "-Livestreams", icon=pluginIcon};
 	m_live:addItem{type="subhead", name=langStr_channelSelection};
 	m_live:addItem{type="separator"};
 	m_live:addItem{type="back"};
 	m_live:addItem{type="separatorline"};
-
 --	m_live:addKey{directkey=RC["home"], id="home", action="key_home"}
 --	m_live:addKey{directkey=RC["setup"], id="setup", action="key_setup"}
 
-	for i = 1, #j_table.entry do
-		local name = j_table.entry[i].title;
-		name = string.gsub(name, " Livestream", "");
-		local id = j_table.entry[i].id;
-		videoTable[i] = {};
-		videoTable[i][1] = name;
-		videoTable[i][2] = j_table.entry[i].url;
-		videoTable[i][3] = j_table.entry[i].parse_m3u8;
-		m_live:addItem{type="forwarder", action="playLivestream", id=i, name=name};
+	local i
+	for i = 1, #videoTable do
+		if (conf.livestream[i] == "on") then
+			m_live:addItem{type="forwarder", action="playLivestream", id=i, name=videoTable[i][1]};
+		end
 	end
 
 	m_live:exec()
 	restoreFullScreen(mainScreen, false)
 
-	if ret == MENU_RETURN.EXIT_ALL then
-		return ret
+	if menuRet == MENU_RETURN.EXIT_ALL then
+		return menuRet
 	end
 	return MENU_RETURN.REPAINT;
 end

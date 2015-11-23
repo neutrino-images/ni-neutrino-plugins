@@ -15,11 +15,11 @@ else
 	url_base = "http://mediathek.slknet.de";
 end
 
-conf = {}
+conf			= {}
+conf.livestream		= {}
 confChanged 		= 0
-confFile		= "/var/tuxbox/config/" .. helpers.scriptBase() .. ".conf";
 config			= configfile.new()
-
+--user_agent 		= "\"Mozilla/5.0 (iPad; U; CPU OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5\"";
 user_agent 		= "\"Mozilla/5.0 (compatible; " .. pluginName .. " plugin v" .. pluginVersion .. " for NeutrinoHD)\"";
 if (wgetQuiet ~= nil) then
 	wget_cmd = "wget -q -U " .. user_agent .. " -O ";

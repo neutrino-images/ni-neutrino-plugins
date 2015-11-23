@@ -139,12 +139,12 @@ function get_m3u8url(url, parse_mode)
 --	helpers.tprint(si)
 --	helpers.printf("minBW: %d, maxBW: %d, tmpBW: %d", minBW, maxBW, tmpBW)
 
-	if (conf.streamQuality == 2) then
+	if (conf.streamQuality == "max") then
 		-- max
 		ret['url']           = maxUrl;
 		ret['bandwidth']     = maxBW;
 		ret['resolution']    = maxRes;
-	elseif (conf.streamQuality == 1) then
+	elseif (conf.streamQuality == "normal") then
 		-- normal
 		ret['url']           = xUrl;
 		ret['bandwidth']     = xBW;

@@ -41,17 +41,31 @@ function paintMainMenu(frame, frameColor, textColor, info, count)
 	local y_start = (SCREEN.END_Y - h_ges) / 2
 	for i = 1, count do
 		local y = y_start + (i-1)*h_tmp
-		gui.paintFrame(x, y, w, h, frame, frameColor, 0)
+		local bg = 0
+		txtC=textColor
+		if (i == 1) then
+			-- mediathek
+			txtC = COL.MENUCONTENTINACTIVE_TEXT
+			bg   = COL.MENUCONTENTINACTIVE
+		end
+		if ((i == 2) and (conf.enableLivestreams == "off")) then
+			-- livestreams
+			txtC = COL.MENUCONTENTINACTIVE_TEXT
+			bg   = COL.MENUCONTENTINACTIVE
+		end
+		gui.paintFrame(x, y, w, h, frame, frameColor, 0, bg)
 		n:PaintBox(x+w1, y, frame, h, frameColor)
 		
-		n:RenderString(useFixFont, fontText, info[i][1], x, y+h, textColor, w1, h, 1)
-		n:RenderString(useFixFont, fontText, info[i][2], x+w1+w1/4, y+h, textColor, w-w1, h, 0)
+		n:RenderString(useFixFont, fontText, info[i][1], x, y+h, txtC, w1, h, 1)
+		n:RenderString(useFixFont, fontText, info[i][2], x+w1+w1/4, y+h, txtC, w-w1, h, 0)
 		
 	end
 end
 
-function paintMainWindow()
-	h_mainWindow:paint{do_save_bg=true}
+function paintMainWindow(menuOnly)
+	if (menuOnly == false) then
+		h_mainWindow:paint{do_save_bg=true}
+	end
 	paintMainMenu(1, COL.MENUCONTENT_TEXT, COL.MENUCONTENT_TEXT, mainMenuEntry, #mainMenuEntry)
 end
 
@@ -67,7 +81,7 @@ function newMainWindow()
 	local w = SCREEN.END_X - x
 	local h = SCREEN.END_Y - y
 	h_mainWindow = cwindow.new{x=x, y=y, dx=w, dy=h, name=pluginName .. " - v" .. pluginVersion, icon=pluginIcon};
-	paintMainWindow()
+	paintMainWindow(false)
 	mainScreen = saveFullScreen()
 	return h_mainWindow;
 end
@@ -86,11 +100,16 @@ function mainWindow()
 		end
 		-- livestreams
 		if (msg == RC.sat) then
-			getLivestreams()
+			if (conf.enableLivestreams == "on") then
+				livestreamMenu()
+			end
 		end
 		-- settings
 		if (msg == RC.setup) then
-			hideMainWindow()
+			configMenu()
+			restoreFullScreen(mainScreen, true)
+			paintMainWindow(false)
+			mainScreen = saveFullScreen()
 		end
 		-- info
 		if (msg == RC.info) then
@@ -98,9 +117,6 @@ function mainWindow()
 		end
 		-- ;)
 		if (msg == RC.www) then
-			os.execute("pzapit -esb;pzapit -lsb;pzapit -rz")
-			posix.sleep(5)
-			msg = RC.home
 		end
 		ret = msg
 	until msg == RC.home;
@@ -115,6 +131,6 @@ end
 setFonts();
 loadConfig()
 mainWindow();
-saveConfig();
+_saveConfig(true)
 
 -- ###########################################################################################
