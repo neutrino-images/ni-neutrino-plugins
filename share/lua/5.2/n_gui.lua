@@ -33,7 +33,7 @@ paintMiniInfoBox(txt, [w], [h])
 paintInfoBox(txt, [w], [h])
 hideInfoBox(h)
 modulName()
-function G.paintFrame(x, y, w, h, f, c, [radius])
+paintFrame(x, y, w, h, f, c, [radius], [bg])
 ]]
 
 local posix = require "posix"
@@ -87,8 +87,13 @@ function G.checkModulVersion(version)
 	end
 end
 
-function G.paintFrame(x, y, w, h, f, c, radius)
+function G.paintFrame(x, y, w, h, f, c, radius, bg)
 	if (not radius) then radius = CORNER.RADIUS_LARGE end
+	if (not bg) then bg = 0 end
+	if (bg > 0) then
+		-- background
+		n:PaintBox(x, y, w, h, bg, radius, bit32.bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
+	end
 	-- top
 	n:PaintBox(x-f, y-f, w+f*2, f, c, radius, bit32.bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
 	-- right
