@@ -1,4 +1,55 @@
 
+
+-- ####################################################################
+-- convert a image: http://websemantics.co.uk/online_tools/image_to_data_uri_convertor/
+-- function from http://lua-users.org/wiki/BaseSixtyFour
+
+-- character table string
+local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+
+-- decode
+function dec(data)
+	data = string.gsub(data, '[^'..b..'=]', '')
+	return (data:gsub('.', function(x)
+	if (x == '=') then return '' end
+	local r,f='',(b:find(x)-1)
+	for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+	return r;
+	end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+	if (#x ~= 8) then return '' end
+	local c=0
+	for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+	return string.char(c)
+	end))
+end
+
+function decodeImage(b64Image, path)
+	local imgTyp = b64Image:match("data:image/(.-);base64,")
+	local repData = "data:image/" .. imgTyp .. ";base64,"
+	local b64Data = string.gsub(b64Image, repData, "");
+
+	local tmpImg = os.tmpname()
+	local retImg
+	if path ~= nil then
+		retImg = string.gsub(tmpImg, "/tmp/", path .. "/") .. "." .. imgTyp
+	else
+		retImg = tmpImg .. "." .. imgTyp
+	end
+	os.remove(tmpImg)
+	local f = io.open(retImg, "w+")
+	if f ~= nil then
+		f:write(dec(b64Data))
+		f:close()
+	else
+		print("Create image ["..retImg.."] failed.")
+		return ""
+	end
+
+	return retImg
+end
+
+-- ####################################################################
+
 function saveFullScreen()
 	return n:saveScreen(0, 0, SCREEN.X_RES, SCREEN.Y_RES);
 end

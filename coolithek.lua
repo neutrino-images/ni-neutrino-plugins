@@ -17,6 +17,7 @@ os.execute("mkdir -p " .. pluginTmpPath);
 -- include lua files
 dofile(pluginScriptPath .. "/variables.lua");
 dofile(pluginScriptPath .. "/functions.lua");
+dofile(pluginScriptPath .. "/images.lua");
 dofile(pluginScriptPath .. "/json.lua");
 dofile(pluginScriptPath .. "/config.lua");
 dofile(pluginScriptPath .. "/parse_m3u8.lua");
