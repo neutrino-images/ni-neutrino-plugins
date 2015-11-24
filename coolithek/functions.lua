@@ -60,11 +60,16 @@ end
 
 function setFonts()
 	if (useFixFont == true) then
-		fontMainMenu = n:getDynFont(0, 50, fontID_MainMenu)
-		fontMiniInfo = n:getDynFont(0, 40, fontID_MiniInfo)
+		local fontError = 0;
+		fontMainMenu,  fontError = n:getDynFont(0, 50)
+		fontMiniInfo,  fontError = n:getDynFont(0, 40)
+		fontLeftMenu1, fontError = n:getDynFont(0, 24)
+		fontLeftMenu2, fontError = n:getDynFont(0, 26, "", DYNFONT.STYLE_BOLD)
 	else
-		fontMainMenu = FONT.MENU
-		fontMiniInfo = FONT.MENU_TITLE
+		fontMainMenu  = FONT.MENU
+		fontMiniInfo  = FONT.MENU_TITLE
+		fontLeftMenu1 = FONT.MENU
+		fontLeftMenu2 = FONT.MENU
 	end
 --helpers.printf("\nfontMainMenu %d, fontMiniInfo %d\n", fontMainMenu, fontMiniInfo)
 end
@@ -73,12 +78,12 @@ function paintMiniInfoBox(txt)
 	local _w = n:getRenderWidth(useFixFont, fontMiniInfo, txt)
 	local _h = n:FontHeight(useFixFont, fontMiniInfo)
 	local dx = _w + 40
-	local dy = _h + 0.2*_h
+	local dy = _h
 	local x = ((SCREEN.END_X - SCREEN.OFF_X) - dx) / 2
 	local y = ((SCREEN.END_Y - SCREEN.OFF_Y) - dy) / 2
 	local ib = gui.paintMiniInfoBox("", dx, dy)
 	local col_text = COL.MENUCONTENTSELECTED_TEXT
-	n:RenderString(useFixFont, fontMiniInfo, txt, x, y+dy-0.1*_h, col_text, dx, dy-0, 1)
+	n:RenderString(useFixFont, fontMiniInfo, txt, x, y+dy, col_text, dx, dy, 1)
 	return ib
 end
 

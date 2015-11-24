@@ -1,5 +1,5 @@
 
-n = neutrino();
+n = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES);
 -- check lua api version
 n:checkVersion(1, 10);
 
@@ -22,6 +22,7 @@ dofile(pluginScriptPath .. "/json.lua");
 dofile(pluginScriptPath .. "/config.lua");
 dofile(pluginScriptPath .. "/parse_m3u8.lua");
 dofile(pluginScriptPath .. "/livestream.lua");
+dofile(pluginScriptPath .. "/mediathek.lua");
 dofile(pluginScriptPath .. "/main.lua");
 
 --os.execute("rm -fr " .. pluginTmpPath);

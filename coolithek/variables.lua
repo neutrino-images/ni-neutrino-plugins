@@ -44,6 +44,8 @@ h_mainWindow		= nil;
 useFixFont		= true
 fontID_MainMenu		= 0
 fontID_MiniInfo		= 1
+fontID_LeftMenu1	= 2
+fontID_LeftMenu2	= 3
 mainScreen		= 0
 
 readData		= "Lese Daten..."
@@ -66,3 +68,18 @@ fillMainMenuEntry("MENÜ", "Einstellungen")
 fillMainMenuEntry("INFO", "Versionsinfo")
 fillMainMenuEntry("",     "")
 fillMainMenuEntry("EXIT", "Programm beenden")
+
+
+leftMenuEntry = {}
+function fillLeftMenuEntry(e1, e2, e3)
+	local i = #leftMenuEntry+1
+	leftMenuEntry[i]	= {}
+	leftMenuEntry[i][1]	= e1
+	leftMenuEntry[i][2]	= e2
+	leftMenuEntry[i][3]	= e3
+end
+
+fillLeftMenuEntry("Senderwahl", "Sky Cinema UHD", true)
+fillLeftMenuEntry("Thema",      "Teletubbies in Action", true)
+fillLeftMenuEntry("Zeitraum",   "7 Tage", true)
+fillLeftMenuEntry("Suche",      "", true)

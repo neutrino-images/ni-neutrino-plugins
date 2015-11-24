@@ -43,18 +43,13 @@ function paintMainMenu(frame, frameColor, textColor, info, count)
 		local y = y_start + (i-1)*h_tmp
 		local bg = 0
 		txtC=textColor
-		if (i == 1) then
-			-- mediathek
-			txtC = COL.MENUCONTENTINACTIVE_TEXT
-			bg   = COL.MENUCONTENTINACTIVE
-		end
 		if ((i == 2) and (conf.enableLivestreams == "off")) then
 			-- livestreams
 			txtC = COL.MENUCONTENTINACTIVE_TEXT
 			bg   = COL.MENUCONTENTINACTIVE
 		end
-		gui.paintFrame(x, y, w, h, frame, frameColor, 0, bg)
-		n:PaintBox(x+w1, y, frame, h, frameColor)
+		gui.paintSimpleFrame(x, y, w, h, frameColor, bg)
+		n:paintVLine(x+w1, y, h, frameColor)
 		
 		n:RenderString(useFixFont, fontText, info[i][1], x, y+h, txtC, w1, h, 1)
 		n:RenderString(useFixFont, fontText, info[i][2], x+w1+w1/4, y+h, txtC, w-w1, h, 0)
@@ -81,6 +76,7 @@ function newMainWindow()
 	local w = SCREEN.END_X - x
 	local h = SCREEN.END_Y - y
 	h_mainWindow = cwindow.new{x=x, y=y, dx=w, dy=h, name=pluginName .. " - v" .. pluginVersion, icon=pluginIcon};
+	gui.hideInfoBox(startBox)
 	paintMainWindow(false)
 	mainScreen = saveFullScreen()
 	return h_mainWindow;
@@ -97,6 +93,8 @@ function mainWindow()
 		local msg, data = n:GetInput(500)
 		-- start
 		if (msg == RC.ok) then
+			startMediathek()
+			restoreFullScreen(mainScreen, false)
 		end
 		-- livestreams
 		if (msg == RC.sat) then
@@ -129,8 +127,10 @@ end
 -- ###########################################################################################
 
 setFonts();
-loadConfig()
+startBox = paintMiniInfoBox("Starte Plugin");
+loadConfig();
+createImages();
 mainWindow();
-_saveConfig(true)
+_saveConfig(true);
 
 -- ###########################################################################################
