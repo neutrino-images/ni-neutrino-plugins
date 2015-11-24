@@ -69,7 +69,7 @@ function paintMtLeftMenu(frame, frameColor, textColor, entry)
 
 		buttonCol_x = mtLeftMenu_x+subMenuLeft+(subMenuHight-buttonCol_w)/2
 		buttonCol_y = y+(subMenuHight-buttonCol_h)/2
-		n:DisplayImage(btn, buttonCol_x, buttonCol_y, buttonCol_w, buttonCol_h)
+		n:DisplayImage(btn, buttonCol_x, buttonCol_y, buttonCol_w, buttonCol_h, 1)
 
 		y = y + subMenuHight
 		gui.paintSimpleFrame(mtLeftMenu_x+subMenuLeft, y, mtLeftMenu_w-subMenuLeft*2, subMenuHight, frameColor, bg)
