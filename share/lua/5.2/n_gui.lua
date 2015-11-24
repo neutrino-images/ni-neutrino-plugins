@@ -34,6 +34,7 @@ paintInfoBox(txt, [w], [h])
 hideInfoBox(h)
 modulName()
 paintFrame(x, y, w, h, f, c, [radius], [bg])
+paintSimpleFrame(x, y, w, h, c, [bg])
 ]]
 
 local posix = require "posix"
@@ -102,6 +103,22 @@ function G.paintFrame(x, y, w, h, f, c, radius, bg)
 	n:PaintBox(x-f, y+h, w+f*2, f, c, radius, bit32.bor(CORNER.BOTTOM_LEFT, CORNER.BOTTOM_RIGHT))
 	-- left
 	n:PaintBox(x-f, y, f, h, c)
+end
+
+function G.paintSimpleFrame(x, y, w, h, c, bg)
+	if (not bg) then bg = 0 end
+	if (bg > 0) then
+		-- background
+		n:PaintBox(x, y, w, h, bg)
+	end
+	-- top
+	n:paintHLine(x, w, y, c)
+	-- right
+	n:paintVLine(x+w, y, h, c)
+	-- bottom
+	n:paintHLine(x, w, y+h, c)
+	-- left
+	n:paintVLine(x, y, h, c)
 end
 
 return gui
