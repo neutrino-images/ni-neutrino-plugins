@@ -30,6 +30,7 @@ local helpers = require "n_helpers"
 functions:
 ----------
 pidOf(prog)
+readDirectory(dir, mask)
 base64Enc(data)
 base64Dec(data)
 tprint([f], tbl)
@@ -60,13 +61,25 @@ function H.pidOf(prog)
 	return r
 end
 
+function H.readDirectory(dir, mask)
+	local ret = {}
+	local h = io.popen("ls " .. dir .. "/" .. mask, "r")
+	if h ~= nil then
+		for line in h:lines() do
+			table.insert(ret, line)
+		end
+		io.close(h)
+	end
+	return ret
+end
+
 -- ###### base64 encode / decode #############################################
 -- convert a image:
 --	http://websemantics.co.uk/online_tools/image_to_data_uri_convertor/
 -- function from http://lua-users.org/wiki/BaseSixtyFour
 
 -- character table string
-local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+local CTS='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
 -- encoding
 function H.base64Enc(data)
@@ -78,22 +91,22 @@ function H.base64Enc(data)
 		if (#x < 6) then return '' end
 		local c=0
 		for i=1,6 do c=c+(x:sub(i,i)=='1' and 2^(6-i) or 0) end
-		return b:sub(c+1,c+1)
+		return CTS:sub(c+1,c+1)
 	end)..({ '', '==', '=' })[#data%3+1])
 end
 
--- decode
+-- decoding
 function H.base64Dec(data)
-	data = string.gsub(data, '[^'..b..'=]', '')
+	data = string.gsub(data, '[^'..CTS..'=]', '')
 	return (data:gsub('.', function(x)
 		if (x == '=') then return '' end
-		local r,f='',(b:find(x)-1)
+		local r,f='',(CTS:find(x)-1)
 		for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
 		return r;
 	end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
 		if (#x ~= 8) then return '' end
 		local c=0
-		for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(7-i) or 0) end
+		for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
 		return string.char(c)
 	end))
 end
