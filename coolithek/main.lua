@@ -126,6 +126,7 @@ end
 
 -- ###########################################################################################
 
+initVars();
 setFonts();
 startBox = paintMiniInfoBox("Starte Plugin");
 loadConfig();
