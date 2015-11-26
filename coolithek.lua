@@ -25,4 +25,5 @@ dofile(pluginScriptPath .. "/livestream.lua");
 dofile(pluginScriptPath .. "/mediathek.lua");
 dofile(pluginScriptPath .. "/main.lua");
 
---os.execute("rm -fr " .. pluginTmpPath);
+--os.execute("rm -f " .. pluginTmpPath .. "/lua_*.png");
+os.execute("rm -fr " .. pluginTmpPath);

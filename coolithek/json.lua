@@ -1,13 +1,23 @@
 
-function getJsonData(url)
-	local box = paintMiniInfoBox(readData);
-	os.remove(jsonData);
-	local cmd = wget_cmd .. jsonData .. " '" .. url .. "'";
-	print(cmd);
-	os.execute(cmd);
+function getJsonData(url, file)
+	local box = nil
+	local dataExist = false
+	if (not file) then
+		data = jsonData
+	else
+		data = file
+		if (helpers.fileExist(data) == true) then dataExist = true end
+	end
+	if ((dataExist == false) or (noCacheFiles == true)) then
+		box = paintMiniInfoBox(readData);
+		os.remove(data);
+		local cmd = wget_cmd .. data .. " '" .. url .. "'";
+		print(cmd);
+		os.execute(cmd);
+	end
 	
 	local fp, s;
-	fp = io.open(jsonData, "r");
+	fp = io.open(data, "r");
 	if fp == nil then
 		gui.hideInfoBox(box)
 		error("Error connecting to database server.")
@@ -32,7 +42,10 @@ function decodeJson(data)
 	local s = helpers.trim(data);
 	local x = s.sub(s, 1, 1);
 	if x ~= "{" and x ~= "[" then
-		error("Error parsing json data.");
+		local box = gui.paintInfoBox("Error parsing json data.");
+		posix.sleep(4);
+		gui.hideInfoBox(box)
+		return nil
 	end
 	return json:decode(s);
 end

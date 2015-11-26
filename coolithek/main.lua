@@ -105,7 +105,7 @@ function mainWindow()
 		-- settings
 		if (msg == RC.setup) then
 			configMenu()
-			restoreFullScreen(mainScreen, true)
+			n:deleteSavedScreen(mainScreen)
 			paintMainWindow(false)
 			mainScreen = saveFullScreen()
 		end
@@ -116,7 +116,7 @@ function mainWindow()
 		-- ;)
 		if (msg == RC.www) then
 		end
-		ret = msg
+		menuRet = msg
 	until msg == RC.home;
 
 	n:StopPicture()

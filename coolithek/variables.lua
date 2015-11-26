@@ -3,6 +3,8 @@ function initVars()
 	pluginVersion	= "0.1"
 	pluginName	= "Coolithek"
 
+	noCacheFiles	= false
+
 -- 	debug print for wget when 'wgetQuiet' not defined
 	local wgetQuiet		= 1
 
@@ -29,12 +31,11 @@ function initVars()
 	end
 
 	url_versionInfo		= url_base .. "/?action=getVersionInfo";
-	url_channelInfo		= url_base .. "/?action=getChannelInfo";
-
-	url_listChannels1a	= url_base .. "/?action=listVideo&channel=";
-	url_listChannels1b	= "&mode=weekly";
-
 	url_livestream		= url_base .. "/?action=listLivestream";
+
+--	url_channelInfo		= url_base .. "/?action=getChannelInfo";
+--	url_listChannels1a	= url_base .. "/?action=listVideo&channel=";
+--	url_listChannels1b	= "&mode=weekly";
 
 	jsonData		= pluginTmpPath .. "/mediathek_data.txt";
 	m3u8Data		= pluginTmpPath .. "/mediathek_data.m3u8";
@@ -52,6 +53,12 @@ function initVars()
 	readData		= "Lese Daten..."
 	saveData		= "Einstellungen werden gespeichert..."
 
+	MINUTE			= 60
+	HOUR			= 3600
+	DAY			= HOUR*24
+	WEEK			= DAY*7
+
+
 -- ################################################
 
 	local function fillMainMenuEntry(e1, e2)
@@ -68,19 +75,4 @@ function initVars()
 	fillMainMenuEntry("INFO", "Versionsinfo")
 	fillMainMenuEntry("",     "")
 	fillMainMenuEntry("EXIT", "Programm beenden")
-
-	leftMenuEntry = {}
-	local function fillLeftMenuEntry(e1, e2, e3)
-		local i = #leftMenuEntry+1
-		leftMenuEntry[i]	= {}
-		leftMenuEntry[i][1]	= e1
-		leftMenuEntry[i][2]	= e2
-		leftMenuEntry[i][3]	= e3
-	end
-
-	fillLeftMenuEntry("Senderwahl", "Sky Cinema UHD", true)
-	fillLeftMenuEntry("Thema",      "Teletubbies in Action", true)
-	fillLeftMenuEntry("Zeitraum",   "7 Tage", true)
-	fillLeftMenuEntry("Suche",      "", true)
-	fillLeftMenuEntry("Sortieren",  "Datum", true)
 end
