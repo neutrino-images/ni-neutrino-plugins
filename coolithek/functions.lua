@@ -1,4 +1,27 @@
 
+function adjustStringLen(str, len, font)
+	local w = n:getRenderWidth(useFixFont, font, str)
+	if (w <= len) then
+		return str
+	else
+		local z = "..."
+		local wz = n:getRenderWidth(useFixFont, font, z)
+		if (len <= 2*wz) then return str end
+		str = string.sub(str, 1, #str-2)
+		while (w+wz > len) do
+			str = string.sub(str, 1, #str-1)
+			w = n:getRenderWidth(useFixFont, font, str)
+		end
+		return str .. z
+	end
+end
+
+function createCacheFileName(url, ext)
+	local d = n:createChannelIDfromUrl(url);
+	d = string.gsub(d, "ffffffff", "")
+	return pluginTmpPath .. "/data_" .. d .. "." .. ext
+end
+
 -- url_decode/url_encode code from: http://lua-users.org/wiki/StringRecipes
 function url_decode(str)
 	str = string.gsub (str, "+", " ")
