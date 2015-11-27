@@ -20,6 +20,112 @@ leftInfoBox_h		= 0
 
 mtList			= {}
 
+old_selectChannel	= ""
+
+function playVideo()
+	local flag_max = false
+	local flag_normal = false
+	local flag_min = false
+	if (mtList[mtRightMenu_select].url_hd ~= "") then flag_max = true end
+	if (mtList[mtRightMenu_select].url ~= "") then flag_normal = true end
+	if (mtList[mtRightMenu_select].url_small ~= "") then flag_min = true end
+
+	local url = ""
+	-- conf=max: 1. max, 2. normal, 3. min
+	if (conf.streamQuality == "max") then
+		if (flag_max == true) then
+			url = mtList[mtRightMenu_select].url_hd
+		elseif (flag_normal == true) then
+			url = mtList[mtRightMenu_select].url
+		else
+			url = mtList[mtRightMenu_select].url_small
+		end
+	-- conf=min: 1. min, 2. normal, 3. max
+	elseif (conf.streamQuality == "min") then
+		if (flag_min == true) then
+			url = mtList[mtRightMenu_select].url_small
+		elseif (flag_normal == true) then
+			url = mtList[mtRightMenu_select].url
+		else
+			url = mtList[mtRightMenu_select].url_hd
+		end
+	-- conf=normal: 1. normal, 2. max, 3. min
+	else
+		if (flag_normal == true) then
+			url = mtList[mtRightMenu_select].url
+		elseif (flag_max == true) then
+			url = mtList[mtRightMenu_select].url_hd
+		else
+			url = mtList[mtRightMenu_select].url_small
+		end
+	end
+
+	local screen = saveFullScreen()
+	hideMtWindow()
+	n:setBlank(true)
+	os.execute("pzapit -unmute")
+
+	n:PlayFile(mtList[mtRightMenu_select].title, url, mtList[mtRightMenu_select].theme, url);
+
+	n:enableInfoClock(false)
+--	collectgarbage();
+	os.execute("pzapit -mute")
+	posix.sleep(1)
+	n:ShowPicture(backgroundImage)
+	restoreFullScreen(screen, true)
+end
+
+function changeChannel(channel)
+	old_selectChannel = conf.selectChannel
+	conf.selectChannel = channel
+	return MENU_RETURN.EXIT_ALL;
+end
+
+function channelMenu()
+	local screen = saveFullScreen()
+	m_channels = menu.new{name="Senderwahl", icon=pluginIcon};
+	m_channels:addItem{type="subhead", name=langStr_channelSelection};
+	m_channels:addItem{type="separator"};
+	m_channels:addItem{type="back"};
+	m_channels:addItem{type="separatorline"};
+--	m_channels:addKey{directkey=RC["home"], id="home", action="key_home"}
+--	m_channels:addKey{directkey=RC["setup"], id="setup", action="key_setup"}
+
+--	url_listChannels1a	= url_base .. "/?action=listVideo&channel=";
+
+
+	local query_url = url_base .. "/?action=listChannels"
+	local dataFile = createCacheFileName(query_url, "json")
+	local s = getJsonData(query_url, dataFile);
+	local j_table = {}
+	j_table = decodeJson(s)
+	if (j_table == nil) then
+		os.execute("rm -f " .. dataFile)
+		return false
+	end
+	if checkJsonError(j_table) == false then
+		os.execute("rm -f " .. dataFile)
+		return false
+	end
+	for i=1, #j_table.entry do
+		m_channels:addItem{type="forwarder", action="changeChannel", id=j_table.entry[i].channel, name=j_table.entry[i].channel};
+	end
+
+	m_channels:exec()
+	restoreFullScreen(screen, true)
+	if (conf.selectChannel ~= old_selectChannel) then
+		mtRightMenu_select	= 1
+		mtRightMenu_view_page	= 1
+		mtRightMenu_list_start	= 0
+		paintMtRightMenu()
+
+		leftMenuEntry[2][2] = conf.selectChannel
+		paintMtLeftMenu(leftMenuEntry)
+		paintMtRightMenu()
+	end
+
+end
+
 function paint_mtItemLine(viewChannel, count)
 	_item_x = mtRightMenu_x + 8
 	_itemLine_y = itemLine_y + subMenuHight*count
@@ -52,29 +158,18 @@ function paint_mtItemLine(viewChannel, count)
 	if (count <= #mtList) then
 		local cw = 10
 		if (viewChannel == true) then
-			paintItem(cw, "", 1);	-- channel
+			paintItem(cw, "", 1);
 			cw = 0
 		end
-		paintItem(24+cw/2, mtList[count].theme,    0);	-- theme
-		paintItem(35+cw/2, mtList[count].title,    0);	-- title
-		paintItem(11,      mtList[count].date,     1);	-- date
-		paintItem(6,       mtList[count].time,     1);	-- time
-		paintItem(9,       mtList[count].duration, 1);	-- duration
+		paintItem(24+cw/2, mtList[count].theme,    0);
+		paintItem(35+cw/2, mtList[count].title,    0);
+		paintItem(11,      mtList[count].date,     1);
+		paintItem(6,       mtList[count].time,     1);
+		paintItem(9,       mtList[count].duration, 1);
 		local geo = ""
 		if (mtList[count].geo ~= "") then geo = "X" end
-		paintItem(5,       geo,      1);	-- geo
+		paintItem(5,       geo,      1);
 	end
-
---[[
-mtList[count].theme
-mtList[count].title
-mtList[count].description
-mtList[count].date
-mtList[count].time
-mtList[count].duration
-mtList[count].geo
-]]
-
 end
 
 function paintMtRightMenu()
@@ -130,10 +225,9 @@ function paintMtRightMenu()
 	mtRightMenu_count = i-1
 
 -- json query
-	local channel   = url_encode("ARD")
+	local channel   = url_encode(conf.selectChannel)
 --	local channel   = url_encode("ORF")
 	local theme     = url_encode("")
---	local theme     = url_encode("Volle Kanne - Service t�glich")
 	local timeFrom  = "now"
 	local period    = 7*DAY
 	local minDuration = 300
@@ -303,10 +397,10 @@ function startMediathek()
 	end
 
 	fillLeftMenuEntry("Suche",      "", btnBlue, true, false)
-	fillLeftMenuEntry("Senderwahl", "ARD", btnYellow, true, true)
+	fillLeftMenuEntry("Senderwahl", conf.selectChannel, btnYellow, true, true)
 	fillLeftMenuEntry("Thema",      "", btnGreen, true, false)
 	fillLeftMenuEntry("Zeitraum",   "7 Tage", btnRed, true, false)
-	fillLeftMenuEntry("min. Laenge",  "5 min.", btn1, true, false)
+	fillLeftMenuEntry("min. Länge",  "5 min.", btn1, true, false)
 	fillLeftMenuEntry("Sortieren",  "Datum", btn2, true, false)
 
 	h_mtWindow = newMtWindow()
@@ -382,7 +476,10 @@ function startMediathek()
 
 		if (msg == RC.info) then
 			paintMovieInfo()
+		elseif (msg == RC.yellow) then
+			channelMenu()
 		elseif (msg == RC.ok) then
+			playVideo()
 		end
 		menuRet = msg
 	until msg == RC.home;
@@ -463,9 +560,11 @@ function paintMovieInfo()
 		start_y = paintInfoItem(frame_x+frame_w/2, start_y, "Dauer", txt, false)
 
 	-- description
-	start_y = start_y + step
-	txt = autoLineBreak(mtList[mtRightMenu_select].description, frame_w-36, fontLeftMenu2)
-	start_y = paintInfoItem(frame_x, start_y, "Beschreibung", txt, true)
+	if (#mtList[mtRightMenu_select].description > 0) then
+		start_y = start_y + step
+		txt = autoLineBreak(mtList[mtRightMenu_select].description, frame_w-36, fontLeftMenu2)
+		start_y = paintInfoItem(frame_x, start_y, "Beschreibung", txt, true)
+	end
 
 	-- qual
 	start_y = start_y + step
@@ -493,7 +592,7 @@ function paintMovieInfo()
 		txt = txt .. "Minimal"
 	end
 
-	paintInfoItem(frame_x, bottom_y, "Quali", txt, true)
+	paintInfoItem(frame_x, bottom_y, "verfügbare Streamqualität", txt, true)
 		-- geo
 		start_y = start_y + step
 		txt = mtList[mtRightMenu_select].geo
@@ -513,7 +612,6 @@ mtList[mtRightMenu_select].url_hd
 
 	repeat
 		local msg, data = n:GetInput(500)
-		-- info
 		if (msg == RC.info) then
 		end
 		menuRet = msg
