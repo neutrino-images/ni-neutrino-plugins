@@ -5,6 +5,9 @@ function loadConfig()
 	conf.enableLivestreams		= config:getString("enableLivestreams",		"on")
 	conf.streamQuality		= config:getString("streamQuality",		"max")
 	conf.playerSelectChannel	= config:getString("playerSelectChannel",	"ARD")
+	conf.playerSeeFuturePrograms	= config:getString("playerSeeFuturePrograms",	"off")
+	conf.playerSeePeriod		= config:getString("playerSeePeriod",		"7")
+	conf.playerSeeMinimumDuration	= config:getString("playerSeeMinimumDuration",	"0")
 end
 
 function saveConfig()
@@ -22,9 +25,12 @@ function _saveConfig(skipMsg)
 	end
 
 	saveLivestreamConfig()
-	config:setString("enableLivestreams",	conf.enableLivestreams)
-	config:setString("streamQuality",	conf.streamQuality)
-	config:setString("playerSelectChannel",	conf.playerSelectChannel)
+	config:setString("enableLivestreams",		conf.enableLivestreams)
+	config:setString("streamQuality",		conf.streamQuality)
+	config:setString("playerSelectChannel",		conf.playerSelectChannel)
+	config:setString("playerSeeFuturePrograms",	conf.playerSeeFuturePrograms)
+	config:setString("playerSeePeriod",		conf.playerSeePeriod)
+	config:setString("playerSeeMinimumDuration",	conf.playerSeeMinimumDuration)
 
 	config:saveConfig(confFile)
 	confChanged = 0
