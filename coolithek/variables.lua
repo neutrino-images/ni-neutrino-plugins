@@ -8,15 +8,7 @@ function initVars()
 -- 	debug print for wget when 'wgetQuiet' not defined
 	local wgetQuiet		= 1
 
--- 	for testing only
--- 	use local server when 'useLocalServer' defined and flag file exist
---	local useLocalServer	= 1
-
-	if (helpers.fileExist(pluginScriptPath .. "/.local") == true and useLocalServer ~= nil) then
-		url_base = "http://192.168.0.100/mediathek";
-	else
-		url_base = "http://mediathek.slknet.de";
-	end
+	url_base		= "http://mediathek.slknet.de";
 
 	conf			= {}
 	conf.livestream		= {}
@@ -29,8 +21,10 @@ function initVars()
 		wget_cmd = "wget -U " .. user_agent .. " -O ";
 	end
 
-	url_versionInfo		= url_base .. "/?action=getVersionInfo";
-	url_livestream		= url_base .. "/?action=listLivestream";
+	actionCmd_versionInfo	= "action=getVersionInfo"
+	actionCmd_livestream	= "action=listLivestream"
+	actionCmd_listChannels	= "action=listChannels"
+	actionCmd_listVideos	= "action=listVideos"
 
 	jsonData		= pluginTmpPath .. "/mediathek_data.txt";
 	m3u8Data		= pluginTmpPath .. "/mediathek_data.m3u8";
@@ -69,4 +63,9 @@ function initVars()
 	fillMainMenuEntry("INFO", "Versionsinfo")
 	fillMainMenuEntry("",     "")
 	fillMainMenuEntry("EXIT", "Programm beenden")
+
+	if (helpers.fileExist(pluginScriptPath .. "/local.lua") == true) then
+		-- locale settings for testing
+		dofile(pluginScriptPath .. "/local.lua");
+	end
 end

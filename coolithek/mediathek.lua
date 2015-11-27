@@ -91,10 +91,7 @@ function channelMenu()
 --	m_channels:addKey{directkey=RC["home"], id="home", action="key_home"}
 --	m_channels:addKey{directkey=RC["setup"], id="setup", action="key_setup"}
 
---	url_listChannels1a	= url_base .. "/?action=listVideo&channel=";
-
-
-	local query_url = url_base .. "/?action=listChannels"
+	local query_url = url_base .. "/?" .. actionCmd_listChannels
 	local dataFile = createCacheFileName(query_url, "json")
 	local s = getJsonData(query_url, dataFile);
 	local j_table = {}
@@ -233,7 +230,7 @@ function paintMtRightMenu()
 	local minDuration = 300
 	local start     = mtRightMenu_list_start
 	local limit     = mtRightMenu_count
-	local query_url = url_base .. "/?action=listVideos&channel=" .. channel .. 
+	local query_url = url_base .. "/?" .. actionCmd_listVideos .. "&channel=" .. channel ..
 					"&theme=" .. theme .. 
 					"&timeFrom=" .. timeFrom .. 
 					"&period=" .. period .. 

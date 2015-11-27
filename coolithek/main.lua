@@ -1,6 +1,6 @@
 
 function getVersionInfo()
-	local s = getJsonData(url_versionInfo);
+	local s = getJsonData(url_base .. "/?" .. actionCmd_versionInfo);
 	local j_table = decodeJson(s);
 	if checkJsonError(j_table) == false then return false end
 

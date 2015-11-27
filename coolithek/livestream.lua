@@ -57,7 +57,7 @@ function playLivestream(_id)
 end
 
 function getLivestreams()
-	local s = getJsonData(url_livestream);
+	local s = getJsonData(url_base .. "/?" .. actionCmd_livestream);
 	local j_table = decodeJson(s);
 	if checkJsonError(j_table) == false then return false end
 
