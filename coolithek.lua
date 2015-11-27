@@ -1,7 +1,13 @@
 
 n = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES);
--- check lua api version
-n:checkVersion(1, 16);
+
+if (APIVERSION.MINOR_BETA ~= nil) then
+	-- check lua api beta version
+	n:checkVersion(1, 101, true);
+else
+	-- check lua api version
+	n:checkVersion(1, 16);
+end
 
 json    = require "json"
 posix   = require "posix"
