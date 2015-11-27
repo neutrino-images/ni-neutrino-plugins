@@ -1,6 +1,6 @@
 
 function initVars()
-	pluginVersion	= "0.1"
+	pluginVersion	= "0.1beta"
 	pluginName	= "Coolithek"
 
 	noCacheFiles	= false
@@ -10,7 +10,7 @@ function initVars()
 
 -- 	for testing only
 -- 	use local server when 'useLocalServer' defined and flag file exist
-	local useLocalServer	= 1
+--	local useLocalServer	= 1
 
 	if (helpers.fileExist(pluginScriptPath .. "/.local") == true and useLocalServer ~= nil) then
 		url_base = "http://192.168.0.100/mediathek";
@@ -22,7 +22,6 @@ function initVars()
 	conf.livestream		= {}
 	confChanged 		= 0
 	config			= configfile.new()
---	user_agent 		= "\"Mozilla/5.0 (iPad; U; CPU OS 4_3_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5\"";
 	user_agent 		= "\"Mozilla/5.0 (compatible; " .. pluginName .. " plugin v" .. pluginVersion .. " for NeutrinoHD)\"";
 	if (wgetQuiet ~= nil) then
 		wget_cmd = "wget -q -U " .. user_agent .. " -O ";
@@ -32,10 +31,6 @@ function initVars()
 
 	url_versionInfo		= url_base .. "/?action=getVersionInfo";
 	url_livestream		= url_base .. "/?action=listLivestream";
-
---	url_channelInfo		= url_base .. "/?action=getChannelInfo";
---	url_listChannels1a	= url_base .. "/?action=listVideo&channel=";
---	url_listChannels1b	= "&mode=weekly";
 
 	jsonData		= pluginTmpPath .. "/mediathek_data.txt";
 	m3u8Data		= pluginTmpPath .. "/mediathek_data.m3u8";
