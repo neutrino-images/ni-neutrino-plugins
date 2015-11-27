@@ -2,9 +2,9 @@
 function loadConfig()
 	config:loadConfig(confFile)
 
-	conf.enableLivestreams	= config:getString("enableLivestreams", "on")
-	conf.streamQuality	= config:getString("streamQuality",     "max")
-	conf.selectChannel	= config:getString("selectChannel",     "ARD")
+	conf.enableLivestreams		= config:getString("enableLivestreams",		"on")
+	conf.streamQuality		= config:getString("streamQuality",		"max")
+	conf.playerSelectChannel	= config:getString("playerSelectChannel",	"ARD")
 end
 
 function saveConfig()
@@ -24,7 +24,7 @@ function _saveConfig(skipMsg)
 	saveLivestreamConfig()
 	config:setString("enableLivestreams",	conf.enableLivestreams)
 	config:setString("streamQuality",	conf.streamQuality)
-	config:setString("selectChannel",	conf.selectChannel)
+	config:setString("playerSelectChannel",	conf.playerSelectChannel)
 
 	config:saveConfig(confFile)
 	confChanged = 0

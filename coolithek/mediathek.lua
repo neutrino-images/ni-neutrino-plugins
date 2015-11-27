@@ -76,8 +76,8 @@ function playVideo()
 end
 
 function changeChannel(channel)
-	old_selectChannel = conf.selectChannel
-	conf.selectChannel = channel
+	old_selectChannel = conf.playerSelectChannel
+	conf.playerSelectChannel = channel
 	return MENU_RETURN.EXIT_ALL;
 end
 
@@ -113,13 +113,13 @@ function channelMenu()
 
 	m_channels:exec()
 	restoreFullScreen(screen, true)
-	if (conf.selectChannel ~= old_selectChannel) then
+	if (conf.playerSelectChannel ~= old_selectChannel) then
 		mtRightMenu_select	= 1
 		mtRightMenu_view_page	= 1
 		mtRightMenu_list_start	= 0
 		paintMtRightMenu()
 
-		leftMenuEntry[2][2] = conf.selectChannel
+		leftMenuEntry[2][2] = conf.playerSelectChannel
 		paintMtLeftMenu(leftMenuEntry)
 		paintMtRightMenu()
 	end
@@ -225,7 +225,7 @@ function paintMtRightMenu()
 	mtRightMenu_count = i-1
 
 -- json query
-	local channel   = url_encode(conf.selectChannel)
+	local channel   = url_encode(conf.playerSelectChannel)
 --	local channel   = url_encode("ORF")
 	local theme     = url_encode("")
 	local timeFrom  = "now"
@@ -397,7 +397,7 @@ function startMediathek()
 	end
 
 	fillLeftMenuEntry("Suche",      "", btnBlue, true, false)
-	fillLeftMenuEntry("Senderwahl", conf.selectChannel, btnYellow, true, true)
+	fillLeftMenuEntry("Senderwahl", conf.playerSelectChannel, btnYellow, true, true)
 	fillLeftMenuEntry("Thema",      "", btnGreen, true, false)
 	fillLeftMenuEntry("Zeitraum",   "7 Tage", btnRed, true, false)
 	fillLeftMenuEntry("min. Länge",  "5 min.", btn1, true, false)
