@@ -3,3 +3,6 @@
 .local
 zz-*.sh
 amend-date
+INST
+local.lua
+coolithekV*.tar.bz2
