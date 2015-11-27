@@ -1,8 +1,7 @@
 
 n = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES);
 -- check lua api version
--- true for check beta api
-n:checkVersion(1, 101, true);
+n:checkVersion(1, 16);
 
 json    = require "json"
 posix   = require "posix"
@@ -27,5 +26,4 @@ dofile(pluginScriptPath .. "/livestream.lua");
 dofile(pluginScriptPath .. "/mediathek.lua");
 dofile(pluginScriptPath .. "/main.lua");
 
---os.execute("rm -f " .. pluginTmpPath .. "/lua_*.png");
 os.execute("rm -fr " .. pluginTmpPath);

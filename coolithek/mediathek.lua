@@ -400,7 +400,7 @@ function startMediathek()
 	fillLeftMenuEntry("Senderwahl", conf.playerSelectChannel, btnYellow, true, true)
 	fillLeftMenuEntry("Thema",      "", btnGreen, true, false)
 	fillLeftMenuEntry("Zeitraum",   "7 Tage", btnRed, true, false)
-	fillLeftMenuEntry("min. Länge",  "5 min.", btn1, true, false)
+	fillLeftMenuEntry("min. Sendungsdauer",  "5 min.", btn1, true, false)
 	fillLeftMenuEntry("Sortieren",  "Datum", btn2, true, false)
 
 	h_mtWindow = newMtWindow()
