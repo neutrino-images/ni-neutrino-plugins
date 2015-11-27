@@ -15,7 +15,7 @@ function getJsonData(url, file)
 		print(cmd);
 		os.execute(cmd);
 	end
-	
+
 	local fp, s;
 	fp = io.open(data, "r");
 	if fp == nil then
@@ -49,4 +49,3 @@ function decodeJson(data)
 	end
 	return json:decode(s);
 end
-
