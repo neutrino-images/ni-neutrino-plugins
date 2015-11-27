@@ -26,12 +26,12 @@ function paintMainMenu(frame, frameColor, textColor, info, count)
 	local w1 = 0
 	local w = 0
 	for i = 1, count do
-		local wText1 = n:getRenderWidth(useFixFont, fontText, info[i][1])
+		local wText1 = n:getRenderWidth(useDynFont, fontText, info[i][1])
 		if wText1 > w1 then w1 = wText1 end
-		local wText2 = n:getRenderWidth(useFixFont, fontText, info[i][2])
+		local wText2 = n:getRenderWidth(useDynFont, fontText, info[i][2])
 		if wText2 > w then w = wText2 end
 	end
-	local h = n:getRenderWidth(useFixFont, fontText, "222")
+	local h = n:getRenderWidth(useDynFont, fontText, "222")
 	w1 = w1+10
 	w  = w+w1*2
 
@@ -51,8 +51,8 @@ function paintMainMenu(frame, frameColor, textColor, info, count)
 		gui.paintSimpleFrame(x, y, w, h, frameColor, bg)
 		n:paintVLine(x+w1, y, h, frameColor)
 		
-		n:RenderString(useFixFont, fontText, info[i][1], x, y+h, txtC, w1, h, 1)
-		n:RenderString(useFixFont, fontText, info[i][2], x+w1+w1/4, y+h, txtC, w-w1, h, 0)
+		n:RenderString(useDynFont, fontText, info[i][1], x, y+h, txtC, w1, h, 1)
+		n:RenderString(useDynFont, fontText, info[i][2], x+w1+w1/4, y+h, txtC, w-w1, h, 0)
 		
 	end
 end

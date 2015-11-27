@@ -12,6 +12,7 @@ helpers = require "n_helpers"
 pluginScriptPath = helpers.scriptPath() .. "/" .. helpers.scriptBase();
 pluginTmpPath    = "/tmp/" .. helpers.scriptBase();
 confFile         = "/var/tuxbox/config/" .. helpers.scriptBase() .. ".conf";
+os.execute("rm -fr " .. pluginTmpPath);
 os.execute("mkdir -p " .. pluginTmpPath);
 
 -- include lua files

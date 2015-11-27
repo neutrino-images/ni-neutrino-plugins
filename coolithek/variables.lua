@@ -10,7 +10,7 @@ function initVars()
 
 -- 	for testing only
 -- 	use local server when 'useLocalServer' defined and flag file exist
---	local useLocalServer	= 1
+	local useLocalServer	= 1
 
 	if (helpers.fileExist(pluginScriptPath .. "/.local") == true and useLocalServer ~= nil) then
 		url_base = "http://192.168.0.100/mediathek";
@@ -43,7 +43,6 @@ function initVars()
 	backgroundImage		= "";
 	videoTable		= {};
 	h_mainWindow		= nil;
-	useFixFont		= true
 	fontID_MainMenu		= 0
 	fontID_MiniInfo		= 1
 	fontID_LeftMenu1	= 2

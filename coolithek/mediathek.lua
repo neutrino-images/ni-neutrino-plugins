@@ -13,10 +13,10 @@ mtRightMenu_list_total	= 0
 mtRightMenu_view_page	= 1
 mtRightMenu_max_page	= 1
 
-mtInfoBox_x		= 0
-mtInfoBox_y		= 0
-mtInfoBox_w		= 0
-mtInfoBox_h		= 0
+leftInfoBox_x		= 0
+leftInfoBox_y		= 0
+leftInfoBox_w		= 0
+leftInfoBox_h		= 0
 
 mtList			= {}
 
@@ -45,7 +45,7 @@ function paint_mtItemLine(viewChannel, count)
 		if (center == 0) then _x=6 end
 		local w = ((rightItem_w / 100) * vH)
 		if (vH > 20) then txt = adjustStringLen(txt, w-_x*2, fontLeftMenu1) end
-		n:RenderString(useFixFont, fontLeftMenu1, txt, _item_x+_x, _itemLine_y+subMenuHight, txtCol, w, subMenuHight, center)
+		n:RenderString(useDynFont, fontLeftMenu1, txt, _item_x+_x, _itemLine_y+subMenuHight, txtCol, w, subMenuHight, center)
 		_item_x = _item_x + w
 	end
 
@@ -68,6 +68,7 @@ function paint_mtItemLine(viewChannel, count)
 --[[
 mtList[count].theme
 mtList[count].title
+mtList[count].description
 mtList[count].date
 mtList[count].time
 mtList[count].duration
@@ -96,7 +97,7 @@ function paintMtRightMenu()
 			paint = false
 		end
 		local w = ((rightItem_w / 100) * vH)
-		n:RenderString(useFixFont, fontLeftMenu1, txt, item_x, y+subMenuHight, textColor, w, subMenuHight, 1)
+		n:RenderString(useDynFont, fontLeftMenu1, txt, item_x, y+subMenuHight, textColor, w, subMenuHight, 1)
 		item_x = item_x + w
 		if (paint == true) then
 			n:paintVLine(item_x, y, subMenuHight, frameColor)
@@ -129,18 +130,20 @@ function paintMtRightMenu()
 	mtRightMenu_count = i-1
 
 -- json query
-	local channel   = url_encode("ZDF")
---	local theme     = url_encode("Terra X")
-	local theme     = url_encode("Volle Kanne - Service täglich")
+	local channel   = url_encode("ARD")
+--	local channel   = url_encode("ORF")
+	local theme     = url_encode("")
+--	local theme     = url_encode("Volle Kanne - Service täglich")
 	local timeFrom  = "now"
-	local period    = 30*DAY
---	local start     = 0
+	local period    = 7*DAY
+	local minDuration = 300
 	local start     = mtRightMenu_list_start
 	local limit     = mtRightMenu_count
 	local query_url = url_base .. "/?action=listVideos&channel=" .. channel .. 
 					"&theme=" .. theme .. 
 					"&timeFrom=" .. timeFrom .. 
 					"&period=" .. period .. 
+					"&minDuration=" .. minDuration .. 
 					"&start=" .. start .. 
 					"&limit=" .. limit
 	local dataFile = createCacheFileName(query_url, "json")
@@ -164,41 +167,33 @@ function paintMtRightMenu()
 	end
 	for i=1, #j_table.entry do
 		mtList[i] = {}
+		mtList[i].channel	= j_table.entry[i].channel
 		mtList[i].theme		= j_table.entry[i].theme
 		mtList[i].title		= j_table.entry[i].title
 		mtList[i].date		= os.date("%d.%m.%Y", j_table.entry[i].date_unix)
 		mtList[i].time		= os.date("%H:%M", j_table.entry[i].date_unix)
-		mtList[i].duration	= os.date("%H:%M:%S", j_table.entry[i].duration)
+		mtList[i].duration	= formatDuration(j_table.entry[i].duration)
 		mtList[i].geo		= j_table.entry[i].geo
+		mtList[i].description	= j_table.entry[i].description
+		mtList[i].url		= j_table.entry[i].url
+		mtList[i].url_small	= j_table.entry[i].url_small
+		mtList[i].url_hd	= j_table.entry[i].url_hd
+		mtList[i].parse_m3u8	= j_table.entry[i].parse_m3u8
 	end
-
---helpers.tprint(j_table.entry[1])
---print(j_table.entry[1].url)
---[[
-title
-description
-url
-url_small
-url_hd
-date_unix
-duration
-parse_m3u8
-geo
-]]
 
 	for i = 1, mtRightMenu_count do
 		paint_mtItemLine(false, i)
 	end
 
-	paintInfoBox("Seite "..mtRightMenu_view_page.." von "..mtRightMenu_max_page)
+	paintLeftInfoBox("Seite "..mtRightMenu_view_page.." von "..mtRightMenu_max_page)
 end
 
-function paintInfoBox(txt)
-	gui.paintSimpleFrame(mtInfoBox_x, mtInfoBox_y, mtInfoBox_w, mtInfoBox_h,
+function paintLeftInfoBox(txt)
+	gui.paintSimpleFrame(leftInfoBox_x, leftInfoBox_y, leftInfoBox_w, leftInfoBox_h,
 			COL.MENUCONTENT_TEXT, COL.MENUCONTENT_PLUS_1)
-	n:RenderString(useFixFont, fontLeftMenu2, txt, 
-			mtInfoBox_x, mtInfoBox_y+subMenuHight,
-			COL.MENUCONTENT_TEXT, mtInfoBox_w, subMenuHight, 1)
+	n:RenderString(useDynFont, fontLeftMenu2, txt, 
+			leftInfoBox_x, leftInfoBox_y+subMenuHight,
+			COL.MENUCONTENT_TEXT, leftInfoBox_w, subMenuHight, 1)
 end
 
 function paintMtLeftMenu(entry)
@@ -217,11 +212,11 @@ function paintMtLeftMenu(entry)
 	gui.paintSimpleFrame(mtLeftMenu_x, mtMenu_y, mtLeftMenu_w, mtMenu_h, frameColor, 0)
 
 	-- infobox
-	mtInfoBox_x = mtLeftMenu_x+subMenuLeft
-	mtInfoBox_y = mtMenu_y+mtMenu_h-subMenuHight-subMenuLeft
-	mtInfoBox_w = mtLeftMenu_w-subMenuLeft*2
-	mtInfoBox_h = subMenuHight
-	paintInfoBox("")
+	leftInfoBox_x = mtLeftMenu_x+subMenuLeft
+	leftInfoBox_y = mtMenu_y+mtMenu_h-subMenuHight-subMenuLeft
+	leftInfoBox_w = mtLeftMenu_w-subMenuLeft*2
+	leftInfoBox_h = subMenuHight
+	paintLeftInfoBox("")
 
 	local y = 0
 	local buttonCol_x = 0
@@ -237,7 +232,7 @@ function paintMtLeftMenu(entry)
 		end
 		gui.paintSimpleFrame(mtLeftMenu_x+subMenuLeft, y, mtLeftMenu_w-subMenuLeft*2, subMenuHight, frameColor, bgCol)
 		n:paintVLine(mtLeftMenu_x+subMenuLeft+subMenuHight, y, subMenuHight, frameColor)
-		n:RenderString(useFixFont, fontLeftMenu1, txt1, 
+		n:RenderString(useDynFont, fontLeftMenu1, txt1, 
 				mtLeftMenu_x+subMenuLeft+subMenuHight+subMenuHight/3, y+subMenuHight, txtCol, mtLeftMenu_w-subMenuHight-subMenuLeft*2, subMenuHight, 0)
 
 		buttonCol_x = mtLeftMenu_x+subMenuLeft+(subMenuHight-buttonCol_w)/2
@@ -246,10 +241,10 @@ function paintMtLeftMenu(entry)
 
 		y = y + subMenuHight
 		gui.paintSimpleFrame(mtLeftMenu_x+subMenuLeft, y, mtLeftMenu_w-subMenuLeft*2, subMenuHight, frameColor, bgCol)
-		if (enabled == true) then
-			n:RenderString(useFixFont, fontLeftMenu2, txt2, 
+--		if (enabled == true) then
+			n:RenderString(useDynFont, fontLeftMenu2, txt2, 
 					mtLeftMenu_x+subMenuLeft, y+subMenuHight, txtCol, mtLeftMenu_w-subMenuLeft*2, subMenuHight, 1)
-		end
+--		end
 	end
 
 	-- items
@@ -307,11 +302,12 @@ function startMediathek()
 		leftMenuEntry[i][5]	= e5
 	end
 
-	fillLeftMenuEntry("Senderwahl", "ZDF", btnBlue, true, true)
-	fillLeftMenuEntry("Thema",      "Terra X", btnYellow, true, true)
-	fillLeftMenuEntry("Zeitraum",   "30 Tage", btnGreen, true, true)
-	fillLeftMenuEntry("Suche",      "", btnRed, true, false)
-	fillLeftMenuEntry("Sortieren",  "Datum", btn1, true, false)
+	fillLeftMenuEntry("Suche",      "", btnBlue, true, false)
+	fillLeftMenuEntry("Senderwahl", "ARD", btnYellow, true, true)
+	fillLeftMenuEntry("Thema",      "", btnGreen, true, false)
+	fillLeftMenuEntry("Zeitraum",   "7 Tage", btnRed, true, false)
+	fillLeftMenuEntry("min. Laenge",  "5 min.", btn1, true, false)
+	fillLeftMenuEntry("Sortieren",  "Datum", btn2, true, false)
 
 	h_mtWindow = newMtWindow()
 
@@ -385,9 +381,142 @@ function startMediathek()
 		end
 
 		if (msg == RC.info) then
-			getVersionInfo()
+			paintMovieInfo()
 		elseif (msg == RC.ok) then
 		end
 		menuRet = msg
 	until msg == RC.home;
+end
+
+function paintMovieInfo()
+
+	local box_w	= 860
+	local box_h	= 520
+	if box_w > SCREEN.X_RES then box_w = SCREEN.X_RES-80 end
+	if box_h > SCREEN.Y_RES then box_h = SCREEN.Y_RES-80 end
+	local box	= mtInfoBox("Filminfo (" .. mtList[mtRightMenu_select].channel .. ")", box_w, box_h)
+
+	local hh	= box:headerHeight()
+	local fh	= box:footerHeight()
+	local x		= ((SCREEN.END_X - SCREEN.OFF_X) - box_w) / 2
+	local y		= (((SCREEN.END_Y - SCREEN.OFF_Y) - box_h) / 2) + hh
+	if x < 0 then x = 0 end
+	if y < 0 then y = 0 end
+	local real_h	= box_h - hh - fh
+
+	local space_x = 6
+	local space_y = 6
+	local frame_x = x + space_x
+	local frame_y = y + space_y
+	local frame_w = box_w - 2*space_x
+	local frame_h = real_h - 2*space_y
+	gui.paintSimpleFrame(frame_x, frame_y, frame_w, frame_h,
+			COL.MENUCONTENT_TEXT, 0)
+
+	local function paintInfoItem(_x, _y, info1, info2, frame)
+		local tmp1_h = fontLeftMenu1_h+4
+		local tmp2_h = fontLeftMenu2_h+4
+		local _y1 = _y
+		local _y = _y+fontLeftMenu1_h+10
+		n:RenderString(useDynFont, fontLeftMenu1, info1, _x+14, _y,
+				COL.MENUCONTENT_TEXT, frame_w, tmp1_h, 0)
+		_y = _y + tmp1_h+0
+	
+		if type(info2) ~= "table" then
+			n:RenderString(useDynFont, fontLeftMenu2, info2, _x+12+10, _y,
+					COL.MENUCONTENT_TEXT, frame_w, tmp2_h, 0)
+		else
+			local maxLines = 4
+			local lines = #info2
+			if (lines > maxLines) then lines = maxLines end
+			local i = 1
+			for i=1, lines do
+				local txt = string.gsub(info2[i],"\n", " ");
+				n:RenderString(useDynFont, fontLeftMenu2, txt, _x+12+10, _y,
+						COL.MENUCONTENT_TEXT, frame_w, tmp2_h, 0)
+				_y = _y + tmp2_h
+			end
+			_y = _y - tmp2_h
+		end
+		if (frame == true) then
+			gui.paintSimpleFrame(_x+8, _y1+6, frame_w-16, _y-_y1, COL.MENUCONTENT_TEXT, 0)
+		end
+		return _y
+	end
+
+	local step = 6
+	-- theme
+	local start_y = frame_y
+	start_y = paintInfoItem(frame_x, start_y, "Thema", mtList[mtRightMenu_select].theme, true)
+
+	-- title
+	start_y = start_y + step
+	local txt = adjustStringLen(mtList[mtRightMenu_select].title, frame_w-36, fontLeftMenu2)
+	start_y = paintInfoItem(frame_x, start_y, "Titel", txt, true)
+
+	-- date
+	start_y = start_y + step
+	txt = mtList[mtRightMenu_select].date .. " / " .. mtList[mtRightMenu_select].time
+	paintInfoItem(frame_x, start_y, "Datum / Zeit", txt, true)
+		-- duration
+		txt = mtList[mtRightMenu_select].duration
+		start_y = paintInfoItem(frame_x+frame_w/2, start_y, "Dauer", txt, false)
+
+	-- description
+	start_y = start_y + step
+	txt = autoLineBreak(mtList[mtRightMenu_select].description, frame_w-36, fontLeftMenu2)
+	start_y = paintInfoItem(frame_x, start_y, "Beschreibung", txt, true)
+
+	-- qual
+	start_y = start_y + step
+	local bottom_y = y+real_h-hh-fontLeftMenu1_h-fontLeftMenu2_h+0
+	txt = ""
+	local flag_max = false
+	local flag_normal = false
+	local flag_min = false
+	if (mtList[mtRightMenu_select].url_hd ~= "") then flag_max = true end
+	if (mtList[mtRightMenu_select].url ~= "") then flag_normal = true end
+	if (mtList[mtRightMenu_select].url_small ~= "") then flag_min = true end
+	if (flag_max == true) then
+		txt = "Maximal"
+		if ((flag_normal == true) or (flag_min == true)) then
+			txt = txt .. ", "
+		end
+	end
+	if (flag_normal == true) then
+		txt = txt .. "Normal"
+		if (flag_min == true) then
+			txt = txt .. ", "
+		end
+	end
+	if (flag_min == true) then
+		txt = txt .. "Minimal"
+	end
+
+	paintInfoItem(frame_x, bottom_y, "Quali", txt, true)
+		-- geo
+		start_y = start_y + step
+		txt = mtList[mtRightMenu_select].geo
+		paintInfoItem(frame_x+frame_w/2, bottom_y, "Geoblocking", txt, false)
+
+--[[
+mtList[mtRightMenu_select].theme
+mtList[mtRightMenu_select].title
+mtList[mtRightMenu_select].date
+mtList[mtRightMenu_select].time
+mtList[mtRightMenu_select].duration
+mtList[mtRightMenu_select].geo
+mtList[mtRightMenu_select].url
+mtList[mtRightMenu_select].url_small
+mtList[mtRightMenu_select].url_hd
+]]
+
+	repeat
+		local msg, data = n:GetInput(500)
+		-- info
+		if (msg == RC.info) then
+		end
+		menuRet = msg
+	until msg == RC.red or msg == RC.home;
+	gui.hideInfoBox(box)
 end
