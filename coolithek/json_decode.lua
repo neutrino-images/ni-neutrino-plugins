@@ -11,7 +11,7 @@ function getJsonData(url, file)
 	if ((dataExist == false) or (noCacheFiles == true)) then
 		box = paintMiniInfoBox(readData);
 		os.remove(data);
-		local cmd = wget_cmd .. data .. " '" .. url .. "'";
+		local cmd = dl_cmd .. data .. " '" .. url .. "'";
 		print(cmd);
 		os.execute(cmd);
 	end

@@ -8,6 +8,15 @@ function loadConfig()
 	conf.playerSeeFuturePrograms	= config:getString("playerSeeFuturePrograms",	"off")
 	conf.playerSeePeriod		= config:getString("playerSeePeriod",		"7")
 	conf.playerSeeMinimumDuration	= config:getString("playerSeeMinimumDuration",	"0")
+	conf.networkUseCurl		= config:getString("networkUseCurl",		"off")
+
+	dl_cmd = wget_cmd
+	if ((conf.networkUseCurl == "on") or (conf.networkUseCurl == "1")) then
+		local c = helpers.which("curl")
+		if (c ~= "") then
+			dl_cmd = c .. curl_cmd
+		end
+	end
 end
 
 function saveConfig()

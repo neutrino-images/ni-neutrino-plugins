@@ -5,8 +5,8 @@ function initVars()
 
 	noCacheFiles	= false
 
--- 	debug print for wget when 'wgetQuiet' not defined
---	local wgetQuiet		= 1
+--	debug print for wget/curl when 'dlQuiet' == false
+	local dlQuiet		= false
 
 	url_base		= "http://mediathek.slknet.de";
 
@@ -15,11 +15,12 @@ function initVars()
 	confChanged 		= 0
 	config			= configfile.new()
 	user_agent 		= "\"Mozilla/5.0 (compatible; " .. pluginName .. " plugin v" .. pluginVersion .. " for NeutrinoHD)\"";
-	if (wgetQuiet ~= nil) then
-		wget_cmd = "wget -q -U " .. user_agent .. " -O ";
-	else
-		wget_cmd = "wget -U " .. user_agent .. " -O ";
-	end
+
+	local q1 = ""; q2 = "";
+	if (dlQuiet == true) then q1 = "-q"end
+	if (dlQuiet == true) then q2 = "-s"end
+	wget_cmd = "wget " .. q1 .. " -U " .. user_agent .. " -O ";
+	curl_cmd = " " .. q2 .. " -A " .. user_agent .. " -o ";
 
 	actionCmd_versionInfo	= "action=getVersionInfo&pVersion="	.. pluginVersion
 	actionCmd_livestream	= "action=listLivestream&pVersion="	.. pluginVersion
@@ -32,10 +33,10 @@ function initVars()
 	backgroundImage		= "";
 	videoTable		= {};
 	h_mainWindow		= nil;
-	fontID_MainMenu		= 0
-	fontID_MiniInfo		= 1
-	fontID_LeftMenu1	= 2
-	fontID_LeftMenu2	= 3
+--	fontID_MainMenu		= 0
+--	fontID_MiniInfo		= 1
+--	fontID_LeftMenu1	= 2
+--	fontID_LeftMenu2	= 3
 	mainScreen		= 0
 
 	readData		= "Lese Daten..."
