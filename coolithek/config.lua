@@ -9,8 +9,9 @@ function loadConfig()
 	conf.playerSeePeriod		= config:getString("playerSeePeriod",		"7")
 	conf.playerSeeMinimumDuration	= config:getString("playerSeeMinimumDuration",	"0")
 	conf.guiUseSystemIcons		= config:getString("guiUseSystemIcons",		"off")
-
 	conf.networkUseCurl		= config:getString("networkUseCurl",		"off")
+	conf.networkIPV4Only		= config:getString("networkIPV4Only",		"off")
+
 	dl_cmd = wget_cmd
 	if ((conf.networkUseCurl == "on") or (conf.networkUseCurl == "1")) then
 		local c = helpers.which("curl")
@@ -42,6 +43,8 @@ function _saveConfig(skipMsg)
 	config:setString("playerSeePeriod",		conf.playerSeePeriod)
 	config:setString("playerSeeMinimumDuration",	conf.playerSeeMinimumDuration)
 	config:setString("guiUseSystemIcons",		conf.guiUseSystemIcons)
+	config:setString("networkUseCurl",		conf.networkUseCurl)
+	config:setString("networkIPV4Only",		conf.networkIPV4Only)
 
 	config:saveConfig(confFile)
 	confChanged = 0
@@ -128,6 +131,7 @@ end
 function configMenu()
 	old_guiUseSystemIcons = conf.guiUseSystemIcons
 	old_enableLivestreams = conf.enableLivestreams
+	old_networkIPV4Only   = conf.networkIPV4Only
 
 	m_conf=menu.new{name="Einstellungen", icon="settings"}
 	m_conf:addKey{directkey=RC["home"], id="home", action="exitConfigMenu"}
@@ -136,19 +140,20 @@ function configMenu()
 	m_conf:addItem{type="separatorline"}
 	m_conf:addItem{type="forwarder", name="Einstellungen jetzt speichern", action="saveConfig", icon="rot", directkey=RC["red"]}
 
-	m_conf:addItem{type="separatorline"}
+	m_conf:addItem{type="separatorline", name="OSD"}
+	local opt={ "on", "off" }
+	m_conf:addItem{type="chooser", action="setString", options={opt[1], opt[2]}, id="guiUseSystemIcons", value=conf.guiUseSystemIcons, name="Verwende Neutrino System Icons"}
+
+	m_conf:addItem{type="separatorline", name="Netzwerk"}
+	opt={ "on", "off" }
+	m_conf:addItem{type="chooser", action="setString", options={opt[1], opt[2]}, id="networkUseCurl", value=conf.networkUseCurl, name="Verwende curl, wenn vorhanden"}
+	m_conf:addItem{type="chooser", action="setString", options={opt[1], opt[2]}, id="networkIPV4Only", value=conf.networkIPV4Only, name="Verwende nur IPV4 für Verbindungen"}
+
+	m_conf:addItem{type="separatorline", name="Player"}
 	opt={ "on", "off" }
 	m_conf:addItem{type="chooser", action="set1", options={opt[1], opt[2]}, id="enableLivestreams", value=conf.enableLivestreams, name="Livestreams anzeigen"}
 	if (conf.enableLivestreams == "on") then enabled=true else enabled=false end
 	m_conf_item1 = m_conf:addItem{type="forwarder", enabled=enabled, name="Livestreams", action="enableLivestreams", icon=1, directkey=RC["1"]}
-
-	m_conf:addItem{type="separatorline"}
-
-	opt={ "on", "off" }
-	m_conf:addItem{type="chooser", action="setString", options={opt[1], opt[2]}, id="guiUseSystemIcons", value=conf.guiUseSystemIcons, name="Benutze Neutrino System Icons"}
-
-	m_conf:addItem{type="separatorline"}
-
 	opt={ "max", "normal" ,"min" }
 	m_conf:addItem{type="chooser", action="setString", options={opt[1], opt[2], opt[3]}, id="streamQuality", value=conf.streamQuality, name="Streamqualität"}
 
@@ -165,5 +170,11 @@ function configMenu()
 	if (old_guiUseSystemIcons ~= conf.guiUseSystemIcons) then
 		createImages();
 	end
+	if (old_networkIPV4Only ~= conf.networkIPV4Only) then
+		if (conf.networkIPV4Only == "on") then
+			url_base = url_base_4
+		else
+			url_base = url_base_b
+		end
+	end
 end
-
