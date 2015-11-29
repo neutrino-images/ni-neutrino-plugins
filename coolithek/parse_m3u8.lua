@@ -5,7 +5,7 @@ function parse_m3u8Data(url, parse_mode)
 	local box = paintMiniInfoBox(readData);
 
 	os.remove(m3u8Data);
-	local cmd = sl_cmd .. m3u8Data .. " '" .. url .. "'";
+	local cmd = dl_cmd .. m3u8Data .. " '" .. url .. "'";
 	print(cmd);
 	os.execute(cmd);
 
