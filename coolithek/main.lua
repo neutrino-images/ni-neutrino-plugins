@@ -48,12 +48,17 @@ function paintMainMenu(frame, frameColor, textColor, info, count)
 			txtC = COL.MENUCONTENTINACTIVE_TEXT
 			bg   = COL.MENUCONTENTINACTIVE
 		end
+
+		if info[i][1] == "" and info[i][2] == "" then
+			goto continue
+		end
+
 		gui.paintSimpleFrame(x, y, w, h, frameColor, bg)
 		n:paintVLine(x+w1, y, h, frameColor)
-		
 		n:RenderString(useDynFont, fontText, info[i][1], x, y+h, txtC, w1, h, 1)
 		n:RenderString(useDynFont, fontText, info[i][2], x+w1+w1/4, y+h, txtC, w-w1, h, 0)
-		
+
+		::continue::
 	end
 end
 
