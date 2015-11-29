@@ -1,4 +1,32 @@
 
+function set_playerSeePeriod()
+	local period = ""
+	local s = "-"
+	if (conf.playerSeeFuturePrograms == "on") then
+		s = "+/-"
+	end
+	if (conf.playerSeePeriod == "all") then
+		period = "Alles"
+	elseif (conf.playerSeePeriod == "1") then
+		period = s .. " 1 Tag"
+	else
+		period = s .. " " .. conf.playerSeePeriod .. " Tage"
+	end
+	return period
+end
+
+function repaintMediathek()
+	mtRightMenu_select	= 1
+	mtRightMenu_view_page	= 1
+	mtRightMenu_list_start	= 0
+	paintMtRightMenu()
+
+	leftMenuEntry[2][2] = conf.playerSelectChannel
+	leftMenuEntry[4][2] = set_playerSeePeriod()
+	paintMtLeftMenu(leftMenuEntry)
+	paintMtRightMenu()
+end
+
 function changeChannel(channel)
 	old_selectChannel = conf.playerSelectChannel
 	conf.playerSelectChannel = channel
@@ -35,13 +63,48 @@ function channelMenu()
 	mi:exec()
 	restoreFullScreen(screen, true)
 	if (conf.playerSelectChannel ~= old_selectChannel) then
-		mtRightMenu_select	= 1
-		mtRightMenu_view_page	= 1
-		mtRightMenu_list_start	= 0
-		paintMtRightMenu()
-
-		leftMenuEntry[2][2] = conf.playerSelectChannel
-		paintMtLeftMenu(leftMenuEntry)
-		paintMtRightMenu()
+		repaintMediathek()
 	end
+end
+
+--[[
+conf.playerSeeFuturePrograms
+conf.playerSeePeriod
+conf.playerSeeMinimumDuration
+]]
+
+function setConfigVar(k, v)
+	conf[k] = v
+end
+
+function periodOfTime()
+
+	local old_playerSeeFuturePrograms = conf.playerSeeFuturePrograms
+	local old_playerSeePeriod = conf.playerSeePeriod
+
+	local screen = saveFullScreen()
+	local mi = menu.new{name="Zeitraum", icon=pluginIcon};
+	mi:addItem{type="subhead", name=langStr_channelSelection};
+	mi:addItem{type="separator"};
+	mi:addItem{type="back"};
+	mi:addItem{type="separatorline"};
+
+	local opt={ "on", "off" }
+	mi:addItem{type="chooser", action="setConfigVar", options=opt, id="playerSeeFuturePrograms", value=conf.playerSeeFuturePrograms, name="Auch zukünftige Sendungen anzeigen"}
+
+	opt={ "all", "1", "3", "7", "14", "28", "60"}
+	mi:addItem{type="chooser", action="setConfigVar", options=opt, id="playerSeePeriod", value=conf.playerSeePeriod, name="Zeitraum in Tagen"}
+
+
+--	mi:addItem{type="forwarder", action="dummy", id=1, name="Auch zukünftige Sendungen anzeigen"};
+
+	mi:exec()
+	restoreFullScreen(screen, true)
+
+	if ((old_playerSeeFuturePrograms ~= conf.playerSeeFuturePrograms) or
+	    (old_playerSeePeriod ~= conf.playerSeePeriod)) then
+		repaintMediathek()
+	end
+
+
 end

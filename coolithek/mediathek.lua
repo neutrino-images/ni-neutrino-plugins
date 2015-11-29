@@ -175,10 +175,26 @@ function paintMtRightMenu()
 
 -- json query
 	local channel   = url_encode(conf.playerSelectChannel)
---	local channel   = url_encode("ORF")
 	local theme     = url_encode("")
-	local timeFrom  = "now"
-	local period    = 7*DAY
+
+	local timeFrom  = ""
+	if (conf.playerSeeFuturePrograms == "on") then
+		timeFrom = "future"
+	else
+		timeFrom = "now"
+	end
+	local period = 0
+	if (conf.playerSeePeriod == "all") then
+		period = 365 * DAY
+	else
+		local p = tonumber(conf.playerSeePeriod)
+		if (p == nil) then
+			p = 7
+			conf.playerSeePeriod = p
+		end
+		period = p * DAY
+	end
+
 	local minDuration = 300
 	local start     = mtRightMenu_list_start
 	local limit     = mtRightMenu_count
@@ -345,12 +361,12 @@ function startMediathek()
 		leftMenuEntry[i][5]	= e5
 	end
 
-	fillLeftMenuEntry("Suche",      "", btnBlue, true, false)
-	fillLeftMenuEntry("Senderwahl", conf.playerSelectChannel, btnYellow, true, true)
-	fillLeftMenuEntry("Thema",      "", btnGreen, true, false)
-	fillLeftMenuEntry("Zeitraum",   "7 Tage", btnRed, true, false)
-	fillLeftMenuEntry("min. Sendungsdauer",  "5 min.", btn1, true, false)
-	fillLeftMenuEntry("Sortieren",  "Datum", btn2, true, false)
+	fillLeftMenuEntry("Suche",		"",				btnBlue,   true, false)
+	fillLeftMenuEntry("Senderwahl",		conf.playerSelectChannel,	btnYellow, true, true)
+	fillLeftMenuEntry("Thema",		"",				btnGreen,  true, false)
+	fillLeftMenuEntry("Zeitraum",		set_playerSeePeriod(),		btnRed,    true, true)
+	fillLeftMenuEntry("min. Sendungsdauer",	"5 min.",			btn1,      true, false)
+	fillLeftMenuEntry("Sortieren",		"Datum",			btn2,      true, false)
 
 	h_mtWindow = newMtWindow()
 

@@ -1,12 +1,12 @@
 
 function initVars()
-	pluginVersion	= "0.2beta"
+	pluginVersion	= "0.2beta-2"
 	pluginName	= "Coolithek"
 
 	noCacheFiles	= false
 
 -- 	debug print for wget when 'wgetQuiet' not defined
-	local wgetQuiet		= 1
+--	local wgetQuiet		= 1
 
 	url_base		= "http://mediathek.slknet.de";
 
@@ -21,10 +21,10 @@ function initVars()
 		wget_cmd = "wget -U " .. user_agent .. " -O ";
 	end
 
-	actionCmd_versionInfo	= "action=getVersionInfo"
-	actionCmd_livestream	= "action=listLivestream"
-	actionCmd_listChannels	= "action=listChannels"
-	actionCmd_listVideos	= "action=listVideos"
+	actionCmd_versionInfo	= "action=getVersionInfo&pVersion="	.. pluginVersion
+	actionCmd_livestream	= "action=listLivestream&pVersion="	.. pluginVersion
+	actionCmd_listChannels	= "action=listChannels&pVersion="	.. pluginVersion
+	actionCmd_listVideos	= "action=listVideos&pVersion="		.. pluginVersion
 
 	jsonData		= pluginTmpPath .. "/mediathek_data.txt";
 	m3u8Data		= pluginTmpPath .. "/mediathek_data.m3u8";
