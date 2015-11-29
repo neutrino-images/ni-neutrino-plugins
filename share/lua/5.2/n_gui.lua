@@ -20,7 +20,7 @@
 	Boston, MA  02110-1301, USA.
 ]]
 
-local VERSION = 20151113.01
+local VERSION = 20151124.01
 
 --[[
 load the modul:

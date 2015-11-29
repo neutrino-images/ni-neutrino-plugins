@@ -20,7 +20,7 @@
 	Boston, MA  02110-1301, USA.
 ]]
 
-local VERSION = 20151113.01
+local VERSION = 20151129.01
 
 --[[
 load the modul:
@@ -29,6 +29,7 @@ local helpers = require "n_helpers"
 
 functions:
 ----------
+which(prog)
 pidOf(prog)
 readDirectory(dir, mask)
 base64Enc(data)
@@ -49,6 +50,16 @@ local posix = require "posix"
 local helpers = {VERSION = VERSION}
 local H = helpers
 
+function H.which(prog)
+	local r = ""
+	local h = io.popen("which " .. prog, "r")
+	if h ~= nil then
+		r = h:read("*a")
+		if r ~= "" then r = string.gsub(r, "\n", "") end
+		io.close( h )
+	end
+	return r
+end
 
 function H.pidOf(prog)
 	local r = ""
