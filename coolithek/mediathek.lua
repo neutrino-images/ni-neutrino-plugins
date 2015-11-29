@@ -361,10 +361,10 @@ function startMediathek()
 		leftMenuEntry[i][5]	= e5
 	end
 
-	fillLeftMenuEntry("Suche",		"",				btnBlue,   true, false)
-	fillLeftMenuEntry("Senderwahl",		conf.playerSelectChannel,	btnYellow, true, true)
-	fillLeftMenuEntry("Thema",		"",				btnGreen,  true, false)
-	fillLeftMenuEntry("Zeitraum",		set_playerSeePeriod(),		btnRed,    true, true)
+	fillLeftMenuEntry("Suche",		"",				btnRed,    true, false)
+	fillLeftMenuEntry("Senderwahl",		conf.playerSelectChannel,	btnGreen,  true, true)
+	fillLeftMenuEntry("Thema",		"",				btnYellow, true, false)
+	fillLeftMenuEntry("Zeitraum",		set_playerSeePeriod(),		btnBlue,   true, true)
 	fillLeftMenuEntry("min. Sendungsdauer",	"5 min.",			btn1,      true, false)
 	fillLeftMenuEntry("Sortieren",		"Datum",			btn2,      true, false)
 
@@ -441,9 +441,9 @@ function startMediathek()
 
 		if (msg == RC.info) then
 			paintMovieInfo()
-		elseif (msg == RC.yellow) then
+		elseif (msg == RC.green) then
 			channelMenu()
-		elseif (msg == RC.red) then
+		elseif (msg == RC.blue) then
 			periodOfTime()
 		elseif (msg == RC.ok) then
 			playVideo()
