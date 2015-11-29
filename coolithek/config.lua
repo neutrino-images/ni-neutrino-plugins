@@ -82,28 +82,40 @@ function exitConfigMenu(id)
 	end
 end
 
-function setStringLs(k, v)
+function translateOnOff(s)
+	local ret = "off"
+	if (s == onStr) then ret = "on" end
+	return ret
+end
+
+function unTranslateOnOff(s)
+	local ret = offStr
+	if (s == "on") then ret = onStr end
+	return ret
+end
+
+function setConfigStringLs(k, v)
 	_k = tonumber(k)
-	conf.livestream[_k] = v
-helpers.printf("conf.livestream[%d]: %s\n", _k, conf.livestream[_k])
+	conf.livestream[_k] = translateOnOff(v)
+--helpers.printf("conf.livestream[%d]: %s\n", _k, conf.livestream[_k])
 	confChanged = 1
 end
 
-function setString(k, v)
-	conf[k] = v
+function setConfigString(k, v)
+	conf[k] = translateOnOff(v)
 	confChanged = 1
 end
 
-function setInt(k, v)
+function setConfigInt(k, v)
 	conf[k] = v
 	confChanged = 1
 end
 
 function set1(k, v)
 	local a
-	if (v == "on") then a = true else a = false end
+	if (translateOnOff(v) == "on") then a = true else a = false end
 	m_conf:setActive{item=m_conf_item1, activ=a}
-	setInt(k, v)
+	setConfigString(k, v)
 end
 
 function enableLivestreams()
@@ -116,9 +128,9 @@ function enableLivestreams()
 	m_ls:addItem{type="back"}
 	m_ls:addItem{type="separatorline"}
 
-	opt={ "on", "off" }
+	opt={ onStr, offStr }
 	for i = 1, #videoTable do
-		m_ls:addItem{type="chooser", action="setStringLs", options={opt[1], opt[2]}, id=i, value=conf.livestream[i], name=videoTable[i][1]}
+		m_ls:addItem{type="chooser", action="setConfigStringLs", options={opt[1], opt[2]}, id=i, value=unTranslateOnOff(conf.livestream[i]), name=videoTable[i][1]}
 	end
 	m_ls:exec()
 	restoreFullScreen(screen, true)
@@ -141,21 +153,21 @@ function configMenu()
 	m_conf:addItem{type="forwarder", name="Einstellungen jetzt speichern", action="saveConfig", icon="rot", directkey=RC["red"]}
 
 	m_conf:addItem{type="separatorline", name="OSD"}
-	local opt={ "on", "off" }
-	m_conf:addItem{type="chooser", action="setString", options={opt[1], opt[2]}, id="guiUseSystemIcons", value=conf.guiUseSystemIcons, name="Verwende Neutrino System Icons"}
+	local opt={ onStr, offStr }
+	m_conf:addItem{type="chooser", action="setConfigString", options={opt[1], opt[2]}, id="guiUseSystemIcons", value=unTranslateOnOff(conf.guiUseSystemIcons), name="Verwende Neutrino System Icons"}
 
 	m_conf:addItem{type="separatorline", name="Netzwerk"}
-	opt={ "on", "off" }
-	m_conf:addItem{type="chooser", action="setString", options={opt[1], opt[2]}, id="networkUseCurl", value=conf.networkUseCurl, name="Verwende curl, wenn vorhanden"}
-	m_conf:addItem{type="chooser", action="setString", options={opt[1], opt[2]}, id="networkIPV4Only", value=conf.networkIPV4Only, name="Verwende nur IPV4 für Verbindungen"}
+	opt={ onStr, offStr }
+	m_conf:addItem{type="chooser", action="setConfigString", options={opt[1], opt[2]}, id="networkUseCurl", value=unTranslateOnOff(conf.networkUseCurl), name="Verwende curl, wenn vorhanden"}
+	m_conf:addItem{type="chooser", action="setConfigString", options={opt[1], opt[2]}, id="networkIPV4Only", value=unTranslateOnOff(conf.networkIPV4Only), name="Verwende nur IPV4 für Verbindungen"}
 
 	m_conf:addItem{type="separatorline", name="Player"}
-	opt={ "on", "off" }
-	m_conf:addItem{type="chooser", action="set1", options={opt[1], opt[2]}, id="enableLivestreams", value=conf.enableLivestreams, name="Livestreams anzeigen"}
+	opt={ onStr, offStr }
+	m_conf:addItem{type="chooser", action="set1", options={opt[1], opt[2]}, id="enableLivestreams", value=unTranslateOnOff(conf.enableLivestreams), name="Livestreams anzeigen"}
 	if (conf.enableLivestreams == "on") then enabled=true else enabled=false end
 	m_conf_item1 = m_conf:addItem{type="forwarder", enabled=enabled, name="Livestreams", action="enableLivestreams", icon=1, directkey=RC["1"]}
 	opt={ "max", "normal" ,"min" }
-	m_conf:addItem{type="chooser", action="setString", options={opt[1], opt[2], opt[3]}, id="streamQuality", value=conf.streamQuality, name="Streamqualität"}
+	m_conf:addItem{type="chooser", action="setConfigString", options={opt[1], opt[2], opt[3]}, id="streamQuality", value=conf.streamQuality, name="Streamqualität"}
 
 	m_conf:exec()
 

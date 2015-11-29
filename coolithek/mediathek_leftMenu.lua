@@ -67,16 +67,6 @@ function channelMenu()
 	end
 end
 
---[[
-conf.playerSeeFuturePrograms
-conf.playerSeePeriod
-conf.playerSeeMinimumDuration
-]]
-
-function setConfigVar(k, v)
-	conf[k] = v
-end
-
 function periodOfTime()
 
 	local old_playerSeeFuturePrograms = conf.playerSeeFuturePrograms
@@ -89,11 +79,11 @@ function periodOfTime()
 	mi:addItem{type="back"};
 	mi:addItem{type="separatorline"};
 
-	local opt={ "on", "off" }
-	mi:addItem{type="chooser", action="setConfigVar", options=opt, id="playerSeeFuturePrograms", value=conf.playerSeeFuturePrograms, name="Auch zukünftige Sendungen anzeigen"}
+	local opt={ onStr, offStr }
+	mi:addItem{type="chooser", action="setConfigString", options=opt, id="playerSeeFuturePrograms", value=unTranslateOnOff(conf.playerSeeFuturePrograms), name="Auch zukünftige Sendungen anzeigen"}
 
 	opt={ "all", "1", "3", "7", "14", "28", "60"}
-	mi:addItem{type="chooser", action="setConfigVar", options=opt, id="playerSeePeriod", value=conf.playerSeePeriod, name="Zeitraum in Tagen"}
+	mi:addItem{type="chooser", action="setConfigString", options=opt, id="playerSeePeriod", value=conf.playerSeePeriod, name="Zeitraum in Tagen"}
 
 
 --	mi:addItem{type="forwarder", action="dummy", id=1, name="Auch zukünftige Sendungen anzeigen"};
