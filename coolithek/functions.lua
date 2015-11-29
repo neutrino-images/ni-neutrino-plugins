@@ -140,8 +140,8 @@ end
 function setFonts()
 	if (useDynFont == false) then error("Failed to create fonts.") end
 	local fontError = 0;
-	fontMainMenu,  fontError = n:getDynFont(0, 50)
-	fontMiniInfo,  fontError = n:getDynFont(0, 40)
+	fontMainMenu,  fontError = n:getDynFont(0, 30)
+	fontMiniInfo,  fontError = n:getDynFont(0, 26)
 	fontLeftMenu1, fontError = n:getDynFont(0, 24)
 	fontLeftMenu2, fontError = n:getDynFont(0, 26, "", DYNFONT.STYLE_BOLD)
 
