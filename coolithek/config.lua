@@ -8,8 +8,9 @@ function loadConfig()
 	conf.playerSeeFuturePrograms	= config:getString("playerSeeFuturePrograms",	"off")
 	conf.playerSeePeriod		= config:getString("playerSeePeriod",		"7")
 	conf.playerSeeMinimumDuration	= config:getString("playerSeeMinimumDuration",	"0")
-	conf.networkUseCurl		= config:getString("networkUseCurl",		"off")
+	conf.guiUseSystemIcons		= config:getString("guiUseSystemIcons",		"off")
 
+	conf.networkUseCurl		= config:getString("networkUseCurl",		"off")
 	dl_cmd = wget_cmd
 	if ((conf.networkUseCurl == "on") or (conf.networkUseCurl == "1")) then
 		local c = helpers.which("curl")
@@ -40,6 +41,7 @@ function _saveConfig(skipMsg)
 	config:setString("playerSeeFuturePrograms",	conf.playerSeeFuturePrograms)
 	config:setString("playerSeePeriod",		conf.playerSeePeriod)
 	config:setString("playerSeeMinimumDuration",	conf.playerSeeMinimumDuration)
+	config:setString("guiUseSystemIcons",		conf.guiUseSystemIcons)
 
 	config:saveConfig(confFile)
 	confChanged = 0
@@ -124,6 +126,9 @@ function enableLivestreams()
 end
 
 function configMenu()
+	old_guiUseSystemIcons = conf.guiUseSystemIcons
+	old_enableLivestreams = conf.enableLivestreams
+
 	m_conf=menu.new{name="Einstellungen", icon="settings"}
 	m_conf:addKey{directkey=RC["home"], id="home", action="exitConfigMenu"}
 	m_conf:addKey{directkey=RC["setup"], id="setup", action="exitConfigMenu"}
@@ -139,9 +144,26 @@ function configMenu()
 
 	m_conf:addItem{type="separatorline"}
 
+	opt={ "on", "off" }
+	m_conf:addItem{type="chooser", action="setString", options={opt[1], opt[2]}, id="guiUseSystemIcons", value=conf.guiUseSystemIcons, name="Benutze Neutrino System Icons"}
+
+	m_conf:addItem{type="separatorline"}
+
 	opt={ "max", "normal" ,"min" }
 	m_conf:addItem{type="chooser", action="setString", options={opt[1], opt[2], opt[3]}, id="streamQuality", value=conf.streamQuality, name="Streamqualität"}
 
 	m_conf:exec()
+
+	if (old_enableLivestreams ~= conf.enableLivestreams) then
+		n:deleteSavedScreen(mainScreen)
+		paintMainWindow(false)
+		mainScreen = saveFullScreen()
+	else
+		restoreFullScreen(mainScreen, false)
+	end
+
+	if (old_guiUseSystemIcons ~= conf.guiUseSystemIcons) then
+		createImages();
+	end
 end
 

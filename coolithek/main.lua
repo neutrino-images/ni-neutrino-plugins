@@ -105,9 +105,6 @@ function mainWindow()
 		-- settings
 		if (msg == RC.setup) then
 			configMenu()
-			n:deleteSavedScreen(mainScreen)
-			paintMainWindow(false)
-			mainScreen = saveFullScreen()
 		end
 		-- info
 		if (msg == RC.info) then
