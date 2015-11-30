@@ -1,6 +1,6 @@
 
 function initVars()
-	pluginVersion	= "0.2beta-2"
+	pluginVersion	= "0.2beta-4"
 	pluginName	= "Coolithek"
 
 	noCacheFiles	= false

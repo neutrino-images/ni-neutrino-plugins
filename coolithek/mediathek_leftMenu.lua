@@ -23,6 +23,7 @@ function repaintMediathek()
 
 	leftMenuEntry[2][2] = conf.playerSelectChannel
 	leftMenuEntry[4][2] = set_playerSeePeriod()
+	leftMenuEntry[5][2] = tostring(conf.playerSeeMinimumDuration) .. " Minuten"
 	paintMtLeftMenu(leftMenuEntry)
 	paintMtRightMenu()
 end
@@ -63,6 +64,24 @@ function channelMenu()
 	mi:exec()
 	restoreFullScreen(screen, true)
 	if (conf.playerSelectChannel ~= old_selectChannel) then
+		repaintMediathek()
+	end
+end
+
+function minDurationMenu()
+	old_playerSeeMinimumDuration = conf.playerSeeMinimumDuration
+	local screen = saveFullScreen()
+	local mi = menu.new{name="min. Sendungsdauer", icon=pluginIcon};
+	mi:addItem{type="subhead", name=langStr_channelSelection};
+	mi:addItem{type="separator"};
+	mi:addItem{type="back"};
+	mi:addItem{type="separatorline"};
+
+	mi:addItem{type="numeric", action="setConfigInt", range="0,90", id="playerSeeMinimumDuration", value=conf.playerSeeMinimumDuration, name="Zeitraum in Minuten"}
+
+	mi:exec()
+	restoreFullScreen(screen, true)
+	if (old_playerSeeMinimumDuration ~= conf.playerSeeMinimumDuration) then
 		repaintMediathek()
 	end
 end

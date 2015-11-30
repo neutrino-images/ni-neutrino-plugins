@@ -195,7 +195,7 @@ function paintMtRightMenu()
 		period = p * DAY
 	end
 
-	local minDuration = 300
+	local minDuration = conf.playerSeeMinimumDuration * 60
 	local start     = mtRightMenu_list_start
 	local limit     = mtRightMenu_count
 	local query_url = url_base .. "/?" .. actionCmd_listVideos .. "&channel=" .. channel ..
@@ -365,7 +365,8 @@ function startMediathek()
 	fillLeftMenuEntry("Senderwahl",		conf.playerSelectChannel,	btnGreen,  true, true)
 	fillLeftMenuEntry("Thema",		"",				btnYellow, true, false)
 	fillLeftMenuEntry("Zeitraum",		set_playerSeePeriod(),		btnBlue,   true, true)
-	fillLeftMenuEntry("min. Sendungsdauer",	"5 min.",			btn1,      true, false)
+	local md = tostring(conf.playerSeeMinimumDuration) .. " Minuten"
+	fillLeftMenuEntry("min. Sendungsdauer",	md,				btn1,      true, true)
 	fillLeftMenuEntry("Sortieren",		"Datum",			btn2,      true, false)
 
 	h_mtWindow = newMtWindow()
@@ -445,6 +446,8 @@ function startMediathek()
 			channelMenu()
 		elseif (msg == RC.blue) then
 			periodOfTime()
+		elseif (msg == RC['1']) then
+			minDurationMenu()
 		elseif (msg == RC.ok) then
 			playVideo()
 		end
