@@ -1,5 +1,5 @@
 l.empty = ""
-l.menu.main.start_mediathek = "Start mediathek"
+l.start_mediathek = "Start mediathek"
 l.start_livestreams = "Livestreams"
 l.read_data = "Read data ..."
 l.save_settings = "Saving settings ..."
