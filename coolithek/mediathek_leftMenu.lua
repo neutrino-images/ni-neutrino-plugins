@@ -102,7 +102,7 @@ function periodOfTime()
 	mi:addItem{type="chooser", action="setConfigString", options=opt, id="playerSeeFuturePrograms", value=unTranslateOnOff(conf.playerSeeFuturePrograms), name="Auch zukünftige Sendungen anzeigen"}
 
 	opt={ "all", "1", "3", "7", "14", "28", "60"}
-	mi:addItem{type="chooser", action="setConfigString", options=opt, id="playerSeePeriod", value=conf.playerSeePeriod, name="Zeitraum in Tagen"}
+	mi:addItem{type="chooser", action="setConfigStringNT", options=opt, id="playerSeePeriod", value=conf.playerSeePeriod, name="Zeitraum in Tagen"}
 
 
 --	mi:addItem{type="forwarder", action="dummy", id=1, name="Auch zukünftige Sendungen anzeigen"};

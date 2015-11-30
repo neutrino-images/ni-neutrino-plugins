@@ -106,6 +106,11 @@ function setConfigString(k, v)
 	confChanged = 1
 end
 
+function setConfigStringNT(k, v)
+	conf[k] = v
+	confChanged = 1
+end
+
 function setConfigInt(k, v)
 	conf[k] = v
 	confChanged = 1
