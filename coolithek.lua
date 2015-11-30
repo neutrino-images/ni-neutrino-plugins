@@ -1,5 +1,7 @@
 
 n = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES);
+neutrino_conf = configfile.new()
+neutrino_conf:loadConfig("/var/tuxbox/config/neutrino.conf")
 
 if (APIVERSION.MINOR_BETA ~= nil) then
 	-- check lua api beta version

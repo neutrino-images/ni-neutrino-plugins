@@ -32,7 +32,7 @@ function _saveConfig(skipMsg)
 	local screen = 0;
 	if (skipMsg == false) then
 		screen = saveFullScreen()
-		local box = paintMiniInfoBox(saveData);
+		local box = paintMiniInfoBox(l.save_settings);
 	end
 
 	saveLivestreamConfig()
@@ -84,13 +84,13 @@ end
 
 function translateOnOff(s)
 	local ret = "off"
-	if (s == onStr) then ret = "on" end
+	if (s == l.on) then ret = "on" end
 	return ret
 end
 
 function unTranslateOnOff(s)
-	local ret = offStr
-	if (s == "on") then ret = onStr end
+	local ret = l.off
+	if (s == "on") then ret = l.on end
 	return ret
 end
 
@@ -133,7 +133,7 @@ function enableLivestreams()
 	m_ls:addItem{type="back"}
 	m_ls:addItem{type="separatorline"}
 
-	opt={ onStr, offStr }
+	opt={ l.on, l.off }
 	for i = 1, #videoTable do
 		m_ls:addItem{type="chooser", action="setConfigStringLs", options={opt[1], opt[2]}, id=i, value=unTranslateOnOff(conf.livestream[i]), name=videoTable[i][1]}
 	end
@@ -158,16 +158,16 @@ function configMenu()
 	m_conf:addItem{type="forwarder", name="Einstellungen jetzt speichern", action="saveConfig", icon="rot", directkey=RC["red"]}
 
 	m_conf:addItem{type="separatorline", name="OSD"}
-	local opt={ onStr, offStr }
+	local opt={ l.on, l.off }
 	m_conf:addItem{type="chooser", action="setConfigString", options={opt[1], opt[2]}, id="guiUseSystemIcons", value=unTranslateOnOff(conf.guiUseSystemIcons), name="Verwende Neutrino System Icons"}
 
 	m_conf:addItem{type="separatorline", name="Netzwerk"}
-	opt={ onStr, offStr }
+	opt={ l.on, l.off }
 	m_conf:addItem{type="chooser", action="setConfigString", options={opt[1], opt[2]}, id="networkUseCurl", value=unTranslateOnOff(conf.networkUseCurl), name="Verwende curl, wenn vorhanden"}
 	m_conf:addItem{type="chooser", action="setConfigString", options={opt[1], opt[2]}, id="networkIPV4Only", value=unTranslateOnOff(conf.networkIPV4Only), name="Verwende nur IPV4 für Verbindungen"}
 
 	m_conf:addItem{type="separatorline", name="Player"}
-	opt={ onStr, offStr }
+	opt={ l.on, l.off }
 	m_conf:addItem{type="chooser", action="set1", options={opt[1], opt[2]}, id="enableLivestreams", value=unTranslateOnOff(conf.enableLivestreams), name="Livestreams anzeigen"}
 	if (conf.enableLivestreams == "on") then enabled=true else enabled=false end
 	m_conf_item1 = m_conf:addItem{type="forwarder", enabled=enabled, name="Livestreams", action="enableLivestreams", icon=1, directkey=RC["1"]}

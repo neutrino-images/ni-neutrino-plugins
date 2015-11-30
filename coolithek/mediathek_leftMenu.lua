@@ -98,7 +98,7 @@ function periodOfTime()
 	mi:addItem{type="back"};
 	mi:addItem{type="separatorline"};
 
-	local opt={ onStr, offStr }
+	local opt={ l.on, l.off }
 	mi:addItem{type="chooser", action="setConfigString", options=opt, id="playerSeeFuturePrograms", value=unTranslateOnOff(conf.playerSeeFuturePrograms), name="Auch zukünftige Sendungen anzeigen"}
 
 	opt={ "all", "1", "3", "7", "14", "28", "60"}

@@ -9,7 +9,7 @@ function getJsonData(url, file)
 		if (helpers.fileExist(data) == true) then dataExist = true end
 	end
 	if ((dataExist == false) or (noCacheFiles == true)) then
-		box = paintMiniInfoBox(readData);
+		box = paintMiniInfoBox(l.read_data);
 		os.remove(data);
 		local cmd = dl_cmd .. data .. " '" .. url .. "'";
 		print(cmd);

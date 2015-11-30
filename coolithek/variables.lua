@@ -1,4 +1,17 @@
 
+function initLocale()
+	l={}
+	l.key = {}
+
+	local language_default = "english"
+	local language = neutrino_conf:getString("language", language_default)
+	if language == nil or (helpers.fileExist(pluginScriptPath .. "/locale/" .. language .. ".lua") == false) then
+		language = language_default
+	end
+
+	dofile(pluginScriptPath .. "/locale/" .. language .. ".lua");
+end
+
 function initVars()
 	pluginVersion	= "0.2beta-4"
 	pluginName	= "Coolithek"
@@ -41,16 +54,10 @@ function initVars()
 --	fontID_LeftMenu2	= 3
 	mainScreen		= 0
 
-	readData		= "Lese Daten..."
-	saveData		= "Einstellungen werden gespeichert..."
-
 	MINUTE			= 60
 	HOUR			= 3600
 	DAY			= HOUR*24
 	WEEK			= DAY*7
-
-	onStr			= "ein"
-	offStr			= "aus"
 
 -- ################################################
 
@@ -62,12 +69,12 @@ function initVars()
 	end
 
 	mainMenuEntry = {}
-	fillMainMenuEntry("OK",   "Mediathek starten")
-	fillMainMenuEntry("SAT",  "Livestreams")
-	fillMainMenuEntry("MENÜ", "Einstellungen")
-	fillMainMenuEntry("INFO", "Versionsinfo")
-	fillMainMenuEntry("",     "")
-	fillMainMenuEntry("EXIT", "Programm beenden")
+	fillMainMenuEntry(l.key.ok,	l.start_mediathek)
+	fillMainMenuEntry(l.key.sat,	l.start_livestreams)
+	fillMainMenuEntry(l.key.menu,	l.settings)
+	fillMainMenuEntry(l.key.info,	l.versioninfo)
+	fillMainMenuEntry(l.empty,	l.empty)
+	fillMainMenuEntry(l.key.exit,	l.exit_program)
 
 	if (helpers.fileExist(pluginScriptPath .. "/local.lua") == true) then
 		-- locale settings for testing

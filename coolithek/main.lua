@@ -128,6 +128,7 @@ end
 
 -- ###########################################################################################
 
+initLocale();
 initVars();
 setFonts();
 startBox = paintMiniInfoBox("Starte Plugin");
