@@ -5,7 +5,7 @@ function paintMovieInfo()
 	local box_h	= 520
 	if box_w > SCREEN.X_RES then box_w = SCREEN.X_RES-80 end
 	if box_h > SCREEN.Y_RES then box_h = SCREEN.Y_RES-80 end
-	local box	= mtInfoBox("Filminfo (" .. mtList[mtRightMenu_select].channel .. ")", box_w, box_h)
+	local box	= mtInfoBox("Filminfo (" .. mtList[mtRightMenu_select].channel .. " Mediathek)", box_w, box_h)
 
 	local hh	= box:headerHeight()
 	local fh	= box:footerHeight()

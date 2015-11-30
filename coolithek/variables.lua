@@ -49,8 +49,8 @@ function initVars()
 	DAY			= HOUR*24
 	WEEK			= DAY*7
 
-	onStr			= "Ein"
-	offStr			= "Aus"
+	onStr			= "ein"
+	offStr			= "aus"
 
 -- ################################################
 
