@@ -172,7 +172,7 @@ function configMenu()
 	if (conf.enableLivestreams == "on") then enabled=true else enabled=false end
 	m_conf_item1 = m_conf:addItem{type="forwarder", enabled=enabled, name="Livestreams", action="enableLivestreams", icon=1, directkey=RC["1"]}
 	opt={ "max", "normal" ,"min" }
-	m_conf:addItem{type="chooser", action="setConfigString", options={opt[1], opt[2], opt[3]}, id="streamQuality", value=conf.streamQuality, name="Streamqualität"}
+	m_conf:addItem{type="chooser", action="setConfigStringNT", options={opt[1], opt[2], opt[3]}, id="streamQuality", value=conf.streamQuality, name="Streamqualität"}
 
 	m_conf:exec()
 
