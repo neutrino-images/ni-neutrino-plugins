@@ -44,7 +44,7 @@ function initVars()
 	jsonData		= pluginTmpPath .. "/mediathek_data.txt";
 	m3u8Data		= pluginTmpPath .. "/mediathek_data.m3u8";
 	pluginIcon		= "multimedia";
-	backgroundImage		= "";
+	backgroundImage		= pluginScriptPath .. "/background.jpg";
 	videoTable		= {};
 	h_mainWindow		= nil;
 

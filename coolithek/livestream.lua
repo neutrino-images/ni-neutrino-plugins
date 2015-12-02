@@ -37,7 +37,7 @@ function playLivestream(_id)
 	local screen = saveFullScreen()
 	hideMenu(m_live)
 	hideMainWindow()
-	n:setBlank(true)
+	n:ShowPicture(backgroundImage)
 --	os.execute("pzapit -unmute")
 	os.execute("{ sleep 1; pzapit -unmute; } &")
 

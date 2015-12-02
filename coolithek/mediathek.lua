@@ -62,7 +62,7 @@ function playVideo()
 
 	local screen = saveFullScreen()
 	hideMtWindow()
-	n:setBlank(true)
+	n:ShowPicture(backgroundImage)
 --	os.execute("pzapit -unmute")
 	os.execute("{ sleep 1; pzapit -unmute; } &")
 
@@ -368,7 +368,15 @@ function newMtWindow()
 	local y = SCREEN.OFF_Y
 	local w = SCREEN.END_X - x
 	local h = SCREEN.END_Y - y
-	h_mtWindow = cwindow.new{x=x, y=y, dx=w, dy=h, show_footer=false, name=pluginName .. " - v" .. pluginVersion, icon=pluginIcon};
+
+	local transp = false
+	local bgCol = COL.MENUCONTENT_PLUS_0
+	if (transp == true) then
+		bgCol = bit32.band(0x00FFFFFF, bgCol)
+		bgCol = bit32.bor(0xA0000000, bgCol)
+	end
+
+	h_mtWindow = cwindow.new{x=x, y=y, dx=w, dy=h, color_body=bgCol, show_footer=false, name=pluginName .. " - v" .. pluginVersion, icon=pluginIcon};
 	paintMtWindow(false)
 	mtScreen = saveFullScreen()
 	return h_mtWindow;

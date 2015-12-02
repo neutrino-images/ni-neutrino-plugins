@@ -39,6 +39,9 @@ function paintMainMenu(frame, frameColor, textColor, info, count)
 	local h_tmp = (h + 3*frame)
 	local h_ges = count * h_tmp
 	local y_start = (SCREEN.END_Y - h_ges) / 2
+	if (bgTransp == true) then
+		y_start = (SCREEN.END_Y - h_ges) / 6
+	end
 	for i = 1, count do
 		local y = y_start + (i-1)*h_tmp
 		local bg = 0
@@ -62,9 +65,10 @@ function paintMainMenu(frame, frameColor, textColor, info, count)
 	end
 end
 
-function paintMainWindow(menuOnly)
+function paintMainWindow(menuOnly, win)
+	if (not win) then win = h_mainWindow end
 	if (menuOnly == false) then
-		h_mainWindow:paint{do_save_bg=true}
+		win:paint{do_save_bg=true}
 	end
 	paintMainMenu(1, COL.MENUCONTENT_TEXT, COL.MENUCONTENT_TEXT, mainMenuEntry, #mainMenuEntry)
 end
@@ -80,17 +84,27 @@ function newMainWindow()
 	local y = SCREEN.OFF_Y
 	local w = SCREEN.END_X - x
 	local h = SCREEN.END_Y - y
-	h_mainWindow = cwindow.new{x=x, y=y, dx=w, dy=h, name=pluginName .. " - v" .. pluginVersion, icon=pluginIcon};
+
+	bgTransp = true
+	local showHeader = true
+	local bgCol = COL.MENUCONTENT_PLUS_0
+	if (bgTransp == true) then
+		showHeader = false
+--		bgCol = bit32.band(0x00FFFFFF, bgCol)
+--		bgCol = bit32.bor(0x60000000, bgCol)
+		bgCol = (0x6000253E)
+	end
+
+	local ret = cwindow.new{x=x, y=y, dx=w, dy=h, color_body=bgCol, show_header=showHeader, show_footer=false, name=pluginName .. " - v" .. pluginVersion, icon=pluginIcon};
 	gui.hideInfoBox(startBox)
-	paintMainWindow(false)
+	paintMainWindow(false, ret)
 	mainScreen = saveFullScreen()
-	return h_mainWindow;
+	return ret
 end
 
 function mainWindow()
 
 	os.execute("pzapit -mute")
-	n:setBlank(true)
 
 	h_mainWindow = newMainWindow()
 
@@ -130,6 +144,7 @@ end
 
 initLocale();
 initVars();
+n:ShowPicture(backgroundImage)
 loadConfig();
 setFonts();
 startBox = paintMiniInfoBox("Starte Plugin");
