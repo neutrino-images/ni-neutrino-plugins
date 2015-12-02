@@ -136,8 +136,10 @@ function mainWindow()
 	until msg == RC.home;
 
 	n:StopPicture()
-	os.execute("pzapit -rz")
-	os.execute("pzapit -unmute")
+--	os.execute("pzapit -rz")
+--	os.execute("pzapit -unmute")
+	os.execute("{ sleep 1; echo \">>>> pzapit-rz\"; pzapit -rz; } &")
+	os.execute("{ sleep 3; echo \">>>> pzapit-unmute\"; pzapit -unmute; } &")
 end
 
 -- ###########################################################################################
