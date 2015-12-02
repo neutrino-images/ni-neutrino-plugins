@@ -13,7 +13,7 @@ function initLocale()
 end
 
 function initVars()
-	pluginVersion	= "0.2beta-6"
+	pluginVersion	= "0.2beta-7"
 	pluginName	= "Coolithek"
 
 	noCacheFiles	= false
