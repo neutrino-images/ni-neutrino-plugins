@@ -63,7 +63,8 @@ function playVideo()
 	local screen = saveFullScreen()
 	hideMtWindow()
 	n:setBlank(true)
-	os.execute("pzapit -unmute")
+--	os.execute("pzapit -unmute")
+	os.execute("{ sleep 1; pzapit -unmute; } &")
 
 	n:PlayFile(mtList[mtRightMenu_select].title, url, mtList[mtRightMenu_select].theme, url);
 
@@ -213,31 +214,56 @@ function paintMtRightMenu()
 		os.execute("rm -f " .. dataFile)
 		return false
 	end
+	local noData = false
 	if checkJsonError(j_table) == false then
 		os.execute("rm -f " .. dataFile)
-		return false
+		if (j_table.err ~= 2) then
+			return false
+		end
+		noData = true
 	end
 
-	mtRightMenu_list_total = j_table.head.total
-	mtRightMenu_max_page = math.ceil(mtRightMenu_list_total/mtRightMenu_count)
+	if (noData == true) then
+		mtRightMenu_list_total = 0
+		mtRightMenu_max_page = 0
+		if (#mtList > 1) then
+			while (#mtList > 1) do table.remove(mtList) end
+		end
+		mtList[1] = {}
+		mtList[1].channel	= ""
+		mtList[1].theme		= ""
+		mtList[1].title		= "Huhu..."
+		mtList[1].date		= ""
+		mtList[1].time		= ""
+		mtList[1].duration	= ""
+		mtList[1].geo		= ""
+		mtList[1].description	= ""
+		mtList[1].url		= ""
+		mtList[1].url_small	= ""
+		mtList[1].url_hd	= ""
+		mtList[1].parse_m3u8	= ""
+	else
+		mtRightMenu_list_total = j_table.head.total
+		mtRightMenu_max_page = math.ceil(mtRightMenu_list_total/mtRightMenu_count)
 
-	if (#mtList > #j_table.entry) then
-		while (#mtList > #j_table.entry) do table.remove(mtList) end
-	end
-	for i=1, #j_table.entry do
-		mtList[i] = {}
-		mtList[i].channel	= j_table.entry[i].channel
-		mtList[i].theme		= j_table.entry[i].theme
-		mtList[i].title		= j_table.entry[i].title
-		mtList[i].date		= os.date("%d.%m.%Y", j_table.entry[i].date_unix)
-		mtList[i].time		= os.date("%H:%M", j_table.entry[i].date_unix)
-		mtList[i].duration	= formatDuration(j_table.entry[i].duration)
-		mtList[i].geo		= j_table.entry[i].geo
-		mtList[i].description	= j_table.entry[i].description
-		mtList[i].url		= j_table.entry[i].url
-		mtList[i].url_small	= j_table.entry[i].url_small
-		mtList[i].url_hd	= j_table.entry[i].url_hd
-		mtList[i].parse_m3u8	= j_table.entry[i].parse_m3u8
+		if (#mtList > #j_table.entry) then
+			while (#mtList > #j_table.entry) do table.remove(mtList) end
+		end
+		for i=1, #j_table.entry do
+			mtList[i] = {}
+			mtList[i].channel	= j_table.entry[i].channel
+			mtList[i].theme		= j_table.entry[i].theme
+			mtList[i].title		= j_table.entry[i].title
+			mtList[i].date		= os.date("%d.%m.%Y", j_table.entry[i].date_unix)
+			mtList[i].time		= os.date("%H:%M", j_table.entry[i].date_unix)
+			mtList[i].duration	= formatDuration(j_table.entry[i].duration)
+			mtList[i].geo		= j_table.entry[i].geo
+			mtList[i].description	= j_table.entry[i].description
+			mtList[i].url		= j_table.entry[i].url
+			mtList[i].url_small	= j_table.entry[i].url_small
+			mtList[i].url_hd	= j_table.entry[i].url_hd
+			mtList[i].parse_m3u8	= j_table.entry[i].parse_m3u8
+		end
 	end
 
 	for i = 1, mtRightMenu_count do

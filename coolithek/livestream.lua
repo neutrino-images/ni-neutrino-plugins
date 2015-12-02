@@ -38,7 +38,8 @@ function playLivestream(_id)
 	hideMenu(m_live)
 	hideMainWindow()
 	n:setBlank(true)
-	os.execute("pzapit -unmute")
+--	os.execute("pzapit -unmute")
+	os.execute("{ sleep 1; pzapit -unmute; } &")
 
 	n:PlayFile(title, url, msg1, url);
 
