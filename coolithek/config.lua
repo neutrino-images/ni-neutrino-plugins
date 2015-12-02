@@ -22,13 +22,6 @@ function loadConfig()
 	end
 end
 
-function saveConfig()
-	if confChanged == 1 then
-		_saveConfig(false)
-	end
-	return MENU_RETURN.EXIT_REPAINT
-end
-
 function _saveConfig(skipMsg)
 	local screen = 0;
 	if (skipMsg == false) then
@@ -49,7 +42,6 @@ function _saveConfig(skipMsg)
 	config:setString("networkIPV4Only",		conf.networkIPV4Only)
 
 	config:saveConfig(confFile)
-	confChanged = 0
 	if (skipMsg == false) then
 		posix.sleep(1)
 		gui.hideInfoBox(box)
@@ -99,23 +91,18 @@ end
 function setConfigStringLs(k, v)
 	_k = tonumber(k)
 	conf.livestream[_k] = translateOnOff(v)
---helpers.printf("conf.livestream[%d]: %s\n", _k, conf.livestream[_k])
-	confChanged = 1
 end
 
 function setConfigString(k, v)
 	conf[k] = translateOnOff(v)
-	confChanged = 1
 end
 
 function setConfigStringNT(k, v)
 	conf[k] = v
-	confChanged = 1
 end
 
 function setConfigInt(k, v)
 	conf[k] = v
-	confChanged = 1
 end
 
 function set1(k, v)
@@ -157,8 +144,6 @@ function configMenu()
 	m_conf:addKey{directkey=RC["home"], id="home", action="exitConfigMenu"}
 	m_conf:addKey{directkey=RC["setup"], id="setup", action="exitConfigMenu"}
 	m_conf:addItem{type="back"}
-	m_conf:addItem{type="separatorline"}
-	m_conf:addItem{type="forwarder", name="Einstellungen jetzt speichern", action="saveConfig", icon="rot", directkey=RC["red"]}
 
 	m_conf:addItem{type="separatorline", name="OSD"}
 	local opt={ l.on, l.off }
@@ -179,6 +164,7 @@ function configMenu()
 	m_conf:addItem{type="chooser", action="setConfigStringNT", options={opt[1], opt[2], opt[3]}, id="streamQuality", value=conf.streamQuality, name="Streamqualität"}
 
 	m_conf:exec()
+	_saveConfig(true)
 
 	if (old_guiMainMenuSize ~= conf.guiMainMenuSize) then
 		fontMainMenu = nil

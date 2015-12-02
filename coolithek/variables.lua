@@ -27,7 +27,6 @@ function initVars()
 
 	conf			= {}
 	conf.livestream		= {}
-	confChanged 		= 0
 	config			= configfile.new()
 	user_agent 		= "\"Mozilla/5.0 (compatible; " .. pluginName .. " plugin v" .. pluginVersion .. " for NeutrinoHD)\"";
 
