@@ -130,9 +130,9 @@ end
 
 initLocale();
 initVars();
+loadConfig();
 setFonts();
 startBox = paintMiniInfoBox("Starte Plugin");
-loadConfig();
 createImages();
 mainWindow();
 _saveConfig(true);

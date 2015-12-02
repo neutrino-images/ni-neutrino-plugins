@@ -48,10 +48,12 @@ function initVars()
 	backgroundImage		= "";
 	videoTable		= {};
 	h_mainWindow		= nil;
---	fontID_MainMenu		= 0
---	fontID_MiniInfo		= 1
---	fontID_LeftMenu1	= 2
---	fontID_LeftMenu2	= 3
+
+	fontMainMenu		= nil;
+	fontMiniInfo		= nil;
+	fontLeftMenu1		= nil;
+	fontLeftMenu2		= nil;
+
 	mainScreen		= 0
 
 	MINUTE			= 60

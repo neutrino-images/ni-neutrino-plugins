@@ -140,15 +140,22 @@ end
 function setFonts()
 	if (useDynFont == false) then error("Failed to create fonts.") end
 	local fontError = 0;
-	fontMainMenu,  fontError = n:getDynFont(0, 30)
-	fontMiniInfo,  fontError = n:getDynFont(0, 26)
-	fontLeftMenu1, fontError = n:getDynFont(0, 24)
-	fontLeftMenu2, fontError = n:getDynFont(0, 26, "", DYNFONT.STYLE_BOLD)
-
-	fontMainMenu_h  = n:FontHeight(useDynFont, fontMainMenu)
-	fontMiniInfo_h  = n:FontHeight(useDynFont, fontMiniInfo)
-	fontLeftMenu1_h = n:FontHeight(useDynFont, fontLeftMenu1)
-	fontLeftMenu2_h = n:FontHeight(useDynFont, fontLeftMenu2)
+	if (fontMainMenu == nil) then
+		fontMainMenu, fontError = n:getDynFont(0, conf.guiMainMenuSize)
+		fontMainMenu_h = n:FontHeight(useDynFont, fontMainMenu)
+	end
+	if (fontMiniInfo == nil) then
+		fontMiniInfo, fontError = n:getDynFont(0, 26)
+		fontMiniInfo_h = n:FontHeight(useDynFont, fontMiniInfo)
+	end
+	if (fontLeftMenu1 == nil) then
+		fontLeftMenu1, fontError = n:getDynFont(0, 24)
+		fontLeftMenu1_h = n:FontHeight(useDynFont, fontLeftMenu1)
+	end
+	if (fontLeftMenu2 == nil) then
+		fontLeftMenu2, fontError = n:getDynFont(0, 26, "", DYNFONT.STYLE_BOLD)
+		fontLeftMenu2_h = n:FontHeight(useDynFont, fontLeftMenu2)
+	end
 end
 
 function paintMiniInfoBox(txt)

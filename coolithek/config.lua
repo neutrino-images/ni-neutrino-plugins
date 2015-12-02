@@ -9,6 +9,7 @@ function loadConfig()
 	conf.playerSeePeriod		= config:getString("playerSeePeriod",		"7")
 	conf.playerSeeMinimumDuration	= config:getInt32("playerSeeMinimumDuration",	0)
 	conf.guiUseSystemIcons		= config:getString("guiUseSystemIcons",		"off")
+	conf.guiMainMenuSize		= config:getInt32("guiMainMenuSize",		30)
 	conf.networkUseCurl		= config:getString("networkUseCurl",		"off")
 	conf.networkIPV4Only		= config:getString("networkIPV4Only",		"off")
 
@@ -43,6 +44,7 @@ function _saveConfig(skipMsg)
 	config:setString("playerSeePeriod",		conf.playerSeePeriod)
 	config:setInt32("playerSeeMinimumDuration",	conf.playerSeeMinimumDuration)
 	config:setString("guiUseSystemIcons",		conf.guiUseSystemIcons)
+	config:setInt32("guiMainMenuSize",		conf.guiMainMenuSize)
 	config:setString("networkUseCurl",		conf.networkUseCurl)
 	config:setString("networkIPV4Only",		conf.networkIPV4Only)
 
@@ -146,9 +148,10 @@ function enableLivestreams()
 end
 
 function configMenu()
-	old_guiUseSystemIcons = conf.guiUseSystemIcons
-	old_enableLivestreams = conf.enableLivestreams
-	old_networkIPV4Only   = conf.networkIPV4Only
+	local old_guiUseSystemIcons	= conf.guiUseSystemIcons
+	local old_enableLivestreams	= conf.enableLivestreams
+	local old_networkIPV4Only	= conf.networkIPV4Only
+	local old_guiMainMenuSize	= conf.guiMainMenuSize
 
 	m_conf=menu.new{name="Einstellungen", icon="settings"}
 	m_conf:addKey{directkey=RC["home"], id="home", action="exitConfigMenu"}
@@ -160,6 +163,7 @@ function configMenu()
 	m_conf:addItem{type="separatorline", name="OSD"}
 	local opt={ l.on, l.off }
 	m_conf:addItem{type="chooser", action="setConfigString", options={opt[1], opt[2]}, id="guiUseSystemIcons", value=unTranslateOnOff(conf.guiUseSystemIcons), name="Verwende Neutrino System Icons"}
+	m_conf:addItem{type="numeric", action="setConfigInt", range="24,55", id="guiMainMenuSize", value=conf.guiMainMenuSize, name="Größe Hauptmenü"}
 
 	m_conf:addItem{type="separatorline", name="Netzwerk"}
 	opt={ l.on, l.off }
@@ -176,7 +180,13 @@ function configMenu()
 
 	m_conf:exec()
 
-	if (old_enableLivestreams ~= conf.enableLivestreams) then
+	if (old_guiMainMenuSize ~= conf.guiMainMenuSize) then
+		fontMainMenu = nil
+		setFonts()
+	end
+
+	if ((old_enableLivestreams ~= conf.enableLivestreams) or 
+	    (old_guiMainMenuSize ~= conf.guiMainMenuSize)) then
 		n:deleteSavedScreen(mainScreen)
 		paintMainWindow(false)
 		mainScreen = saveFullScreen()
@@ -187,6 +197,7 @@ function configMenu()
 	if (old_guiUseSystemIcons ~= conf.guiUseSystemIcons) then
 		createImages();
 	end
+
 	if (old_networkIPV4Only ~= conf.networkIPV4Only) then
 		if (conf.networkIPV4Only == "on") then
 			url_base = url_base_4
