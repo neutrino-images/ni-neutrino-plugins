@@ -13,8 +13,12 @@ function loadConfig()
 	conf.networkUseCurl		= config:getString("networkUseCurl",		"off")
 	conf.networkIPV4Only		= config:getString("networkIPV4Only",		"off")
 
+	set_dl_cmd()
+end
+
+function set_dl_cmd()
 	dl_cmd = wget_cmd
-	if ((conf.networkUseCurl == "on") or (conf.networkUseCurl == "1")) then
+	if (conf.networkUseCurl == "on") then
 		local c = helpers.which("curl")
 		if (c ~= "") then
 			dl_cmd = c .. curl_cmd
@@ -138,6 +142,7 @@ function configMenu()
 	local old_guiUseSystemIcons	= conf.guiUseSystemIcons
 	local old_enableLivestreams	= conf.enableLivestreams
 	local old_networkIPV4Only	= conf.networkIPV4Only
+	local old_networkUseCurl	= conf.networkUseCurl
 	local old_guiMainMenuSize	= conf.guiMainMenuSize
 
 	m_conf=menu.new{name="Einstellungen", icon="settings"}
@@ -151,8 +156,13 @@ function configMenu()
 	m_conf:addItem{type="numeric", action="setConfigInt", range="24,55", id="guiMainMenuSize", value=conf.guiMainMenuSize, name="Größe Hauptmenü"}
 
 	m_conf:addItem{type="separatorline", name="Netzwerk"}
+	local ce = true
+	if (helpers.which("curl") == "") then
+		ce = false
+		conf.networkUseCurl = "off"
+	end
 	opt={ l.on, l.off }
-	m_conf:addItem{type="chooser", action="setConfigString", options={opt[1], opt[2]}, id="networkUseCurl", value=unTranslateOnOff(conf.networkUseCurl), name="Verwende curl, wenn vorhanden"}
+	m_conf:addItem{type="chooser", action="setConfigString", options={opt[1], opt[2]}, enabled=ce, id="networkUseCurl", value=unTranslateOnOff(conf.networkUseCurl), name="Verwende curl, wenn vorhanden"}
 	m_conf:addItem{type="chooser", action="setConfigString", options={opt[1], opt[2]}, id="networkIPV4Only", value=unTranslateOnOff(conf.networkIPV4Only), name="Verwende nur IPV4 für Verbindungen"}
 
 	m_conf:addItem{type="separatorline", name="Player"}
@@ -190,5 +200,9 @@ function configMenu()
 		else
 			url_base = url_base_b
 		end
+	end
+
+	if (old_networkUseCurl ~= conf.networkUseCurl) then
+		set_dl_cmd()
 	end
 end
