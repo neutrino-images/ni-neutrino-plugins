@@ -2,6 +2,14 @@
 -- Do not change!
 useDynFont = true
 
+function debugPrint(msg)
+	print("[" .. pluginName .. "] " .. msg)
+end
+
+function debugPrintf(...)
+	print("[" .. pluginName .. "] " .. string.format(...))
+end
+
 function formatDuration(d)
 	local h = math.floor(d/3600)
 	d = d - h*3600
