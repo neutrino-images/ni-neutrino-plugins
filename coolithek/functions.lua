@@ -2,6 +2,23 @@
 -- Do not change!
 useDynFont = true
 
+function PlayMovie(title, url, info1, info2)
+--	n:ShowPicture(backgroundImage)
+	if (moviePlayed == false) then
+		os.execute("{ sleep 1; pzapit -unmute; } &")
+	else
+		os.execute("pzapit -unmute")
+	end
+
+	n:PlayFile(title, url, info1, info2)
+
+	n:enableInfoClock(false)
+--	collectgarbage();
+	os.execute("pzapit -mute")
+	n:ShowPicture(backgroundImage)
+	moviePlayed = true
+end
+
 function debugPrint(msg)
 	print("[" .. pluginName .. "] " .. msg)
 end
