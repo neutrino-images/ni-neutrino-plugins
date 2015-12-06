@@ -37,18 +37,9 @@ function playLivestream(_id)
 	local screen = saveFullScreen()
 	hideMenu(m_live)
 	hideMainWindow()
-	n:ShowPicture(backgroundImage)
---	os.execute("pzapit -unmute")
-	os.execute("{ sleep 1; pzapit -unmute; } &")
 
-	n:PlayFile(title, url, msg1, url);
+	PlayMovie(title, url, msg1, url)
 
-	n:enableInfoClock(false)
---	collectgarbage();
-	os.execute("pzapit -mute")
-	posix.sleep(1)
-	n:ShowPicture(backgroundImage)
-	
 	if (returnAll == true) then
 		return MENU_RETURN.EXIT_ALL;
 	else

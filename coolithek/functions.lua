@@ -7,7 +7,12 @@ function PlayMovie(title, url, info1, info2)
 	if (moviePlayed == false) then
 		os.execute("{ sleep 1; pzapit -unmute; } &")
 	else
-		os.execute("pzapit -unmute")
+--		os.execute("pzapit -unmute")
+		if (helpers.checkAPIversion(1, 20) == false) then
+			os.execute("{ sleep 1; pzapit -unmute; } &")
+		else
+			os.execute("pzapit -unmute")
+		end
 	end
 
 	n:PlayFile(title, url, info1, info2)
@@ -15,6 +20,9 @@ function PlayMovie(title, url, info1, info2)
 	n:enableInfoClock(false)
 --	collectgarbage();
 	os.execute("pzapit -mute")
+	if (helpers.checkAPIversion(1, 20) == false) then
+		posix.sleep(1)
+	end
 	n:ShowPicture(backgroundImage)
 	moviePlayed = true
 end

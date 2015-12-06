@@ -104,8 +104,6 @@ end
 
 function mainWindow()
 
-	os.execute("pzapit -mute")
-
 	h_mainWindow = newMainWindow()
 
 	repeat
@@ -135,23 +133,58 @@ function mainWindow()
 		menuRet = msg
 	until msg == RC.home;
 
-	n:StopPicture()
---	os.execute("pzapit -rz")
---	os.execute("pzapit -unmute")
-	os.execute("{ sleep 1; echo \">>>> pzapit-rz\"; pzapit -rz; } &")
-	os.execute("{ sleep 3; echo \">>>> pzapit-unmute\"; pzapit -unmute; } &")
 end
 
 -- ###########################################################################################
 
+function beforeStart()
+--	n:zapitStopPlayBack()
+	if (helpers.checkAPIversion(1, 20) == true) then
+		n:zapitStopPlayBack()
+	end
+	n:ShowPicture(backgroundImage)
+	os.execute("pzapit -mute")
+end
+
+function afterStop()
+	hideMainWindow()
+
+--	if (moviePlayed == false) then
+--		-- restore bgimage when mode = mode_radio
+--		if (n:getNeutrinoMode() == 2) then
+--			n:ShowPicture("radiomode.jpg")
+--		else
+--			n:StopPicture()
+--		end
+--		os.execute("pzapit -rz")
+--		msg, data = n:GetInput(500)
+--	end
+	if ((moviePlayed == false) or (helpers.checkAPIversion(1, 20) == false)) then
+		if (helpers.checkAPIversion(1, 20) == true) then
+			-- restore bgimage when mode = mode_radio
+			if (n:getNeutrinoMode() == 2) then
+				n:ShowPicture("radiomode.jpg")
+			else
+				n:StopPicture()
+			end
+		else
+			n:StopPicture()
+		end
+		os.execute("pzapit -rz")
+		msg, data = n:GetInput(500)
+	end
+	os.execute("pzapit -unmute")
+end
+
 initLocale();
 initVars();
-n:ShowPicture(backgroundImage)
+beforeStart()
 loadConfig();
 setFonts();
 startBox = paintMiniInfoBox("Starte Plugin");
 createImages();
 mainWindow();
 _saveConfig(true);
+afterStop()
 
 -- ###########################################################################################

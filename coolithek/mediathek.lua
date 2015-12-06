@@ -62,17 +62,7 @@ function playVideo()
 
 	local screen = saveFullScreen()
 	hideMtWindow()
-	n:ShowPicture(backgroundImage)
---	os.execute("pzapit -unmute")
-	os.execute("{ sleep 1; pzapit -unmute; } &")
-
-	n:PlayFile(mtList[mtRightMenu_select].title, url, mtList[mtRightMenu_select].theme, url);
-
-	n:enableInfoClock(false)
---	collectgarbage();
-	os.execute("pzapit -mute")
-	posix.sleep(1)
-	n:ShowPicture(backgroundImage)
+	PlayMovie(mtList[mtRightMenu_select].title, url, mtList[mtRightMenu_select].theme, url);
 	restoreFullScreen(screen, true)
 end
 

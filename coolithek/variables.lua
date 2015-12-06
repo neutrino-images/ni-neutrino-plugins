@@ -54,6 +54,7 @@ function initVars()
 	fontLeftMenu2		= nil;
 
 	mainScreen		= 0
+	moviePlayed		= false
 
 	MINUTE			= 60
 	HOUR			= 3600
