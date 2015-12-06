@@ -150,16 +150,13 @@ function afterStop()
 	hideMainWindow()
 
 --	if (moviePlayed == false) then
---		-- restore bgimage when mode = mode_radio
---		if (n:getNeutrinoMode() == 2) then
---			n:ShowPicture("radiomode.jpg")
---		else
---			n:StopPicture()
---		end
---		os.execute("pzapit -rz")
---		msg, data = n:GetInput(500)
+--		n:channelRezap()
 --	end
-	if ((moviePlayed == false) or (helpers.checkAPIversion(1, 20) == false)) then
+	if (helpers.checkAPIversion(1, 21) == true) then
+		if (moviePlayed == false) then
+			n:channelRezap()
+		end
+	elseif ((moviePlayed == false) or (helpers.checkAPIversion(1, 20) == false)) then
 		if (helpers.checkAPIversion(1, 20) == true) then
 			-- restore bgimage when mode = mode_radio
 			if (n:getNeutrinoMode() == 2) then
