@@ -139,7 +139,7 @@ end
 
 function beforeStart()
 --	n:zapitStopPlayBack()
-	if (helpers.checkAPIversion(1, 20) == true) then
+	if (helpers.checkAPIversion(1, 21) == true) then
 		n:zapitStopPlayBack()
 	end
 	n:ShowPicture(backgroundImage)
@@ -152,24 +152,18 @@ function afterStop()
 --	if (moviePlayed == false) then
 --		n:channelRezap()
 --	end
-	if (helpers.checkAPIversion(1, 21) == true) then
-		if (moviePlayed == false) then
+	if (moviePlayed == false) then
+		if (helpers.checkAPIversion(1, 21) == true) then
 			n:channelRezap()
-		end
-	elseif ((moviePlayed == false) or (helpers.checkAPIversion(1, 20) == false)) then
-		if (helpers.checkAPIversion(1, 20) == true) then
-			-- restore bgimage when mode = mode_radio
-			if (n:getNeutrinoMode() == 2) then
-				n:ShowPicture("radiomode.jpg")
-			else
-				n:StopPicture()
-			end
 		else
 			n:StopPicture()
+			os.execute("pzapit -rz")
+			msg, data = n:GetInput(500)
 		end
-		os.execute("pzapit -rz")
-		msg, data = n:GetInput(500)
 	end
+
+	local rev, box = n:GetRevision()
+	if box ~= nil and box == "Spark" then n:StopPicture() end
 	os.execute("pzapit -unmute")
 end
 
