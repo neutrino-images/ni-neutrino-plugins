@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_verrsion="mtv.de Version 0.6" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.7" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -135,7 +135,7 @@ function init()
 end
 
 function info(captxt,infotxt, sleep)
-	if captxt == mtv_verrsion and infotxt==nil then
+	if captxt == mtv_version and infotxt==nil then
 		infotxt=captxt
 		captxt="Information"
 	end
@@ -217,6 +217,7 @@ function getvideourl(url,vidname)
 
 	url  = clip_page:match("url='(.-)'")
 	if url == nil then return nil end
+	url=url:gsub(":mtvni.com:",":mtv.de:")
 	clip_page = getdata(url)
 	local max_width = -1
 	for  width,url in string.gmatch(clip_page, '<rendition.-width="(%d+).-<src>(.-)</src>') do
@@ -753,7 +754,7 @@ function main_menu()
 	local menu = glob.main_menu
 	local d = 1 -- directkey
 
-	menu:addKey{directkey=RC["info"], id=mtv_verrsion, action="info"}
+	menu:addKey{directkey=RC["info"], id=mtv_version, action="info"}
 	menu:addItem{type="back"}
 	menu:addItem{type="separatorline"}
 	menu:addItem{type="forwarder", name="MTV Listen", action="mtv_listen_menu", enabled=true,
