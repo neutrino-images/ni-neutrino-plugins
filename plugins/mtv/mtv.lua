@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.de Version 0.7" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.8" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -154,7 +154,7 @@ end
 
 function getdata(url)
 	local output = os.tmpname()
-	os.execute("wget -q -U 'Mozilla/5.0' -O " .. output .." '".. url .. "'");
+	os.execute("wget -q -U 'Mozilla/5.0 (Linux; Android 5.1.1)' -O " .. output .." '".. url .. "'");
 	local clip_page = read_file(output)
 	os.remove(output)
 	return clip_page
@@ -186,7 +186,7 @@ function getliste(url)
 			jnTab.title=jnTab.title:gsub("&quot;",'"')
 			jnTab.title=jnTab.title:gsub("&amp;",'&')
 			table.insert(liste,{name=jnTab.title .. ": " .. jnTab.subtitle, url=jnTab.mrss,
-			type=jnTab.video_type, logo=pic,enabled=conf.dlflag, vid=jnTab.id
+			type=jnTab.video_type, tok=jnTab.video_token, logo=pic,enabled=conf.dlflag, vid=jnTab.id
 			})
 		end
 	end
@@ -198,7 +198,7 @@ function getliste(url)
 			local vid = exist_id(liste, id)
 			if vid then
 				table.insert(listechart,{name=liste[vid].name, url=liste[vid].url,
-			type=liste[vid].type, logo=liste[vid].logo,enabled=conf.dlflag, vid=liste[vid].vid, chartpos=_chartpos
+				type=liste[vid].type, tok=liste[vid].tok, logo=liste[vid].logo,enabled=conf.dlflag, vid=liste[vid].vid, chartpos=_chartpos
 			})
 			end
 		end
@@ -209,24 +209,32 @@ function getliste(url)
 	return liste
 end
 
-function getvideourl(url,vidname)
+function getvideourl(url,vidname,tok,typ)
 	if url == nil then return nil end
 	local video_url = nil
+	if typ == "music_video" and tok  ~= nil then
+		url = 'http://intl.esperanto.mtvi.com/www/xml/media/mediaGen.jhtml?uri=mgid:uma:video:mtv.de:' .. tok
+	end
 	local clip_page = getdata(url)
 	if clip_page == nil then return nil end
 
-	url  = clip_page:match("url='(.-)'")
-	if url == nil then return nil end
-	url=url:gsub(":mtvni.com:",":mtv.de:")
-	clip_page = getdata(url)
-	local max_width = -1
-	for  width,url in string.gmatch(clip_page, '<rendition.-width="(%d+).-<src>(.-)</src>') do
-		if max_width < tonumber(width) and url then
-			max_width = tonumber(width)
-			video_url = url
+	if typ == "music_video" and tok  ~= nil then
+		video_url  = clip_page:match("<src>(.-)</src>")
+		print(video_url)
+	else
+
+		url  = clip_page:match("url='(.-)'")
+		if url == nil then return nil end
+		url=url:gsub(":mtvni.com:",":mtv.de:")
+		clip_page = getdata(url)
+		local max_width = -1
+		for  width,url in string.gmatch(clip_page, '<rendition.-width="(%d+).-<src>(.-)</src>') do
+			if max_width < tonumber(width) and url then
+				max_width = tonumber(width)
+				video_url = url
+			end
 		end
 	end
-
 	if video_url and video_url:sub(1,5) == "rtmpe" then
 		video_url = "rtmp" .. video_url:sub(6,#video_url)
 	else
@@ -268,7 +276,7 @@ function action_exec(id)
 		if glob.MTVliste[i].name == nil then
 			glob.MTVliste[i].name = "NoName_" .. i
 		end
-		local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name)
+		local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name,glob.MTVliste[i].tok,glob.MTVliste[i].type)
 		if url then
 			hideMenu(glob.menu_liste)
 			n:PlayFile(glob.MTVliste[i].name, url,glob.MTVliste[i].type);
@@ -289,7 +297,7 @@ function gen_m3u_list(filename)
 		if v.name == nil then
 			v.name = "NoName"
 		end
-		local url = getvideourl(v.url,v.name)
+		local url = getvideourl(v.url,v.name,v.tok,v.type)
 		if url then
 			local extinf = ", "
 -- 			if v.logo then --TODO Add Logo parse to CMoviePlayerGui::parsePlaylist
@@ -337,7 +345,7 @@ function playlist(filename)
 		if tab[i].name == nil then
 			tab[i].name = "NoName"
 		end
-		local url = getvideourl(tab[i].url,tab[i].name)
+		local url = getvideourl(tab[i].url,tab[i].name,tab[i].tok,tab[i].type)
 		if url then
 			local videoformat = url:sub(-4)
 			if videoformat ~= ".flv" or conf.playflvflag then
@@ -396,7 +404,7 @@ function dlstart(name)
 			if glob.MTVliste[i].name == nil then
 				glob.MTVliste[i].name = "NoName_" .. i
 			end
-			local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name)
+			local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name,glob.MTVliste[i].tok,glob.MTVliste[i].type)
 			if url then
 				local videoformat = url:sub(-4)
 				if videoformat == nil then
