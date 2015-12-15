@@ -2,6 +2,38 @@
 -- Do not change!
 useDynFont = true
 
+function downloadFile(Url, file, hideBox)
+	box = paintMiniInfoBox(l.read_data)
+	os.remove(file)
+
+	local curl = curl.new()
+
+	local v4 = false
+	if (conf.networkIPV4Only == "on") then
+		v4 = true
+	end
+	if (dlDebug == true) then
+		helpers.printf( "\n" ..
+				"download  url: %s\n" ..
+				"         file: %s\n" ..
+				"     ipv4only: %s\n" ..
+				"   user_agent: %s\n" ..
+				"", Url, file, tostring(v4), user_agent)
+	end
+
+	local ret, data = curl:download{ url=Url, o=file, A=user_agent, ipv4=v4 }
+
+	if (hideBox == true) then
+		gui.hideInfoBox(box)
+		box = nil
+	end
+	if ret == CURL.OK then
+		return box, ret, nil
+	else
+		return box, ret, data
+	end
+end
+
 function PlayMovie(title, url, info1, info2)
 	if (moviePlayed == false) then
 		os.execute("{ sleep 1; pzapit -unmute; } &")

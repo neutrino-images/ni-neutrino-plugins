@@ -17,9 +17,7 @@ function initVars()
 	pluginName	= "Coolithek"
 
 	noCacheFiles	= false
-
---	debug print for wget/curl when 'dlQuiet' == false
-	local dlQuiet		= false
+	dlDebug		= false
 
 	url_base_b		= "http://mediathek.slknet.de"
 	url_base_4		= "http://mediathek4.slknet.de"
@@ -29,12 +27,6 @@ function initVars()
 	conf.livestream		= {}
 	config			= configfile.new()
 	user_agent 		= "\"Mozilla/5.0 (compatible; " .. pluginName .. " plugin v" .. pluginVersion .. " for NeutrinoHD)\"";
-
-	local q1 = ""; q2 = "";
-	if (dlQuiet == true) then q1 = "-q"end
-	if (dlQuiet == true) then q2 = "-s"end
-	wget_cmd = "wget " .. q1 .. " -U " .. user_agent .. " -O ";
-	curl_cmd = " " .. q2 .. " -A " .. user_agent .. " -o ";
 
 	actionCmd_versionInfo	= "action=getVersionInfo&pVersion="	.. pluginVersion
 	actionCmd_livestream	= "action=listLivestream&pVersion="	.. pluginVersion

@@ -1,6 +1,7 @@
 
 function getJsonData(url, file)
 	local box = nil
+	local data = nil
 	local dataExist = false
 	if (not file) then
 		data = jsonData
@@ -9,11 +10,7 @@ function getJsonData(url, file)
 		if (helpers.fileExist(data) == true) then dataExist = true end
 	end
 	if ((dataExist == false) or (noCacheFiles == true)) then
-		box = paintMiniInfoBox(l.read_data);
-		os.remove(data);
-		local cmd = dl_cmd .. data .. " '" .. url .. "'";
-		print(cmd);
-		os.execute(cmd);
+		box = downloadFile(url, data, false)
 	end
 
 	local fp, s;
