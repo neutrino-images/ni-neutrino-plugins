@@ -2,15 +2,19 @@
 -- Do not change!
 useDynFont = true
 
-function killPlugin()
+function killPlugin(id)
+	if (id == "standby") then
+		misc:postMsg(POSTMSG.STANDBY_ON)
+	end
 	forcePluginExit = true
 	menuRet = MENU_RETURN.EXIT_ALL
 	return menuRet
 end
 
 function addKillKey(menu)
-	menu:addKey{directkey=RC.tv, action="killPlugin"}
-	menu:addKey{directkey=RC.radio, action="killPlugin"}
+	menu:addKey{directkey=RC.tv,      id="tv",      action="killPlugin"}
+	menu:addKey{directkey=RC.radio,   id="radio",   action="killPlugin"}
+	menu:addKey{directkey=RC.standby, id="standby", action="killPlugin"}
 end
 
 function downloadFile(Url, file, hideBox)

@@ -7,9 +7,9 @@ neutrino_conf:loadConfig("/var/tuxbox/config/neutrino.conf")
 
 -- check lua api version
 if misc ~= nil then
-	misc:checkVersion(1, 32);
+	misc:checkVersion(1, 33);
 else
-	n:checkVersion(1, 32);
+	n:checkVersion(1, 33);
 end
 
 json    = require "json"

@@ -479,6 +479,10 @@ function startMediathek()
 		if (msg == RC.tv) or (msg == RC.radio) then
 			forcePluginExit = true
 		end
+		if (msg == RC.standby) then
+			misc:postMsg(POSTMSG.STANDBY_ON)
+			forcePluginExit = true
+		end
 		menuRet = msg
 	until msg == RC.home or forcePluginExit == true;
 end
