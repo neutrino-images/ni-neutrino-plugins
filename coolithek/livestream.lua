@@ -40,6 +40,10 @@ function playLivestream(_id)
 
 	PlayMovie(title, url, msg1, url)
 
+	if forcePluginExit == true then
+		return MENU_RETURN.EXIT_ALL
+	end
+
 	if (returnAll == true) then
 		return MENU_RETURN.EXIT_ALL;
 	else
@@ -79,6 +83,7 @@ function livestreamMenu()
 	m_live:addItem{type="separatorline"};
 --	m_live:addKey{directkey=RC["home"], id="home", action="key_home"}
 --	m_live:addKey{directkey=RC["setup"], id="setup", action="key_setup"}
+	addKillKey(m_live)
 
 	local i
 	for i = 1, #videoTable do

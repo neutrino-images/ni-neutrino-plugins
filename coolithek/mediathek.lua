@@ -475,8 +475,12 @@ function startMediathek()
 		elseif (msg == RC.ok) then
 			playVideo()
 		end
+		-- exit plugin
+		if (msg == RC.tv) or (msg == RC.radio) then
+			forcePluginExit = true
+		end
 		menuRet = msg
-	until msg == RC.home;
+	until msg == RC.home or forcePluginExit == true;
 end
 
 dofile(pluginScriptPath .. "/mediathek_leftMenu.lua");

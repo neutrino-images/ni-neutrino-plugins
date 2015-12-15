@@ -41,6 +41,7 @@ function channelMenu()
 	mi:addItem{type="separator"};
 	mi:addItem{type="back"};
 	mi:addItem{type="separatorline"};
+	addKillKey(mi)
 --	mi:addKey{directkey=RC["home"], id="home", action="key_home"}
 --	mi:addKey{directkey=RC["setup"], id="setup", action="key_setup"}
 
@@ -76,6 +77,7 @@ function minDurationMenu()
 	mi:addItem{type="separator"};
 	mi:addItem{type="back"};
 	mi:addItem{type="separatorline"};
+	addKillKey(mi)
 
 	mi:addItem{type="numeric", action="setConfigInt", range="0,90", id="playerSeeMinimumDuration", value=conf.playerSeeMinimumDuration, name="Zeitraum in Minuten"}
 
@@ -97,6 +99,7 @@ function periodOfTime()
 	mi:addItem{type="separator"};
 	mi:addItem{type="back"};
 	mi:addItem{type="separatorline"};
+	addKillKey(mi)
 
 	local opt={ l.on, l.off }
 	mi:addItem{type="chooser", action="setConfigString", options=opt, id="playerSeeFuturePrograms", value=unTranslateOnOff(conf.playerSeeFuturePrograms), name="Auch zukünftige Sendungen anzeigen"}

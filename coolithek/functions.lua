@@ -2,6 +2,17 @@
 -- Do not change!
 useDynFont = true
 
+function killPlugin()
+	forcePluginExit = true
+	menuRet = MENU_RETURN.EXIT_ALL
+	return menuRet
+end
+
+function addKillKey(menu)
+	menu:addKey{directkey=RC.tv, action="killPlugin"}
+	menu:addKey{directkey=RC.radio, action="killPlugin"}
+end
+
 function downloadFile(Url, file, hideBox)
 	box = paintMiniInfoBox(l.read_data)
 	os.remove(file)
@@ -41,7 +52,8 @@ function PlayMovie(title, url, info1, info2)
 		os.execute("pzapit -unmute")
 	end
 
-	video:PlayFile(title, url, info1, info2)
+	local status = video:PlayFile(title, url, info1, info2)
+	if status == PLAYSTATE.LEAVE_ALL then forcePluginExit = true end
 	misc:enableInfoClock(false)
 
 --	collectgarbage();

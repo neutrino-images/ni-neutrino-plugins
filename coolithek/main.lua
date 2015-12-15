@@ -127,12 +127,12 @@ function mainWindow()
 		if (msg == RC.info) then
 			getVersionInfo()
 		end
-		-- ;)
-		if (msg == RC.www) then
-			x:y()
+		-- exit plugin
+		if (msg == RC.tv) or (msg == RC.radio) then
+			forcePluginExit = true
 		end
 		menuRet = msg
-	until msg == RC.home or msg == RC.stop;
+	until msg == RC.home or msg == RC.stop or forcePluginExit == true;
 
 end
 

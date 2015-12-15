@@ -115,6 +115,7 @@ function enableLivestreams()
 	local m_ls=menu.new{name="Livestreams anzeigen", icon="settings"}
 	m_ls:addKey{directkey=RC["home"], id="home", action="exitConfigMenu"}
 	m_ls:addKey{directkey=RC["setup"], id="setup", action="exitConfigMenu"}
+	addKillKey(m_ls)
 	m_ls:addItem{type="back"}
 	m_ls:addItem{type="separatorline"}
 
@@ -139,6 +140,7 @@ function configMenu()
 	m_conf=menu.new{name="Einstellungen", icon="settings"}
 	m_conf:addKey{directkey=RC["home"], id="home", action="exitConfigMenu"}
 	m_conf:addKey{directkey=RC["setup"], id="setup", action="exitConfigMenu"}
+	addKillKey(m_conf)
 	m_conf:addItem{type="back"}
 
 	m_conf:addItem{type="separatorline", name="OSD"}
