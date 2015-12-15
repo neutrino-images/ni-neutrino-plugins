@@ -3,27 +3,18 @@
 useDynFont = true
 
 function PlayMovie(title, url, info1, info2)
---	n:ShowPicture(backgroundImage)
 	if (moviePlayed == false) then
 		os.execute("{ sleep 1; pzapit -unmute; } &")
 	else
---		os.execute("pzapit -unmute")
-		if (helpers.checkAPIversion(1, 21) == false) then
-			os.execute("{ sleep 1; pzapit -unmute; } &")
-		else
-			os.execute("pzapit -unmute")
-		end
+		os.execute("pzapit -unmute")
 	end
 
-	n:PlayFile(title, url, info1, info2)
+	video:PlayFile(title, url, info1, info2)
+	misc:enableInfoClock(false)
 
-	n:enableInfoClock(false)
 --	collectgarbage();
 	os.execute("pzapit -mute")
-	if (helpers.checkAPIversion(1, 21) == false) then
-		posix.sleep(1)
-	end
-	n:ShowPicture(backgroundImage)
+	video:ShowPicture(backgroundImage)
 	moviePlayed = true
 end
 
@@ -117,7 +108,7 @@ function adjustStringLen(str, len, font)
 end
 
 function createCacheFileName(url, ext)
-	local d = n:createChannelIDfromUrl(url);
+	local d = video:createChannelIDfromUrl(url);
 	d = string.gsub(d, "ffffffff", "")
 	return pluginTmpPath .. "/data_" .. d .. "." .. ext
 end

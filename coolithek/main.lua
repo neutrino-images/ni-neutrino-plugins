@@ -129,41 +129,28 @@ function mainWindow()
 		end
 		-- ;)
 		if (msg == RC.www) then
+			x:y()
 		end
 		menuRet = msg
-	until msg == RC.home;
+	until msg == RC.home or msg == RC.stop;
 
 end
 
 -- ###########################################################################################
 
 function beforeStart()
---	n:zapitStopPlayBack()
-	if (helpers.checkAPIversion(1, 21) == true) then
-		n:zapitStopPlayBack()
-	end
-	n:ShowPicture(backgroundImage)
+	video:zapitStopPlayBack()
+	video:ShowPicture(backgroundImage)
 	os.execute("pzapit -mute")
 end
 
 function afterStop()
 	hideMainWindow()
-
---	if (moviePlayed == false) then
---		n:channelRezap()
---	end
 	if (moviePlayed == false) then
-		if (helpers.checkAPIversion(1, 21) == true) then
-			n:channelRezap()
-		else
-			n:StopPicture()
-			os.execute("pzapit -rz")
-			msg, data = n:GetInput(500)
-		end
+		video:channelRezap()
 	end
-
 	local rev, box = n:GetRevision()
-	if box ~= nil and box == "Spark" then n:StopPicture() end
+	if box ~= nil and box == "Spark" then video:StopPicture() end
 	os.execute("pzapit -unmute")
 end
 

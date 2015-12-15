@@ -1,14 +1,15 @@
 
-n = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES);
+n             = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES);
+video         = video.new()
+misc          = misc.new()
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/var/tuxbox/config/neutrino.conf")
 
-if (APIVERSION.MINOR_BETA ~= nil) then
-	-- check lua api beta version
-	n:checkVersion(1, 101, true);
+-- check lua api version
+if misc ~= nil then
+	misc:checkVersion(1, 32);
 else
-	-- check lua api version
-	n:checkVersion(1, 16);
+	n:checkVersion(1, 32);
 end
 
 json    = require "json"
