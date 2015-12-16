@@ -116,7 +116,8 @@ function paintMovieInfo()
 		local msg, data = n:GetInput(500)
 		if (msg == RC.info) then
 		end
-		menuRet = msg
-	until msg == RC.red or msg == RC.home;
+		-- exit plugin
+		checkKillKey(msg)
+	until msg == RC.red or msg == RC.home or forcePluginExit == true;
 	gui.hideInfoBox(box)
 end

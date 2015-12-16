@@ -66,10 +66,11 @@ end
 function exitConfigMenu(id)
 	_saveConfig(true)
 	if (id == "home") then
-		return MENU_RETURN.EXIT
+		menuRet = MENU_RETURN.EXIT
 	else
-		return MENU_RETURN.EXIT_ALL
+		menuRet = MENU_RETURN.EXIT_ALL
 	end
+	return menuRet
 end
 
 function translateOnOff(s)

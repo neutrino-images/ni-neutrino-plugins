@@ -2,6 +2,15 @@
 -- Do not change!
 useDynFont = true
 
+function checkKillKey(msg)
+	if (msg == RC.tv) or (msg == RC.radio) then
+		forcePluginExit = true
+	elseif (msg == RC.standby) then
+		misc:postMsg(POSTMSG.STANDBY_ON)
+		forcePluginExit = true
+	end
+end
+
 function killPlugin(id)
 	if (id == "standby") then
 		misc:postMsg(POSTMSG.STANDBY_ON)

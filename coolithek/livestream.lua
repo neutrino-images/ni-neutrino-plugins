@@ -1,8 +1,6 @@
 
 function playLivestream(_id)
 
-	local returnAll = false
-
 	i = tonumber(_id);
 	local title = videoTable[i][1] .. " Livestream";
 	local url = videoTable[i][2];
@@ -41,15 +39,12 @@ function playLivestream(_id)
 	PlayMovie(title, url, msg1, url)
 
 	if forcePluginExit == true then
-		return MENU_RETURN.EXIT_ALL
+		menuRet = MENU_RETURN.EXIT_ALL
+		return menuRet
 	end
 
-	if (returnAll == true) then
-		return MENU_RETURN.EXIT_ALL;
-	else
-		restoreFullScreen(screen, true)
-		return MENU_RETURN.REPAINT;
-	end
+	restoreFullScreen(screen, true)
+	return MENU_RETURN.REPAINT;
 end
 
 function getLivestreams()

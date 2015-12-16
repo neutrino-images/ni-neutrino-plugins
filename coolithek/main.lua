@@ -128,14 +128,7 @@ function mainWindow()
 			getVersionInfo()
 		end
 		-- exit plugin
-		if (msg == RC.tv) or (msg == RC.radio) then
-			forcePluginExit = true
-		end
-		if (msg == RC.standby) then
-			misc:postMsg(POSTMSG.STANDBY_ON)
-			forcePluginExit = true
-		end
-		menuRet = msg
+		checkKillKey(msg)
 	until msg == RC.home or msg == RC.stop or forcePluginExit == true;
 
 end
