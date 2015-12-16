@@ -30,11 +30,21 @@ function downloadFile(Url, file, hideBox)
 	box = paintMiniInfoBox(l.read_data)
 	os.remove(file)
 
-	local curl = curl.new()
+	if Curl == nil then
+		Curl = curl.new()
+	end
 
 	local v4 = false
 	if (conf.networkIPV4Only == "on") then
 		v4 = true
+	end
+	local s  = true
+	if (conf.networkDlSilent == "on") then
+		s  = false
+	end
+	local v = false
+	if (conf.networkDlVerbose == "on") then
+		v = true
 	end
 	if (dlDebug == true) then
 		helpers.printf( "\n" ..
@@ -42,10 +52,12 @@ function downloadFile(Url, file, hideBox)
 				"         file: %s\n" ..
 				"     ipv4only: %s\n" ..
 				"   user_agent: %s\n" ..
-				"", Url, file, tostring(v4), user_agent)
+				"       silent: %s\n" ..
+				"      verbose: %s" ..
+				"", Url, file, tostring(v4), user_agent, tostring(s), tostring(v))
 	end
 
-	local ret, data = curl:download{ url=Url, o=file, A=user_agent, ipv4=v4 }
+	local ret, data = Curl:download{ url=Url, o=file, A=user_agent, ipv4=v4, s=s, v=v }
 
 	if (hideBox == true) then
 		gui.hideInfoBox(box)

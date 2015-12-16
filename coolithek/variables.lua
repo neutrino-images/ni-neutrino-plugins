@@ -20,6 +20,7 @@ function initVars()
 	dlDebug		= false
 
 	forcePluginExit		= false
+	Curl			= nil
 
 	url_base_b		= "http://mediathek.slknet.de"
 	url_base_4		= "http://mediathek4.slknet.de"

@@ -10,7 +10,10 @@ function loadConfig()
 	conf.playerSeeMinimumDuration	= config:getInt32("playerSeeMinimumDuration",	0)
 	conf.guiUseSystemIcons		= config:getString("guiUseSystemIcons",		"off")
 	conf.guiMainMenuSize		= config:getInt32("guiMainMenuSize",		30)
+
 	conf.networkIPV4Only		= config:getString("networkIPV4Only",		"off")
+	conf.networkDlSilent		= config:getString("networkDlSilent",		"off")
+	conf.networkDlVerbose		= config:getString("networkDlVerbose",		"off")
 
 	if (conf.networkIPV4Only == "on") then
 		url_base = url_base_4
@@ -35,7 +38,10 @@ function _saveConfig(skipMsg)
 	config:setInt32("playerSeeMinimumDuration",	conf.playerSeeMinimumDuration)
 	config:setString("guiUseSystemIcons",		conf.guiUseSystemIcons)
 	config:setInt32("guiMainMenuSize",		conf.guiMainMenuSize)
+
 	config:setString("networkIPV4Only",		conf.networkIPV4Only)
+	config:setString("networkDlSilent",		conf.networkDlSilent)
+	config:setString("networkDlVerbose",		conf.networkDlVerbose)
 
 	config:saveConfig(confFile)
 	if (skipMsg == false) then
@@ -132,6 +138,45 @@ function enableLivestreams()
 	return MENU_RETURN.REPAINT;
 end
 
+function set2(k, v)
+	local a
+	if (translateOnOff(v) == "off") then a = true else a = false end
+	m_nw_conf:setActive{item=m_configSilent, activ=a}
+	setConfigString(k, v)
+end
+
+function networkSetup()
+	local screen = saveFullScreen()
+
+	m_nw_conf=menu.new{name="Netzerk", icon="settings"}
+	m_nw_conf:addKey{directkey=RC["home"], id="home", action="exitConfigMenu"}
+	m_nw_conf:addKey{directkey=RC["setup"], id="setup", action="exitConfigMenu"}
+	addKillKey(m_nw_conf)
+	m_nw_conf:addItem{type="back"}
+	m_nw_conf:addItem{type="separatorline"}
+
+	opt={ l.on, l.off }
+	m_nw_conf:addItem{type="chooser", action="setConfigString", options={opt[1], opt[2]}, id="networkIPV4Only", value=unTranslateOnOff(conf.networkIPV4Only), name="Verwende nur IPV4 für Verbindungen"}
+
+	m_nw_conf:addItem{type="separatorline", name="Debug Informationen"}
+	m_nw_conf:addItem{type="chooser", action="set2", options={opt[1], opt[2]}, id="networkDlVerbose", value=unTranslateOnOff(conf.networkDlVerbose), name="Ausführlich"}
+
+	if (conf.networkDlVerbose == "off") then
+		enabled=true
+	else
+		enabled=false
+		conf.networkDlSilent = "on"
+	end
+	m_configSilent = m_nw_conf:addItem{type="chooser", enabled=enabled, action="setConfigString", options={opt[1], opt[2]}, id="networkDlSilent", value=unTranslateOnOff(conf.networkDlSilent), name="Download Fortschritt"}
+
+	m_nw_conf:exec()
+	restoreFullScreen(screen, true)
+	if menuRet == MENU_RETURN.EXIT_ALL then
+		return menuRet
+	end
+	return MENU_RETURN.REPAINT;
+end
+
 function configMenu()
 	local old_guiUseSystemIcons	= conf.guiUseSystemIcons
 	local old_enableLivestreams	= conf.enableLivestreams
@@ -149,10 +194,6 @@ function configMenu()
 	m_conf:addItem{type="chooser", action="setConfigString", options={opt[1], opt[2]}, id="guiUseSystemIcons", value=unTranslateOnOff(conf.guiUseSystemIcons), name="Verwende Neutrino System Icons"}
 	m_conf:addItem{type="numeric", action="setConfigInt", range="24,55", id="guiMainMenuSize", value=conf.guiMainMenuSize, name="Größe Hauptmenü"}
 
-	m_conf:addItem{type="separatorline", name="Netzwerk"}
-	opt={ l.on, l.off }
-	m_conf:addItem{type="chooser", action="setConfigString", options={opt[1], opt[2]}, id="networkIPV4Only", value=unTranslateOnOff(conf.networkIPV4Only), name="Verwende nur IPV4 für Verbindungen"}
-
 	m_conf:addItem{type="separatorline", name="Player"}
 	opt={ l.on, l.off }
 	m_conf:addItem{type="chooser", action="set1", options={opt[1], opt[2]}, id="enableLivestreams", value=unTranslateOnOff(conf.enableLivestreams), name="Livestreams anzeigen"}
@@ -160,6 +201,9 @@ function configMenu()
 	m_conf_item1 = m_conf:addItem{type="forwarder", enabled=enabled, name="Livestreams", action="enableLivestreams", icon=1, directkey=RC["1"]}
 	opt={ "max", "normal" ,"min" }
 	m_conf:addItem{type="chooser", action="setConfigStringNT", options={opt[1], opt[2], opt[3]}, id="streamQuality", value=conf.streamQuality, name="Streamqualität"}
+
+	m_conf:addItem{type="separatorline"}
+	m_conf:addItem{type="forwarder", name="Netzwerk", action="networkSetup", icon=2, directkey=RC["2"]}
 
 	m_conf:exec()
 	_saveConfig(true)
