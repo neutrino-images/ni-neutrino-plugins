@@ -1,16 +1,11 @@
 
 n             = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES);
+-- check lua api version
+n:checkVersion(1, 33);
 video         = video.new()
 misc          = misc.new()
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/var/tuxbox/config/neutrino.conf")
-
--- check lua api version
-if misc ~= nil then
-	misc:checkVersion(1, 33);
-else
-	n:checkVersion(1, 33);
-end
 
 json    = require "json"
 posix   = require "posix"
