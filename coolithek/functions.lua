@@ -71,18 +71,15 @@ function downloadFile(Url, file, hideBox)
 end
 
 function PlayMovie(title, url, info1, info2)
-	if (moviePlayed == false) then
-		os.execute("{ sleep 1; pzapit -unmute; } &")
-	else
-		os.execute("pzapit -unmute")
-	end
+	M:AudioMute(muteStatusPlugin, true)
 
 	local status = V:PlayFile(title, url, info1, info2)
 	if status == PLAYSTATE.LEAVE_ALL then forcePluginExit = true end
+
+	muteStatusPlugin = M:isMuted()
+	M:enableMuteIcon(false)
 	M:enableInfoClock(false)
 
---	collectgarbage();
-	os.execute("pzapit -mute")
 	V:ShowPicture(backgroundImage)
 	moviePlayed = true
 end

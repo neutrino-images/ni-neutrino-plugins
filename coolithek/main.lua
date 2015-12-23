@@ -135,10 +135,18 @@ end
 
 -- ###########################################################################################
 
+muteStatusNeutrino	= false
+muteStatusPlugin	= false
+volumeNeutrino		= 0
+
 function beforeStart()
 	V:zapitStopPlayBack()
 	V:ShowPicture(backgroundImage)
-	os.execute("pzapit -mute")
+
+	muteStatusNeutrino = M:isMuted()
+	volumeNeutrino = M:getVolume()
+	M:enableMuteIcon(false)
+	M:AudioMute(true, false)
 end
 
 function afterStop()
@@ -148,7 +156,10 @@ function afterStop()
 	end
 	local rev, box = N:GetRevision()
 	if box ~= nil and box == "Spark" then V:StopPicture() end
-	os.execute("pzapit -unmute")
+
+	M:enableMuteIcon(true)
+	M:AudioMute(muteStatusNeutrino, true)
+	M:setVolume(volumeNeutrino)
 end
 
 initLocale();

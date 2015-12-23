@@ -2,7 +2,7 @@
 N = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES);
 -- check lua api version
 local req_major = 1
-local req_minor = 33
+local req_minor = 35
 if ((APIVERSION.MAJOR < req_major) or (APIVERSION.MAJOR == req_major and APIVERSION.MINOR < req_minor)) then
 	N:checkVersion(req_major, req_minor);
 end
