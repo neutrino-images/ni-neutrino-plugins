@@ -7,7 +7,7 @@ function getJsonData(url, file)
 		data = jsonData
 	else
 		data = file
-		if (helpers.fileExist(data) == true) then dataExist = true end
+		if (H.fileExist(data) == true) then dataExist = true end
 	end
 	if ((dataExist == false) or (noCacheFiles == true)) then
 		box = downloadFile(url, data, false)
@@ -16,33 +16,33 @@ function getJsonData(url, file)
 	local fp, s;
 	fp = io.open(data, "r");
 	if fp == nil then
-		gui.hideInfoBox(box)
+		G.hideInfoBox(box)
 		error("Error connecting to database server.")
 	end;
 	s = fp:read("*a");
 	fp:close();
-	gui.hideInfoBox(box)
+	G.hideInfoBox(box)
 	return s;
 end
 
 function checkJsonError(tab)
 	if tab.error > 0 then
-		local box = gui.paintInfoBox(tab.entry .. "\nAbort...");
-		posix.sleep(4);
-		gui.hideInfoBox(box)
+		local box = G.paintInfoBox(tab.entry .. "\nAbort...");
+		P.sleep(4);
+		G.hideInfoBox(box)
 		return false
 	end
 	return true
 end
 
 function decodeJson(data)
-	local s = helpers.trim(data);
+	local s = H.trim(data);
 	local x = s.sub(s, 1, 1);
 	if x ~= "{" and x ~= "[" then
-		local box = gui.paintInfoBox("Error parsing json data.");
-		posix.sleep(4);
-		gui.hideInfoBox(box)
+		local box = G.paintInfoBox("Error parsing json data.");
+		P.sleep(4);
+		G.hideInfoBox(box)
 		return nil
 	end
-	return json:decode(s);
+	return J:decode(s);
 end

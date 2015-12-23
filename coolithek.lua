@@ -1,21 +1,31 @@
 
-n             = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES);
+N = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES);
 -- check lua api version
-n:checkVersion(1, 33);
-video         = video.new()
-misc          = misc.new()
-neutrino_conf = configfile.new()
-neutrino_conf:loadConfig("/var/tuxbox/config/neutrino.conf")
+local req_major = 1
+local req_minor = 33
+if ((APIVERSION.MAJOR < req_major) or (APIVERSION.MAJOR == req_major and APIVERSION.MINOR < req_minor)) then
+	N:checkVersion(req_major, req_minor);
+end
 
-json    = require "json"
-posix   = require "posix"
-gui     = require "n_gui"
-helpers = require "n_helpers"
+function loadLuaLib(lib)
+	local status, data = pcall(require, lib)
+	if status == true then return data
+	else
+		error("lua library  not found: \"" .. lib .. "[.so|.lua]\"")
+	end
+end
+
+V   = video.new()
+M   = misc.new()
+J   = loadLuaLib("json")
+P   = loadLuaLib("posix")
+G   = loadLuaLib("n_gui")
+H   = loadLuaLib("n_helpers")
 
 -- define global paths
-pluginScriptPath = helpers.scriptPath() .. "/" .. helpers.scriptBase();
-pluginTmpPath    = "/tmp/" .. helpers.scriptBase();
-confFile         = "/var/tuxbox/config/" .. helpers.scriptBase() .. ".conf";
+pluginScriptPath = H.scriptPath() .. "/" .. H.scriptBase();
+pluginTmpPath    = "/tmp/" .. H.scriptBase();
+confFile         = "/var/tuxbox/config/" .. H.scriptBase() .. ".conf";
 os.execute("rm -fr " .. pluginTmpPath);
 os.execute("mkdir -p " .. pluginTmpPath);
 

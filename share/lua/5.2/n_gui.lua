@@ -89,36 +89,38 @@ function G.checkModulVersion(version)
 end
 
 function G.paintFrame(x, y, w, h, f, c, radius, bg)
+	if N == nil then N = n end
 	if (not radius) then radius = CORNER.RADIUS_LARGE end
 	if (not bg) then bg = 0 end
 	if (bg > 0) then
 		-- background
-		n:PaintBox(x, y, w, h, bg, radius, bit32.bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
+		N:PaintBox(x, y, w, h, bg, radius, bit32.bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
 	end
 	-- top
-	n:PaintBox(x-f, y-f, w+f*2, f, c, radius, bit32.bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
+	N:PaintBox(x-f, y-f, w+f*2, f, c, radius, bit32.bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
 	-- right
-	n:PaintBox(x+w, y, f, h, c)
+	N:PaintBox(x+w, y, f, h, c)
 	-- bottom
-	n:PaintBox(x-f, y+h, w+f*2, f, c, radius, bit32.bor(CORNER.BOTTOM_LEFT, CORNER.BOTTOM_RIGHT))
+	N:PaintBox(x-f, y+h, w+f*2, f, c, radius, bit32.bor(CORNER.BOTTOM_LEFT, CORNER.BOTTOM_RIGHT))
 	-- left
-	n:PaintBox(x-f, y, f, h, c)
+	N:PaintBox(x-f, y, f, h, c)
 end
 
 function G.paintSimpleFrame(x, y, w, h, c, bg)
+	if N == nil then N = n end
 	if (not bg) then bg = 0 end
 	if (bg > 0) then
 		-- background
-		n:PaintBox(x, y, w, h, bg)
+		N:PaintBox(x, y, w, h, bg)
 	end
 	-- top
-	n:paintHLine(x, w, y, c)
+	N:paintHLine(x, w, y, c)
 	-- right
-	n:paintVLine(x+w, y, h, c)
+	N:paintVLine(x+w, y, h, c)
 	-- bottom
-	n:paintHLine(x, w, y+h, c)
+	N:paintHLine(x, w, y+h, c)
 	-- left
-	n:paintVLine(x, y, h, c)
+	N:paintVLine(x, y, h, c)
 end
 
 return gui

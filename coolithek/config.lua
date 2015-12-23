@@ -45,8 +45,8 @@ function _saveConfig(skipMsg)
 
 	config:saveConfig(confFile)
 	if (skipMsg == false) then
-		posix.sleep(1)
-		gui.hideInfoBox(box)
+		P.sleep(1)
+		G.hideInfoBox(box)
 		restoreFullScreen(screen, true)
 	end
 end
@@ -215,7 +215,7 @@ function configMenu()
 
 	if ((old_enableLivestreams ~= conf.enableLivestreams) or 
 	    (old_guiMainMenuSize ~= conf.guiMainMenuSize)) then
-		n:deleteSavedScreen(mainScreen)
+		N:deleteSavedScreen(mainScreen)
 		paintMainWindow(false)
 		mainScreen = saveFullScreen()
 	else

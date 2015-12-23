@@ -84,14 +84,14 @@ function paint_mtItemLine(viewChannel, count)
 		txtCol = COL.MENUCONTENT_TEXT
 		bgCol  = COL.MENUCONTENT_PLUS_1
 	end
-	n:PaintBox(rightItem_x, _itemLine_y, rightItem_w, subMenuHight, bgCol)
+	N:PaintBox(rightItem_x, _itemLine_y, rightItem_w, subMenuHight, bgCol)
 
 	local function paintItem(vH, txt, center)
 		local _x = 0
 		if (center == 0) then _x=6 end
 		local w = ((rightItem_w / 100) * vH)
 		if (vH > 20) then txt = adjustStringLen(txt, w-_x*2, fontLeftMenu1) end
-		n:RenderString(useDynFont, fontLeftMenu1, txt, _item_x+_x, _itemLine_y+subMenuHight, txtCol, w, subMenuHight, center)
+		N:RenderString(useDynFont, fontLeftMenu1, txt, _item_x+_x, _itemLine_y+subMenuHight, txtCol, w, subMenuHight, center)
 		_item_x = _item_x + w
 	end
 
@@ -117,7 +117,7 @@ function paintMtRightMenu()
 	local frameColor	= COL.MENUCONTENT_TEXT
 	local textColor		= COL.MENUCONTENT_TEXT
 
-	gui.paintSimpleFrame(mtRightMenu_x, mtMenu_y, mtRightMenu_w, mtMenu_h, frameColor, 0)
+	G.paintSimpleFrame(mtRightMenu_x, mtMenu_y, mtRightMenu_w, mtMenu_h, frameColor, 0)
 
 	local x		= mtRightMenu_x + 8
 	local y		= mtMenu_y+subMenuTop
@@ -132,15 +132,15 @@ function paintMtRightMenu()
 			paint = false
 		end
 		local w = ((rightItem_w / 100) * vH)
-		n:RenderString(useDynFont, fontLeftMenu1, txt, item_x, y+subMenuHight, textColor, w, subMenuHight, 1)
+		N:RenderString(useDynFont, fontLeftMenu1, txt, item_x, y+subMenuHight, textColor, w, subMenuHight, 1)
 		item_x = item_x + w
 		if (paint == true) then
-			n:paintVLine(item_x, y, subMenuHight, frameColor)
+			N:paintVLine(item_x, y, subMenuHight, frameColor)
 		end
 	end
 
 	local function paintHeadLine(viewChannel)
-		gui.paintSimpleFrame(x, y, rightItem_w, subMenuHight, frameColor, 0)
+		G.paintSimpleFrame(x, y, rightItem_w, subMenuHight, frameColor, 0)
 		local cw = 10
 		if (viewChannel == true) then
 			paintHead(cw, "Sender")
@@ -264,9 +264,9 @@ function paintMtRightMenu()
 end
 
 function paintLeftInfoBox(txt)
-	gui.paintSimpleFrame(leftInfoBox_x, leftInfoBox_y, leftInfoBox_w, leftInfoBox_h,
+	G.paintSimpleFrame(leftInfoBox_x, leftInfoBox_y, leftInfoBox_w, leftInfoBox_h,
 			COL.MENUCONTENT_TEXT, COL.MENUCONTENT_PLUS_1)
-	n:RenderString(useDynFont, fontLeftMenu2, txt, 
+	N:RenderString(useDynFont, fontLeftMenu2, txt,
 			leftInfoBox_x, leftInfoBox_y+subMenuHight,
 			COL.MENUCONTENT_TEXT, leftInfoBox_w, subMenuHight, 1)
 end
@@ -281,10 +281,10 @@ function paintMtLeftMenu(entry)
 	local bgCol  = COL.MENUCONTENT_PLUS_0
 
 	-- get button size
-	buttonCol_w, buttonCol_h = n:GetSize(btnBlue)
+	buttonCol_w, buttonCol_h = N:GetSize(btnBlue)
 
 	-- left frame
-	gui.paintSimpleFrame(mtLeftMenu_x, mtMenu_y, mtLeftMenu_w, mtMenu_h, frameColor, 0)
+	G.paintSimpleFrame(mtLeftMenu_x, mtMenu_y, mtLeftMenu_w, mtMenu_h, frameColor, 0)
 
 	-- infobox
 	leftInfoBox_x = mtLeftMenu_x+subMenuLeft
@@ -305,19 +305,19 @@ function paintMtLeftMenu(entry)
 			txtCol = COL.MENUCONTENTINACTIVE_TEXT
 			bgCol  = COL.MENUCONTENTINACTIVE
 		end
-		gui.paintSimpleFrame(mtLeftMenu_x+subMenuLeft, y, mtLeftMenu_w-subMenuLeft*2, subMenuHight, frameColor, bgCol)
-		n:paintVLine(mtLeftMenu_x+subMenuLeft+subMenuHight, y, subMenuHight, frameColor)
-		n:RenderString(useDynFont, fontLeftMenu1, txt1, 
+		G.paintSimpleFrame(mtLeftMenu_x+subMenuLeft, y, mtLeftMenu_w-subMenuLeft*2, subMenuHight, frameColor, bgCol)
+		N:paintVLine(mtLeftMenu_x+subMenuLeft+subMenuHight, y, subMenuHight, frameColor)
+		N:RenderString(useDynFont, fontLeftMenu1, txt1,
 				mtLeftMenu_x+subMenuLeft+subMenuHight+subMenuHight/3, y+subMenuHight, txtCol, mtLeftMenu_w-subMenuHight-subMenuLeft*2, subMenuHight, 0)
 
 		buttonCol_x = mtLeftMenu_x+subMenuLeft+(subMenuHight-buttonCol_w)/2
 		buttonCol_y = y+(subMenuHight-buttonCol_h)/2
-		n:DisplayImage(btn, buttonCol_x, buttonCol_y, buttonCol_w, buttonCol_h, 1)
+		N:DisplayImage(btn, buttonCol_x, buttonCol_y, buttonCol_w, buttonCol_h, 1)
 
 		y = y + subMenuHight
-		gui.paintSimpleFrame(mtLeftMenu_x+subMenuLeft, y, mtLeftMenu_w-subMenuLeft*2, subMenuHight, frameColor, bgCol)
+		G.paintSimpleFrame(mtLeftMenu_x+subMenuLeft, y, mtLeftMenu_w-subMenuLeft*2, subMenuHight, frameColor, bgCol)
 --		if (enabled == true) then
-			n:RenderString(useDynFont, fontLeftMenu2, txt2, 
+			N:RenderString(useDynFont, fontLeftMenu2, txt2,
 					mtLeftMenu_x+subMenuLeft, y+subMenuHight, txtCol, mtLeftMenu_w-subMenuLeft*2, subMenuHight, 1)
 --		end
 	end
@@ -349,7 +349,7 @@ end
 
 function hideMtWindow()
 	h_mtWindow:hide()
-	n:PaintBox(0, 0, SCREEN.X_RES, SCREEN.Y_RES, COL.BACKGROUND)
+	N:PaintBox(0, 0, SCREEN.X_RES, SCREEN.Y_RES, COL.BACKGROUND)
 
 end
 
@@ -396,7 +396,7 @@ function startMediathek()
 	h_mtWindow = newMtWindow()
 
 	repeat
-		local msg, data = n:GetInput(500)
+		local msg, data = N:GetInput(500)
 
 		if (msg == RC.down) then
 			local select_old = mtRightMenu_select

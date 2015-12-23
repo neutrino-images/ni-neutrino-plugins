@@ -6,14 +6,14 @@ function checkKillKey(msg)
 	if (msg == RC.tv) or (msg == RC.radio) then
 		forcePluginExit = true
 	elseif (msg == RC.standby) then
-		misc:postMsg(POSTMSG.STANDBY_ON)
+		M:postMsg(POSTMSG.STANDBY_ON)
 		forcePluginExit = true
 	end
 end
 
 function killPlugin(id)
 	if (id == "standby") then
-		misc:postMsg(POSTMSG.STANDBY_ON)
+		M:postMsg(POSTMSG.STANDBY_ON)
 	end
 	forcePluginExit = true
 	menuRet = MENU_RETURN.EXIT_ALL
@@ -47,7 +47,7 @@ function downloadFile(Url, file, hideBox)
 		v = true
 	end
 	if (dlDebug == true) then
-		helpers.printf( "\n" ..
+		H.printf( "\n" ..
 				"download  url: %s\n" ..
 				"         file: %s\n" ..
 				"     ipv4only: %s\n" ..
@@ -60,7 +60,7 @@ function downloadFile(Url, file, hideBox)
 	local ret, data = Curl:download{ url=Url, o=file, A=user_agent, ipv4=v4, s=s, v=v }
 
 	if (hideBox == true) then
-		gui.hideInfoBox(box)
+		G.hideInfoBox(box)
 		box = nil
 	end
 	if ret == CURL.OK then
@@ -77,13 +77,13 @@ function PlayMovie(title, url, info1, info2)
 		os.execute("pzapit -unmute")
 	end
 
-	local status = video:PlayFile(title, url, info1, info2)
+	local status = V:PlayFile(title, url, info1, info2)
 	if status == PLAYSTATE.LEAVE_ALL then forcePluginExit = true end
-	misc:enableInfoClock(false)
+	M:enableInfoClock(false)
 
 --	collectgarbage();
 	os.execute("pzapit -mute")
-	video:ShowPicture(backgroundImage)
+	V:ShowPicture(backgroundImage)
 	moviePlayed = true
 end
 
@@ -126,7 +126,7 @@ function autoLineBreak(str, len, font)
 	if (not font) then return nil end
 
 	local function checkLen(str, font)
-		return n:getRenderWidth(useDynFont, font, str)
+		return N:getRenderWidth(useDynFont, font, str)
 	end
 
 	local ret = {}
@@ -136,7 +136,7 @@ function autoLineBreak(str, len, font)
 		return ret
 	end
 
-	local words = helpers.split(str, " ")
+	local words = H.split(str, " ")
 	local lines = 1
 	local tmpStr = ""
 	local i
@@ -160,24 +160,24 @@ function autoLineBreak(str, len, font)
 end
 
 function adjustStringLen(str, len, font)
-	local w = n:getRenderWidth(useDynFont, font, str)
+	local w = N:getRenderWidth(useDynFont, font, str)
 	if (w <= len) then
 		return str
 	else
 		local z = "..."
-		local wz = n:getRenderWidth(useDynFont, font, z)
+		local wz = N:getRenderWidth(useDynFont, font, z)
 		if (len <= 2*wz) then return str end
 		str = string.sub(str, 1, #str-2)
 		while (w+wz > len) do
 			str = string.sub(str, 1, #str-1)
-			w = n:getRenderWidth(useDynFont, font, str)
+			w = N:getRenderWidth(useDynFont, font, str)
 		end
 		return str .. z
 	end
 end
 
 function createCacheFileName(url, ext)
-	local d = video:createChannelIDfromUrl(url);
+	local d = V:createChannelIDfromUrl(url);
 	d = string.gsub(d, "ffffffff", "")
 	return pluginTmpPath .. "/data_" .. d .. "." .. ext
 end
@@ -212,7 +212,7 @@ function decodeImage(b64Data, imgTyp, path)
 	os.remove(tmpImg)
 	local f = io.open(retImg, "w+")
 	if f ~= nil then
-		f:write(helpers.base64Dec(b64Data))
+		f:write(H.base64Dec(b64Data))
 		f:close()
 	else
 		print("Create image ["..retImg.."] failed.")
@@ -223,44 +223,44 @@ function decodeImage(b64Data, imgTyp, path)
 end
 
 function saveFullScreen()
-	return n:saveScreen(0, 0, SCREEN.X_RES, SCREEN.Y_RES);
+	return N:saveScreen(0, 0, SCREEN.X_RES, SCREEN.Y_RES);
 end
 
 function restoreFullScreen(screen, del)
-	n:restoreScreen(0, 0, SCREEN.X_RES, SCREEN.Y_RES, screen, del);
+	N:restoreScreen(0, 0, SCREEN.X_RES, SCREEN.Y_RES, screen, del);
 end
 
 function setFonts()
 	if (useDynFont == false) then error("Failed to create fonts.") end
 	local fontError = 0;
 	if (fontMainMenu == nil) then
-		fontMainMenu, fontError = n:getDynFont(0, conf.guiMainMenuSize)
-		fontMainMenu_h = n:FontHeight(useDynFont, fontMainMenu)
+		fontMainMenu, fontError = N:getDynFont(0, conf.guiMainMenuSize)
+		fontMainMenu_h = N:FontHeight(useDynFont, fontMainMenu)
 	end
 	if (fontMiniInfo == nil) then
-		fontMiniInfo, fontError = n:getDynFont(0, 26)
-		fontMiniInfo_h = n:FontHeight(useDynFont, fontMiniInfo)
+		fontMiniInfo, fontError = N:getDynFont(0, 26)
+		fontMiniInfo_h = N:FontHeight(useDynFont, fontMiniInfo)
 	end
 	if (fontLeftMenu1 == nil) then
-		fontLeftMenu1, fontError = n:getDynFont(0, 24)
-		fontLeftMenu1_h = n:FontHeight(useDynFont, fontLeftMenu1)
+		fontLeftMenu1, fontError = N:getDynFont(0, 24)
+		fontLeftMenu1_h = N:FontHeight(useDynFont, fontLeftMenu1)
 	end
 	if (fontLeftMenu2 == nil) then
-		fontLeftMenu2, fontError = n:getDynFont(0, 26, "", DYNFONT.STYLE_BOLD)
-		fontLeftMenu2_h = n:FontHeight(useDynFont, fontLeftMenu2)
+		fontLeftMenu2, fontError = N:getDynFont(0, 26, "", DYNFONT.STYLE_BOLD)
+		fontLeftMenu2_h = N:FontHeight(useDynFont, fontLeftMenu2)
 	end
 end
 
 function paintMiniInfoBox(txt)
-	local _w = n:getRenderWidth(useDynFont, fontMiniInfo, txt)
-	local _h = n:FontHeight(useDynFont, fontMiniInfo)
+	local _w = N:getRenderWidth(useDynFont, fontMiniInfo, txt)
+	local _h = N:FontHeight(useDynFont, fontMiniInfo)
 	local dx = _w + 40
 	local dy = _h
 	local x = ((SCREEN.END_X - SCREEN.OFF_X) - dx) / 2
 	local y = ((SCREEN.END_Y - SCREEN.OFF_Y) - dy) / 2
-	local ib = gui.paintMiniInfoBox("", dx, dy)
+	local ib = G.paintMiniInfoBox("", dx, dy)
 	local col_text = COL.MENUCONTENTSELECTED_TEXT
-	n:RenderString(useDynFont, fontMiniInfo, txt, x, y+dy, col_text, dx, dy, 1)
+	N:RenderString(useDynFont, fontMiniInfo, txt, x, y+dy, col_text, dx, dy, 1)
 	return ib
 end
 

@@ -21,7 +21,7 @@ function paintMovieInfo()
 	local frame_y = y + space_y
 	local frame_w = box_w - 2*space_x
 	local frame_h = real_h - 2*space_y
-	gui.paintSimpleFrame(frame_x, frame_y, frame_w, frame_h,
+	G.paintSimpleFrame(frame_x, frame_y, frame_w, frame_h,
 			COL.MENUCONTENT_TEXT, 0)
 
 	local function paintInfoItem(_x, _y, info1, info2, frame)
@@ -29,12 +29,12 @@ function paintMovieInfo()
 		local tmp2_h = fontLeftMenu2_h+4
 		local _y1 = _y
 		local _y = _y+fontLeftMenu1_h+10
-		n:RenderString(useDynFont, fontLeftMenu1, info1, _x+14, _y,
+		N:RenderString(useDynFont, fontLeftMenu1, info1, _x+14, _y,
 				COL.MENUCONTENT_TEXT, frame_w, tmp1_h, 0)
 		_y = _y + tmp1_h+0
 
 		if type(info2) ~= "table" then
-			n:RenderString(useDynFont, fontLeftMenu2, info2, _x+12+10, _y,
+			N:RenderString(useDynFont, fontLeftMenu2, info2, _x+12+10, _y,
 					COL.MENUCONTENT_TEXT, frame_w, tmp2_h, 0)
 		else
 			local maxLines = 4
@@ -43,14 +43,14 @@ function paintMovieInfo()
 			local i = 1
 			for i=1, lines do
 				local txt = string.gsub(info2[i],"\n", " ");
-				n:RenderString(useDynFont, fontLeftMenu2, txt, _x+12+10, _y,
+				N:RenderString(useDynFont, fontLeftMenu2, txt, _x+12+10, _y,
 						COL.MENUCONTENT_TEXT, frame_w, tmp2_h, 0)
 				_y = _y + tmp2_h
 			end
 			_y = _y - tmp2_h
 		end
 		if (frame == true) then
-			gui.paintSimpleFrame(_x+8, _y1+6, frame_w-16, _y-_y1, COL.MENUCONTENT_TEXT, 0)
+			G.paintSimpleFrame(_x+8, _y1+6, frame_w-16, _y-_y1, COL.MENUCONTENT_TEXT, 0)
 		end
 		return _y
 	end
@@ -113,11 +113,11 @@ function paintMovieInfo()
 		paintInfoItem(frame_x+frame_w/2, bottom_y, "Geoblocking", txt, false)
 
 	repeat
-		local msg, data = n:GetInput(500)
+		local msg, data = N:GetInput(500)
 		if (msg == RC.info) then
 		end
 		-- exit plugin
 		checkKillKey(msg)
 	until msg == RC.red or msg == RC.home or forcePluginExit == true;
-	gui.hideInfoBox(box)
+	G.hideInfoBox(box)
 end

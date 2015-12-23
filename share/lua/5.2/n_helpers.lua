@@ -200,7 +200,8 @@ function H.tprintFile (f, tbl, indent)
 end
 
 function H.fileExist(file)
-	if posix.access(file, f) == nil then return false end
+	if P == nil then P = posix end
+	if P.access(file, f) == nil then return false end
 	return true
 end
 
@@ -235,11 +236,13 @@ function H.checkModulVersion(version)
 end
 
 function H.scriptPath()
-	return posix.dirname(debug.getinfo(2, "S").source:sub(2));
+	if P == nil then P = posix end
+	return P.dirname(debug.getinfo(2, "S").source:sub(2));
 end
 
 function H.scriptBase()
-	local name = posix.basename(debug.getinfo(2, "S").source:sub(2));
+	if P == nil then P = posix end
+	local name = P.basename(debug.getinfo(2, "S").source:sub(2));
 	return string.sub(name, 1, #name-4)
 end
 

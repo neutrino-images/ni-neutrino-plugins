@@ -26,12 +26,12 @@ function paintMainMenu(frame, frameColor, textColor, info, count)
 	local w1 = 0
 	local w = 0
 	for i = 1, count do
-		local wText1 = n:getRenderWidth(useDynFont, fontText, info[i][1])
+		local wText1 = N:getRenderWidth(useDynFont, fontText, info[i][1])
 		if wText1 > w1 then w1 = wText1 end
-		local wText2 = n:getRenderWidth(useDynFont, fontText, info[i][2])
+		local wText2 = N:getRenderWidth(useDynFont, fontText, info[i][2])
 		if wText2 > w then w = wText2 end
 	end
-	local h = n:getRenderWidth(useDynFont, fontText, "222")
+	local h = N:getRenderWidth(useDynFont, fontText, "222")
 	w1 = w1+10
 	w  = w+w1*2
 
@@ -56,10 +56,10 @@ function paintMainMenu(frame, frameColor, textColor, info, count)
 			goto continue
 		end
 
-		gui.paintSimpleFrame(x, y, w, h, frameColor, bg)
-		n:paintVLine(x+w1, y, h, frameColor)
-		n:RenderString(useDynFont, fontText, info[i][1], x, y+h, txtC, w1, h, 1)
-		n:RenderString(useDynFont, fontText, info[i][2], x+w1+w1/4, y+h, txtC, w-w1, h, 0)
+		G.paintSimpleFrame(x, y, w, h, frameColor, bg)
+		N:paintVLine(x+w1, y, h, frameColor)
+		N:RenderString(useDynFont, fontText, info[i][1], x, y+h, txtC, w1, h, 1)
+		N:RenderString(useDynFont, fontText, info[i][2], x+w1+w1/4, y+h, txtC, w-w1, h, 0)
 
 		::continue::
 	end
@@ -75,7 +75,7 @@ end
 
 function hideMainWindow()
 	h_mainWindow:hide()
-	n:PaintBox(0, 0, SCREEN.X_RES, SCREEN.Y_RES, COL.BACKGROUND)
+	N:PaintBox(0, 0, SCREEN.X_RES, SCREEN.Y_RES, COL.BACKGROUND)
 
 end
 
@@ -96,7 +96,7 @@ function newMainWindow()
 	end
 
 	local ret = cwindow.new{x=x, y=y, dx=w, dy=h, color_body=bgCol, show_header=showHeader, show_footer=false, name=pluginName .. " - v" .. pluginVersion, icon=pluginIcon};
-	gui.hideInfoBox(startBox)
+	G.hideInfoBox(startBox)
 	paintMainWindow(false, ret)
 	mainScreen = saveFullScreen()
 	return ret
@@ -107,7 +107,7 @@ function mainWindow()
 	h_mainWindow = newMainWindow()
 
 	repeat
-		local msg, data = n:GetInput(500)
+		local msg, data = N:GetInput(500)
 		-- start
 		if (msg == RC.ok) then
 			startMediathek()
@@ -136,18 +136,18 @@ end
 -- ###########################################################################################
 
 function beforeStart()
-	video:zapitStopPlayBack()
-	video:ShowPicture(backgroundImage)
+	V:zapitStopPlayBack()
+	V:ShowPicture(backgroundImage)
 	os.execute("pzapit -mute")
 end
 
 function afterStop()
 	hideMainWindow()
 	if (moviePlayed == false) then
-		video:channelRezap()
+		V:channelRezap()
 	end
-	local rev, box = n:GetRevision()
-	if box ~= nil and box == "Spark" then video:StopPicture() end
+	local rev, box = N:GetRevision()
+	if box ~= nil and box == "Spark" then V:StopPicture() end
 	os.execute("pzapit -unmute")
 end
 

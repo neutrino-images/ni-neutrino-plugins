@@ -9,13 +9,13 @@ function parse_m3u8Data(url, parse_mode)
 	local fp, s;
 	fp = io.open(m3u8Data, "r");
 	if fp == nil then
-		gui.hideInfoBox(box)
+		G.hideInfoBox(box)
 		error("Error connecting url.")
 	end;
 	local count = 1;
 	for line in fp:lines() do
-		line = helpers.trim(line);
-		local found = n:strFind(line, EXT_X_STREAM_INF);
+		line = H.trim(line);
+		local found = N:strFind(line, EXT_X_STREAM_INF);
 		if (found ~= nil) then
 			local a, b, c
 			local bandwidth = 0;
@@ -34,10 +34,10 @@ function parse_m3u8Data(url, parse_mode)
 			end
 			if c ~= nil then
 				c = string.gsub(c, "\"", "")
-				codec = helpers.split(c, ",")
+				codec = H.split(c, ",")
 				local i
 				for i = 1, #codec do
-					codec[i] = helpers.trim(codec[i])
+					codec[i] = H.trim(codec[i])
 				end
 			end
 			if (count > 1) then
@@ -55,12 +55,12 @@ function parse_m3u8Data(url, parse_mode)
 			if ((count > 1) and (#line > 2)) then
 				-- url
 				if (parse_mode == 1) then
-					local found = n:strFind(line, "http");
+					local found = N:strFind(line, "http");
 					if (found == nil) then
-						found = n:strFind(line, "rtmp");
+						found = N:strFind(line, "rtmp");
 					end
 					if (found == nil or (found ~= nil and found ~= 0)) then
-						line = posix.dirname(url) .. "/" .. line
+						line = P.dirname(url) .. "/" .. line
 					end
 					streamInfo[count-1]['url'] = line
 				elseif (parse_mode == 2) then
@@ -72,7 +72,7 @@ function parse_m3u8Data(url, parse_mode)
 	end
 
 	fp:close();
-	gui.hideInfoBox(box)
+	G.hideInfoBox(box)
 	return streamInfo;
 end
 
@@ -131,8 +131,8 @@ function get_m3u8url(url, parse_mode)
 		end
 	end
 
---	helpers.tprint(si)
---	helpers.printf("minBW: %d, maxBW: %d, tmpBW: %d", minBW, maxBW, tmpBW)
+--	H.tprint(si)
+--	H.printf("minBW: %d, maxBW: %d, tmpBW: %d", minBW, maxBW, tmpBW)
 
 	if (conf.streamQuality == "max") then
 		-- max

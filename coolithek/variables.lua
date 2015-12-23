@@ -4,8 +4,8 @@ function initLocale()
 	l.key = {}
 
 	local language_default = "english"
-	local language = neutrino_conf:getString("language", language_default)
-	if language == nil or (helpers.fileExist(pluginScriptPath .. "/locale/" .. language .. ".lua") == false) then
+	local language = N:GetLanguage()
+	if language == nil or language == "" or (H.fileExist(pluginScriptPath .. "/locale/" .. language .. ".lua") == false) then
 		language = language_default
 	end
 
@@ -13,11 +13,11 @@ function initLocale()
 end
 
 function initVars()
-	pluginVersion	= "0.2beta-9"
-	pluginName	= "Coolithek"
+	pluginVersion		= "0.2beta-9"
+	pluginName		= "Coolithek"
 
-	noCacheFiles	= false
-	dlDebug		= false
+	noCacheFiles		= false
+	dlDebug			= false
 
 	forcePluginExit		= false
 	Curl			= nil
@@ -73,7 +73,7 @@ function initVars()
 	fillMainMenuEntry(l.empty,	l.empty)
 	fillMainMenuEntry(l.key.exit,	l.exit_program)
 
-	if (helpers.fileExist(pluginScriptPath .. "/local.lua") == true) then
+	if (H.fileExist(pluginScriptPath .. "/local.lua") == true) then
 		-- locale settings for testing
 		dofile(pluginScriptPath .. "/local.lua");
 	end
