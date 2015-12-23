@@ -127,6 +127,14 @@ function mainWindow()
 		if (msg == RC.info) then
 			getVersionInfo()
 		end
+		-- for testing
+		if (msg == RC.rewind) then
+		end
+		if (msg == RC.www) then
+			if timerThread ~= nil then
+				timerThread:cancel()
+			end
+		end
 		-- exit plugin
 		checkKillKey(msg)
 	until msg == RC.home or msg == RC.stop or forcePluginExit == true;
@@ -147,6 +155,9 @@ function beforeStart()
 	volumeNeutrino = M:getVolume()
 	M:enableMuteIcon(false)
 	M:AudioMute(true, false)
+
+--	timerThread = threads.new(_timerThread)
+--	timerThread:start()
 end
 
 function afterStop()
@@ -154,23 +165,40 @@ function afterStop()
 	if (moviePlayed == false) then
 		V:channelRezap()
 	end
-	local rev, box = N:GetRevision()
-	if box ~= nil and box == "Spark" then V:StopPicture() end
+	local rev, box = M:GetRevision()
+	if rev == 1 and box == "Spark" then V:StopPicture() end
 
 	M:enableMuteIcon(true)
 	M:AudioMute(muteStatusNeutrino, true)
 	M:setVolume(volumeNeutrino)
+
+	if timerThread ~= nil then
+		local ok = timerThread:cancel()
+		H.printf("timerThread cancel ok: %s", tostring(ok))
+		ok = thread:join()
+		H.printf("timerThread join ok: %s", tostring(ok))
+	end
 end
 
-initLocale();
-initVars();
-beforeStart()
-loadConfig();
-setFonts();
-startBox = paintMiniInfoBox("Starte Plugin");
-createImages();
-mainWindow();
-_saveConfig(true);
-afterStop()
+--local _timerThread = [[
+--	while (true) do
+--	end
+--	return 1
+--]]
+
+function main()
+	initLocale();
+	initVars();
+	beforeStart()
+	loadConfig();
+	setFonts();
+	startBox = paintMiniInfoBox("Starte Plugin");
+	createImages();
+	mainWindow();
+	_saveConfig(true);
+	afterStop()
+end
+
+main()
 
 -- ###########################################################################################

@@ -71,17 +71,44 @@ function downloadFile(Url, file, hideBox)
 end
 
 function PlayMovie(title, url, info1, info2)
-	M:AudioMute(muteStatusPlugin, true)
+
+	local function muteSleep(mute, wait)
+		local threadFunc = [[
+			local t = ...
+			local P = require "posix"
+			print(string.format(">>>>>[muteSleep] set AudioMute to %s, wait %d sec", tostring(t._mute), t._wait))
+			P.sleep(t._wait)
+			M = misc.new()
+			M:AudioMute(t._mute, true)
+			return 1
+		]]
+		local mt = threads.new(threadFunc, {_mute=mute, _wait=wait})
+		mt:start()
+		return mt
+	end
+
+	local muteThread;
+	if (moviePlayed == false) then
+		volumePlugin = M:getVolume()
+		muteThread = muteSleep(muteStatusPlugin, 1)
+	else
+		M:AudioMute(muteStatusPlugin, true)
+		M:setVolume(volumePlugin)
+	end
 
 	local status = V:PlayFile(title, url, info1, info2)
 	if status == PLAYSTATE.LEAVE_ALL then forcePluginExit = true end
 
 	muteStatusPlugin = M:isMuted()
+	volumePlugin = M:getVolume()
 	M:enableMuteIcon(false)
 	M:enableInfoClock(false)
 
 	V:ShowPicture(backgroundImage)
 	moviePlayed = true
+	if muteThread ~= nil then
+		muteThread:join()
+	end
 end
 
 function debugPrint(msg)
