@@ -48,6 +48,9 @@ function initVars()
 	fontLeftMenu1		= nil;
 	fontLeftMenu2		= nil;
 
+	h_mtWindow		= nil
+	mtScreen		= nil
+
 	mainScreen		= 0
 	moviePlayed		= false
 

@@ -354,22 +354,22 @@ function hideMtWindow()
 end
 
 function newMtWindow()
-	local x = SCREEN.OFF_X
-	local y = SCREEN.OFF_Y
-	local w = SCREEN.END_X - x
-	local h = SCREEN.END_Y - y
+	if h_mtWindow == nil then
+		local x = SCREEN.OFF_X
+		local y = SCREEN.OFF_Y
+		local w = SCREEN.END_X - x
+		local h = SCREEN.END_Y - y
 
-	local transp = false
-	local bgCol = COL.MENUCONTENT_PLUS_0
-	if (transp == true) then
-		bgCol = bit32.band(0x00FFFFFF, bgCol)
-		bgCol = bit32.bor(0xA0000000, bgCol)
+		local transp = false
+		local bgCol = COL.MENUCONTENT_PLUS_0
+		if (transp == true) then
+			bgCol = bit32.band(0x00FFFFFF, bgCol)
+			bgCol = bit32.bor(0xA0000000, bgCol)
+		end
+		h_mtWindow = cwindow.new{x=x, y=y, dx=w, dy=h, color_body=bgCol, show_footer=false, name=pluginName .. " - v" .. pluginVersion, icon=pluginIcon};
 	end
-
-	h_mtWindow = cwindow.new{x=x, y=y, dx=w, dy=h, color_body=bgCol, show_footer=false, name=pluginName .. " - v" .. pluginVersion, icon=pluginIcon};
 	paintMtWindow(false)
-	mtScreen = saveFullScreen()
-	return h_mtWindow;
+--	mtScreen = saveFullScreen()
 end
 
 function startMediathek()
@@ -393,7 +393,7 @@ function startMediathek()
 	fillLeftMenuEntry("min. Sendungsdauer",	md,				btn1,      true, true)
 	fillLeftMenuEntry("Sortieren",		"Datum",			btn2,      true, false)
 
-	h_mtWindow = newMtWindow()
+	newMtWindow()
 
 	repeat
 		local msg, data = N:GetInput(500)
