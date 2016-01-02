@@ -15,7 +15,7 @@ function parse_m3u8Data(url, parse_mode)
 	local count = 1;
 	for line in fp:lines() do
 		line = H.trim(line);
-		local found = N:strFind(line, EXT_X_STREAM_INF);
+		local found = M:strFind(line, EXT_X_STREAM_INF);
 		if (found ~= nil) then
 			local a, b, c
 			local bandwidth = 0;
@@ -55,9 +55,9 @@ function parse_m3u8Data(url, parse_mode)
 			if ((count > 1) and (#line > 2)) then
 				-- url
 				if (parse_mode == 1) then
-					local found = N:strFind(line, "http");
+					local found = M:strFind(line, "http");
 					if (found == nil) then
-						found = N:strFind(line, "rtmp");
+						found = M:strFind(line, "rtmp");
 					end
 					if (found == nil or (found ~= nil and found ~= 0)) then
 						line = P.dirname(url) .. "/" .. line
