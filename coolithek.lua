@@ -7,8 +7,12 @@ if ((APIVERSION.MAJOR < req_major) or (APIVERSION.MAJOR == req_major and APIVERS
 	N:checkVersion(req_major, req_minor);
 end
 
-function loadLuaLib(lib)
+function loadLuaLib(lib, noerror)
 	local status, data = pcall(require, lib)
+	if noerror == true then
+		if status == true then return data
+		else return nil end
+	end
 	if status == true then return data
 	else
 		error("lua library  not found: \"" .. lib .. "[.so|.lua]\"")
@@ -21,6 +25,7 @@ J   = loadLuaLib("json")
 P   = loadLuaLib("posix")
 G   = loadLuaLib("n_gui")
 H   = loadLuaLib("n_helpers")
+ZMQ = loadLuaLib("lzmq", true)
 
 -- define global paths
 pluginScriptPath = H.scriptPath() .. "/" .. H.scriptBase();
