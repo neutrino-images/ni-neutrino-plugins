@@ -1,6 +1,6 @@
 --[[
 	GUI functions for lua
-	Copyright (C) 2014-2015, Michael Liebmann 'micha-bbg'
+	Copyright (C) 2014-2016, Michael Liebmann 'micha-bbg'
 
 	License: GPL
 
@@ -20,7 +20,7 @@
 	Boston, MA  02110-1301, USA.
 ]]
 
-local VERSION = 20151124.01
+local VERSION = 20160102.01
 
 --[[
 load the modul:
@@ -73,7 +73,7 @@ end
 
 function G.hideInfoBox(h)
 	if h ~= nil then
-		h:hide{no_restore=true}
+		h:hide()
 		h = nil
 	end
 end
