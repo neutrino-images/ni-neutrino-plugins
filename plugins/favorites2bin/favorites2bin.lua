@@ -50,8 +50,15 @@ function file_exists(name)
 	end
 end
 
-function set_dest(value)
-	dest=value
+if APIVERSION ~=nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 24 )) then
+	function set_dest(id,value)
+		dest=value
+	end
+
+else
+	function set_dest(value)
+		dest=value
+	end
 end
 
 function create(file)

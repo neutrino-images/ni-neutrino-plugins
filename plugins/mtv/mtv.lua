@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.de Version 0.8" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.9" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -621,9 +621,16 @@ function mtv_liste(id)
 	return MENU_RETURN.EXIT_REPAINT
 end
 
-function set_path(value)
-	conf.path=value
-	conf.changed = true
+if APIVERSION ~=nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 24 )) then
+	function set_path(id,value)
+		conf[id]=value
+		conf.changed = true
+	end
+else
+	function set_path(value)
+		conf.path=value
+		conf.changed = true
+	end
 end
 
 function set_option(k, v)
