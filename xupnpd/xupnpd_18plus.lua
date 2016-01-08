@@ -58,7 +58,8 @@ function youporn_updatefeed(feed,friendly_name)
             if cfg.debug>0 then print('YouPorn try url '..url) end
 
             local feed_data=http.download(url)
-	    local skipto = feed_data.find(feed_data, "sidebarLists")
+
+	    local skipto = feed_data.find(feed_data, "<div class='container'>")
 	    if skipto and #feed_data > skipto then
 		feed_data = string.sub(feed_data,skipto,#feed_data)
 	    end
@@ -66,7 +67,7 @@ function youporn_updatefeed(feed,friendly_name)
             if feed_data  and anythingtoparse then
                 local n=0
 		for entry in feed_data:gmatch("<div class=(.-)</div>") do
-		    local urn,name,logo = string.match(entry,'<a%s+href="(/watch/.-)".-title="(.-)">.-<img%s+src="(.-)".-</a>')
+		    local urn,name,logo = string.match(entry,'<a%s+href="(/watch/.-)".-title="(.-)"%s->.-<img%s+src="(.-)".-</a>')
 		    if urn then
 			local m=string.find(urn,'?',1,true)
 			if m then urn=urn:sub(1,m-1) end
@@ -82,23 +83,21 @@ function youporn_updatefeed(feed,friendly_name)
 		    end
 		end
 
-                if n<1 then page=cfg.youporn_max_pages end
+		if n<1 then page=cfg.youporn_max_pages end
 
-                feed_data=nil
-            end
-
-            page=page+1
+		feed_data=nil
+	     end
+	page=page+1
         end
-
         dfd:close()
 
         if util.md5(tmp_m3u_path)~=util.md5(feed_m3u_path) then
-            if os.execute(string.format('mv %s %s',tmp_m3u_path,feed_m3u_path))==0 then
-                if cfg.debug>0 then print('YouPorn feed \''..feed_name..'\' updated') end
-                rc=true
-            end
-        else
-            util.unlink(tmp_m3u_path)
+		if os.rename(tmp_m3u_path, feed_m3u_path) then
+			rc=true
+		end
+		util.unlink(tmp_m3u_path)
+
+		if cfg.debug>0 then print('YouPorn feed \''..feed_name..'\' updated') end
         end
     end
 
