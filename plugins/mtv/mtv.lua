@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.de Version 0.9" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.10" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -212,13 +212,13 @@ end
 function getvideourl(url,vidname,tok,typ)
 	if url == nil then return nil end
 	local video_url = nil
-	if typ == "music_video" and tok  ~= nil then
+	if typ ~= "arc" and tok  ~= nil then
 		url = 'http://intl.esperanto.mtvi.com/www/xml/media/mediaGen.jhtml?uri=mgid:uma:video:mtv.de:' .. tok
 	end
 	local clip_page = getdata(url)
 	if clip_page == nil then return nil end
 
-	if typ == "music_video" and tok  ~= nil then
+	if typ ~= "arc" and tok  ~= nil then
 		video_url  = clip_page:match("<src>(.-)</src>")
 		print(video_url)
 	else
