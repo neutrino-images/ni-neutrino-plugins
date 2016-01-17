@@ -1,5 +1,5 @@
 
-function paintMovieInfo()
+function paintMovieInfo(isMP, res, ratio, rate)
 
 	local box_w	= 860
 	local box_h	= 520
@@ -68,7 +68,7 @@ function paintMovieInfo()
 	-- date
 	start_y = start_y + step
 	txt = mtList[mtRightMenu_select].date .. " / " .. mtList[mtRightMenu_select].time
-	paintInfoItem(frame_x, start_y, "Datum / Zeit", txt, true)
+	paintInfoItem(frame_x, start_y, "Sendezeit", txt, true)
 		-- duration
 		txt = mtList[mtRightMenu_select].duration
 		start_y = paintInfoItem(frame_x+frame_w/2, start_y, "Dauer", txt, false)
@@ -83,30 +83,36 @@ function paintMovieInfo()
 	-- qual
 	start_y = start_y + step
 	local bottom_y = y+real_h-hh-fontLeftMenu1_h-fontLeftMenu2_h+0
-	txt = ""
-	local flag_max = false
-	local flag_normal = false
-	local flag_min = false
-	if (mtList[mtRightMenu_select].url_hd ~= "") then flag_max = true end
-	if (mtList[mtRightMenu_select].url ~= "") then flag_normal = true end
-	if (mtList[mtRightMenu_select].url_small ~= "") then flag_min = true end
-	if (flag_max == true) then
-		txt = "Maximal"
-		if ((flag_normal == true) or (flag_min == true)) then
-			txt = txt .. ", "
-		end
-	end
-	if (flag_normal == true) then
-		txt = txt .. "Normal"
-		if (flag_min == true) then
-			txt = txt .. ", "
-		end
-	end
-	if (flag_min == true) then
-		txt = txt .. "Minimal"
-	end
 
-	paintInfoItem(frame_x, bottom_y, "verfügbare Streamqualität", txt, true)
+	if (isMP == true) then
+		txt = string.format("%s, %s, %s", res, ratio, rate)
+		paintInfoItem(frame_x, bottom_y, "Streaminfo", txt, true)
+	else
+		txt = ""
+		local flag_max = false
+		local flag_normal = false
+		local flag_min = false
+		if (mtList[mtRightMenu_select].url_hd ~= "") then flag_max = true end
+		if (mtList[mtRightMenu_select].url ~= "") then flag_normal = true end
+		if (mtList[mtRightMenu_select].url_small ~= "") then flag_min = true end
+		if (flag_max == true) then
+			txt = "Maximal"
+			if ((flag_normal == true) or (flag_min == true)) then
+				txt = txt .. ", "
+			end
+		end
+		if (flag_normal == true) then
+			txt = txt .. "Normal"
+			if (flag_min == true) then
+				txt = txt .. ", "
+			end
+		end
+		if (flag_min == true) then
+			txt = txt .. "Minimal"
+		end
+
+		paintInfoItem(frame_x, bottom_y, "verfügbare Streamqualitäten", txt, true)
+	end
 		-- geo
 		start_y = start_y + step
 		txt = mtList[mtRightMenu_select].geo
@@ -120,4 +126,49 @@ function paintMovieInfo()
 		checkKillKey(msg)
 	until msg == RC.red or msg == RC.home or forcePluginExit == true;
 	G.hideInfoBox(box)
+end
+
+function getStreamData(xres, yres, aspectRatio, framerate)
+	local res, ratio, rate;
+
+	res = string.format("%sx%s", tostring(xres), tostring(yres))
+	local r = tonumber(aspectRatio)
+	if (r == 1) then
+		ratio = "4:3"
+	elseif (r == 2) then
+		ratio = "14:9"
+	elseif (r == 3) then
+		ratio = "16:9"
+	elseif (r == 4) then
+		ratio = "20:9"
+	else
+		ratio = "N/A"
+	end
+	r = tonumber(framerate)
+	if (r == 0) then
+		rate = "23.976fps"
+	elseif (r == 1) then
+		rate = "24fps"
+	elseif (r == 2) then
+		rate = "25fps"
+	elseif (r == 3) then
+		rate = "29,976fps"
+	elseif (r == 4) then
+		rate = "30fps"
+	elseif (r == 5) then
+		rate = "50fps"
+	elseif (r == 6) then
+		rate = "50,94fps"
+	elseif (r == 7) then
+		rate = "60fps"
+	else
+		rate = "N/A"
+	end
+
+	return res, ratio, rate
+end
+
+function movieInfoMP(xres, yres, aspectRatio, framerate)
+	local res, ratio, rate = getStreamData(xres, yres, aspectRatio, framerate)
+	paintMovieInfo(true, res, ratio, rate)
 end

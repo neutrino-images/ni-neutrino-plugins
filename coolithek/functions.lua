@@ -96,6 +96,8 @@ function PlayMovie(title, url, info1, info2)
 		M:setVolume(volumePlugin)
 	end
 
+	V:setInfoFunc("movieInfoMP")
+
 	local status = V:PlayFile(title, url, info1, info2)
 	if status == PLAYSTATE.LEAVE_ALL then forcePluginExit = true end
 
