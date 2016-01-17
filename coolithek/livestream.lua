@@ -36,7 +36,7 @@ function playLivestream(_id)
 	hideMenu(m_live)
 	hideMainWindow()
 
-	PlayMovie(title, url, msg1, url)
+	PlayMovie(title, url, msg1, url, false)
 
 	if forcePluginExit == true then
 		menuRet = MENU_RETURN.EXIT_ALL

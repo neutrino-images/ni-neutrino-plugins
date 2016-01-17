@@ -62,7 +62,7 @@ function playVideo()
 
 	local screen = saveFullScreen()
 	hideMtWindow()
-	PlayMovie(mtList[mtRightMenu_select].title, url, mtList[mtRightMenu_select].theme, url);
+	PlayMovie(mtList[mtRightMenu_select].title, url, mtList[mtRightMenu_select].theme, url, true);
 	restoreFullScreen(screen, true)
 end
 

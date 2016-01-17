@@ -70,7 +70,7 @@ function downloadFile(Url, file, hideBox)
 	end
 end
 
-function PlayMovie(title, url, info1, info2)
+function PlayMovie(title, url, info1, info2, enableMovieInfo)
 
 	local function muteSleep(mute, wait)
 		local threadFunc = [[
@@ -96,7 +96,9 @@ function PlayMovie(title, url, info1, info2)
 		M:setVolume(volumePlugin)
 	end
 
-	V:setInfoFunc("movieInfoMP")
+	if enableMovieInfo == true then
+		V:setInfoFunc("movieInfoMP")
+	end
 
 	local status = V:PlayFile(title, url, info1, info2)
 	if status == PLAYSTATE.LEAVE_ALL then forcePluginExit = true end
