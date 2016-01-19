@@ -28,7 +28,7 @@ end
 
 function downloadFile(Url, file, hideBox)
 	box = paintMiniInfoBox(l.read_data)
-	os.remove(file)
+	if file ~= "" then os.remove(file) end
 
 	if Curl == nil then
 		Curl = curl.new()
@@ -46,6 +46,9 @@ function downloadFile(Url, file, hideBox)
 	if (conf.networkDlVerbose == "on") then
 		v = true
 	end
+	
+	local ua = user_agent
+	if file == "" then ua = user_agent2 end
 	if (dlDebug == true) then
 		H.printf( "\n" ..
 				"download  url: %s\n" ..
@@ -54,17 +57,27 @@ function downloadFile(Url, file, hideBox)
 				"   user_agent: %s\n" ..
 				"       silent: %s\n" ..
 				"      verbose: %s" ..
-				"", Url, file, tostring(v4), user_agent, tostring(s), tostring(v))
+				"", Url, file, tostring(v4), ua, tostring(s), tostring(v))
 	end
 
-	local ret, data = Curl:download{ url=Url, o=file, A=user_agent, ipv4=v4, s=s, v=v }
+	local ret, data;
+	if file ~= "" then
+		ret, data = Curl:download{ url=Url, o=file, A=user_agent, ipv4=v4, s=s, v=v }
+	else
+		ret, data = Curl:download{ url=Url, A=user_agent2, ipv4=v4, s=s, v=v }
+	end
 
 	if (hideBox == true) then
 		G.hideInfoBox(box)
 		box = nil
 	end
 	if ret == CURL.OK then
-		return box, ret, nil
+		if file ~= "" then
+			return box, ret, nil
+		else
+--			print("----- Huhu -----")
+			return box, ret, data
+		end
 	else
 		return box, ret, data
 	end

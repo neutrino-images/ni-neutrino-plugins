@@ -28,6 +28,12 @@ function parse_m3u8Data(url, parse_mode)
 				a, b, bandwidth, c, resolution = string.find(line, 'BANDWIDTH=(.*),CODECS=(.*),RESOLUTION=(.*)')
 			end
 			if (a == nil) then
+				-- oklivetv for orf/srf
+				bandwidth = 0;
+				resolution = "-";
+				a, b, bandwidth, resolution = string.find(line, 'BANDWIDTH=(.*),RESOLUTION=(.*)')
+			end
+			if (a == nil) then
 				bandwidth = 0;
 				resolution = "-";
 				a, b, bandwidth = string.find(line, 'BANDWIDTH=(.*)')

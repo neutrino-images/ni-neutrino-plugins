@@ -13,7 +13,7 @@ function initLocale()
 end
 
 function initVars()
-	pluginVersion		= "0.2beta-9"
+	pluginVersion		= "0.2beta-10"
 	pluginName		= "Coolithek"
 
 	noCacheFiles		= false
@@ -29,7 +29,8 @@ function initVars()
 	conf			= {}
 	conf.livestream		= {}
 	config			= configfile.new()
-	user_agent 		= "\"Mozilla/5.0 (compatible; " .. pluginName .. " plugin v" .. pluginVersion .. " for NeutrinoHD)\"";
+	user_agent		= "\"Mozilla/5.0 (compatible; " .. pluginName .. " plugin v" .. pluginVersion .. " for NeutrinoHD)\"";
+	user_agent2		= "\"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0\""
 
 	actionCmd_versionInfo	= "action=getVersionInfo&pVersion="	.. pluginVersion
 	actionCmd_livestream	= "action=listLivestream&pVersion="	.. pluginVersion
