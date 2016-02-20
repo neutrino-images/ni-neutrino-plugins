@@ -3,7 +3,7 @@ EXT_X_STREAM_INF	= "#EXT-X-STREAM-INF:"
 
 function parse_m3u8Data(url, parse_mode)
 
-	box = downloadFile(url, m3u8Data, false)
+	box = downloadFile(url, m3u8Data, false, user_agent2)
 
 	local streamInfo = {};
 	local fp, s;

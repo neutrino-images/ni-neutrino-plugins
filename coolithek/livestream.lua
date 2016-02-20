@@ -25,10 +25,10 @@ function getOklivetv_m3u8(chan)
 	local url = getOklivetv_chan(chan)
 	if url == nil then return nil end
 
-	local box, ret, feed_data = downloadFile('http://oklivetv.com/' ..  url, "", true)
+	local box, ret, feed_data = downloadFile('http://oklivetv.com/' ..  url, "", true, user_agent2)
 	if feed_data then
 		local urlvid = feed_data:match("<div%s+class=\"screen fluid%-width%-video%-wrapper\">.-src='(.-)'.-</div>")
-		box, ret, feed_data = downloadFile(urlvid, "", true)
+		box, ret, feed_data = downloadFile(urlvid, "", true, user_agent2)
 		local url_m3u8 = feed_data:match('|URL|%d+|%d+|%d+|%d+|m3u8|(.-)|bottom')
 		if url_m3u8 then
 --			return "http://46.101.171.43/live/" .. url_m3u8 .. ".m3u8"
@@ -43,7 +43,7 @@ end
 
 -- THX Jacek ;)
 function getTecTimeTv_m3u8(url)
-	local box, ret, feed_data = downloadFile(url, "", true)
+	local box, ret, feed_data = downloadFile(url, "", true, user_agent2)
 	if feed_data then
 		local m3u_url = feed_data:match('hlsvp.:.(https:\\.-m3u8)') 
 		m3u_url = m3u_url:gsub("\\", "")

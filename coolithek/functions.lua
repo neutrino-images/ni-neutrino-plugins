@@ -26,7 +26,9 @@ function addKillKey(menu)
 	menu:addKey{directkey=RC.standby, id="standby", action="killPlugin"}
 end
 
-function downloadFile(Url, file, hideBox)
+function downloadFile(Url, file, hideBox, _ua)
+	local ua = user_agent
+	if _ua ~= nil then ua = _ua end
 	box = paintMiniInfoBox(l.read_data)
 	if file ~= "" then os.remove(file) end
 
@@ -47,8 +49,6 @@ function downloadFile(Url, file, hideBox)
 		v = true
 	end
 	
-	local ua = user_agent
-	if file == "" then ua = user_agent2 end
 	if (dlDebug == true) then
 		H.printf( "\n" ..
 				"download  url: %s\n" ..
@@ -75,7 +75,6 @@ function downloadFile(Url, file, hideBox)
 		if file ~= "" then
 			return box, ret, nil
 		else
---			print("----- Huhu -----")
 			return box, ret, data
 		end
 	else
