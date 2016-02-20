@@ -39,6 +39,17 @@ function getOklivetv_m3u8(chan)
 	return nil
 end
 
+-- THX Jacek ;)
+function getTecTimeTv_m3u8(url)
+	local box, ret, feed_data = downloadFile(url, "", true)
+	if feed_data then
+		local m3u_url = feed_data:match('hlsvp.:.(https:\\.-m3u8)') 
+		m3u_url = m3u_url:gsub("\\", "")
+		return m3u_url
+	end
+	return nil
+end
+
 function playLivestream(_id)
 
 	i = tonumber(_id);
@@ -72,9 +83,67 @@ function playLivestream(_id)
 			end
 		end
 		m3u8Ret = get_m3u8url(url, mode);
-		url = m3u8Ret['url'];
-		bw = tonumber(m3u8Ret['bandwidth']);
-		res = m3u8Ret['resolution'];
+		url     = m3u8Ret['url'];
+		bw      = tonumber(m3u8Ret['bandwidth']);
+		res     = m3u8Ret['resolution'];
+		qual    = m3u8Ret['qual'];
+	else
+		bw = nil;
+		res = "-";
+	end
+	if (bw == nil) then
+		bw = "-";
+	else
+		bw = tostring(math.floor(bw/1000 + 0.5)) .. "K";
+	end
+	local msg1 = string.format("Bitrate: %s, Auflösung: %s, Qualität: %s", bw, res, qual);
+
+	local screen = saveFullScreen()
+	hideMenu(m_live)
+	hideMainWindow()
+
+	PlayMovie(title, url, msg1, url, false)
+
+	if forcePluginExit == true then
+		menuRet = MENU_RETURN.EXIT_ALL
+		return menuRet
+	end
+
+	restoreFullScreen(screen, true)
+	return MENU_RETURN.REPAINT;
+end
+
+function playLivestream2(_id)
+
+	i = tonumber(_id);
+	local title = "TecTime TV"
+	local url = "https://www.youtube.com/watch?v=dvblFe1W5Q8"
+	local parse_m3u8 = 10
+
+	local bw;
+	local res;
+	local qual;
+	if (conf.streamQuality == "max") then
+		qual = "max";
+	elseif (conf.streamQuality == "normal") then
+		qual = "normal";
+	else
+		qual = "min";
+	end
+	if (parse_m3u8 == 10) then
+		local mode = 1
+		if (parse_m3u8 == 10) then
+			-- TecTime TV
+			url = getTecTimeTv_m3u8(url)
+			if url == nil then
+				return MENU_RETURN.REPAINT
+			end
+		end
+		m3u8Ret = get_m3u8url(url, mode);
+		url     = m3u8Ret['url'];
+		bw      = tonumber(m3u8Ret['bandwidth']);
+		res     = m3u8Ret['resolution'];
+		qual    = m3u8Ret['qual'];
 	else
 		bw = nil;
 		res = "-";
@@ -140,6 +209,8 @@ function livestreamMenu()
 			m_live:addItem{type="forwarder", action="playLivestream", id=i, name=videoTable[i][1]};
 		end
 	end
+
+	m_live:addItem{type="forwarder", action="playLivestream2", id=100, name="TecTime TV"};
 
 	m_live:exec()
 	restoreFullScreen(mainScreen, false)

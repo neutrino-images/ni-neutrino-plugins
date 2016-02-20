@@ -26,6 +26,10 @@ function parse_m3u8Data(url, parse_mode)
 				bandwidth = 0;
 				resolution = "-";
 				a, b, bandwidth, c, resolution = string.find(line, 'BANDWIDTH=(.*),CODECS=(.*),RESOLUTION=(.*)')
+				local _pos = M:strFind(resolution, ",CLOSED-CAPTIONS=");
+				if (_pos ~= nil) then
+					resolution = M:strSub(resolution, 0, _pos)
+				end
 			end
 			if (a == nil) then
 				-- oklivetv for orf/srf
@@ -108,7 +112,7 @@ function get_m3u8url(url, parse_mode)
 	-- min/max bandwidth
 	for i = 1, #si do
 		if (si[i]['bandwidth'] == nil) then si[i]['bandwidth'] = 0 end
-		if (si[i]['bandwidth'] > 90000) then -- skip audio streams
+		if (si[i]['bandwidth'] > 65000) then -- skip audio streams
 			if (si[i]['bandwidth'] <= minBW) then
 				minBW = si[i]['bandwidth']
 				minUrl = si[i]['url']
@@ -127,7 +131,7 @@ function get_m3u8url(url, parse_mode)
 	local diff = 1000000000
 	for i = 1, #si do
 		if (si[i]['bandwidth'] == nil) then si[i]['bandwidth'] = 0 end
-		if (si[i]['bandwidth'] > 90000) then -- skip audio streams
+		if (si[i]['bandwidth'] > 65000) then -- skip audio streams
 			if (math.abs(tmpBW - si[i]['bandwidth']) < diff) then
 				diff = math.abs(tmpBW - si[i]['bandwidth'])
 				xUrl = si[i]['url']
@@ -156,6 +160,7 @@ function get_m3u8url(url, parse_mode)
 		ret['bandwidth']     = minBW;
 		ret['resolution']    = minRes;
 	end
+	ret['qual'] = conf.streamQuality;
 
 	return ret
 end
