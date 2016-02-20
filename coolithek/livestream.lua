@@ -31,7 +31,9 @@ function getOklivetv_m3u8(chan)
 		box, ret, feed_data = downloadFile(urlvid, "", true)
 		local url_m3u8 = feed_data:match('|URL|%d+|%d+|%d+|%d+|m3u8|(.-)|bottom')
 		if url_m3u8 then
-			return "http://46.101.171.43/live/" .. url_m3u8 .. ".m3u8"
+--			return "http://46.101.171.43/live/" .. url_m3u8 .. ".m3u8"
+			return "http://46.101.231.222/live/" .. url_m3u8 .. ".m3u8"
+			
 		else
 			return nil
 		end
