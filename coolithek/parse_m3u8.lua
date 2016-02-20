@@ -17,7 +17,7 @@ function parse_m3u8Data(url, parse_mode)
 		line = H.trim(line);
 		local found = M:strFind(line, EXT_X_STREAM_INF);
 		if (found ~= nil) then
-			local a, b, c
+			local a, b, c, _pos
 			local bandwidth = 0;
 			local resolution = "-";
 			local codec = {};
@@ -26,9 +26,11 @@ function parse_m3u8Data(url, parse_mode)
 				bandwidth = 0;
 				resolution = "-";
 				a, b, bandwidth, c, resolution = string.find(line, 'BANDWIDTH=(.*),CODECS=(.*),RESOLUTION=(.*)')
-				local _pos = M:strFind(resolution, ",CLOSED-CAPTIONS=");
-				if (_pos ~= nil) then
-					resolution = M:strSub(resolution, 0, _pos)
+				if resolution ~= nil then
+					_pos = M:strFind(resolution, ",CLOSED-CAPTIONS=");
+					if (_pos ~= nil) then
+						resolution = M:strSub(resolution, 0, _pos)
+					end
 				end
 			end
 			if (a == nil) then
