@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.de Version 0.10" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.11" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -116,7 +116,10 @@ function init()
 	glob.mtv={
 		{name = "Brandneu",url="http://www.mtv.de/musik",fav=false},
 		{name = "Hitlist Germany - Top 100",url="http://www.mtv.de/charts/5-hitlist-germany-top-100",fav=false},
+		{name = "Hitlist Schweiz - Top 50",url="http://www.mtv.ch/charts/11-single-top-50",fav=false},
 		{name = "MTV.de Videocharts",url="http://www.mtv.de/charts/8-mtv-de-videocharts",fav=false},
+		{name = "MTV.ch Videocharts",url="http://www.mtv.ch/charts/206-mtv-ch-videocharts",fav=false},
+		{name = "VIVA Top 100",url="http://at.mtv.de/charts/16-viva-top-100",fav=false},
 		{name = "Top 100 Jahrescharts 2014",url="http://www.mtv.de/charts/241-top-100-single-jahrescharts-2014",fav=false},
 		{name = "Top 100 Jahrescharts 2013",url="http://www.mtv.de/charts/199-top-100-single-jahrescharts-2013",fav=false},
 		{name = "Dance Charts",url="http://www.mtv.de/charts/6-dance-charts",fav=false},
