@@ -5,9 +5,6 @@ local itags = {[37]='1920x1080',[96]='1920x1080',[22]='1280x720',[95]='1280x720'
 		[85]='1920x1080p',[84]='1280x720',[83]='854x480',[82]='640x360'
 }
 
-local n = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES);
-n:checkVersion(1, 31);
-
 json = require "json"
 
 if #arg < 1 then return nil end
