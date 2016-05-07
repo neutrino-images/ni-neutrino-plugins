@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.de Version 0.11" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.12" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -106,6 +106,10 @@ function read_file(filename)
 end
 
 function init()
+	if vodeoPlay == nil then
+		vodeoPlay = video.new()
+	end
+
 	glob.fav_changed = false
 	glob.have_rtmpdump=false
 	local r= pop("which rtmpdump")
@@ -282,7 +286,8 @@ function action_exec(id)
 		local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name,glob.MTVliste[i].tok,glob.MTVliste[i].type)
 		if url then
 			hideMenu(glob.menu_liste)
-			n:PlayFile(glob.MTVliste[i].name, url,glob.MTVliste[i].type);
+			vodeoPlay:setSinglePlay()
+			vodeoPlay:PlayFile(glob.MTVliste[i].name, url,glob.MTVliste[i].type);
 		end
 	end
 	return MENU_RETURN.EXIT_REPAINT
@@ -344,6 +349,7 @@ function playlist(filename)
 
 	local i = 1
 	local KeyPressed = 0
+	vodeoPlay:setSinglePlay(false)
 	repeat
 		if tab[i].name == nil then
 			tab[i].name = "NoName"
@@ -359,8 +365,7 @@ function playlist(filename)
 				if i < #tab then
 					nextn = "Nächste Titel: ".. tab[i+1].name
 				end
-
-				KeyPressed = n:PlayFile( "(" .. i.. "/" .. #tab .. ") " .. tab[i].name,url, nextn, prevn)
+				KeyPressed = vodeoPlay:PlayFile( "(" .. i.. "/" .. #tab .. ") " .. tab[i].name,url, nextn, prevn)
 			end
 		end
 		if KeyPressed == PLAYSTATE.NORMAL then --play continue
