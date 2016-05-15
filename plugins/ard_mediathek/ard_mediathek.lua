@@ -451,7 +451,7 @@ function listMissingContent(selectedChannelId, tagId, areaId)
 			local t, p = miniMatch(s, "<span class=\"titel\">", "</span>", p)
 			if t == nil then t = "" end
 			t = conv_str(t)
-			local dId, p = miniMatch(s, "/Video?documentId=", "&", p)
+			local dId, p = miniMatch(s, "documentId=", '" class=', p)
 			if old_dId ~= dId then
 				old_dId = dId
 				if d == nil then d = "" end
@@ -467,7 +467,7 @@ function listMissingContent(selectedChannelId, tagId, areaId)
 			repeat
 				im, p = miniMatch(s, "urlScheme&#039;:&#039;", "##width##&#039;}\"/>", p)
 				if p == nil or p > nextP then break end
-				dId, p = miniMatch(s, "/Video?documentId=", "&", p)
+				dId, p = miniMatch(s, "documentId=", '" class=', p)
 				if p == nil or p > nextP then break end
 				hl, p = miniMatch(s, "<h4 class=\"headline\">", "</h4>", p)
 				if p == nil or p > nextP then break end
