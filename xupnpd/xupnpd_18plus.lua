@@ -57,7 +57,7 @@ function youporn_updatefeed(feed,friendly_name)
 
             if cfg.debug>0 then print('YouPorn try url '..url) end
 
-            local feed_data=http.download(url)
+	    local feed_data=http.download(url)
 
 	    local skipto = feed_data.find(feed_data, "<div class='container'>")
 	    if skipto and #feed_data > skipto then
@@ -66,8 +66,9 @@ function youporn_updatefeed(feed,friendly_name)
 	    local anythingtoparse = feed_data.find(feed_data,"<div class=")
             if feed_data  and anythingtoparse then
                 local n=0
-		for entry in feed_data:gmatch("<div class=(.-)</div>") do
-		    local urn,name,logo = string.match(entry,'<a%s+href="(/watch/.-)".-title="(.-)"%s->.-<img%s+src="(.-)".-</a>')
+		for entry in feed_data:gmatch("<div class=(.-)</div>\n</div>") do
+		    local urn,name= string.match(entry,'<div class="video%-box%-title">\n<a href="(/watch.-)" >(.-)</a>')
+		    local logo = string.match(entry,'<img src="(.-)"')
 		    if urn then
 			local m=string.find(urn,'?',1,true)
 			if m then urn=urn:sub(1,m-1) end
