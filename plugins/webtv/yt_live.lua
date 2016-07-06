@@ -5,6 +5,7 @@ local itags = {[37]='1920x1080',[96]='1920x1080',[22]='1280x720',[95]='1280x720'
 		[85]='1920x1080p',[84]='1280x720',[83]='854x480',[82]='640x360'
 }
 
+
 json = require "json"
 
 if #arg < 1 then return nil end
@@ -101,6 +102,7 @@ function getVideoData(url)
 		for band, res1, res2, url in videodata:gmatch('#EXT.X.STREAM.INF.BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-(http.-)\n') do
 			if url ~= nil then
 				entry = {}
+				url = url:gsub("/keepalive/yes","")--fix for new ffmpeg
 				entry['url']  = url
 				entry['band'] = band
 				entry['res1'] = res1
