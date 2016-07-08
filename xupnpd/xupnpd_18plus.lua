@@ -68,6 +68,7 @@ function youporn_updatefeed(feed,friendly_name)
                 local n=0
 		for entry in feed_data:gmatch("<div class=(.-)</div>\n</div>") do
 		    local urn,name= string.match(entry,'<div class="video%-box%-title">\n<a href="(/watch.-)" >(.-)</a>')
+		    urn=urn:gsub('"','')
 		    local logo = string.match(entry,'<img src="(.-)"')
 		    if urn then
 			local m=string.find(urn,'?',1,true)
@@ -105,15 +106,31 @@ function youporn_updatefeed(feed,friendly_name)
     return rc
 end
 
+function pop(cmd)
+	local f = assert(io.popen(cmd, 'r'))
+	local s = assert(f:read('*a'))
+	f:close()
+	return s
+end
+
+function https_download(url)
+	local clip_page = pop("curl -k " .. url)
+	return clip_page
+end
+
+
 function youporn_sendurl(youporn_url,range)
 
-    http.user_agent(cfg.user_agent..'\r\nCookie: age_verified=1')
+     http.user_agent(cfg.user_agent..'\r\nCookie: age_verified=1')
 
     local url=nil
 
     if plugin_sendurl_from_cache(youporn_url,range) then return end
 
     local clip_page=plugin_download(youporn_url)
+    if clip_page == nil then
+	    clip_page=https_download(youporn_url)
+    end
     if clip_page then
         url=string.match(clip_page,'<video id="player.html5"%s+.- src="(http://.-)"%s+x.webkit.airplay+')
         clip_page=nil
