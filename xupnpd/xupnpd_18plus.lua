@@ -58,6 +58,9 @@ function youporn_updatefeed(feed,friendly_name)
             if cfg.debug>0 then print('YouPorn try url '..url) end
 
 	    local feed_data=http.download(url)
+	    if feed_data == nil then
+		feed_data=https_download(youporn_url)
+	    end
 
 	    local skipto = feed_data.find(feed_data, "<div class='container'>")
 	    if skipto and #feed_data > skipto then
