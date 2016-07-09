@@ -68,9 +68,9 @@ function youporn_updatefeed(feed,friendly_name)
                 local n=0
 		for entry in feed_data:gmatch("<div class=(.-)</div>\n</div>") do
 		    local urn,name= string.match(entry,'<div class="video%-box%-title">\n<a href="(/watch.-)" >(.-)</a>')
-		    urn=urn:gsub('"','')
 		    local logo = string.match(entry,'<img src="(.-)"')
 		    if urn then
+			urn=urn:gsub('"','')
 			local m=string.find(urn,'?',1,true)
 			if m then urn=urn:sub(1,m-1) end
 			    local f = string.find(logo, 'blankvideobox.png')
@@ -132,7 +132,20 @@ function youporn_sendurl(youporn_url,range)
 	    clip_page=https_download(youporn_url)
     end
     if clip_page then
-        url=string.match(clip_page,'<video id="player.html5"%s+.- src="(http://.-)"%s+x.webkit.airplay+')
+        url=string.match(clip_page, "1080: '(http://.-)'")
+        if not url then
+	        url=string.match(clip_page, "720: '(http://.-)'")
+        end
+        if not url then
+	        url=string.match(clip_page, "480: '(http://.-)'")
+        end
+        if not url then
+	        url=string.match(clip_page, "videoUrl: '(http://.-)'")
+        end
+        if not url then
+		url=string.match(clip_page,'<video id="player.html5"%s+.- src="(http://.-)"%s+x.webkit.airplay+')
+        end
+        --print(url)
         clip_page=nil
 
         if url then url=string.gsub(url,'&amp;','&') end
