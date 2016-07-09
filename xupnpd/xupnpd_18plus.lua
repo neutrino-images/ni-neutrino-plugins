@@ -59,7 +59,7 @@ function youporn_updatefeed(feed,friendly_name)
 
 	    local feed_data=http.download(url)
 	    if feed_data == nil then
-		feed_data=https_download(youporn_url)
+		feed_data=https_download(url)
 	    end
 
 	    local skipto = feed_data.find(feed_data, "<div class='container'>")
