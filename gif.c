@@ -37,10 +37,10 @@
 #define FH_ERROR_MALLOC 3	/* error during malloc */
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define gflush return(FH_ERROR_FILE);
-#define grflush { DGifCloseFile(gft); return(FH_ERROR_FORMAT); }
-#define mgrflush { free(lb); free(slb); DGifCloseFile(gft); return(FH_ERROR_FORMAT); }
+#define grflush { DGifCloseFile(gft, &GifError); return(FH_ERROR_FORMAT); }
+#define mgrflush { free(lb); free(slb); DGifCloseFile(gft, &GifError); return(FH_ERROR_FORMAT); }
 #define agflush return(FH_ERROR_FORMAT);
-#define agrflush { DGifCloseFile(gft); return(FH_ERROR_FORMAT); }
+#define agrflush { DGifCloseFile(gft, &GifError); return(FH_ERROR_FORMAT); }
 
 int fh_gif_id(const char *name)
 {
@@ -78,9 +78,9 @@ int fh_gif_load(const char *name,unsigned char *buffer,int x,int y)
 	GifRecordType rt;
 	ColorMapObject *cmap;
 	int cmaps;
-	int gifError = 0;
+	int GifError = 0;
 
-	gft=DGifOpenFileName(name, &gifError);
+	gft=DGifOpenFileName(name, &GifError);
 	if(gft==NULL) gflush;
 	do
 	{
@@ -137,7 +137,7 @@ int fh_gif_load(const char *name,unsigned char *buffer,int x,int y)
 		}  
 	}
 	while( rt!= TERMINATE_RECORD_TYPE );
-	DGifCloseFile(gft);
+	DGifCloseFile(gft, &GifError);
 	return(FH_ERROR_OK);
 }
 int fh_gif_getsize(const char *name,int *x,int *y, int wanted_width, int wanted_height)
@@ -147,9 +147,9 @@ int fh_gif_getsize(const char *name,int *x,int *y, int wanted_width, int wanted_
 	GifByteType *extension;
 	int extcode;
 	GifRecordType rt;
-	int gifError = 0;
+	int GifError = 0;
 
-	gft=DGifOpenFileName(name, &gifError);
+	gft=DGifOpenFileName(name, &GifError);
 	if(gft==NULL) gflush;
 	do
 	{
@@ -162,7 +162,7 @@ int fh_gif_getsize(const char *name,int *x,int *y, int wanted_width, int wanted_
 				px=gft->Image.Width;
 				py=gft->Image.Height;
 				*x=px; *y=py;
-				DGifCloseFile(gft);
+				DGifCloseFile(gft, &GifError);
 				return(FH_ERROR_OK);
 				break;
 			case EXTENSION_RECORD_TYPE:
@@ -175,6 +175,6 @@ int fh_gif_getsize(const char *name,int *x,int *y, int wanted_width, int wanted_
 		}  
 	}
 	while( rt!= TERMINATE_RECORD_TYPE );
-	DGifCloseFile(gft);
+	DGifCloseFile(gft, &GifError);
 	return(FH_ERROR_FORMAT);
 }

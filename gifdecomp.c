@@ -60,7 +60,7 @@ int i;
     char tempout[80];
     GifByteType *Extension, *CodeBlock;
     GifFileType *GifFileIn = NULL, *GifFileOut = NULL;
-    int gifError = 0;
+    int GifError = 0;
     for(i=0; i<32; i++)
     {
     	sprintf(tempout,"%s%02d.gif",OutFileName,i);
@@ -70,30 +70,30 @@ int i;
     /* Open input file: */
     if (InFileName != NULL) 
     {	
-	if ((GifFileIn = DGifOpenFileName(InFileName, &gifError)) == NULL)
-		QuitGifError(GifFileIn, GifFileOut, gifError);
+	if ((GifFileIn = DGifOpenFileName(InFileName, &GifError)) == NULL)
+		QuitGifError(GifFileIn, GifFileOut, GifError);
     }
-    if ((GifFileIn = DGifOpenFileName(InFileName, &gifError)) != NULL)
+    if ((GifFileIn = DGifOpenFileName(InFileName, &GifError)) != NULL)
     {
-		if ((GifFileOut = EGifOpenFileName(TempGifName, true, &gifError)) == NULL)
-		QuitGifError(GifFileIn, GifFileOut, gifError);
+		if ((GifFileOut = EGifOpenFileName(TempGifName, true, &GifError)) == NULL)
+		QuitGifError(GifFileIn, GifFileOut, GifError);
    
     
     		if (EGifPutScreenDesc(GifFileOut,
 		GifFileIn->SWidth, GifFileIn->SHeight,
 		GifFileIn->SColorResolution, GifFileIn->SBackGroundColor,
 		GifFileIn->SColorMap) == GIF_ERROR)
-		QuitGifError(GifFileIn, GifFileOut, gifError);
+		QuitGifError(GifFileIn, GifFileOut, GifError);
 
     		/* Scan the content of the GIF file and load the image(s) in: */
     		do {
 		if (DGifGetRecordType(GifFileIn, &RecordType) == GIF_ERROR)
-	    	QuitGifError(GifFileIn, GifFileOut, gifError);
+			QuitGifError(GifFileIn, GifFileOut, GifError);
 
 		switch (RecordType) {
 	    	case IMAGE_DESC_RECORD_TYPE:
 			if (DGifGetImageDesc(GifFileIn) == GIF_ERROR)
-			    QuitGifError(GifFileIn, GifFileOut, gifError);
+				QuitGifError(GifFileIn, GifFileOut, GifError);
 
 			/* Put the image descriptor to out file: */
 			if (EGifPutImageDesc(GifFileOut,
@@ -101,27 +101,27 @@ int i;
 			    GifFileIn->Image.Width, GifFileIn->Image.Height,
 			    InterlacedFlag,
 			    GifFileIn->Image.ColorMap) == GIF_ERROR)
-			    QuitGifError(GifFileIn, GifFileOut, gifError);
+			    QuitGifError(GifFileIn, GifFileOut, GifError);
 
 			/* Load the image (either Interlaced or not), and dump it as */
 			/* defined in GifFileOut->Image.Interlaced.		     */
 			if (LoadImage(GifFileIn, &ImageBuffer) == GIF_ERROR)
-			    QuitGifError(GifFileIn, GifFileOut, gifError);
+			    QuitGifError(GifFileIn, GifFileOut, GifError);
 			if (DumpImage(GifFileOut, ImageBuffer) == GIF_ERROR)
-			    QuitGifError(GifFileIn, GifFileOut, gifError);
+			    QuitGifError(GifFileIn, GifFileOut, GifError);
 			break;
 		    case EXTENSION_RECORD_TYPE:
 			/* Skip any extension blocks in file: */
 			if (DGifGetExtension(GifFileIn, &ExtCode, &Extension) == GIF_ERROR)
-			    QuitGifError(GifFileIn, GifFileOut, gifError);
+			    QuitGifError(GifFileIn, GifFileOut, GifError);
 			if (EGifPutExtension(GifFileOut, ExtCode, Extension[0],
 							Extension) == GIF_ERROR)
-			    QuitGifError(GifFileIn, GifFileOut, gifError);
+			    QuitGifError(GifFileIn, GifFileOut, GifError);
 
 			/* No support to more than one extension blocks, so discard: */
 			while (Extension != NULL) {
 			    if (DGifGetExtensionNext(GifFileIn, &Extension) == GIF_ERROR)
-				QuitGifError(GifFileIn, GifFileOut, gifError);
+				QuitGifError(GifFileIn, GifFileOut, GifError);
 			}
 			break;
 		    case TERMINATE_RECORD_TYPE:
@@ -132,20 +132,20 @@ int i;
    	 }
   	  while (RecordType != TERMINATE_RECORD_TYPE);
 
-  	  if (DGifCloseFile(GifFileIn) == GIF_ERROR)
-		QuitGifError(GifFileIn, GifFileOut, gifError);
-  	  if (EGifCloseFile(GifFileOut) == GIF_ERROR)
-		QuitGifError(GifFileIn, GifFileOut, gifError);
+  	  if (DGifCloseFile(GifFileIn, &GifError) == GIF_ERROR)
+		QuitGifError(GifFileIn, GifFileOut, GifError);
+  	  if (EGifCloseFile(GifFileOut, &GifError) == GIF_ERROR)
+		QuitGifError(GifFileIn, GifFileOut, GifError);
                
-	if ((GifFileIn = DGifOpenFileName(TempGifName, &gifError)) == NULL)
-	QuitGifError(GifFileIn, GifFileOut, gifError);
+	if ((GifFileIn = DGifOpenFileName(TempGifName, &GifError)) == NULL)
+	QuitGifError(GifFileIn, GifFileOut, GifError);
 
     
    		 /* Scan the content of GIF file and dump image(s) to seperate file(s): */
     		do {
 		sprintf(CrntFileName, "%s%02d.gif", OutFileName, FileNum++);
-		if ((GifFileOut = EGifOpenFileName(CrntFileName, true, &gifError)) == NULL)
-		    QuitGifError(GifFileIn, GifFileOut, gifError);
+		if ((GifFileOut = EGifOpenFileName(CrntFileName, true, &GifError)) == NULL)
+		    QuitGifError(GifFileIn, GifFileOut, GifError);
 		FileEmpty = true;
 
 		/* And dump out its exactly same screen information: */
@@ -153,50 +153,50 @@ int i;
 		    GifFileIn->SWidth, GifFileIn->SHeight,
 		    GifFileIn->SColorResolution, GifFileIn->SBackGroundColor,
 		    GifFileIn->SColorMap) == GIF_ERROR)
-		    QuitGifError(GifFileIn, GifFileOut, gifError);
+		    QuitGifError(GifFileIn, GifFileOut, GifError);
 
 		do {
 			if (DGifGetRecordType(GifFileIn, &RecordType) == GIF_ERROR)
-			    QuitGifError(GifFileIn, GifFileOut, gifError);
+			    QuitGifError(GifFileIn, GifFileOut, GifError);
 
 	   		switch (RecordType) {
 			case IMAGE_DESC_RECORD_TYPE:
 			FileEmpty = false;
 			if (DGifGetImageDesc(GifFileIn) == GIF_ERROR)
-			    QuitGifError(GifFileIn, GifFileOut, gifError);
+			    QuitGifError(GifFileIn, GifFileOut, GifError);
 		 	   /* Put same image descriptor to out file: */
 			if (EGifPutImageDesc(GifFileOut,
 			    GifFileIn->Image.Left, GifFileIn->Image.Top,
 			    GifFileIn->Image.Width, GifFileIn->Image.Height,
 			    GifFileIn->Image.Interlace,
 			    GifFileIn->Image.ColorMap) == GIF_ERROR)
-			    QuitGifError(GifFileIn, GifFileOut, gifError);
+			    QuitGifError(GifFileIn, GifFileOut, GifError);
 
 			    /* Now read image itself in decoded form as we dont      */
 			    /* really care what is there, and this is much faster.   */
 		  	if (DGifGetCode(GifFileIn, &CodeSize, &CodeBlock) == GIF_ERROR
 		     	   || EGifPutCode(GifFileOut, CodeSize, CodeBlock) == GIF_ERROR)
-			   QuitGifError(GifFileIn, GifFileOut, gifError);
+			   QuitGifError(GifFileIn, GifFileOut, GifError);
 		    	while (CodeBlock != NULL)
 				if (DGifGetCodeNext(GifFileIn, &CodeBlock) == GIF_ERROR ||
 			   	    EGifPutCodeNext(GifFileOut, CodeBlock) == GIF_ERROR)
-				    QuitGifError(GifFileIn, GifFileOut, gifError);
+				    QuitGifError(GifFileIn, GifFileOut, GifError);
 		    	break;
 			case EXTENSION_RECORD_TYPE:
 				FileEmpty = false;
 		    		/* Skip any extension blocks in file: */
 		    		if (DGifGetExtension(GifFileIn, &ExtCode, &Extension)
 				    == GIF_ERROR)
-				    QuitGifError(GifFileIn, GifFileOut, gifError);
+				    QuitGifError(GifFileIn, GifFileOut, GifError);
 		    		if (EGifPutExtension(GifFileOut, ExtCode, Extension[0],
 							Extension) == GIF_ERROR)
-				    QuitGifError(GifFileIn, GifFileOut, gifError);
+				    QuitGifError(GifFileIn, GifFileOut, GifError);
 
 		    		/* No support to more than one extension blocks, discard.*/
 		    		while (Extension != NULL)
 				if (DGifGetExtensionNext(GifFileIn, &Extension)
 			   	 == GIF_ERROR)
-			   	 QuitGifError(GifFileIn, GifFileOut, gifError);
+			   	 QuitGifError(GifFileIn, GifFileOut, GifError);
 		    		break;
 			case TERMINATE_RECORD_TYPE:
 		    	break;
@@ -207,8 +207,8 @@ int i;
 		while (RecordType != IMAGE_DESC_RECORD_TYPE &&
 	               RecordType != TERMINATE_RECORD_TYPE);
 
-		if (EGifCloseFile(GifFileOut) == GIF_ERROR)
-	    	    QuitGifError(GifFileIn, GifFileOut, gifError);
+		if (EGifCloseFile(GifFileOut, &GifError));
+	    	    QuitGifError(GifFileIn, GifFileOut, GifError);
 		if (FileEmpty) {
 	  	  /* Might happen on last file - delete it if so: */
 		    unlink(CrntFileName);
@@ -216,8 +216,8 @@ int i;
   	 }
     	while (RecordType != TERMINATE_RECORD_TYPE);
 
-    	if (DGifCloseFile(GifFileIn) == GIF_ERROR)
-		QuitGifError(GifFileIn, GifFileOut, gifError);
+    	if (DGifCloseFile(GifFileIn, &GifError) == GIF_ERROR)
+		QuitGifError(GifFileIn, GifFileOut, GifError);
    	FileNum=FileNum-1; 
   	}
 return FileNum;
@@ -228,9 +228,10 @@ return FileNum;
 ******************************************************************************/
 void QuitGifError(GifFileType *GifFileIn, GifFileType *GifFileOut, int ErrorCode)
 {
+    int GifError = 0;
     GifErrorString(ErrorCode);
-    if (GifFileIn != NULL) DGifCloseFile(GifFileIn);
-    if (GifFileOut != NULL) EGifCloseFile(GifFileOut);
+    if (GifFileIn != NULL) DGifCloseFile(GifFileIn, &GifError);
+    if (GifFileOut != NULL) EGifCloseFile(GifFileOut, &GifError);
 //    exit(EXIT_FAILURE);
 }
 
