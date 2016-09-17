@@ -50,4 +50,4 @@ void main()
         fprintf(stderr, "[%s.so] parent, waitpid() returned..\n", SCRIPT);
         if (WIFEXITED(status))
                 fprintf(stderr, "[%s.so] child returned with status %d\n", SCRIPT, WEXITSTATUS(status));
-} 
+}

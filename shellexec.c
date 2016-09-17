@@ -11,24 +11,25 @@ static char CFG_FILE[128]="/var/tuxbox/config/shellexec.conf";
 //#define FONT "/usr/share/fonts/md_khmurabi_10.ttf"
 #define FONT2 "/share/fonts/pakenham.ttf"
 // if font is not in usual place, we look here:
-unsigned char FONT[128]="/share/fonts/neutrino.ttf";
+char FONT[128]="/share/fonts/neutrino.ttf";
 
-//					  CMCST,    CMCS,   CMCT,   CMC,    CMCIT,  CMCI,   CMHT,   CMH
-//					  WHITE,    BLUE0,  TRANSP, CMS,    ORANGE, GREEN,  YELLOW, RED
+//						CMCST,	CMCS,	CMCT,	CMC,	CMCIT,	CMCI,	CMHT,	CMH
+//						WHITE,	BLUE0,	TRANSP,	CMS,	ORANGE,	GREEN,	YELLOW,	RED
 
-unsigned char bl[] = {	0x00, 	0x00, 	0xFF, 	0x80, 	0xFF, 	0x80, 	0x00, 	0x80,
-						0xFF, 	0x80, 	0x00, 	0xFF, 	0x00, 	0x00, 	0x00, 	0x00,
-						0x00, 	0x00,  	0x00,  	0x00};
-unsigned char gn[] = {	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0xC0, 	0x00,
-						0xFF, 	0x00, 	0x00, 	0x80, 	0x80, 	0x80, 	0x80, 	0x00,
-						0x00, 	0x00,  	0x00,  	0x00};
-unsigned char rd[] = {	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00,
-						0xFF, 	0x00, 	0x00, 	0x00, 	0xFF, 	0x00, 	0x80, 	0x80,
-						0x00, 	0x00,  	0x00,  	0x00};
-unsigned char tr[] = {	0xFF, 	0xFF, 	0xFF,  	0xA0,  	0xFF,  	0x80,  	0xFF,  	0xFF,
-						0xFF, 	0xFF, 	0x00,  	0xFF,  	0xFF,  	0xFF,  	0xFF,  	0xFF,
-						0x00, 	0x00,  	0x00,  	0x00};
+unsigned char bl[] = {	0x00,	0x00,	0xFF,	0x80,	0xFF,	0x80,	0x00,	0x80,
+						0xFF,	0x80,	0x00,	0xFF,	0x00,	0x00,	0x00,	0x00,
+						0x00,	0x00,	0x00,	0x00};
+unsigned char gn[] = {	0x00,	0x00,	0xFF,	0x00,	0xFF,	0x00,	0xC0,	0x00,
+						0xFF,	0x00,	0x00,	0x80,	0x80,	0x80,	0x80,	0x00,
+						0x00,	0x00,	0x00,	0x00};
+unsigned char rd[] = {	0x00,	0x00,	0xFF,	0x00,	0xFF,	0x00,	0xFF,	0x00,
+						0xFF,	0x00,	0x00,	0x00,	0xFF,	0x00,	0x80,	0x80,
+						0x00,	0x00,	0x00,	0x00};
+unsigned char tr[] = {	0xFF,	0xFF,	0xFF,	0xA0,	0xFF,	0x80,	0xFF,	0xFF,
+						0xFF,	0xFF,	0x00,	0xFF,	0xFF,	0xFF,	0xFF,	0xFF,
+						0x00,	0x00,	0x00,	0x00};
 
+uint32_t bgra[20];
 void TrimString(char *strg);
 
 // OSD stuff
@@ -37,7 +38,7 @@ static char spres[][5]={"","_crt","_lcd"};
 
 #define LIST_STEP 	10
 #define BUFSIZE 	4095
-#define SH_VERSION  1.20
+#define SH_VERSION	1.21
 typedef struct {int fnum; FILE *fh[16];} FSTRUCT, *PFSTRUCT;
 
 static int direct[32];
@@ -46,7 +47,7 @@ static int STYP=1;
 
 typedef struct {char *entry; char *message; int headerpos; int type; int underline; int stay; int showalways;} LISTENTRY;
 typedef LISTENTRY *PLISTENTRY;
-typedef PLISTENTRY	*LIST;
+typedef PLISTENTRY *LIST;
 typedef struct {int num_headers; int act_header; int max_header; int *headerwait; int *headermed; char **headertxt; char **icon; int *headerlevels; int *lastheaderentrys; int num_entrys; int act_entry; int max_entrys; int num_active; char *menact; char *menactdep; LIST list;} MENU;
 enum {TYP_MENU, TYP_MENUDON, TYP_MENUDOFF, TYP_MENUFON, TYP_MENUFOFF, TYP_MENUSON, TYP_MENUSOFF, TYP_EXECUTE, TYP_COMMENT, TYP_DEPENDON, TYP_DEPENDOFF, TYP_FILCONTON, TYP_FILCONTOFF, TYP_SHELLRESON, TYP_SHELLRESOFF, TYP_ENDMENU, TYP_INACTIVE};
 static char TYPESTR[TYP_ENDMENU+1][13]={"MENU=","MENUDON=","MENUDOFF=","MENUFON=","MENUFOFF=","MENUSON=","MENUSOFF=","ACTION=","COMMENT=","DEPENDON=","DEPENDOFF=","FILCONTON=","FILCONTOFF=","SHELLRESON=","SHELLRESOFF=","ENDMENU"};
@@ -62,16 +63,17 @@ int Get_Menu(int showwait);
 static void ShowInfo(MENU *m, int knew);
 
 
-unsigned char *lfb = 0, *lbb = 0;
-unsigned char title[256];
-unsigned char VFD[256]="";
+uint32_t *lfb = NULL, *lbb = NULL;
+char title[256];
+char VFD[256]="";
 char url[256]="time.fu-berlin.de";
 char *line_buffer=NULL;
-unsigned char *trstr;
-int mloop=1, paging=1, mtmo=120, radius=10;
+char *trstr;
+int paging=1, mtmo=120, radius=10;
 int ixw=600, iyw=680, xoffs=13, vfd=0;
 char INST_FILE[]="/tmp/rc.locked";
 int instance=0;
+int stride;
 
 int get_instance(void)
 {
@@ -133,7 +135,7 @@ char *resptr=xstr;
 	}
 	return NULL;
 }
-	
+
 void TrimString(char *strg)
 {
 char *pt1=strg, *pt2=strg;
@@ -196,9 +198,9 @@ char *pt1;
 				TrimString(buffer);
 			}
 		}
-		TranslateString(buffer);
+		TranslateString(buffer, size);
 	}
-	return rv;	
+	return rv;
 }
 
 int ExistFile(char *fname)
@@ -300,6 +302,21 @@ int i, res=0;
 	}
 	return res;
 }
+static int mysystem(const char *command) {
+	if (!command)
+		return -1;
+	char *a = (char *) alloca(strlen(command) + 1);
+	strcpy(a, command);
+	char *s = a;
+	while (*s && *s != ' ' && *s != '\t')
+		s++;
+	*s = 0;
+	if (access(a, X_OK))
+		chmod(a, 0755);
+
+	return system(command);
+}
+#define system mysystem
 
 void OnMenuClose(char *cmd, char *dep)
 {
@@ -307,7 +324,7 @@ int res=1;
 
 	if(dep)
 	{
-		res=!system(dep);	
+		res=!system(dep);
 		res|=ExistFile(dep);
 	}
 	if(cmd && res)
@@ -386,7 +403,7 @@ FSTRUCT fstr;
 					++pt1;
 				}
 				pt2=pt1;
-				while(*pt2 && ((*pt2=='*') || (*pt2=='&') || (*pt2=='§') || (*pt2=='+') || (*pt2=='-') || (*pt2=='!') || (*pt2=='_')))
+				while(*pt2 && ((*pt2=='*') || (*pt2=='&') || (*pt2==0302) || (*pt2==0247) || (*pt2=='+') || (*pt2=='-') || (*pt2=='!') || (*pt2=='_')))
 				{
 					if(*pt2=='_')
 					{
@@ -399,7 +416,7 @@ FSTRUCT fstr;
 					*(pt2-1)=0;
 					pt2=pt1;
 				}
-				
+
 				if(menu.icon[menu.num_headers])
 				{
 					free(menu.icon[menu.num_headers]);
@@ -429,7 +446,7 @@ FSTRUCT fstr;
 				}
 				else
 				{
-					if(strstr(line_buffer,"FONT=")==line_buffer) 
+					if(strstr(line_buffer,"FONT=")==line_buffer)
 					{
 						strcpy(FONT,strchr(line_buffer,'=')+1);
 					}
@@ -443,10 +460,12 @@ FSTRUCT fstr;
 					{
 						sscanf(strchr(line_buffer,'=')+1,"%d",&FSIZE_MED);
 					}
+#if 0
 					if(strstr(line_buffer,"MENUTIMEOUT=")==line_buffer)
 					{
 						sscanf(strchr(line_buffer,'=')+1,"%d",&mtmo);
 					}
+#endif
 					if(strstr(line_buffer,"PAGING=")==line_buffer)
 					{
 						sscanf(strchr(line_buffer,'=')+1,"%d",&paging);
@@ -473,7 +492,7 @@ FSTRUCT fstr;
 					}
 				}
 			}
-//printf("Check_Config: Level: %d -> %s\n",level,line_buffer);
+			//printf("Check_Config: Level: %d -> %s\n",level,line_buffer);
 		}
 		rv=0;
 		fclose(fstr.fh[fstr.fnum]);
@@ -517,9 +536,9 @@ PLISTENTRY entr;
 	switch(mode)
 	{
 		case 0: return 0;
-		
+
 		case 1:
-	
+
 			if((m->list=calloc(LIST_STEP,sizeof(PLISTENTRY)))==NULL)
 			{
 				printf(NOMEM);
@@ -538,7 +557,7 @@ PLISTENTRY entr;
 			}
 			m->max_entrys=LIST_STEP;
 			break;
-			
+
 		case -1:
 			if(m->num_headers && m->headertxt)
 			{
@@ -583,58 +602,58 @@ time_t tm1,tm2;
 	}
 	time(&tm1);
 	do{
-//		usleep(100000L);
+		//usleep(100000L);
 		first=(paging)?0:(MAX_FUNCS*(int)(m->act_entry/MAX_FUNCS));
 		last=(paging)?(m->num_entrys-1):(MAX_FUNCS*(int)(m->act_entry/MAX_FUNCS)+MAX_FUNCS-1);
 		if(last>=m->num_entrys)
 		{
 			last=m->num_entrys-1;
 		}
-		
+
 		active=0;
 		for(i=first; i<=last && !active; i++)
 		{
 			active |= ((m->list[i]->type != TYP_COMMENT) && (m->list[i]->type != TYP_INACTIVE));
 		}
-		
+
 		rccode=-1;
 		if(knew)
 		{
 			ShowInfo(m, knew);
 		}
 		knew=1;
-		switch(rccode = GetRCCode())
+		switch(rccode = GetRCCode(mtmo * 1000))
 		{
 			case RC_RED:
 				if(active && direct[0]>=0)
-				{	
+				{
 					m->act_entry=direct[0];
 					rv=1;
 					mloop=0;
 				}
 				break;
 
-			case RC_GREEN:	
+			case RC_GREEN:
 				if(active && direct[1]>=0)
-				{	
+				{
 					m->act_entry=direct[1];
 					rv=1;
 					mloop=0;
 				}
 				break;
 
-			case RC_YELLOW:	
+			case RC_YELLOW:
 				if(active && direct[2]>=0)
-				{	
+				{
 					m->act_entry=direct[2];
 					rv=1;
 					mloop=0;
 				}
 				break;
 
-			case RC_BLUE:	
+			case RC_BLUE:
 				if(active && direct[3]>=0)
-				{	
+				{
 					m->act_entry=direct[3];
 					rv=1;
 					mloop=0;
@@ -643,7 +662,7 @@ time_t tm1,tm2;
 
 			case RC_1:
 				if(active && direct[4]>=0)
-				{	
+				{
 					m->act_entry=direct[4];
 					rv=1;
 					mloop=0;
@@ -652,7 +671,7 @@ time_t tm1,tm2;
 
 			case RC_2:
 				if(active && direct[5]>=0)
-				{	
+				{
 					m->act_entry=direct[5];
 					rv=1;
 					mloop=0;
@@ -661,7 +680,7 @@ time_t tm1,tm2;
 
 			case RC_3:
 				if(active && direct[6]>=0)
-				{	
+				{
 					m->act_entry=direct[6];
 					rv=1;
 					mloop=0;
@@ -670,7 +689,7 @@ time_t tm1,tm2;
 
 			case RC_4:
 				if(active && direct[7]>=0)
-				{	
+				{
 					m->act_entry=direct[7];
 					rv=1;
 					mloop=0;
@@ -679,7 +698,7 @@ time_t tm1,tm2;
 
 			case RC_5:
 				if(active && direct[8]>=0)
-				{	
+				{
 					m->act_entry=direct[8];
 					rv=1;
 					mloop=0;
@@ -688,7 +707,7 @@ time_t tm1,tm2;
 
 			case RC_6:
 				if(active && direct[9]>=0)
-				{	
+				{
 					m->act_entry=direct[9];
 					rv=1;
 					mloop=0;
@@ -697,7 +716,7 @@ time_t tm1,tm2;
 
 			case RC_7:
 				if(active && direct[10]>=0)
-				{	
+				{
 					m->act_entry=direct[10];
 					rv=1;
 					mloop=0;
@@ -706,7 +725,7 @@ time_t tm1,tm2;
 
 			case RC_8:
 				if(active && direct[11]>=0)
-				{	
+				{
 					m->act_entry=direct[11];
 					rv=1;
 					mloop=0;
@@ -715,7 +734,7 @@ time_t tm1,tm2;
 
 			case RC_9:
 				if(active && direct[12]>=0)
-				{	
+				{
 					m->act_entry=direct[12];
 					rv=1;
 					mloop=0;
@@ -724,7 +743,7 @@ time_t tm1,tm2;
 
 			case RC_0:
 				if(active && direct[13]>=0)
-				{	
+				{
 					m->act_entry=direct[13];
 					rv=1;
 					mloop=0;
@@ -750,10 +769,10 @@ time_t tm1,tm2;
 					}
 					m->act_entry=i;
 				}
-//				knew=1;
+				//knew=1;
 				break;
 
-			case RC_DOWN:	
+			case RC_DOWN:
 			case RC_PLUS:
 				if(m->num_active)
 				{
@@ -772,7 +791,7 @@ time_t tm1,tm2;
 					}
 					m->act_entry=i;
 				}
-//				knew=1;
+				//knew=1;
 				break;
 
 			case RC_PAGEUP:
@@ -811,7 +830,7 @@ time_t tm1,tm2;
 				m->act_entry=i;
 				break;
 
-			case RC_OK:	
+			case RC_OK:
 				if(m->num_active)
 				{
 					rv=1;
@@ -821,41 +840,35 @@ time_t tm1,tm2;
 
 			case -1:
 				knew=0;
+#if 0
 				if(mtmo == 0)
-				break;
+					break;
+#endif
 				time(&tm2);
 				if((tm2-tm1)<mtmo)
 				{
 					break;
 				}
 				rv=RC_HOME;
-			case RC_HOME:	
+			case RC_HOME:
 				rv=0;
 				mloop=0;
 				break;
 
-			case RC_MUTE:	
-				memset(lfb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres);
+			case RC_MUTE:
+				memset(lbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+				//blit();
 				usleep(500000L);
-				while(GetRCCode()!=-1)
-				{
-					usleep(100000L);
-				}
-				while(GetRCCode()!=RC_MUTE)
-				{
-					usleep(500000L);
-				}
-				while((rccode=GetRCCode())!=-1)
-				{
-					usleep(100000L);
-				}
-			break;
+				ClearRC();
+				while(GetRCCode(-1)!=RC_MUTE);
+				ClearRC();
+				break;
 
 			case RC_STANDBY:
 				rv=-1;
 				mloop=0;
-			break;
-			
+				break;
+
 			default: knew=0; break;
 		}
 		if(rccode!=-1)
@@ -866,7 +879,7 @@ time_t tm1,tm2;
 
 	ShowInfo(m, knew);
 
-return rv;
+	return rv;
 }
 
 int AddListEntry(MENU *m, char *line, int pos)
@@ -880,9 +893,9 @@ char *ptr1,*ptr2,*ptr3,*ptr4, *wstr;
 	{
 		return 1;
 	}
-//printf("AddListEntry: %s\n",line);	
+	//printf("AddListEntry: %s\n",line);
 	wstr=strdup(line);
-	
+
 	if(m->num_entrys>=m->max_entrys)
 	{
 		if((m->list=realloc(m->list,(m->max_entrys+LIST_STEP)*sizeof(PLISTENTRY)))==NULL)
@@ -905,7 +918,7 @@ char *ptr1,*ptr2,*ptr3,*ptr4, *wstr;
 		}
 		m->max_entrys+=LIST_STEP;
 	}
-	
+
 	entr=m->list[m->num_entrys];
 	entr->underline=entr->stay=entr->showalways=0;
 
@@ -917,7 +930,7 @@ char *ptr1,*ptr2,*ptr3,*ptr4, *wstr;
 			ptr1=strchr(wstr,'=');
 			ptr1++;
 			ptr2=ptr1;
-			while(*ptr2 && ((*ptr2=='*') || (*ptr2=='&') || (*ptr2=='§') || (*ptr2=='+') || (*ptr2=='-') || (*ptr2=='!') || (*ptr2=='_')))
+			while(*ptr2 && ((*ptr2=='*') || (*ptr2=='&') || (*ptr2==0302) || (*ptr2==0247) || (*ptr2=='+') || (*ptr2=='-') || (*ptr2=='!') || (*ptr2=='_')))
 			{
 				switch(*ptr2)
 				{
@@ -926,7 +939,9 @@ char *ptr1,*ptr2,*ptr3,*ptr4, *wstr;
 					case '+': entr->showalways=1; break;
 					case '-': entr->showalways=2; break;
 					case '&': entr->stay=1; break;
-					case '§': entr->stay=2; break;
+					case 0302: if (*(ptr2 + 1) != 0247) break; // UTF-8 value of paragraph symbol
+						ptr2++;
+					case 0247: entr->stay=2; break;
 				}
 				while(*(++ptr2))
 				{
@@ -955,7 +970,7 @@ char *ptr1,*ptr2,*ptr3,*ptr4, *wstr;
 						}
 					}
 				break;
-				
+
 				case TYP_MENU:
 					if((ptr2=strstr(ptr1,",ICON="))!=NULL)
 					{
@@ -979,7 +994,7 @@ char *ptr1,*ptr2,*ptr3,*ptr4, *wstr;
 					m->num_entrys++;
 					found=1;
 					break;
-					
+
 				case TYP_DEPENDON:
 				case TYP_DEPENDOFF:
 				case TYP_MENUDON:
@@ -1022,7 +1037,7 @@ char *ptr1,*ptr2,*ptr3,*ptr4, *wstr;
 								pfound=ExistFile(ptr3);
 							}
 							if((((i==TYP_DEPENDON)||(i==TYP_MENUDON)||(i==TYP_FILCONTON)||(i==TYP_MENUFON)) && pfound) || (((i==TYP_DEPENDOFF)||(i==TYP_MENUDOFF)||(i==TYP_FILCONTOFF)||(i==TYP_MENUFOFF)) && !pfound))
-							{							
+							{
 								entr->type=(i<TYP_EXECUTE)?TYP_MENU:((strlen(ptr2))?TYP_EXECUTE:TYP_INACTIVE);
 								entr->entry=strdup(ptr1);
 								if(ptr4)
@@ -1035,7 +1050,7 @@ char *ptr1,*ptr2,*ptr3,*ptr4, *wstr;
 							else
 							{
 								if(entr->showalways)
-								{							
+								{
 									entr->type=TYP_INACTIVE;
 									entr->entry=strdup(ptr1);
 									entr->headerpos=pos;
@@ -1077,7 +1092,7 @@ char *ptr1,*ptr2,*ptr3,*ptr4, *wstr;
 							}
 							pfound=system(ptr3);
 							if((((i==TYP_SHELLRESON)||(i==TYP_MENUSON)) && !pfound) || (((i==TYP_SHELLRESOFF)||(i==TYP_MENUSOFF)) && pfound))
-							{							
+							{
 								entr->type=(i<TYP_EXECUTE)?TYP_MENU:((strlen(ptr2))?TYP_EXECUTE:TYP_INACTIVE);
 								entr->entry=strdup(ptr1);
 								if(ptr4)
@@ -1090,7 +1105,7 @@ char *ptr1,*ptr2,*ptr3,*ptr4, *wstr;
 							else
 							{
 								if(entr->showalways)
-								{							
+								{
 									entr->type=TYP_INACTIVE;
 									entr->entry=strdup(ptr1);
 									entr->headerpos=pos;
@@ -1100,7 +1115,7 @@ char *ptr1,*ptr2,*ptr3,*ptr4, *wstr;
 						}
 					}
 					break;
-			}		
+			}
 			if(found && (i != TYP_COMMENT) && (i != TYP_INACTIVE))
 			{
 				m->num_active++;
@@ -1148,13 +1163,13 @@ FSTRUCT fstr;
 					mlevel--;
 				}
 			}
-//printf("Get_Menu: loop: %d, mlevel: %d, pos: %d -> %s\n",loop,mlevel,pos,line_buffer);			
+			//printf("Get_Menu: loop: %d, mlevel: %d, pos: %d -> %s\n",loop,mlevel,pos,line_buffer);
 		}
 		if(loop)
 		{
 			return rv;
 		}
-		
+
 		--pos;
 		--mlevel;
 		loop=1;
@@ -1185,7 +1200,7 @@ FSTRUCT fstr;
 						}
 						menu.menact=strdup(pt1);
 					}
-				
+
 				}
 				mlevel--;
 			}
@@ -1272,24 +1287,24 @@ static void ShowInfo(MENU *m, int knew )
 	char dstr[BUFSIZE],*lcptr,*lcstr;
 	int dy, my, moffs, mh, toffs, soffs=4, oldx=startx, oldy=starty, sbar=0, nosel;
 	PLISTENTRY pl;
-	
+
 	moffs=iyw/(MAX_FUNCS+1);
 	mh=iyw-moffs;
 	dy=mh/(MAX_FUNCS+1);
 	toffs=dy/2;
 	my=moffs+dy+toffs;
-	
+
 	startx = sx + (((ex-sx) - ixw)/2);
 	starty = sy + (((ey-sy) - iyw)/2);
 
 	tind=index;
-	
+
 	//frame layout
 	RenderBox(0, 0, ixw, iyw, radius, CMC);
 
 	// titlebar
 	RenderBox(0, 0, ixw, moffs+5, radius, CMH);
-	
+
 	for(loop=MAX_FUNCS*(index/MAX_FUNCS); loop<MAX_FUNCS*(index/MAX_FUNCS+1) && loop<m->num_entrys && !sbar; loop++)
 	{
 		pl=m->list[loop];
@@ -1309,7 +1324,7 @@ static void ShowInfo(MENU *m, int knew )
 		scrollbar_len = (double)mh / (double)((m->num_entrys/MAX_FUNCS+1)*MAX_FUNCS);
 		scrollbar_ofs = scrollbar_len*(double)((index/MAX_FUNCS)*MAX_FUNCS);
 		scrollbar_cor = scrollbar_len*(double)MAX_FUNCS;
-		RenderBox(ixw-sbw, moffs + scrollbar_ofs, ixw, moffs + scrollbar_ofs + scrollbar_cor , radius, COL_MENUCONTENT_PLUS_3);		
+		RenderBox(ixw-sbw, moffs + scrollbar_ofs, ixw, moffs + scrollbar_ofs + scrollbar_cor , radius, COL_MENUCONTENT_PLUS_3);
 	}
 
 	// Title text
@@ -1320,9 +1335,9 @@ static void ShowInfo(MENU *m, int knew )
 
 	if(m->icon[m->act_header])
 	{
-//		PaintIcon(m->icon[m->act_header],xoffs-6,soffs+2,1);
+		//PaintIcon(m->icon[m->act_header],xoffs-6,soffs+2,1);
 	}
-	
+
 	index /= MAX_FUNCS;
 	dloop=0;
 	ldy=dy;
@@ -1352,10 +1367,10 @@ static void ShowInfo(MENU *m, int knew )
 		if(m->num_active && sbar && (loop==m->act_entry))
 		{
 			RenderBox(2, my+soffs-dy, ixw-sbw, my+soffs, radius, CMCS);
-		}	
+		}
 		nosel=(pl->type==TYP_COMMENT) || (pl->type==TYP_INACTIVE);
 		if(!(pl->type==TYP_COMMENT && pl->underline==2))
-		{		
+		{
 			RenderString(dstr, 45, my, ixw-sbw-65, LEFT, (pl->type==TYP_COMMENT)?SMALL:MED, (((loop%MAX_FUNCS) == (tind%MAX_FUNCS)) && (sbar) && (!nosel))?CMCST:(nosel)?CMCIT:CMCT);
 		}
 		if(pl->type==TYP_MENU)
@@ -1366,7 +1381,7 @@ static void ShowInfo(MENU *m, int knew )
 		{
 			int cloffs=0,ccenter=0;
 			if(pl->type==TYP_COMMENT)
-			{ 
+			{
 				if(strlen(dstr)==0)
 				{
 					if(pl->underline==2)
@@ -1379,7 +1394,7 @@ static void ShowInfo(MENU *m, int knew )
 						cloffs=dy/3;
 					}
 				}
-				else			
+				else
 				{
 					if(pl->underline==2)
 					{
@@ -1444,7 +1459,8 @@ static void ShowInfo(MENU *m, int knew )
 	}
 
 	//copy backbuffer to framebuffer
-	memcpy(lfb, lbb,fix_screeninfo.line_length*var_screeninfo.yres);
+	memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+	//blit();
 
 	if(m->num_active && knew)
 		{
@@ -1479,7 +1495,7 @@ static void ShowInfo(MENU *m, int knew )
 int Menu_Up(MENU *m)
 {
 int llev=m->headerlevels[m->act_header], lmen=m->act_header, lentr=m->lastheaderentrys[m->act_header];
-	
+
 	if(m->menact)
 	{
 		OnMenuClose(m->menact,m->menactdep);
@@ -1495,8 +1511,8 @@ int llev=m->headerlevels[m->act_header], lmen=m->act_header, lentr=m->lastheader
 	m->act_header=lmen;
 	Get_Menu(1);
 	m->act_entry=lentr;
-	
-	return 1;	
+
+	return 1;
 }
 
 
@@ -1524,13 +1540,13 @@ PLISTENTRY pl;
 		printf(NOMEM);
 		return -1;
 	}
-	
+
 	if((trstr=calloc(BUFSIZE+1, sizeof(char)))==NULL)
 	{
 		printf(NOMEM);
 		return -1;
 	}
-	
+
 	spr=Read_Neutrino_Cfg("screen_preset")+1;
 	sprintf(trstr,"screen_StartX%s",spres[spr]);
 	if((sx=Read_Neutrino_Cfg(trstr))<0)
@@ -1576,6 +1592,8 @@ PLISTENTRY pl;
 		tr[index]=tr[cindex];
 		cindex=index;
 	}
+	for (index = 0; index <= COL_MENUCONTENT_PLUS_3; index++)
+		bgra[index] = (tr[index] << 24) | (rd[index] << 16) | (gn[index] << 8) | bl[index];
 
 	fb = open(FB_DEVICE, O_RDWR);
 	if(fb == -1)
@@ -1585,7 +1603,7 @@ PLISTENTRY pl;
 	}
 
 	InitRC();
-//	InitVFD();
+	//InitVFD();
 
 	//init framebuffer
 
@@ -1599,14 +1617,13 @@ PLISTENTRY pl;
 		perror("shellexec <FBIOGET_VSCREENINFO>\n");
 		return -1;
 	}
-	if(!(lfb = (unsigned char*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0)))
+	if(!(lfb = (uint32_t*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0)))
 	{
 		perror("shellexec <mapping of Framebuffer>\n");
 		return -1;
 	}
 
 	//init fontlibrary
-
 	if((error = FT_Init_FreeType(&library)))
 	{
 		printf("shellexec <FT_Init_FreeType failed with Errorcode 0x%.2X>", error);
@@ -1662,7 +1679,7 @@ PLISTENTRY pl;
 	printf("shellexec <FTC_Manager_LookupFace Font \"%s\" loaded>\n", desc.face_id);
 
 	use_kerning = FT_HAS_KERNING(face);
-	desc.flags = FT_LOAD_MONOCHROME;
+	desc.flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT;
 
 	if(Read_Neutrino_Cfg("rounded_corners")>0)
 		radius=9;
@@ -1670,8 +1687,7 @@ PLISTENTRY pl;
 		radius=0;
 
 	//init backbuffer
-
-	if(!(lbb = malloc(fix_screeninfo.line_length*var_screeninfo.yres)))
+	if(!(lbb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
 	{
 		printf("shellexec <allocating of Backbuffer failed>\n");
 		FTC_Manager_Done(manager);
@@ -1679,14 +1695,14 @@ PLISTENTRY pl;
 		munmap(lfb, fix_screeninfo.smem_len);
 		return -1;
 	}
+	stride = fix_screeninfo.line_length/sizeof(uint32_t);
 
-//	lbb=lfb;
-	memset(lbb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres);
-	memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
+	//lbb=lfb;
+	memset(lbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+	memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+	//blit();
 	startx = sx + (((ex-sx) - (fix_screeninfo.line_length-200))/2);
 	starty = sy + (((ey-sy) - (var_screeninfo.yres-150))/2);
-
-
 
 	index=0;
 	if(vfd)
@@ -1721,11 +1737,11 @@ PLISTENTRY pl;
 			case -1:
 				mainloop=0;
 				break;
-				
+
 			case 0:
 				mainloop=Menu_Up(&menu);
 				break;
-				
+
 			case 1:
 				pl=menu.list[menu.act_entry];
 				switch (pl->type)
@@ -1746,7 +1762,7 @@ PLISTENTRY pl;
 						Get_Menu(0);
 						menu.act_entry=0;
 						break;
-						
+
 					case TYP_EXECUTE:
 						if((rptr=strxchr(pl->entry,','))!=NULL)
 						{
@@ -1773,10 +1789,11 @@ PLISTENTRY pl;
 								}
 								else
 								{
-									memset(lbb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres);
-									memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
+									memset(lbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+									memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+									//blit();
 								}
-								
+
 								if(*(rptr+strlen(rptr)-1)=='&')
 								{
 									*(rptr+strlen(rptr)-1)=0;
@@ -1790,8 +1807,10 @@ PLISTENTRY pl;
 									rptr=tstr;
 								}
 							}
+							CloseRC();
 							system(rptr);
-							
+							InitRC();
+
 							mainloop= pl->stay==1;
 							if(pl->stay==1)
 							{
@@ -1804,26 +1823,27 @@ PLISTENTRY pl;
 	}
 
 	//cleanup
-
 	Clear_List(&menu,-1);
 
 	FTC_Manager_Done(manager);
 	FT_Done_FreeType(library);
-/*	if(strlen(url))
+#if 0
+	if(strlen(url))
 	{
 		sprintf(line_buffer,"/sbin/rdate -s %s > /dev/null &",url);
 		system(line_buffer);
 	}
-*/	
+#endif
 	CloseRC();
-//	CloseVFD();
-	
+	//CloseVFD();
+
 	free(line_buffer);
 	free(trstr);
 
 	// clear Display
-	memset(lbb, TRANSP,fix_screeninfo.line_length*var_screeninfo.yres);
-	memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
+	memset(lbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+	memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+	//blit();
 	munmap(lfb, fix_screeninfo.smem_len);
 
 	close(fb);
@@ -1833,4 +1853,3 @@ PLISTENTRY pl;
 
 	return 0;
 }
-

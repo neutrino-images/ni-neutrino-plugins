@@ -15,6 +15,8 @@
 #include <sys/dir.h>
 #include <sys/stat.h>
 #include <linux/input.h>
+#include <poll.h>
+#include <stdint.h>
 #include "shellexec.h"
 #include "io.h"
 
@@ -25,7 +27,7 @@ static int rc;
 
 int InitRC(void)
 {
-	rc = open(RC_DEVICE, O_RDONLY);
+	rc = open(RC_DEVICE, O_RDONLY | O_CLOEXEC);
 	if(rc == -1)
 	{
 		perror("shellexec <open remote control>");
@@ -77,34 +79,34 @@ int RCTranslate(int code)
 		case KEY_OK:		rccode = RC_OK;
 			break;
 
-		case KEY_0:			rccode = RC_0;
+		case KEY_0:		rccode = RC_0;
 			break;
 
-		case KEY_1:			rccode = RC_1;
+		case KEY_1:		rccode = RC_1;
 			break;
 
-		case KEY_2:			rccode = RC_2;
+		case KEY_2:		rccode = RC_2;
 			break;
 
-		case KEY_3:			rccode = RC_3;
+		case KEY_3:		rccode = RC_3;
 			break;
 
-		case KEY_4:			rccode = RC_4;
+		case KEY_4:		rccode = RC_4;
 			break;
 
-		case KEY_5:			rccode = RC_5;
+		case KEY_5:		rccode = RC_5;
 			break;
 
-		case KEY_6:			rccode = RC_6;
+		case KEY_6:		rccode = RC_6;
 			break;
 
-		case KEY_7:			rccode = RC_7;
+		case KEY_7:		rccode = RC_7;
 			break;
 
-		case KEY_8:			rccode = RC_8;
+		case KEY_8:		rccode = RC_8;
 			break;
 
-		case KEY_9:			rccode = RC_9;
+		case KEY_9:		rccode = RC_9;
 			break;
 
 		case KEY_RED:		rccode = RC_RED;
@@ -140,25 +142,68 @@ int RCTranslate(int code)
 		case KEY_POWER:		rccode = RC_STANDBY;
 			break;
 
-		default:			rccode = -1;
+		default:		rccode = -1;
 	}
 
 	return rccode;
 
 }
 
-int GetRCCode(void)
+void ClearRC(void)
 {
-	int rv;
+	struct pollfd pfd;
+	pfd.fd = rc;
+	pfd.events = POLLIN;
+	pfd.revents = 0;
 
-	if(!RCKeyPressed() || (get_instance()>instance))
-	{
-		return -1;
-	}
-	rv=rccode;
-	while(RCKeyPressed());
-
-	return RCTranslate(rv);
+	do
+		poll(&pfd, 1, 300);
+	while(read(rc, &ev, sizeof(ev)) == sizeof(ev));
 }
 
+int GetRCCode(int timeout_in_ms)
+{
+	int rv = -1;
 
+	if (timeout_in_ms) {
+		struct pollfd pfd;
+		struct timeval tv;
+		uint64_t ms_now, ms_final;
+
+		pfd.fd = rc;
+		pfd.events = POLLIN;
+		pfd.revents = 0;
+
+		gettimeofday( &tv, NULL );
+		ms_now = tv.tv_usec/1000 + tv.tv_sec * 1000;
+		if (timeout_in_ms > 0)
+			ms_final = ms_now + timeout_in_ms;
+		else
+			ms_final = UINT64_MAX;
+		while (ms_final > ms_now) {
+			switch(poll(&pfd, 1, timeout_in_ms)) {
+				case -1:
+					perror("GetRCCode: poll() failed");
+				case 0:
+					return -1;
+				default:
+					;
+			}
+			if(RCKeyPressed()) {
+				rv = rccode;
+				while(RCKeyPressed());
+				return RCTranslate(rv);
+			}
+
+			gettimeofday( &tv, NULL );
+			ms_now = tv.tv_usec/1000 + tv.tv_sec * 1000;
+			if (timeout_in_ms > 0)
+				timeout_in_ms = (int)(ms_final - ms_now);
+		}
+	} else if(RCKeyPressed()) {
+		rv = rccode;
+		while(RCKeyPressed());
+		return RCTranslate(rv);
+	}
+	return rv;
+}

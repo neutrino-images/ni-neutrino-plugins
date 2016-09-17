@@ -1,8 +1,8 @@
 #ifndef __shellexec_H__
-
 #define __shellexec_H__
 
-
+//#include <config.h>
+#define _FILE_OFFSET_BITS 64
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -16,6 +16,7 @@
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <stdint.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -115,7 +116,7 @@ enum {SMALL, MED, BIG};
 FT_Error 		error;
 FT_Library		library;
 FTC_Manager		manager;
-FTC_SBitCache		cache;
+FTC_SBitCache	cache;
 FTC_SBit		sbit;
 #if FREETYPE_MAJOR == 2 && FREETYPE_MINOR == 0
 FTC_Image_Desc		desc;
@@ -137,8 +138,9 @@ enum {FILL, GRID};
 enum {CMCST, CMCS, CMCT, CMC, CMCIT, CMCI, CMHT, CMH, WHITE, BLUE0, GTRANSP, CMS, ORANGE, GREEN, YELLOW, RED, COL_MENUCONTENT_PLUS_0, COL_MENUCONTENT_PLUS_1, COL_MENUCONTENT_PLUS_2, COL_MENUCONTENT_PLUS_3};
 #define TRANSP 0
 
-extern unsigned char rd[], gn[], bl[], tr[];
-extern unsigned char *lfb, *lbb;
+extern uint32_t bgra[];
+extern int stride;
+extern uint32_t *lfb, *lbb;
 
 extern int FSIZE_BIG;
 extern int FSIZE_MED;
@@ -155,7 +157,9 @@ extern int instance;
 int get_instance(void);
 void put_instance(int pval);
 
+#ifndef FB_DEVICE
 #define FB_DEVICE	"/dev/fb/0"
+#endif
 
 int key_count;
 unsigned short lastkey;
