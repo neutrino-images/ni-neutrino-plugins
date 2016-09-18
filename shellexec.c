@@ -1295,7 +1295,9 @@ static void ShowInfo(MENU *m, int knew )
 {
 	int loop, dloop, ldy, stlen;
 	double scrollbar_len, scrollbar_ofs, scrollbar_cor;
-	int index=m->act_entry,tind=m->act_entry, sbw=(m->num_entrys>MAX_FUNCS)?12:0;
+	int index=m->act_entry,tind=m->act_entry;
+	int sbw=(m->num_entrys>MAX_FUNCS)?15:0; // scrollbar width
+	int sbo=2; // inner scrollbar offset
 	char tstr[BUFSIZE], *tptr;
 	char dstr[BUFSIZE],*lcptr,*lcstr;
 	int dy, my, moffs, mh, toffs, soffs=4, oldx=startx, oldy=starty, sbar=0, nosel;
@@ -1337,7 +1339,7 @@ static void ShowInfo(MENU *m, int knew )
 		scrollbar_len = (double)mh / (double)((m->num_entrys/MAX_FUNCS+1)*MAX_FUNCS);
 		scrollbar_ofs = scrollbar_len*(double)((index/MAX_FUNCS)*MAX_FUNCS);
 		scrollbar_cor = scrollbar_len*(double)MAX_FUNCS;
-		RenderBox(ixw-sbw, moffs + scrollbar_ofs, ixw, moffs + scrollbar_ofs + scrollbar_cor , radius, COL_MENUCONTENT_PLUS_3);
+		RenderBox(ixw-sbw + sbo, moffs + scrollbar_ofs + sbo, ixw - sbo, moffs + scrollbar_ofs + scrollbar_cor - sbo, radius, COL_MENUCONTENT_PLUS_3);
 	}
 
 	// Title text
