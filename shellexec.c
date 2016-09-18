@@ -1424,18 +1424,12 @@ static void ShowInfo(MENU *m, int knew )
 					cloffs=-dy/4;
 				}
 			}
+			RenderBox(xoffs, my+soffs-cloffs, ixw-xoffs-sbw, my+soffs-cloffs+2, 0, COL_MENUCONTENT_PLUS_3);
 			if(ccenter)
 			{
-				RenderBox(xoffs, my+soffs-cloffs+2, ixw-10-sbw, my+soffs-cloffs+3, 0, CMS);
-				RenderBox(xoffs, my+soffs-cloffs+1, ixw-10-sbw, my+soffs-cloffs+2, 0, CMCIT);
 				stlen=GetStringLen(xoffs, dstr, MED);
 				RenderBox(xoffs+(ixw-xoffs-sbw)/2-stlen/2, my+soffs-ldy, xoffs+(ixw-xoffs-sbw)/2+stlen/2+15, my+soffs, FILL, CMC);
 				RenderString(dstr, xoffs, my, ixw-sbw, CENTER, MED, CMCIT);
-			}
-			else
-			{
-				RenderBox(xoffs, my+soffs-cloffs+2, ixw-xoffs-sbw, my+soffs-cloffs+3, 0, CMS);
-				RenderBox(xoffs, my+soffs-cloffs+1, ixw-xoffs-sbw, my+soffs-cloffs+2, 0, CMCIT);
 			}
 		}
 		if((pl->type!=TYP_COMMENT) && ((pl->type!=TYP_INACTIVE) || (pl->showalways==2)))
