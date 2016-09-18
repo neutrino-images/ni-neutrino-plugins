@@ -1301,7 +1301,7 @@ static void ShowInfo(MENU *m, int knew )
 	int dy, my, moffs, mh, toffs, soffs=4, oldx=startx, oldy=starty, sbar=0, nosel;
 	PLISTENTRY pl;
 
-	moffs=iyw/(MAX_FUNCS+1);
+	moffs=iyw/(MAX_FUNCS+1)+5;
 	mh=iyw-moffs;
 	dy=mh/(MAX_FUNCS+1);
 	toffs=dy/2;
@@ -1316,7 +1316,7 @@ static void ShowInfo(MENU *m, int knew )
 	RenderBox(0, 0, ixw, iyw, radius, CMC);
 
 	// titlebar
-	RenderBox(0, 0, ixw, moffs+5, radius, CMH);
+	RenderBox(0, 0, ixw, moffs, radius, CMH);
 
 	for(loop=MAX_FUNCS*(index/MAX_FUNCS); loop<MAX_FUNCS*(index/MAX_FUNCS+1) && loop<m->num_entrys && !sbar; loop++)
 	{
