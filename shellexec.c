@@ -33,7 +33,16 @@ uint32_t bgra[20];
 void TrimString(char *strg);
 
 // OSD stuff
-static char menucoltxt[][25]={"Content_Selected_Text","Content_Selected","Content_Text","Content","Content_inactive_Text","Content_inactive","Head_Text","Head"};
+static char menucoltxt[][25]={
+	"Content_Selected_Text",
+	"Content_Selected",
+	"Content_Text",
+	"Content",
+	"Content_inactive_Text",
+	"Content_inactive",
+	"Head_Text",
+	"Head"
+};
 static char spres[][5]={"","_crt","_lcd"};
 
 #define LIST_STEP 	10
@@ -77,8 +86,8 @@ int stride;
 
 int get_instance(void)
 {
-FILE *fh;
-int rval=0;
+	FILE *fh;
+	int rval=0;
 
 	if((fh=fopen(INST_FILE,"r"))!=NULL)
 	{
@@ -90,7 +99,7 @@ int rval=0;
 
 void put_instance(int pval)
 {
-FILE *fh;
+	FILE *fh;
 
 	if(pval)
 	{
@@ -115,8 +124,8 @@ static void quit_signal(int sig)
 
 char *strxchr(char *xstr, char srch)
 {
-int quota=0;
-char *resptr=xstr;
+	int quota=0;
+	char *resptr=xstr;
 
 	if(resptr)
 	{
@@ -138,7 +147,7 @@ char *resptr=xstr;
 
 void TrimString(char *strg)
 {
-char *pt1=strg, *pt2=strg;
+	char *pt1=strg, *pt2=strg;
 
 	while(*pt2 && *pt2<=' ')
 	{
@@ -163,8 +172,8 @@ char *pt1=strg, *pt2=strg;
 
 int GetLine(char *buffer, int size, PFSTRUCT fstruct)
 {
-int rv=0;
-char *pt1;
+	int rv=0;
+	char *pt1;
 
 	if(fstruct->fnum<0)
 	{
@@ -205,7 +214,7 @@ char *pt1;
 
 int ExistFile(char *fname)
 {
-FILE *efh;
+	FILE *efh;
 
 	if((efh=fopen(fname,"r"))==NULL)
 	{
@@ -217,10 +226,10 @@ FILE *efh;
 
 int FileContainText(char *line)
 {
-int rv=0;
-long flength;
-char *pt1,*tline=strdup(line),*fbuf=NULL;
-FILE *ffh;
+	int rv=0;
+	long flength;
+	char *pt1,*tline=strdup(line),*fbuf=NULL;
+	FILE *ffh;
 
 	if((pt1=strchr(tline,' '))!=NULL)
 	{
@@ -249,9 +258,9 @@ FILE *ffh;
 
 int Read_Neutrino_Cfg(char *entry)
 {
-FILE *nfh;
-char tstr [512], *cfptr=NULL;
-int rv=-1;
+	FILE *nfh;
+	char tstr [512], *cfptr=NULL;
+	int rv=-1;
 
 	if((nfh=fopen(NCF_FILE,"r"))!=NULL)
 	{
@@ -282,7 +291,7 @@ int rv=-1;
 					}
 				}
 			}
-//			printf("%s\n%s=%s -> %d\n",tstr,entry,cfptr,rv);
+			//printf("%s\n%s=%s -> %d\n",tstr,entry,cfptr,rv);
 		}
 		fclose(nfh);
 	}
@@ -291,7 +300,7 @@ int rv=-1;
 
 int IsMenu(char *buf)
 {
-int i, res=0;
+	int i, res=0;
 
 	for(i=TYP_MENU; !res && i<=TYP_MENUSOFF; i++)
 	{
@@ -320,7 +329,7 @@ static int mysystem(const char *command) {
 
 void OnMenuClose(char *cmd, char *dep)
 {
-int res=1;
+	int res=1;
 
 	if(dep)
 	{
@@ -336,9 +345,9 @@ int res=1;
 
 int Check_Config(void)
 {
-int rv=-1, level=0;
-char *pt1,*pt2;
-FSTRUCT fstr;
+	int rv=-1, level=0;
+	char *pt1,*pt2;
+	FSTRUCT fstr;
 
 	if((fstr.fh[0]=fopen(CFG_FILE,"r"))!=NULL)
 	{
@@ -512,8 +521,8 @@ FSTRUCT fstr;
 
 int Clear_List(MENU *m, int mode)
 {
-int i;
-PLISTENTRY entr;
+	int i;
+	PLISTENTRY entr;
 
 	if(m->menact)
 	{
@@ -585,8 +594,8 @@ PLISTENTRY entr;
 
 int Get_Selection(MENU *m)
 {
-int rv=1,rccode, mloop=1,i,j,first,last,active,knew=1;
-time_t tm1,tm2;
+	int rv=1,rccode, mloop=1,i,j,first,last,active,knew=1;
+	time_t tm1,tm2;
 
 	if(m->num_active)
 	{
@@ -889,10 +898,9 @@ time_t tm1,tm2;
 
 int AddListEntry(MENU *m, char *line, int pos)
 {
-int i,found=0,pfound=0;
-PLISTENTRY entr;
-char *ptr1,*ptr2,*ptr3,*ptr4, *wstr;
-
+	int i,found=0,pfound=0;
+	PLISTENTRY entr;
+	char *ptr1,*ptr2,*ptr3,*ptr4, *wstr;
 
 	if(!strlen(line))
 	{
@@ -1134,9 +1142,9 @@ char *ptr1,*ptr2,*ptr3,*ptr4, *wstr;
 
 int Get_Menu(int showwait)
 {
-int rv=-1, loop=1, mlevel=0, clevel=0, pos=0;
-char *pt1,*pt2;
-FSTRUCT fstr;
+	int rv=-1, loop=1, mlevel=0, clevel=0, pos=0;
+	char *pt1,*pt2;
+	FSTRUCT fstr;
 
 	if(showwait && menu.headerwait[menu.act_header] && menu.headertxt[menu.act_header])
 	{
@@ -1230,8 +1238,8 @@ FSTRUCT fstr;
 
 void clean_string(char *trstr, char *lcstr)
 {
-int i;
-char *lcdptr,*lcptr,*tptr;
+	int i;
+	char *lcdptr,*lcptr,*tptr;
 
 	lcdptr=lcstr;
 	lcptr=trstr;
@@ -1527,9 +1535,9 @@ int llev=m->headerlevels[m->act_header], lmen=m->act_header, lentr=m->lastheader
 
 int main (int argc, char **argv)
 {
-int index=0,cindex=0,mainloop=1,dloop=1,tv, spr;
-char tstr[BUFSIZE], *rptr;
-PLISTENTRY pl;
+	int index=0,cindex=0,mainloop=1,dloop=1,tv, spr;
+	char tstr[BUFSIZE], *rptr;
+	PLISTENTRY pl;
 
 	printf("shellexec Version %.2f\n",SH_VERSION);
 	for(tv=1; tv<argc; tv++)
@@ -1611,7 +1619,6 @@ PLISTENTRY pl;
 	//InitVFD();
 
 	//init framebuffer
-
 	if(ioctl(fb, FBIOGET_FSCREENINFO, &fix_screeninfo) == -1)
 	{
 		perror("shellexec <FBIOGET_FSCREENINFO>\n");
