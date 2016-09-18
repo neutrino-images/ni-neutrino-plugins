@@ -478,9 +478,14 @@ FSTRUCT fstr;
 					{
 						sscanf(strchr(line_buffer,'=')+1,"%d",&ixw);
 					}
+					if(strstr(line_buffer,"HEIGHT=")==line_buffer)
+					{
+						sscanf(strchr(line_buffer,'=')+1,"%d",&iyw);
+					}
 					if(strstr(line_buffer,"HIGHT=")==line_buffer)
 					{
 						sscanf(strchr(line_buffer,'=')+1,"%d",&iyw);
+						printf("shellexec::Check_Config: please use HEIGHT instead of HIGHT\n");
 					}
 					if(strstr(line_buffer,"TIMESERVICE=")==line_buffer)
 					{
