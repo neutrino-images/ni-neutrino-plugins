@@ -1307,7 +1307,7 @@ static void ShowInfo(MENU *m, int knew )
 	mh=iyw-moffs;
 	dy=mh/(MAX_FUNCS+1);
 	toffs=dy/2;
-	my=moffs+dy+toffs;
+	my=moffs+toffs+dy;
 
 	startx = sx + (((ex-sx) - ixw)/2);
 	starty = sy + (((ey-sy) - iyw)/2);
@@ -1345,7 +1345,7 @@ static void ShowInfo(MENU *m, int knew )
 	// Title text
 	lcstr=strdup(m->headertxt[m->act_header]);
 	clean_string(m->headertxt[m->act_header],lcstr);
-	RenderString(lcstr, (m->headermed[m->act_header]==1)?0:45, dy-soffs+2+FSIZE_BIG/10, ixw-sbw-((m->headermed[m->act_header]==1)?0:45) , (m->headermed[m->act_header]==1)?CENTER:LEFT, FSIZE_BIG, CMHT);
+	RenderString(lcstr, (m->headermed[m->act_header]==1)?0:45, moffs-(moffs-FSIZE_BIG)/2, ixw-sbw-((m->headermed[m->act_header]==1)?0:45) , (m->headermed[m->act_header]==1)?CENTER:LEFT, FSIZE_BIG, CMHT);
 	free(lcstr);
 
 	if(m->icon[m->act_header])
@@ -1382,21 +1382,28 @@ static void ShowInfo(MENU *m, int knew )
 
 		if(m->num_active && sbar && (loop==m->act_entry))
 		{
-			RenderBox(2, my+soffs-dy, ixw-sbw, my+soffs, radius, CMCS);
+			RenderBox(0, my+soffs-dy, ixw-sbw, my+soffs, radius, CMCS);
 		}
 		nosel=(pl->type==TYP_COMMENT) || (pl->type==TYP_INACTIVE);
 		if(!(pl->type==TYP_COMMENT && pl->underline==2))
 		{
+			int font_type = MED;
+			int font_size = FSIZE_MED;
 			int coffs=0; // comment offset
-			if (pl->type==TYP_COMMENT && pl->underline==1)
+			if (pl->type==TYP_COMMENT)
 			{
-				coffs=clh;
+				font_type = SMALL;
+				font_size = FSIZE_SMALL;
+				if (pl->underline==1)
+				{
+					coffs=clh;
+				}
 			}
-			RenderString(dstr, 45, my-coffs, ixw-sbw-65, LEFT, (pl->type==TYP_COMMENT)?SMALL:MED, (((loop%MAX_FUNCS) == (tind%MAX_FUNCS)) && (sbar) && (!nosel))?CMCST:(nosel)?CMCIT:CMCT);
+			RenderString(dstr, 45, my+soffs-(dy-font_size)/2-coffs, ixw-sbw-65, LEFT, font_type, (((loop%MAX_FUNCS) == (tind%MAX_FUNCS)) && (sbar) && (!nosel))?CMCST:(nosel)?CMCIT:CMCT);
 		}
 		if(pl->type==TYP_MENU)
 		{
-			RenderString(">", 30, my, 65, LEFT, MED, (((loop%MAX_FUNCS) == (tind%MAX_FUNCS)) && (sbar) && (!nosel))?CMCST:CMCT);
+			RenderString(">", 30, my+soffs-(dy-FSIZE_MED)/2, 65, LEFT, MED, (((loop%MAX_FUNCS) == (tind%MAX_FUNCS)) && (sbar) && (!nosel))?CMCST:CMCT);
 		}
 		if(pl->underline)
 		{
@@ -1434,19 +1441,19 @@ static void ShowInfo(MENU *m, int knew )
 			{
 				stlen=GetStringLen(xoffs, dstr, MED);
 				RenderBox(xoffs+(ixw-xoffs-sbw)/2-stlen/2, my+soffs-ldy, xoffs+(ixw-xoffs-sbw)/2+stlen/2+15, my+soffs, FILL, CMC);
-				RenderString(dstr, xoffs, my, ixw-sbw, CENTER, MED, CMCIT);
+				RenderString(dstr, xoffs, my+soffs-(dy-FSIZE_MED)/2, ixw-sbw, CENTER, MED, CMCIT);
 			}
 		}
 		if((pl->type!=TYP_COMMENT) && ((pl->type!=TYP_INACTIVE) || (pl->showalways==2)))
 		{
+			int ch = GetCircleHeight();
 			direct[dloop++]=(pl->type!=TYP_INACTIVE)?loop:-1;
 			switch(dloop)
 			{
-
-				case 1: RenderCircle(xoffs+1,my-15,RED);    break;
-				case 2: RenderCircle(xoffs+1,my-15,GREEN);  break;
-				case 3: RenderCircle(xoffs+1,my-15,YELLOW); break;
-				case 4: RenderCircle(xoffs+1,my-15,BLUE0);  break;
+				case 1: RenderCircle(xoffs,my+soffs-(dy+ch)/2,RED);    break;
+				case 2: RenderCircle(xoffs,my+soffs-(dy+ch)/2,GREEN);  break;
+				case 3: RenderCircle(xoffs,my+soffs-(dy+ch)/2,YELLOW); break;
+				case 4: RenderCircle(xoffs,my+soffs-(dy+ch)/2,BLUE0);  break;
 /*
 				case 1: PaintIcon("/share/tuxbox/neutrino/icons/rot.raw",xoffs-2,my-15,1); break;
 				case 2: PaintIcon("/share/tuxbox/neutrino/icons/gruen.raw",xoffs-2,my-15,1); break;
@@ -1457,7 +1464,7 @@ static void ShowInfo(MENU *m, int knew )
 					if(dloop<15)
 					{
 						sprintf(tstr,"%1d",(dloop-4)%10);
-						RenderString(tstr, xoffs, my-1, 15, CENTER, SMALL, ((loop%MAX_FUNCS) == (tind%MAX_FUNCS))?CMCST:((pl->type==TYP_INACTIVE)?CMCIT:CMCT));
+						RenderString(tstr, xoffs, my+soffs-(dy-FSIZE_SMALL)/2, 15, CENTER, SMALL, ((loop%MAX_FUNCS) == (tind%MAX_FUNCS))?CMCST:((pl->type==TYP_INACTIVE)?CMCIT:CMCT));
 					}
 				break;
 			}
