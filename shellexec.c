@@ -1359,6 +1359,7 @@ static void ShowInfo(MENU *m, int knew )
 	//Show table of commands
 	for(loop = index*MAX_FUNCS; (loop < (index+1)*MAX_FUNCS) && (loop < m->num_entrys); ++loop)
 	{
+		int clh=2; // comment line height
 		dy=ldy;
 		pl=m->list[loop];
 		strcpy(dstr,pl->entry);
@@ -1386,7 +1387,12 @@ static void ShowInfo(MENU *m, int knew )
 		nosel=(pl->type==TYP_COMMENT) || (pl->type==TYP_INACTIVE);
 		if(!(pl->type==TYP_COMMENT && pl->underline==2))
 		{
-			RenderString(dstr, 45, my, ixw-sbw-65, LEFT, (pl->type==TYP_COMMENT)?SMALL:MED, (((loop%MAX_FUNCS) == (tind%MAX_FUNCS)) && (sbar) && (!nosel))?CMCST:(nosel)?CMCIT:CMCT);
+			int coffs=0; // comment offset
+			if (pl->type==TYP_COMMENT && pl->underline==1)
+			{
+				coffs=clh;
+			}
+			RenderString(dstr, 45, my-coffs, ixw-sbw-65, LEFT, (pl->type==TYP_COMMENT)?SMALL:MED, (((loop%MAX_FUNCS) == (tind%MAX_FUNCS)) && (sbar) && (!nosel))?CMCST:(nosel)?CMCIT:CMCT);
 		}
 		if(pl->type==TYP_MENU)
 		{
@@ -1399,21 +1405,18 @@ static void ShowInfo(MENU *m, int knew )
 			{
 				if(strlen(dstr)==0)
 				{
+					cloffs=dy/2;
 					if(pl->underline==2)
 					{
-						dy/=2;
-						cloffs=4*dy/3;
-					}
-					else
-					{
-						cloffs=dy/3;
+						dy/=2; // FIXME: these substraction causes space at bottom of painted box
+						cloffs+=dy/2;
 					}
 				}
 				else
 				{
 					if(pl->underline==2)
 					{
-						cloffs=dy/3;
+						cloffs=dy/2;
 						ccenter=1;
 					}
 				}
@@ -1422,11 +1425,11 @@ static void ShowInfo(MENU *m, int knew )
 			{
 				if(pl->underline==2)
 				{
-					dy+=dy/2;
+					dy+=dy/2; // FIXME: these addition causes text outside painted box
 					cloffs=-dy/4;
 				}
 			}
-			RenderBox(xoffs, my+soffs-cloffs, ixw-xoffs-sbw, my+soffs-cloffs+2, 0, COL_MENUCONTENT_PLUS_3);
+			RenderBox(xoffs, my+soffs-cloffs-clh, ixw-xoffs-sbw, my+soffs-cloffs, 0, COL_MENUCONTENT_PLUS_3);
 			if(ccenter)
 			{
 				stlen=GetStringLen(xoffs, dstr, MED);
