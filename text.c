@@ -253,6 +253,17 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 		return 0;
 	}
 
+	int _d = 0;
+	if (1)
+	{
+		//printf("shellexec <FTC_SBitCache_Lookup for Char \"g\" to get descender>\n");
+		FT_UInt _i = FT_Get_Char_Index(face, 'g');
+		FTC_SBit _g;
+		FTC_SBitCache_Lookup(cache, &desc, _i, &_g, NULL);
+		_d = _g->height - _g->top;
+		_d += 1;
+	}
+
 	if(use_kerning)
 	{
 		FT_Get_Kerning(face, prev_glyphindex, glyphindex, ft_kerning_default, &kerning);
@@ -268,7 +279,7 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 		uint32_t bgcolor = *(lbb + (starty + _sy) * stride + (startx + _sx));
 		uint32_t fgcolor = bgra[color];
 		uint32_t *colors = lookup_colors(fgcolor, bgcolor);
-		uint32_t *p = lbb + (startx + _sx + sbit->left + kerning.x) + stride * (starty + _sy - sbit->top);
+		uint32_t *p = lbb + (startx + _sx + sbit->left + kerning.x) + stride * (starty + _sy - sbit->top - _d);
 		uint32_t *r = p + (_ex - _sx);	/* end of usable box */
 		for(row = 0; row < sbit->height; row++)
 		{
