@@ -1602,6 +1602,11 @@ int main (int argc, char **argv)
 			rd[index]=(float)tv*2.55;
 	}
 
+	if(Read_Neutrino_Cfg("rounded_corners")>0)
+		radius=11;
+	else
+		radius=0;
+
 	cindex=CMC;
 	for(index=COL_MENUCONTENT_PLUS_0; index<=COL_MENUCONTENT_PLUS_3; index++)
 	{
@@ -1698,11 +1703,6 @@ int main (int argc, char **argv)
 
 	use_kerning = FT_HAS_KERNING(face);
 	desc.flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT;
-
-	if(Read_Neutrino_Cfg("rounded_corners")>0)
-		radius=11;
-	else
-		radius=0;
 
 	//init backbuffer
 	if(!(lbb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
