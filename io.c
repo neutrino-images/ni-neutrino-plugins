@@ -165,7 +165,7 @@ int GetRCCode(int timeout_in_ms)
 {
 	int rv = -1;
 
-	if (!RCKeyPressed() || (get_instance()>instance))
+	if (get_instance()>instance)
 	{
 		return rv;
 	}
