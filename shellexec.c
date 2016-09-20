@@ -412,7 +412,7 @@ int Check_Config(void)
 					++pt1;
 				}
 				pt2=pt1;
-				while(*pt2 && ((*pt2=='*') || (*pt2=='&') || (*ptr2=='§') || (*pt2==0302) || (*pt2==0247) || (*pt2=='+') || (*pt2=='-') || (*pt2=='!') || (*pt2=='_')))
+				while(*pt2 && ((*pt2=='*') || (*pt2=='&') || (*pt2==0302) || (*pt2==0247) || (*pt2=='+') || (*pt2=='-') || (*pt2=='!') || (*pt2=='_')))
 				{
 					if(*pt2=='_')
 					{
@@ -937,7 +937,7 @@ int AddListEntry(MENU *m, char *line, int pos)
 			ptr1=strchr(wstr,'=');
 			ptr1++;
 			ptr2=ptr1;
-			while(*ptr2 && ((*ptr2=='*') || (*ptr2=='&') || (*ptr2=='§') || (*ptr2==0302) || (*ptr2==0247) || (*ptr2=='+') || (*ptr2=='-') || (*ptr2=='!') || (*ptr2=='_')))
+			while(*ptr2 && ((*ptr2=='*') || (*ptr2=='&') || (*ptr2==0302) || (*ptr2==0247) || (*ptr2=='+') || (*ptr2=='-') || (*ptr2=='!') || (*ptr2=='_')))
 			{
 				switch(*ptr2)
 				{
@@ -946,7 +946,6 @@ int AddListEntry(MENU *m, char *line, int pos)
 					case '+': entr->showalways=1; break;
 					case '-': entr->showalways=2; break;
 					case '&': entr->stay=1; break;
-					case '§': entr->stay=2; break;
 					case 0302: if (*(ptr2 + 1) != 0247) break; // UTF-8 value of paragraph symbol
 						ptr2++;
 					case 0247: entr->stay=2; break;
