@@ -469,12 +469,10 @@ int Check_Config(void)
 					{
 						sscanf(strchr(line_buffer,'=')+1,"%d",&FSIZE_MED);
 					}
-#if 0
 					if(strstr(line_buffer,"MENUTIMEOUT=")==line_buffer)
 					{
 						sscanf(strchr(line_buffer,'=')+1,"%d",&mtmo);
 					}
-#endif
 					if(strstr(line_buffer,"PAGING=")==line_buffer)
 					{
 						sscanf(strchr(line_buffer,'=')+1,"%d",&paging);
@@ -854,12 +852,8 @@ int Get_Selection(MENU *m)
 
 			case -1:
 				knew=0;
-#if 0
-				if(mtmo == 0)
-					break;
-#endif
 				time(&tm2);
-				if((tm2-tm1)<mtmo)
+				if(mtmo==0 || (tm2-tm1)<mtmo)
 				{
 					break;
 				}
@@ -1606,6 +1600,10 @@ int main (int argc, char **argv)
 		radius=11;
 	else
 		radius=0;
+
+	mtmo = Read_Neutrino_Cfg("timing.menu");
+	if (mtmo < 0)
+		mtmo = 0;
 
 	cindex=CMC;
 	for(index=COL_MENUCONTENT_PLUS_0; index<=COL_MENUCONTENT_PLUS_3; index++)
