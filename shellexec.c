@@ -78,7 +78,7 @@ char VFD[256]="";
 char url[256]="time.fu-berlin.de";
 char *line_buffer=NULL;
 char *trstr;
-int paging=1, mtmo=120, radius=10;
+int paging=1, mtmo=120, radius=11;
 int ixw=600, iyw=680, xoffs=13, vfd=0;
 char INST_FILE[]="/tmp/rc.locked";
 int instance=0;
@@ -1700,7 +1700,7 @@ int main (int argc, char **argv)
 	desc.flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT;
 
 	if(Read_Neutrino_Cfg("rounded_corners")>0)
-		radius=9;
+		radius=11;
 	else
 		radius=0;
 
