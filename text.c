@@ -22,7 +22,7 @@ int UTF8ToUnicode(char **textp, const int utf8_encoded) // returns -1 on error
 	if (utf8_encoded && ((((unsigned char)(*text)) & 0x80) != 0))
 	{
 		int remaining_unicode_length;
-		if ((((unsigned char)(*text)) & 0xf8) == 0xf0)
+		if ((((unsigned char)(*text)) & 0xf5) == 0xf0)
 		{
 			unicode_value = ((unsigned char)(*text)) & 0x07;
 			remaining_unicode_length = 3;
@@ -66,7 +66,7 @@ void CopyUTF8Char(char **to, char **from)
 	int remaining_unicode_length;
 	if (!((unsigned char)(**from) & 0x80))
 		remaining_unicode_length = 1;
-	else if ((((unsigned char)(**from)) & 0xf8) == 0xf0)
+	else if ((((unsigned char)(**from)) & 0xf5) == 0xf0)
 		remaining_unicode_length = 4;
 	else if ((((unsigned char)(**from)) & 0xf0) == 0xe0)
 		remaining_unicode_length = 3;
