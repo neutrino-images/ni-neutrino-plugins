@@ -6,6 +6,8 @@
 #include "io.h"
 #include "gfx.h"
 
+#define SH_VERSION 1.30
+
 static char CFG_FILE[128]="/var/tuxbox/config/shellexec.conf";
 
 //#define FONT "/usr/share/fonts/md_khmurabi_10.ttf"
@@ -47,7 +49,7 @@ static char spres[][5]={"","_crt","_lcd"};
 
 #define LIST_STEP 	10
 #define BUFSIZE 	4095
-#define SH_VERSION	1.21
+
 typedef struct {int fnum; FILE *fh[16];} FSTRUCT, *PFSTRUCT;
 
 static int direct[32];
