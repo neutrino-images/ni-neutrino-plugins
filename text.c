@@ -106,6 +106,10 @@ void TranslateString(char *src, size_t size)
 				*tptr++ = 0xC3;
 				*tptr++ = su[i];
 				fptr++;
+			} else if (*fptr == '§') {
+				*tptr++ = 0xC2;
+				*tptr++ = 0xa7;
+				fptr++;
 			} else if (*fptr & 0x80)
 				fptr++;
 			else
