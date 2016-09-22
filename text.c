@@ -106,7 +106,13 @@ void TranslateString(char *src, size_t size)
 				*tptr++ = 0xC3;
 				*tptr++ = su[i];
 				fptr++;
-			} else if (*fptr == '§') {
+			} else if (*fptr == '§' /* 1252, 28591 */ || *fptr == 'õ' /* 850 */) {
+				/*
+				   Take care about the line above!
+
+				   Workaround for different codepages in user's conf
+				   Convert paragraph symbol to utf-8
+				*/
 				*tptr++ = 0xC2;
 				*tptr++ = 0xa7;
 				fptr++;
