@@ -1,6 +1,6 @@
 #include <math.h>
 
-#include "shellexec.h"
+#include "current.h"
 #include "gfx.h"
 
 char circle[] =
@@ -40,7 +40,7 @@ void RenderBox(int sx, int sy, int ex, int ey, int rad, int col)
 
 	if (dxx<0)
 	{
-		printf("[shellexec] RenderBox called with dx < 0 (%d)\n", dxx);
+		printf("[%s] RenderBox called with dx < 0 (%d)\n", __plugin__, dxx);
 		dxx=0;
 	}
 
@@ -161,7 +161,7 @@ void RenderCircle(int sx, int sy, char col)
 
 	if (fd == -1)
 	{
-		printf("shellexec <unable to load icon: %s>\n", filename);
+		printf("%s <unable to load icon: %s>\n", __plugin__, filename);
 		return;
 	}
 

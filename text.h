@@ -1,7 +1,7 @@
 #ifndef __TEXT_H__
 #define __TEXT_H__
 
-#include "shellexec.h"
+#include "current.h"
 
 extern int FSIZE_BIG;
 extern int FSIZE_MED;

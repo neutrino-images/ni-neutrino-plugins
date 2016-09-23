@@ -24,7 +24,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <plugin.h>
-#define SCRIPT "shellexec"
+#define SCRIPT __plugin__
 
 void main()
 {

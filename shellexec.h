@@ -116,7 +116,7 @@ enum {SMALL, MED, BIG};
 FT_Error 		error;
 FT_Library		library;
 FTC_Manager		manager;
-FTC_SBitCache	cache;
+FTC_SBitCache		cache;
 FTC_SBit		sbit;
 #if FREETYPE_MAJOR == 2 && FREETYPE_MINOR == 0
 FTC_Image_Desc		desc;

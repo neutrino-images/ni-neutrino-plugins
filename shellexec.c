@@ -1,7 +1,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
-#include "shellexec.h"
+
+#include "current.h"
+
 #include "text.h"
 #include "io.h"
 #include "gfx.h"
@@ -120,7 +122,7 @@ void put_instance(int pval)
 static void quit_signal(int sig)
 {
 	put_instance(get_instance()-1);
-	printf("shellexec Version %.2f killed, signal %d\n",SH_VERSION,sig);
+	printf("%s Version %.2f killed, signal %d\n", __plugin__, SH_VERSION, sig);
 	exit(1);
 }
 
@@ -1541,7 +1543,7 @@ int main (int argc, char **argv)
 	char tstr[BUFSIZE], *rptr;
 	PLISTENTRY pl;
 
-	printf("shellexec Version %.2f\n",SH_VERSION);
+	printf("%s Version %.2f\n", __plugin__, SH_VERSION);
 	for(tv=1; tv<argc; tv++)
 	{
 		if(*argv[tv]=='/')
@@ -1622,7 +1624,7 @@ int main (int argc, char **argv)
 	fb = open(FB_DEVICE, O_RDWR);
 	if(fb == -1)
 	{
-		perror("shellexec <open framebuffer device>");
+		perror(__plugin__ " <open framebuffer device>");
 		exit(1);
 	}
 
@@ -1632,31 +1634,31 @@ int main (int argc, char **argv)
 	//init framebuffer
 	if(ioctl(fb, FBIOGET_FSCREENINFO, &fix_screeninfo) == -1)
 	{
-		perror("shellexec <FBIOGET_FSCREENINFO>\n");
+		perror(__plugin__ " <FBIOGET_FSCREENINFO>\n");
 		return -1;
 	}
 	if(ioctl(fb, FBIOGET_VSCREENINFO, &var_screeninfo) == -1)
 	{
-		perror("shellexec <FBIOGET_VSCREENINFO>\n");
+		perror(__plugin__ " <FBIOGET_VSCREENINFO>\n");
 		return -1;
 	}
 	if(!(lfb = (uint32_t*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0)))
 	{
-		perror("shellexec <mapping of Framebuffer>\n");
+		perror(__plugin__ " <mapping of Framebuffer>\n");
 		return -1;
 	}
 
 	//init fontlibrary
 	if((error = FT_Init_FreeType(&library)))
 	{
-		printf("shellexec <FT_Init_FreeType failed with Errorcode 0x%.2X>", error);
+		printf("%s <FT_Init_FreeType failed with Errorcode 0x%.2X>", __plugin__, error);
 		munmap(lfb, fix_screeninfo.smem_len);
 		return -1;
 	}
 
 	if((error = FTC_Manager_New(library, 1, 2, 0, &MyFaceRequester, NULL, &manager)))
 	{
-		printf("shellexec <FTC_Manager_New failed with Errorcode 0x%.2X>\n", error);
+		printf("%s <FTC_Manager_New failed with Errorcode 0x%.2X>\n", __plugin__, error);
 		FT_Done_FreeType(library);
 		munmap(lfb, fix_screeninfo.smem_len);
 		return -1;
@@ -1664,7 +1666,7 @@ int main (int argc, char **argv)
 
 	if((error = FTC_SBitCache_New(manager, &cache)))
 	{
-		printf("shellexec <FTC_SBitCache_New failed with Errorcode 0x%.2X>\n", error);
+		printf("%s <FTC_SBitCache_New failed with Errorcode 0x%.2X>\n", __plugin__, error);
 		FTC_Manager_Done(manager);
 		FT_Done_FreeType(library);
 		munmap(lfb, fix_screeninfo.smem_len);
@@ -1674,7 +1676,7 @@ int main (int argc, char **argv)
 	memset(&menu,0,sizeof(MENU));
 	if(Check_Config())
 	{
-		printf("shellexec <Check_Config> Unable to read Config %s\n",CFG_FILE);
+		printf("%s <Check_Config> Unable to read Config %s\n", __plugin__, CFG_FILE);
 		FTC_Manager_Done(manager);
 		FT_Done_FreeType(library);
 		munmap(lfb, fix_screeninfo.smem_len);
@@ -1685,10 +1687,10 @@ int main (int argc, char **argv)
 
 	if((error = FTC_Manager_LookupFace(manager, FONT, &face)))
 	{
-		printf("shellexec <FTC_Manager_LookupFace failed with Errorcode 0x%.2X, trying default font>\n", error);
+		printf("%s <FTC_Manager_LookupFace failed with Errorcode 0x%.2X, trying default font>\n", __plugin__, error);
 		if((error = FTC_Manager_LookupFace(manager, FONT2, &face)))
 		{
-			printf("shellexec <FTC_Manager_LookupFace failed with Errorcode 0x%.2X>\n", error);
+			printf("%s <FTC_Manager_LookupFace failed with Errorcode 0x%.2X>\n", __plugin__, error);
 			FTC_Manager_Done(manager);
 			FT_Done_FreeType(library);
 			munmap(lfb, fix_screeninfo.smem_len);
@@ -1699,7 +1701,7 @@ int main (int argc, char **argv)
 	}
 	else
 		desc.face_id = FONT;
-	printf("shellexec <FTC_Manager_LookupFace Font \"%s\" loaded>\n", desc.face_id);
+	printf("%s <FTC_Manager_LookupFace Font \"%s\" loaded>\n", __plugin__, desc.face_id);
 
 	use_kerning = FT_HAS_KERNING(face);
 	desc.flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT;
@@ -1707,7 +1709,7 @@ int main (int argc, char **argv)
 	//init backbuffer
 	if(!(lbb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
 	{
-		printf("shellexec <allocating of Backbuffer failed>\n");
+		printf("%s <allocating of Backbuffer failed>\n", __plugin__);
 		FTC_Manager_Done(manager);
 		FT_Done_FreeType(library);
 		munmap(lfb, fix_screeninfo.smem_len);
@@ -1733,7 +1735,7 @@ int main (int argc, char **argv)
 	menu.act_entry=0;
 	if(Get_Menu(1))
 	{
-		printf("ShellExec <unable to create menu>\n");
+		printf("%s <unable to create menu>\n", __plugin__);
 		FTC_Manager_Done(manager);
 		FT_Done_FreeType(library);
 		munmap(lfb, fix_screeninfo.smem_len);

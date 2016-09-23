@@ -17,7 +17,8 @@
 #include <linux/input.h>
 #include <poll.h>
 #include <stdint.h>
-#include "shellexec.h"
+
+#include "current.h"
 #include "io.h"
 
 extern int instance;
@@ -30,7 +31,7 @@ int InitRC(void)
 	rc = open(RC_DEVICE, O_RDONLY | O_CLOEXEC);
 	if(rc == -1)
 	{
-		perror("shellexec <open remote control>");
+		perror(__plugin__ " <open remote control>");
 		exit(1);
 	}
 	fcntl(rc, F_SETFL, O_NONBLOCK | O_SYNC);

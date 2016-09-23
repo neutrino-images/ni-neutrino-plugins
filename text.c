@@ -1,7 +1,6 @@
 #include "text.h"
 #include "gfx.h"
 #include "io.h"
-#include "shellexec.h"
 
 int FSIZE_BIG=28;
 int FSIZE_MED=24;
@@ -159,7 +158,7 @@ FT_Error MyFaceRequester(FTC_FaceID face_id, FT_Library lib, FT_Pointer request_
 	result = FT_New_Face(lib, face_id, 0, aface);
 
 	if (result)
-		printf("shellexec <Font \"%s\" failed>\n", (char*)face_id);
+		printf("%s <Font \"%s\" failed>\n", __plugin__, (char*)face_id);
 
 	return result;
 }
@@ -253,20 +252,19 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 	//load char
 	if(!(glyphindex = FT_Get_Char_Index(face, currentchar)))
 	{
-		printf("shellexec <FT_Get_Char_Index for Char \"%c\" failed>\n", (int)currentchar);
+		printf("%s <FT_Get_Char_Index for Char \"%c\" failed>\n", __plugin__, (int)currentchar);
 		return 0;
 	}
 
 	if((err = FTC_SBitCache_Lookup(cache, &desc, glyphindex, &sbit, NULL)))
 	{
-		printf("shellexec <FTC_SBitCache_Lookup for Char \"%c\" failed with Errorcode 0x%.2X>\n", (int)currentchar, err);
+		printf("%s <FTC_SBitCache_Lookup for Char \"%c\" failed with Errorcode 0x%.2X>\n", __plugin__, (int)currentchar, err);
 		return 0;
 	}
 
 	int _d = 0;
 	if (1)
 	{
-		//printf("shellexec <FTC_SBitCache_Lookup for Char \"g\" to get descender>\n");
 		FT_UInt _i = FT_Get_Char_Index(face, 'g');
 		FTC_SBit _g;
 		FTC_SBitCache_Lookup(cache, &desc, _i, &_g, NULL);
