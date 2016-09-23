@@ -75,7 +75,6 @@ int AddListEntry(MENU *m, char *line, int pos);
 int Get_Menu(int showwait);
 static void ShowInfo(MENU *m, int knew);
 
-
 uint32_t *lfb = NULL, *lbb = NULL;
 char title[256];
 char VFD[256]="";
@@ -1135,7 +1134,6 @@ int AddListEntry(MENU *m, char *line, int pos)
 	}
 	free(wstr);
 	return !found;
-
 }
 
 int Get_Menu(int showwait)

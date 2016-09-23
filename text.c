@@ -9,7 +9,7 @@ int TABULATOR=72;
 
 //extern void blit();
 
-static char 	*sc = "aouAOUzd",
+static char	*sc = "aouAOUzd",
 		*su = "\xA4\xB6\xBC\x84\x96\x9C\x9F",
 		*tc = "\xE4\xF6\xFC\xC4\xD6\xDC\xDF\xB0";
 
@@ -369,69 +369,69 @@ void RenderString(char *string, int sx, int sy, int maxwidth, int layout, int si
 	if(strstr(rstr,"~c"))
 		layout=CENTER;
 
-		//set size
-		switch (size)
+	//set size
+	switch (size)
+	{
+		case SMALL: desc.width = desc.height = FSIZE_SMALL; break;
+		case MED:   desc.width = desc.height = FSIZE_MED; break;
+		case BIG:   desc.width = desc.height = FSIZE_BIG; break;
+		default:    desc.width = desc.height = size; break;
+	}
+
+	//set alignment
+	if(layout != LEFT)
+	{
+		stringlen = GetStringLen(sx, string, size);
+
+		switch(layout)
 		{
-			case SMALL: desc.width = desc.height = FSIZE_SMALL; break;
-			case MED:   desc.width = desc.height = FSIZE_MED; break;
-			case BIG:   desc.width = desc.height = FSIZE_BIG; break;
-			default:    desc.width = desc.height = size; break;
-		}
-
-		//set alignment
-		if(layout != LEFT)
-		{
-			stringlen = GetStringLen(sx, string, size);
-
-			switch(layout)
-			{
-				case CENTER:	if(stringlen < maxwidth) sx += (maxwidth - stringlen)/2;
-						break;
-
-				case RIGHT:	if(stringlen < maxwidth) sx += maxwidth - stringlen;
-			}
-		}
-
-		//reset kerning
-		prev_glyphindex = 0;
-
-		//render string
-		ex = sx + maxwidth;
-
-		while(*rptr != '\0')
-		{
-			if(*rptr=='~')
-			{
-				++rptr;
-				switch(*rptr)
-				{
-					case 'R': varcolor=RED; break;
-					case 'G': varcolor=GREEN; break;
-					case 'Y': varcolor=YELLOW; break;
-					case 'B': varcolor=BLUE0; break;
-					case 'S': varcolor=color; break;
-					case 't': sx=((sx/TABULATOR)+1)*TABULATOR; break;
-					case 'T':
-						if(sscanf(rptr+1,"%4d",&i)==1)
-						{
-							rptr+=4;
-							sx=i;
-						}
-						else
-						{
-							sx=((sx/TABULATOR)+1)*TABULATOR;
-						}
+			case CENTER:	if(stringlen < maxwidth) sx += (maxwidth - stringlen)/2;
 					break;
-				}
-				rptr++;
-			}
-			else
-			{
-				if ((charwidth = RenderChar(UTF8ToUnicode(&rptr, 1), sx, sy, ex, ((color!=CMCIT) && (color!=CMCST)) ? varcolor : color)) == -1)
-					return; /* string > maxwidth */
-				sx += charwidth;
-			}
+
+			case RIGHT:	if(stringlen < maxwidth) sx += maxwidth - stringlen;
 		}
+	}
+
+	//reset kerning
+	prev_glyphindex = 0;
+
+	ex = sx + maxwidth;
+
+	//render string
+	while(*rptr != '\0')
+	{
+		if(*rptr=='~')
+		{
+			++rptr;
+			switch(*rptr)
+			{
+				case 'R': varcolor=RED; break;
+				case 'G': varcolor=GREEN; break;
+				case 'Y': varcolor=YELLOW; break;
+				case 'B': varcolor=BLUE0; break;
+				case 'S': varcolor=color; break;
+				case 't': sx=((sx/TABULATOR)+1)*TABULATOR; break;
+				case 'T':
+					if(sscanf(rptr+1,"%4d",&i)==1)
+					{
+						rptr+=4;
+						sx=i;
+					}
+					else
+					{
+						sx=((sx/TABULATOR)+1)*TABULATOR;
+					}
+				break;
+			}
+			rptr++;
+		}
+		else
+		{
+			if ((charwidth = RenderChar(UTF8ToUnicode(&rptr, 1), sx, sy, ex, ((color!=CMCIT) && (color!=CMCST)) ? varcolor : color)) == -1)
+				return; /* string > maxwidth */
+			sx += charwidth;
+		}
+	}
 }
 
 /******************************************************************************
@@ -520,5 +520,4 @@ void ShowMessage(char *mtitle, char *message, int wait)
 
 	startx=lx;
 	//starty=ly;
-
 }
