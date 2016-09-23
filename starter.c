@@ -24,6 +24,9 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <plugin.h>
+
+#include "current.h"
+
 #define SCRIPT __plugin__
 
 void main()
