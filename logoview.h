@@ -1,7 +1,7 @@
 /*
 	logoview - Logoviewer for Coolstream
 
-	Copyright (C) 2011-2015 Michael Liebmann
+	Copyright (C) 2011-2016 Michael Liebmann
 
 	License: GPL
 
@@ -32,7 +32,6 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
-//#include <stdint.h>
 #include <unistd.h>
 #include <linux/fb.h>
 #include <sys/ioctl.h>

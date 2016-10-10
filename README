@@ -15,11 +15,10 @@ Lizenz:
 	GPL Version 2
 
 Sourcecode ansehen:
-	http://tuxcode.git.sourceforge.net/git/gitweb.cgi?p=tuxcode/cs-tools;a=log;h=refs/heads/logoview
+	https://gitweb.slknet.de/03/?p=cst-public-plugins-logoview.git;a=summary
 
 Sourcecode herunterladen:
-	git clone git://tuxcode.git.sourceforge.net/gitroot/tuxcode/cs-tools cs-tools
-	git checkout --track -b logoview origin/logoview
+	git clone https://git.slknet.de/cst-public-plugins-logoview.git
     Aktualisieren:
 	git pull
 
@@ -38,6 +37,7 @@ Aufruf:
          -b | --background   Run in background
          -t | --timeout      Timeout in sec. (default 0 = no timeout)
          -c | --clearscreen  Clear screen when timeout (default = no)
+         -o | --only-clear   No logo view, clear screen and exit
          -h | --help         This help
 
    Example:

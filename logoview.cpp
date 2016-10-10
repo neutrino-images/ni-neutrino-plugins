@@ -1,7 +1,7 @@
 /*
 	logoview - Logoviewer for Coolstream
 
-	Copyright (C) 2011-2015 Michael Liebmann
+	Copyright (C) 2011-2016 Michael Liebmann
 
 	License: GPL
 
@@ -34,12 +34,11 @@
 
 #include "logoview.h"
 #include "jpeg.h"
-
-#define LV_VERSION "1.0.6"
+#include "version.h"
 
 #define VERSIONSTR "\n\
       ------------------------------------------------------------\n\
-      -- logoview v" LV_VERSION " * (C)2011-2015, M. Liebmann (micha-bbg) --\n\
+      -- logoview v" LV_VERSION " * (C)2011-2016, M. Liebmann (micha-bbg) --\n\
       ------------------------------------------------------------\n\n"
 #define FLAG_FILE "/tmp/.logoview"
 #define NEUTRINO_CONF "/var/tuxbox/config/neutrino.conf"
