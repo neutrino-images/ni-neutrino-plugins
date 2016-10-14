@@ -1514,7 +1514,7 @@ int MessageBox(const char* msg1, const char* msg2, int mode)
 {
 
 	int sel = 0, le1=0, le2=0 , wi, he, maxsel=0;
-	int ps[5];
+	int ps[5] = {0,0,0,0,0};
 
 	switch (mode)
 	{
