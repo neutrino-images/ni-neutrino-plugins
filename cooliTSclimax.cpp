@@ -1,5 +1,6 @@
 //arm-cx2450x-linux-gnueabi-g++ -o cooliTSclimax -Wall cooliTSclimax.cpp -Wall -Wextra -Wshadow -Werror -L$PREFIX/lib -lavformat -lavcodec -lavutil -I$PREFIX/include -D__STDC_CONSTANT_MACROS -L$PREFIX/lib -lfreetype -lz -lxml2 -liconv -lpthread
 //arm-pnx8400-linux-uclibcgnueabi-g++ -o cooliTSclimax -Wall cooliTSclimax.cpp -Wall -Wextra -Wshadow -Werror -L$PREFIX/lib -lavformat -lavcodec -lavutil -I$PREFIX/include -D__STDC_CONSTANT_MACROS -L$PREFIX/lib -lfreetype -lz -lxml2 -liconv -lpthread
+//arm-cortex-linux-uclibcgnueabi-g++ -o cooliTSclimax -Wall cooliTSclimax.cpp -Wall -Wextra -Wshadow -Werror -D__STDC_CONSTANT_MACROS $(pkg-config --libs --cflags --static $PREFIX/lib/pkgconfig/libavcodec.pc) $(pkg-config --libs --cflags --static $PREFIX/lib/pkgconfig/libavformat.pc) -liconv -lfreetype
 
 #define _FILE_OFFSET_BITS 64
 
@@ -16,6 +17,22 @@ extern "C" {
 #include <libavutil/avutil.h>
 }
 #endif
+
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(52,6,2)
+	#define CODEC_ID_AC3 AV_CODEC_ID_AC3
+	#define CODEC_ID_EAC3 AV_CODEC_ID_EAC3
+	#define CODEC_ID_MP2 AV_CODEC_ID_MP2
+	#define CODEC_ID_MP3 AV_CODEC_ID_MP3
+	#define CODEC_ID_AAC AV_CODEC_ID_AAC
+	#define CODEC_ID_DTS AV_CODEC_ID_DTS
+	#define CODEC_ID_MLP AV_CODEC_ID_MLP
+	#define CODEC_ID_MPEG2VIDEO AV_CODEC_ID_MPEG2VIDEO
+	#define CODEC_ID_MPEG1VIDEO AV_CODEC_ID_MPEG1VIDEO
+	#define CODEC_ID_MPEG4 AV_CODEC_ID_MPEG4
+	#define CODEC_ID_H264 AV_CODEC_ID_H264
+	#define CODEC_ID_VC1 AV_CODEC_ID_VC1
+#endif
+
 struct movieinfo
 {
 	std::string filename;
@@ -52,12 +69,15 @@ bool parsets(struct movieinfo *mi)
 	unsigned int i = 0;
 	for (i=0; i < ic->nb_streams; i++) {
 		AVStream *st = ic->streams[i];
-
-		AVCodecContext *codec	= st->codec;
-		avcodec_find_decoder(codec->codec_id);
-		if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+#if LIBAVFORMAT_VERSION_INT > AV_VERSION_INT(57,25,100)
+		AVCodecParameters *codecpar = st->codecpar;
+#else
+		AVCodecContext *codecpar = st->codec;
+#endif
+		avcodec_find_decoder(codecpar->codec_id);
+		if (codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
 			mi->vpid=st->id;
-			switch (codec->codec_id) {
+			switch (codecpar->codec_id) {
 			case CODEC_ID_MPEG2VIDEO:
 			case CODEC_ID_MPEG1VIDEO:
 				mi->vtype = 0;
@@ -72,7 +92,7 @@ bool parsets(struct movieinfo *mi)
 				break;
 			}
 
-		} else if (codec->codec_type == AVMEDIA_TYPE_AUDIO ) {
+		} else if (codecpar->codec_type == AVMEDIA_TYPE_AUDIO ) {
 			mi->apid[(mi->apidnumber)] = st->id;
 			AVDictionaryEntry *lang = av_dict_get(st->metadata, "language", NULL, 0);
 			if(lang)
@@ -80,7 +100,7 @@ bool parsets(struct movieinfo *mi)
 			else
 				mi->pidname[mi->apidnumber] = "UNK";
 
-			switch (codec->codec_id) {
+			switch (codecpar->codec_id) {
 			case CODEC_ID_AC3:
 			case CODEC_ID_EAC3:
 				mi->codecID[mi->apidnumber] = 1;// AC3
@@ -101,7 +121,7 @@ bool parsets(struct movieinfo *mi)
 				mi->codecID[mi->apidnumber] = 7;// MLP
 				break;
 			default:
-				mi->codecID[mi->apidnumber] = codec->codec_id;
+				mi->codecID[mi->apidnumber] = codecpar->codec_id;
 				break;
 			}
 			mi->apidnumber++;
@@ -203,13 +223,13 @@ void writeXML(struct movieinfo *mi)
 		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"		<parentallockage>0</parentallockage>\n");
 		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"		<dateoflastplay>%llu</dateoflastplay>\n",(long long unsigned int) time(NULL));
 		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"		<bookmark>\n");
-		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"			<bookmarkstart>0</bookmarkstart>\n");
-		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"			<bookmarkend>0</bookmarkend>\n");
-		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"			<bookmarklast>0</bookmarklast>\n");
-		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"                 <bookmarkuser bookmarkuserpos=\"0\" bookmarkusertype=\"0\" bookmarkusername=\"\"/>\n");
+		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"		<bookmarkstart>0</bookmarkstart>\n");
+		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"		<bookmarkend>0</bookmarkend>\n");
+		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"		<bookmarklast>0</bookmarklast>\n");
+		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"       	<bookmarkuser bookmarkuserpos=\"0\" bookmarkusertype=\"0\" bookmarkusername=\"\"/>\n");
 		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"		</bookmark>\n");
 		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"	</record>\n");
-		len += snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"</neutrino>\n");
+		snprintf(tmpbuf+len,sizeof(tmpbuf)-len,"</neutrino>\n");
 		FILE * fp = fopen((mi->path.c_str()+mi->filetitel+".xml").c_str(), "w");
 		if (fp)
 		{
@@ -225,7 +245,7 @@ int main(int argc, char *argv[]) {
 	if (argc != 2)
 	{
 		printf("USE:cooliTSclimax <file.ts>\n");
-		printf("cooliTSclimax Version 0.003\n");
+		printf("cooliTSclimax Version 0.004\n");
 		return 1;
 	}
 
