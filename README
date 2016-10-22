@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------
-       logoview - Tool zum Anzeigen von Bildern auf der Coolstream
+          logoview - Tool zum Anzeigen von Bildern auf CST STBs
 -------------------------------------------------------------------------
 
 Unterstützt werden zur Zeit nur JPG-Bilder.
@@ -7,7 +7,11 @@ Das Bild sollte in HD Auflösung (1280x720) vorliegen, wird jedoch, wenn
 nötig, skaliert.
 logoview liest die Informationen über Bildschirmauflösung, OSD-Bereich aus
 der neutrino.conf, wenn diese nicht vorhanden ist (neues Image), wird
-keine Bild angezeigt.
+kein Bild angezeigt.
+
+Wenn das Framebuffer Device nicht sofort zur Verfügung steht (tritt u.U. bei
+Apollo Hardware auf), wartet logoview einige Zeit auf die Bereitstellung.
+
 logoview benötigt keine libcoolstream, ist also unabhängig von eventuellen
 Änderungen in dieser Library.
 
@@ -15,10 +19,13 @@ Lizenz:
 	GPL Version 2
 
 Sourcecode ansehen:
-	https://gitweb.slknet.de/03/?p=cst-public-plugins-logoview.git;a=summary
+	https://github.com/tuxbox-neutrino/plugin-logoview
+	https://gitweb.tuxcode.de/tuxbox-neutrino-plugins/?p=plugin-logoview.git;a=tree
 
 Sourcecode herunterladen:
-	git clone https://git.slknet.de/cst-public-plugins-logoview.git
+	git clone https://github.com/tuxbox-neutrino/plugin-logoview.git
+	git clone https://git.tuxcode.de/plugin-logoview.git
+
     Aktualisieren:
 	git pull
 
