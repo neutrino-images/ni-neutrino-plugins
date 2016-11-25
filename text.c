@@ -485,7 +485,7 @@ char *rmptr, *rmstr, *rmdptr;
 void ShowMessage(char *mtitle, char *message, int wait)
 {
 	extern int radius;
-	int ixw=400;
+	int ixw=420;
 	int lx=startx;
 	//int ly=starty;
 	char *tdptr;
@@ -501,11 +501,11 @@ void ShowMessage(char *mtitle, char *message, int wait)
 	//message
 	tdptr=strdup(mtitle);
 	remove_tabs(tdptr);
-	RenderString(tdptr, 2, 213, ixw, CENTER, FSIZE_BIG, CMHT);
+	RenderString(tdptr, 2, 213, ixw-10, CENTER, FSIZE_BIG, CMHT);
 	free(tdptr);
 	tdptr=strdup(message);
 	remove_tabs(tdptr);
-	RenderString(tdptr, 2, 270, ixw, CENTER, FSIZE_MED, CMCT);
+	RenderString(tdptr, 2, 270, ixw-10, CENTER, FSIZE_MED, CMCT);
 	free(tdptr);
 
 	if(wait)
