@@ -126,21 +126,21 @@ void TranslateString(char *src, size_t size)
 	fptr = tptr_start;
 	tptr = src;
 	char *tptr_end = src + size - 4;
-	while (*fptr && tptr < tptr_end) {
+	while (*fptr && tptr <= tptr_end) {
 		if (*fptr == '~') {
 			fptr++;
 			int i;
 			for (i = 0; sc[i] && (sc[i] != *fptr); i++);
-			if (sc[i]) {
-				*tptr++ = 0xC3;
-				*tptr++ = su[i];
-				fptr++;
-			} else if (*fptr == 'd') {
-				*tptr++ = 0xC2;
-				*tptr++ = 0xb0;
-				fptr++;
-			} else
-				*tptr++ = '~';
+				if (*fptr == 'd') {
+					*tptr++ = 0xC2;
+					*tptr++ = 0xb0;
+					fptr++;
+				} else if (sc[i]) {
+					*tptr++ = 0xC3;
+					*tptr++ = su[i];
+					fptr++;
+				} else
+					*tptr++ = '~';
 		} else
 			CopyUTF8Char(&tptr, &fptr);
 	}
