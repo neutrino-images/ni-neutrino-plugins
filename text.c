@@ -511,12 +511,11 @@ void ShowMessage(char *mtitle, char *message, int wait)
 	if(wait)
 	{
 		RenderBox(ixw/2-25, 286, ixw/2+25, 310, radius, CMCS);
-		RenderString("OK", ixw/2-25, 305, 50, CENTER, FSIZE_MED, CMCT);
+		RenderString("OK", ixw/2-25, 312, 50, CENTER, FSIZE_MED, CMCT);
 	}
 	memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
-	//blit();
 
-	while(wait && (GetRCCode(-1) != RC_OK));
+	while(wait && (GetRCCode(300) != RC_OK));
 
 	startx=lx;
 	//starty=ly;

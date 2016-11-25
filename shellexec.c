@@ -8,7 +8,7 @@
 #include "io.h"
 #include "gfx.h"
 
-#define SH_VERSION 1.33
+#define SH_VERSION 1.34
 
 static char CFG_FILE[128]="/var/tuxbox/config/shellexec.conf";
 
