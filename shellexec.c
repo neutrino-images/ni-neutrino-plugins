@@ -8,7 +8,7 @@
 #include "io.h"
 #include "gfx.h"
 
-#define SH_VERSION 1.30
+#define SH_VERSION 1.31
 
 static char CFG_FILE[128]="/var/tuxbox/config/shellexec.conf";
 
@@ -867,12 +867,8 @@ int Get_Selection(MENU *m)
 				break;
 
 			case RC_MUTE:
-				memset(lbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
-				//blit();
-				usleep(500000L);
-				ClearRC();
-				while(GetRCCode(-1)!=RC_MUTE);
-				ClearRC();
+				memset(lfb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+				while(GetRCCode(300)!=RC_MUTE);
 				break;
 
 			case RC_STANDBY:
@@ -1294,8 +1290,8 @@ static void ShowInfo(MENU *m, int knew )
 	int index=m->act_entry,tind=m->act_entry;
 	int sbw=(m->num_entrys>MAX_FUNCS)?15:0; // scrollbar width
 	int sbo=2; // inner scrollbar offset
-	char tstr[BUFSIZE], *tptr;
-	char dstr[BUFSIZE],*lcptr,*lcstr;
+	char tstr[BUFSIZE]={0}, *tptr;
+	char dstr[BUFSIZE]={0}, *lcptr,*lcstr;
 	int dy, my, moffs, mh, toffs, soffs=4, oldx=startx, oldy=starty, sbar=0, nosel;
 	PLISTENTRY pl;
 
@@ -1538,7 +1534,7 @@ int llev=m->headerlevels[m->act_header], lmen=m->act_header, lentr=m->lastheader
 int main (int argc, char **argv)
 {
 	int index=0,cindex=0,mainloop=1,dloop=1,tv, spr;
-	char tstr[BUFSIZE], *rptr;
+	char tstr[BUFSIZE]={0}, *rptr;
 	PLISTENTRY pl;
 
 	printf("%s Version %.2f\n", __plugin__, SH_VERSION);
