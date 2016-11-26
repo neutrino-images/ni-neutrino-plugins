@@ -8,7 +8,7 @@
 #include "gfx.h"
 #include "txtform.h" 
 
-#define M_VERSION 1.18
+#define M_VERSION 1.20
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define HDF_FILE	"/tmp/.msgbox_hidden"
@@ -17,27 +17,6 @@
 #define FONT2 "/share/fonts/pakenham.ttf"
 // if font is not in usual place, we look here:
 #define FONT "/share/fonts/neutrino.ttf"
-
-FT_Error                 error;
-FT_Library               library;
-FTC_Manager              manager;
-FTC_SBitCache            cache;
-FTC_SBit         sbit;
-#if FREETYPE_MAJOR == 2 && FREETYPE_MINOR == 0
-FTC_Image_Desc           desc;
-#else
-FTC_ImageTypeRec desc;
-#endif
-
-FT_Face                  face;
-FT_Bool                  use_kerning;
-FT_UInt                  prev_glyphindex;
-
-char *butmsg[MAX_BUTTONS];
-struct fb_fix_screeninfo fix_screeninfo;
-struct fb_var_screeninfo var_screeninfo;
-int startx, starty, sx, ex, sy, ey, debounce, rblock;
-int fb;
 
 //					   CMCST,   CMCS,  CMCT,    CMC,    CMCIT,  CMCI,   CMHT,   CMH
 //					   WHITE,   BLUE0, TRANSP,  CMS,    ORANGE, GREEN,  YELLOW, RED
@@ -51,6 +30,8 @@ unsigned char rd[] = {	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00,
 unsigned char tr[] = {	0xFF, 	0xFF, 	0xFF,  	0xA0,  	0xFF,  	0xA0,  	0xFF,  	0xFF,
 						0xFF, 	0xFF, 	0x00,  	0xFF,  	0xFF,  	0xFF,  	0xFF,  	0xFF};
 
+uint32_t bgra[20];
+
 void TrimString(char *strg);
 
 // OSD stuff
@@ -59,18 +40,18 @@ static char spres[][5]={"","_crt","_lcd"};
 
 char *line_buffer=NULL, *title=NULL;
 int size=24, type=0, timeout=0, refresh=3, flash=0, selection=0, tbuttons=0, buttons=0, bpline=3, echo=0, absolute=0, mute=1, header=1, cyclic=1;
-int rbutt[16],hide=0,radius=10;
+char *butmsg[16];
+int rbutt[16],hide=0,radius=11;
 
 // Misc
 const char NOMEM[]="msgbox <Out of memory>\n";
 char TMP_FILE[64]="/tmp/msgbox.tmp";
-unsigned char *lfb = 0, *lbb = 0, *obb = 0, *hbb = 0, *ibb = 0;
-unsigned char nstr[BUFSIZE]="";
-unsigned char *trstr;
-unsigned char sc[8]={'a','o','u','A','O','U','z','d'}, tc[8]={0xE4,0xF6,0xFC,0xC4,0xD6,0xDC,0xDF,0xB0};
-unsigned char rc = ' ';
+uint32_t *lfb = NULL, *lbb = NULL, *obb = NULL, *hbb = NULL, *ibb = NULL;
+char nstr[BUFSIZE]={0};
+char *trstr;
 const char INST_FILE[]="/tmp/rc.locked";
 int instance=0;
+int stride;
 
 int get_instance(void)
 {
@@ -87,9 +68,10 @@ int rval=0;
 
 void put_instance(int pval)
 {
+FILE *fh;
+
 	if(pval)
 	{
-		FILE *fh;
 		if((fh=fopen(INST_FILE,"w"))!=NULL)
 		{
 			fputc(pval,fh);
@@ -102,21 +84,23 @@ void put_instance(int pval)
 	}
 }
 
-static void quit_signal()
+static void quit_signal(int sig)
 {
 	put_instance(get_instance()-1);
-	printf("msgbox Version %.2f killed\n",M_VERSION);
+	printf("%s Version %.2f killed, signal %d\n", "msgbox", M_VERSION, sig);
 	exit(1);
 }
 
 int Read_Neutrino_Cfg(char *entry)
 {
 FILE *nfh;
+char tstr [512], *cfptr=NULL;
 int rv=-1;
 
 	if((nfh=fopen(NCF_FILE,"r"))!=NULL)
 	{
-		char tstr [512]={0}, *cfptr=NULL;
+		tstr[0]=0;
+
 		while((!feof(nfh)) && ((strstr(tstr,entry)==NULL) || ((cfptr=strchr(tstr,'='))==NULL)))
 		{
 			fgets(tstr,500,nfh);
@@ -195,7 +179,11 @@ char *pt1=strdup(sptr),*pt2,*pt3;
 		if(strlen(pt2))
 		{	
 			rbutt[btn]=tbuttons;
-			butmsg[btn]=strdup(pt2);
+			size_t l = strlen(pt2);
+			char *t = (char *)alloca(l * 4 + 1);
+			memcpy(t, pt2, l + 1);
+			TranslateString(t, l * 4);
+			butmsg[btn]=strdup(t);
 			CatchTabs(butmsg[btn++]);
 		}
 		if(run)
@@ -221,17 +209,17 @@ static int psx, psy, pxw, pyw, myo=0, buttx=80, butty=30, buttdx=20, buttdy=10, 
 int show_txt(int buttonly)
 {
 FILE *tfh;
-int x1,y1,cut,rv=-1,btns=buttons,lbtns=(buttons>bpline)?bpline:buttons,blines=1+((btns-1)/lbtns);
+int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(buttons>bpline)?bpline:buttons,blines=1+((btns-1)/lbtns);
 
 	if(hide)
 	{
-		memcpy(lfb, hbb, fix_screeninfo.line_length*var_screeninfo.yres);
+		memcpy(lfb, hbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 		return 0;
 	}
-	yo=40+((header)?FSIZE_MED*5/4:0);
+	yo=20+((header)?FSIZE_MED*5/4:0);
 	if(!buttonly)
 	{
-		memcpy(lbb, ibb, fix_screeninfo.line_length*var_screeninfo.yres);
+		memcpy(lbb, ibb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 	}
 	if((tfh=fopen(TMP_FILE,"r"))!=NULL)
 	{
@@ -248,7 +236,6 @@ int x1,y1,cut,rv=-1,btns=buttons,lbtns=(buttons>bpline)?bpline:buttons,blines=1+
 			if(type==1)
 			{
 				myo=blines*(butty+buttdy);
-				int itmp = 0,i;
 				for(i=0; i<btns; i++)
 				{
 					itmp=GetStringLen(sx,butmsg[i], 26)+10;
@@ -290,10 +277,10 @@ int x1,y1,cut,rv=-1,btns=buttons,lbtns=(buttons>bpline)?bpline:buttons,blines=1+
 			if(btns)
 			{
 				buttxstart=psx+pxw/2-(((double)lbtns*(double)buttsize+(((lbtns>2)&&(lbtns&1))?((double)buttdx):0.0))/2.0);
-				buttystart=psy+y1*dy;
+				buttystart=psy+y1*dy+15;
 			}
 		}
-		int bx,by,run=1,line=0,action=1;
+
 		while(run)
 		{
 			//frame layout
@@ -301,19 +288,18 @@ int x1,y1,cut,rv=-1,btns=buttons,lbtns=(buttons>bpline)?bpline:buttons,blines=1+
 			{
 				if(!buttonly)
 				{
-					RenderBox(psx-20, psy-yo, psx+pxw+20, psy+pyw+myo, radius, CMH);
-					RenderBox(psx-20+2, psy-yo+2, psx+pxw+20-2, psy+pyw+myo-2, radius, CMC);
+					RenderBox(psx-20, psy-yo, psx+pxw+20, psy+pyw+myo+15, radius, CMH);
+					RenderBox(psx-20+2, psy-yo+2, psx+pxw+20-2, psy+pyw+myo+15-2, radius, CMC);
 					if(header)
 					{
 						RenderBox(psx-20, psy-yo+2-FSIZE_BIG/2, psx+pxw+20, psy-yo+FSIZE_BIG*3/4, radius, CMH);
 						RenderString(title, psx, psy-yo+FSIZE_BIG/2, pxw, CENTER, FSIZE_BIG, CMHT);
 					}
 				}
-				if(buttonly || !(rv=fh_txt_load(TMP_FILE, psx, pxw, psy, dy, size, line, &cut)))
+				if(buttonly || !(rv=fh_txt_load(TMP_FILE, psx, pxw, psy+15, dy, size, line, &cut)))
 				{
 					if(type==1)
 					{
-						int i;
 						for(i=0; i<btns; i++)
 						{
 							bx=i%lbtns;
@@ -323,7 +309,7 @@ int x1,y1,cut,rv=-1,btns=buttons,lbtns=(buttons>bpline)?bpline:buttons,blines=1+
 							RenderString(butmsg[i], buttxstart+bx*(buttsize+buttdx/2), buttystart+by*(butty+buttdy/2)+butty-7, buttsize, CENTER, 26, (i==(selection-1))?CMCST:CMCIT);
 						}
 					}
-					memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
+					memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 				}
 			}
 			run=0;
@@ -342,7 +328,7 @@ FILE *xfh;
 		if((xfh=fopen(msg,"r"))!=NULL)
 		{
 			fclose(xfh);
-			snprintf(TMP_FILE,sizeof(TMP_FILE),"%s",msg);
+			strcpy(TMP_FILE,msg);
 		}
 		else
 		{
@@ -351,6 +337,12 @@ FILE *xfh;
 	}
 	else
 	{
+		size_t l = strlen(msg);
+		char *t = (char *)alloca(l * 4 + 1);
+		memcpy(t, msg, l + 1);
+		TranslateString(t, l * 4);
+		msg = t;
+
 		if((xfh=fopen(TMP_FILE,"w"))!=NULL)
 		{
 			while(*msg)
@@ -408,11 +400,10 @@ void ShowUsage(void)
 
 int main (int argc, char **argv)
 {
-int index=0,tv=0,found=0, spr=0;
-int dloop=1, rcc=-1, cupd=0;
-char rstr[BUFSIZE]={0}, *rptr=NULL, *aptr=NULL;
-time_t tm1=0,tm2=0;
-//clock_t tk1=0;
+int ix,tv,found=0, spr;
+int dloop=1, rcc=-1;
+char rstr[BUFSIZE]={0}, *rptr, *aptr;
+time_t tm1,tm2;
 FILE *fh;
 
 		if(argc<2)
@@ -443,8 +434,13 @@ FILE *fh;
 				{
 					if(strstr(aptr,"title=")!=NULL)
 					{
-						title=strdup(rptr);
+						size_t l = strlen(rptr);
+						char *t = (char *)alloca(l * 4 + 1);
+						memcpy(t, rptr, l + 1);
+						TranslateString(t, l * 4);
+						title = strdup(t);
 						CatchTabs(title);
+
 						if(strcmp(title,"none")==0)
 						{
 							header=0;
@@ -661,27 +657,30 @@ FILE *fh;
 			ey=620;
 
 
-		for(index=CMCST; index<=CMH; index++)
+		for(ix=CMCST; ix<=CMH; ix++)
 		{
-			sprintf(rstr,"menu_%s_alpha",menucoltxt[index]);
+			sprintf(rstr,"menu_%s_alpha",menucoltxt[ix]);
 			if((tv=Read_Neutrino_Cfg(rstr))>=0)
-				tr[index]=255-(float)tv*2.55;
+				tr[ix]=255-(float)tv*2.55;
 
-			sprintf(rstr,"menu_%s_blue",menucoltxt[index]);
+			sprintf(rstr,"menu_%s_blue",menucoltxt[ix]);
 			if((tv=Read_Neutrino_Cfg(rstr))>=0)
-				bl[index]=(float)tv*2.55;
+				bl[ix]=(float)tv*2.55;
 
-			sprintf(rstr,"menu_%s_green",menucoltxt[index]);
+			sprintf(rstr,"menu_%s_green",menucoltxt[ix]);
 			if((tv=Read_Neutrino_Cfg(rstr))>=0)
-				gn[index]=(float)tv*2.55;
+				gn[ix]=(float)tv*2.55;
 
-			sprintf(rstr,"menu_%s_red",menucoltxt[index]);
+			sprintf(rstr,"menu_%s_red",menucoltxt[ix]);
 			if((tv=Read_Neutrino_Cfg(rstr))>=0)
-				rd[index]=(float)tv*2.55;
+				rd[ix]=(float)tv*2.55;
 		}
+		for (ix = 0; ix <= RED; ix++)
+			bgra[ix] = (tr[ix] << 24) | (rd[ix] << 16) | (gn[ix] << 8) | bl[ix];
+
 
 		if(Read_Neutrino_Cfg("rounded_corners")>0)
-			radius=10;
+			radius=11;
 		else
 			radius=0;
 
@@ -712,7 +711,8 @@ FILE *fh;
 			perror("msgbox <FBIOGET_VSCREENINFO>\n");
 			return -1;
 		}
-		if(!(lfb = (unsigned char*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0)))
+
+		if(!(lfb = (uint32_t*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0)))
 		{
 			perror("msgbox <mapping of Framebuffer>\n");
 			return -1;
@@ -762,7 +762,7 @@ FILE *fh;
 		
 		use_kerning = FT_HAS_KERNING(face);
 
-		desc.flags = FT_LOAD_MONOCHROME;
+		desc.flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT;
 
 	//init backbuffer
 
@@ -774,6 +774,7 @@ FILE *fh;
 			munmap(lfb, fix_screeninfo.smem_len);
 			return -1;
 		}
+		stride = fix_screeninfo.line_length/sizeof(uint32_t);
 
 		if(!(obb = malloc(fix_screeninfo.line_length*var_screeninfo.yres)))
 		{
@@ -810,27 +811,27 @@ FILE *fh;
 
 		if(refresh & 1)
 		{
-			memcpy(ibb, lfb, fix_screeninfo.line_length*var_screeninfo.yres);
+			memcpy(ibb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 		}
 		else
 		{
-			memset(ibb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres);
+			memset(ibb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 		}
 		if(mute==2)
 		{
-			memcpy(hbb, lfb, fix_screeninfo.line_length*var_screeninfo.yres);
+			memcpy(hbb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 		}
 		else
 		{
-			memset(hbb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres);
+			memset(hbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 		}
 		if(refresh & 2)
 		{
-			memcpy(obb, lfb, fix_screeninfo.line_length*var_screeninfo.yres);
+			memcpy(obb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 		}
 		else
 		{
-			memset(obb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres);
+			memset(obb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 		}
 
 		startx = sx;
@@ -852,13 +853,16 @@ FILE *fh;
 	//main loop
 	while((rcc!=KEY_EXIT) && (rcc!=KEY_OK) && ((timeout==-1)||((tm2-tm1)<timeout)))
 	{
-		rcc=GetRCCode();
+		rcc=GetRCCode(1000);
 		if(rcc!=-1)
 		{
 			time(&tm1);
 		}
 		else
 		{
+			if(cyclic)
+				show_txt(0);
+#if 0
 			if(++cupd>100)
 			{
 				if(cyclic)
@@ -868,13 +872,14 @@ FILE *fh;
 				}
 			}
 			usleep(10000L);
+#endif
 		}
 		if(mute && rcc==KEY_MUTE)
 		{
 			hide^=1;
 			show_txt(0);
-			usleep(500000L);
-			while(GetRCCode()!=-1);
+
+			while(GetRCCode(300)!=-1);
 			if(hide)
 			{
 				if((fh=fopen(HDF_FILE,"w"))!=NULL)
@@ -939,7 +944,7 @@ FILE *fh;
 	
 	//cleanup
 
-	memcpy(lfb, obb, fix_screeninfo.line_length*var_screeninfo.yres);
+	memcpy(lfb, obb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 	munmap(lfb, fix_screeninfo.smem_len);
 	close(fb);
 	free(lbb);

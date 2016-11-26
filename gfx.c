@@ -4,13 +4,13 @@ void RenderBox(int _sx, int _sy, int _ex, int _ey, int rad, int col)
 {
 	int F,R=rad,ssx=startx+_sx,ssy=starty+_sy,dxx=_ex-_sx,dyy=_ey-_sy,rx,ry,wx,wy,count;
 
-	unsigned char *pos=(lbb+(ssx<<2)+fix_screeninfo.line_length*ssy);
-	unsigned char *pos0, *pos1, *pos2, *pos3, *i;
-	unsigned char pix[4]={bl[col],gn[col],rd[col],tr[col]};
+	uint32_t *pos = lbb + ssx + stride * ssy;
+	uint32_t *pos0, *pos1, *pos2, *pos3, *i;
+	uint32_t pix = bgra[col];
 		
 	if (dxx<0) 
 	{
-		printf("[msgbox] RenderBox called with dx < 0 (%d)\n", dxx);
+		printf("msgbox RenderBox called with dx < 0 (%d)\n", dxx);
 		dxx=0;
 	}
 
@@ -48,10 +48,11 @@ void RenderBox(int _sx, int _sy, int _ex, int _ey, int rad, int col)
 		rx=R-ssx;
 		ry=R-ssy;
 
-		pos0=pos+((dyy-ry)*fix_screeninfo.line_length);
-		pos1=pos+(ry*fix_screeninfo.line_length);
-		pos2=pos+(rx*fix_screeninfo.line_length);
-		pos3=pos+((dyy-rx)*fix_screeninfo.line_length);
+		pos0=pos+(dyy-ry)*stride;
+		pos1=pos+ry*stride;
+		pos2=pos+rx*stride;
+		pos3=pos+(dyy-rx)*stride;
+
 		while (ssx <= ssy)
 		{
 			rx=R-ssx;
@@ -59,18 +60,20 @@ void RenderBox(int _sx, int _sy, int _ex, int _ey, int rad, int col)
 			wx=rx<<1;
 			wy=ry<<1;
 
-			for(i=pos0+(rx<<2); i<pos0+((rx+dxx-wx)<<2);i+=4)
-				memcpy(i, pix, 4);
-			for(i=pos1+(rx<<2); i<pos1+((rx+dxx-wx)<<2);i+=4)
-				memcpy(i, pix, 4);
-			for(i=pos2+(ry<<2); i<pos2+((ry+dxx-wy)<<2);i+=4)
-				memcpy(i, pix, 4);
-			for(i=pos3+(ry<<2); i<pos3+((ry+dxx-wy)<<2);i+=4)
-				memcpy(i, pix, 4);
+			for(i=pos0+rx; i<pos0+rx+dxx-wx;i++)
+				*i = pix;
+			for(i=pos1+rx; i<pos1+rx+dxx-wx;i++)
+				*i = pix;
+			for(i=pos2+ry; i<pos2+ry+dxx-wy;i++)
+				*i = pix;
+			for(i=pos3+ry; i<pos3+ry+dxx-wy;i++)
+				*i = pix;
 
 			ssx++;
-			pos2-=fix_screeninfo.line_length;
-			pos3+=fix_screeninfo.line_length;
+
+			pos2-=stride;
+			pos3+=stride;
+
 			if (F<0)
 			{
 				F+=(ssx<<1)-1;
@@ -79,19 +82,18 @@ void RenderBox(int _sx, int _sy, int _ex, int _ey, int rad, int col)
 			{ 
 				F+=((ssx-ssy)<<1);
 				ssy--;
-				pos0-=fix_screeninfo.line_length;
-				pos1+=fix_screeninfo.line_length;
+
+				pos0-=stride;
+				pos1+=stride;
 			}
 		}
-		pos+=R*fix_screeninfo.line_length;
+		pos+=R*stride;
 	}
 
 	for (count=R; count<(dyy-R); count++)
 	{
-		for(i=pos; i<pos+(dxx<<2);i+=4)
-			memcpy(i, pix, 4);
-		pos+=fix_screeninfo.line_length;
+		for(i=pos; i<pos+dxx;i++)
+			*i = pix;
+		pos+=stride;
 	}
 }
-
-

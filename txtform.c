@@ -59,19 +59,23 @@ int just, color=CMCT;
 		if((loop>0) && (ys<(ey-dy)))
 		{
 			rstr[j]=0;
+			char *t = (char *)alloca(j * 4 + 1);
+			memcpy(t, rstr, j + 1);
+			TranslateString(t, j * 4);
+
 			if(plot)
 			{
 				if(loop>=line)
 				{
-					RenderString(rstr, xs, ys, xw, just, size, color);
+					RenderString(t, xs, ys, xw, just, size, color);
 					ys+=dy;
 				}
 			}
 			else
 			{
-				if(strlen(rstr))
+				if(strlen(t))
 				{
-					slen=GetStringLen(xs, rstr, size);
+					slen=GetStringLen(xs, t, size);
 					if(slen>*x)
 					{
 						*x=slen;
@@ -91,7 +95,8 @@ int just, color=CMCT;
 
 int fh_txt_load(const char *name, int _sx, int wx, int _sy, int dy, int size, int line, int *cut)
 {
-	int dummy;
+int dummy;
+
 	return fh_txt_trans(name, _sx, wx, _sy, dy, size, line, cut, &dummy, &dummy, 1);
 }
 

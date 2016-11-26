@@ -1,7 +1,8 @@
 #ifndef __MSGBOX_H__
-
 #define __MSGBOX_H__
 
+#include <config.h>
+#define _FILE_OFFSET_BITS 64
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -17,6 +18,7 @@
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <stdint.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -26,23 +28,21 @@
 #define MAX_BUTTONS 16
 #define BUFSIZE 	4095
 
-extern unsigned char FONT[64];
-
 enum {LEFT, CENTER, RIGHT};
 
-extern FT_Error 		error;
-extern FT_Library		library;
-extern FTC_Manager		manager;
-extern FTC_SBitCache		cache;
-extern FTC_SBit		sbit;
+FT_Error 		error;
+FT_Library		library;
+FTC_Manager		manager;
+FTC_SBitCache		cache;
+FTC_SBit		sbit;
 #if FREETYPE_MAJOR == 2 && FREETYPE_MINOR == 0
-extern FTC_Image_Desc		desc;
+FTC_Image_Desc		desc;
 #else
-extern FTC_ImageTypeRec	desc;
+FTC_ImageTypeRec	desc;
 #endif
-extern FT_Face			face;
-extern FT_UInt			prev_glyphindex;
-extern FT_Bool			use_kerning;
+FT_Face			face;
+FT_UInt			prev_glyphindex;
+FT_Bool			use_kerning;
 
 // rc codes
 
@@ -102,7 +102,7 @@ extern FT_Bool			use_kerning;
 
 //devs
 
-extern int fb;
+int fb;
 
 //framebuffer stuff
 
@@ -116,21 +116,25 @@ extern int FSIZE_MED;
 extern int FSIZE_SMALL;
 extern int TABULATOR;
 
-extern unsigned char *lfb, *lbb, *obb, *hbb;
+extern uint32_t *lfb, *lbb, *obb, *hbb;
 
-extern struct fb_fix_screeninfo fix_screeninfo;
-extern struct fb_var_screeninfo var_screeninfo;
-extern unsigned char rd[],gn[],bl[],tr[];
+struct fb_fix_screeninfo fix_screeninfo;
+struct fb_var_screeninfo var_screeninfo;
+extern uint32_t bgra[];
+extern int stride;
 
-extern int startx, starty, sx, ex, sy, ey, debounce, rblock;
-extern unsigned char sc[8], tc[8];
+int startx, starty, sx, ex, sy, ey;
+//int debounce, rblock;
+
 extern char *butmsg[MAX_BUTTONS];
 extern int buttons,selection;
 extern int instance;
 int get_instance(void);
 void put_instance(int pval);
 
+#ifndef FB_DEVICE
 #define FB_DEVICE	"/dev/fb/0"
+#endif
 
 #endif
 
