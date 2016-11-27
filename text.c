@@ -221,7 +221,7 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 		if(color != -1)
 		{
 			if (_sx + 10 < _ex)
-				RenderBox(_sx, _sy - 16, _sx + 10, _sy - 6, GRID, color);
+				RenderBox(_sx, _sy - 10, _sx + 10, _sy, GRID, color);
 			else
 				return -1;
 		}
@@ -236,69 +236,59 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 
 	//load char
 
-	if(!(glyphindex = FT_Get_Char_Index(face, currentchar)))
-	{
-		printf("msgbox <FT_Get_Char_Index for Char \"%c\" failed\n", (int)currentchar);
-		return 0;
-	}
-
-	if((err = FTC_SBitCache_Lookup(cache, &desc, glyphindex, &sbit, NULL)))
-	{
-		printf("msgbox <FTC_SBitCache_Lookup for Char \"%c\" failed with Errorcode 0x%.2X>\n", (int)currentchar, error);
-		return 0;
-	}
-
-	int _d = 0;
-	if (1)
-	{
-		FT_UInt _i = FT_Get_Char_Index(face, 'g');
-		FTC_SBit _g;
-		FTC_SBitCache_Lookup(cache, &desc, _i, &_g, NULL);
-		_d = _g->height - _g->top;
-		_d += 1;
-	}
-
-	if(use_kerning)
-	{
-		FT_Get_Kerning(face, prev_glyphindex, glyphindex, ft_kerning_default, &kerning);
-
-		prev_glyphindex = glyphindex;
-		kerning.x >>= 6;
-	} else
-		kerning.x = 0;
-
-	//render char
-
-	if(color != -1) /* don't render char, return charwidth only */
-	{
-		if (_sx + sbit->xadvance >= _ex)
-			return -1; /* limit to maxwidth */
-
-		uint32_t bgcolor = *(lbb + (sy + _sy) * stride + (sx + _sx));
-		uint32_t fgcolor = bgra[color];
-		uint32_t *colors = lookup_colors(fgcolor, bgcolor);
-		uint32_t *p = lbb + (sx + _sx + sbit->left + kerning.x) + stride * (sy + _sy - sbit->top - _d);
-		uint32_t *r = p + (_ex - _sx);	/* end of usable box */
-		for(row = 0; row < sbit->height; row++)
+		if(!(glyphindex = FT_Get_Char_Index(face, currentchar)))
 		{
-			uint32_t *q = p;
-			uint8_t *s = sbit->buffer + row * sbit->pitch;
-			for(pitch = 0; pitch < sbit->width; pitch++)
-			{
-				if (*s)
-						*q = colors[*s];
-				q++, s++;
-				if (q > r)	/* we are past _ex */
-					break;
-			}
-			p += stride;
-			r += stride;
+			printf("msgbox <FT_Get_Char_Index for Char \"%c\" failed\n", (int)currentchar);
+			return 0;
 		}
-	}
+
+		if((err = FTC_SBitCache_Lookup(cache, &desc, glyphindex, &sbit, NULL)))
+		{
+			printf("msgbox <FTC_SBitCache_Lookup for Char \"%c\" failed with Errorcode 0x%.2X>\n", (int)currentchar, error);
+			return 0;
+		}
+
+		if(use_kerning)
+		{
+			FT_Get_Kerning(face, prev_glyphindex, glyphindex, ft_kerning_default, &kerning);
+
+			prev_glyphindex = glyphindex;
+			kerning.x >>= 6;
+		} else
+			kerning.x = 0;
+
+		//render char
+
+		if(color != -1) /* don't render char, return charwidth only */
+		{
+			if (_sx + sbit->xadvance >= _ex)
+				return -1; /* limit to maxwidth */
+
+			uint32_t bgcolor = *(lbb + (sy + _sy) * stride + (sx + _sx));
+			uint32_t fgcolor = bgra[color];
+			uint32_t *colors = lookup_colors(fgcolor, bgcolor);
+			uint32_t *p = lbb + (sx + _sx + sbit->left + kerning.x) + stride * (sy + _sy - sbit->top);
+			uint32_t *r = p + (_ex - _sx);	/* end of usable box */
+			for(row = 0; row < sbit->height; row++)
+			{
+				uint32_t *q = p;
+				uint8_t *s = sbit->buffer + row * sbit->pitch;
+				for(pitch = 0; pitch < sbit->width; pitch++)
+				{
+					if (*s)
+							*q = colors[*s];
+					q++, s++;
+					if (q > r)	/* we are past _ex */
+						break;
+				}
+				p += stride;
+				r += stride;
+			}
+		}
 
 	//return charwidth
 
-	return sbit->xadvance + kerning.x;
+		return sbit->xadvance + kerning.x;
 }
 
 /******************************************************************************
@@ -327,9 +317,6 @@ int GetStringLen(int _sx, char *string, size_t size)
 			else if(*string=='T' && sscanf(string+1,"%4d",&i)==1) {
 				string+=5;
 				stringlen=i-_sx;
-			}
-			else if(*string=='!') {
-				string++;
 			}
 			break;
 		default:
@@ -386,7 +373,7 @@ int RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int s
 			case CENTER:	if(stringlen < maxwidth) _sx += (maxwidth - stringlen)/2;
 					break;
 
-			case RIGHT:	if(stringlen < maxwidth) _sx += maxwidth - stringlen * 0.8;
+			case RIGHT:	if(stringlen < maxwidth) _sx += maxwidth - stringlen;
 		}
 	}
 
