@@ -5,7 +5,8 @@
 #include <unistd.h>
 #include "text.h"
 #include "gfx.h"
-#include "msgbox.h"
+
+#include "current.h"
 
 #define FH_ERROR_OK 0
 #define FH_ERROR_FILE 1		/* read/access error */

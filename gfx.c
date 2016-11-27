@@ -1,4 +1,4 @@
-#include "msgbox.h"
+#include "current.h"
 
 void RenderBox(int _sx, int _sy, int _ex, int _ey, int rad, int col)
 {
@@ -10,12 +10,12 @@ void RenderBox(int _sx, int _sy, int _ex, int _ey, int rad, int col)
 
 	if (dxx<0) 
 	{
-		printf("msgbox RenderBox called with dx < 0 (%d)\n", dxx);
+		printf("%s RenderBox called with dx < 0 (%d)\n", __plugin__, dxx);
 		dxx=0;
 	}
 	if (dyy > 700)
 	{
-		printf("msgbox RenderBox called with dyy > 700 (%d)\n", dyy); //FIXME
+		printf("%s RenderBox called with dyy > 700 (%d)\n", __plugin__, dyy); //FIXME
 		//*** Error in `msgbox': munmap_chunk(): invalid pointer: 0x31459008 *** //Nevis
 		dyy = 700;
 	}

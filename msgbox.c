@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <time.h>
 #include <signal.h>
-#include "msgbox.h"
+
+#include "current.h"
+
 #include "text.h"
 #include "io.h"
 #include "gfx.h"
@@ -44,7 +46,7 @@ char *butmsg[16]={0};
 int rbutt[16],hide=0,radius=11;
 
 // Misc
-const char NOMEM[]="msgbox <Out of memory>\n";
+const char NOMEM[]="MsgBox <Out of memory>\n";
 char TMP_FILE[64]="/tmp/msgbox.tmp";
 uint32_t *lfb = NULL, *lbb = NULL, *obb = NULL, *hbb = NULL, *ibb = NULL;
 char nstr[BUFSIZE]={0};
@@ -87,7 +89,7 @@ FILE *fh;
 static void quit_signal(int sig)
 {
 	put_instance(get_instance()-1);
-	printf("%s Version %.2f killed, signal %d\n", "msgbox", M_VERSION, sig);
+	printf("%s Version %.2f killed, signal %d\n", __plugin__, M_VERSION, sig);
 	exit(1);
 }
 
@@ -251,7 +253,7 @@ int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(butto
 			
 			if(fh_txt_getsize(TMP_FILE, &x1, &y1, size, &cut))
 			{
-				printf("msgbox <invalid Text-Format>\n");
+				printf(__plugin__ " <invalid Text-Format>\n");
 				return -1;
 			}
 			x1+=10;
@@ -375,7 +377,7 @@ FILE *xfh;
 
 void ShowUsage(void)
 {
-	printf("msgbox Version %.2f\n",M_VERSION);
+	printf("MsgBox Version %.2f\n",M_VERSION);
 	printf("\nSyntax:\n");
 	printf("    msgbox msg=\"text to show\" [Options]\n");
 	printf("    msgbox msg=filename [Options]\n");
@@ -419,7 +421,7 @@ FILE *fh;
 			aptr=argv[tv];
 			if(!strcmp(aptr,"-v") || !strcmp(aptr,"--version"))
 			{
-				printf("msgbox Version %.2f\n",M_VERSION);
+				printf("%s Version %.2f\n", __plugin__, M_VERSION);
 				return 0;
 			}
 			if((rptr=strchr(aptr,'='))!=NULL)
@@ -570,12 +572,12 @@ FILE *fh;
 			switch (dloop)
 			{
 				case 1:
-					printf("msgbox <param error: %s>\n",aptr);
+					printf("%s <param error: %s>\n", __plugin__, aptr);
 					return 0;
 					break;
 				
 				case 2:
-					printf("msgbox <unknown command: %s>\n\n",aptr);
+					printf("%s <unknown command: %s>\n\n", __plugin__, aptr);
 					ShowUsage();
 					return 0;
 					break;
@@ -590,7 +592,7 @@ FILE *fh;
 		/*
 		if(!echo)
 		{
-			printf("\nmsgbox  Message-Box Version %.2f\n",M_VERSION);
+			printf("\nMsgBox Version %.2f\n", M_VERSION);
 		}
 		*/
 		if(!buttons)
@@ -617,7 +619,7 @@ FILE *fh;
 			}
 			if(!found)
 			{
-				printf("msgbox <param error: default=%d>\n",selection);
+				printf("%s <param error: default=%d>\n", __plugin__, selection);
 				return 0;
 			}
 		}
@@ -689,7 +691,7 @@ FILE *fh;
 		fb = open(FB_DEVICE, O_RDWR);
 		if(fb == -1)
 		{
-			perror("msgbox <open framebuffer device>");
+			perror(__plugin__ " <open framebuffer device>");
 			exit(1);
 		}
 
@@ -705,18 +707,18 @@ FILE *fh;
 
 		if(ioctl(fb, FBIOGET_FSCREENINFO, &fix_screeninfo) == -1)
 		{
-			perror("msgbox <FBIOGET_FSCREENINFO>\n");
+			perror(__plugin__ " <FBIOGET_FSCREENINFO>\n");
 			return -1;
 		}
 		if(ioctl(fb, FBIOGET_VSCREENINFO, &var_screeninfo) == -1)
 		{
-			perror("msgbox <FBIOGET_VSCREENINFO>\n");
+			perror(__plugin__ " <FBIOGET_VSCREENINFO>\n");
 			return -1;
 		}
 
 		if(!(lfb = (uint32_t*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0)))
 		{
-			perror("msgbox <mapping of Framebuffer>\n");
+			perror(__plugin__ " <mapping of Framebuffer>\n");
 			return -1;
 		}
 		
@@ -724,14 +726,14 @@ FILE *fh;
 
 		if((error = FT_Init_FreeType(&library)))
 		{
-			printf("msgbox <FT_Init_FreeType failed with Errorcode 0x%.2X>", error);
+			printf("%s <FT_Init_FreeType failed with Errorcode 0x%.2X>", __plugin__, error);
 			munmap(lfb, fix_screeninfo.smem_len);
 			return -1;
 		}
 
 		if((error = FTC_Manager_New(library, 1, 2, 0, &MyFaceRequester, NULL, &manager)))
 		{
-			printf("msgbox <FTC_Manager_New failed with Errorcode 0x%.2X>\n", error);
+			printf("%s <FTC_Manager_New failed with Errorcode 0x%.2X>\n", __plugin__, error);
 			FT_Done_FreeType(library);
 			munmap(lfb, fix_screeninfo.smem_len);
 			return -1;
@@ -739,7 +741,7 @@ FILE *fh;
 
 		if((error = FTC_SBitCache_New(manager, &cache)))
 		{
-			printf("msgbox <FTC_SBitCache_New failed with Errorcode 0x%.2X>\n", error);
+			printf("%s <FTC_SBitCache_New failed with Errorcode 0x%.2X>\n", __plugin__, error);
 			FTC_Manager_Done(manager);
 			FT_Done_FreeType(library);
 			munmap(lfb, fix_screeninfo.smem_len);
@@ -750,7 +752,7 @@ FILE *fh;
 		{
 			if((error = FTC_Manager_LookupFace(manager, FONT2, &face)))
 			{
-				printf("msgbox <FTC_Manager_LookupFace failed with Errorcode 0x%.2X>\n", error);
+				printf("%s <FTC_Manager_LookupFace failed with Errorcode 0x%.2X>\n", __plugin__, error);
 				FTC_Manager_Done(manager);
 				FT_Done_FreeType(library);
 				munmap(lfb, fix_screeninfo.smem_len);
@@ -770,7 +772,7 @@ FILE *fh;
 
 		if(!(lbb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
 		{
-			perror("msgbox <allocating of Backbuffer>\n");
+			perror(__plugin__ " <allocating of Backbuffer>\n");
 			FTC_Manager_Done(manager);
 			FT_Done_FreeType(library);
 			munmap(lfb, fix_screeninfo.smem_len);
@@ -780,7 +782,7 @@ FILE *fh;
 
 		if(!(obb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
 		{
-			perror("msgbox <allocating of Backbuffer>\n");
+			perror(__plugin__ " <allocating of Backbuffer>\n");
 			FTC_Manager_Done(manager);
 			FT_Done_FreeType(library);
 			free(lbb);
@@ -789,7 +791,7 @@ FILE *fh;
 		}
 		if(!(hbb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
 		{
-			perror("msgbox <allocating of Backbuffer>\n");
+			perror(__plugin__ " <allocating of Backbuffer>\n");
 			FTC_Manager_Done(manager);
 			FT_Done_FreeType(library);
 			free(lbb);
@@ -799,7 +801,7 @@ FILE *fh;
 		}
 		if(!(ibb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
 		{
-			perror("msgbox <allocating of Backbuffer>\n");
+			perror(__plugin__ " <allocating of Backbuffer>\n");
 			FTC_Manager_Done(manager);
 			FT_Done_FreeType(library);
 			free(lbb);
