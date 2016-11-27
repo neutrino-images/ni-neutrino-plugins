@@ -14,10 +14,10 @@
 
 int fh_txt_trans(const char *name, int xs, int xw, int ys, int dy, int size, int line, int *cut, int *x, int *y, int plot)
 {
-char tstr[BUFSIZE],rstr[BUFSIZE],*tptr;
-int loop=1, j, slen, cnt=0;
+char tstr[BUFSIZE]={0},rstr[BUFSIZE]={0},*tptr=NULL;
+int loop=1, j, slen;
 FILE *fh;
-int just, color=CMCT;
+int just, comment, color=CMCT;
 
 	if(!(fh=fopen(name,"rb")))	return(FH_ERROR_FILE);
 
@@ -27,6 +27,7 @@ int just, color=CMCT;
 	{
 		j=0;
 		just=LEFT;
+		comment=0;
 		color=CMCT;
 		
 		tptr=tstr+strlen(tstr);
@@ -39,7 +40,6 @@ int just, color=CMCT;
 		while(*tptr)
 		{
 			rstr[j++]=*tptr;
-			cnt++;
 
 			if(*tptr == '~')
 			{
@@ -48,9 +48,24 @@ int just, color=CMCT;
 					case 'l': just=LEFT; break;
 					case 'r': just=RIGHT; break;
 					case 'c': just=CENTER; break;
+					case 'C':
+						if (*(tptr+2) == '!') {
+							comment=1;
+							tptr++;
+						}
+						else if (*(tptr+2) == 'L') {
+							comment=2;
+							tptr++;
+						}
+						else if (*(tptr+2) == 'R') {
+							comment=3;
+							tptr++;
+						}
+						break;
 					case 's':
-						RenderBox(xs, ys-size/3+1, xs+xw, ys-size/3+2, FILL, CMS);
-						RenderBox(xs, ys-size/3, xs+xw, ys-size/3+1, FILL, CMCIT);
+						ys-=(dy/2);
+						RenderBox(xs, ys-2-size/3+1, xs+xw, ys-2-size/3+2, FILL, CMS);
+						RenderBox(xs, ys-2-size/3, xs+xw, ys-2-size/3+1, FILL, CMCIT);
 						break;
 				}
 			}
@@ -67,7 +82,34 @@ int just, color=CMCT;
 			{
 				if(loop>=line)
 				{
-					RenderString(t, xs, ys, xw, just, size, color);
+					slen=GetStringLen(xs, t, size);
+					if (comment == 1)
+					{
+						int xxs = xs;
+						RenderBox(xs, ys-2-size/2+1, xs+xw, ys-2-size/2+2, FILL, CMS);
+						RenderBox(xs, ys-2-size/2, xs+xw, ys-2-size/2+1, FILL, CMCIT);
+						if(slen > 0 && slen < xw) {
+							xxs += (xw-slen-10)/2-3;
+							RenderBox(xxs, ys-2-size/2, xxs+slen+10, ys-2-size/2+2, FILL, CMC);
+						}
+						RenderString(t, xs, ys, xw, CENTER, size, CMCIT);
+					}
+					else if (comment == 2)
+					{
+						RenderBox(xs+slen, ys-2-size/2+1, xs+xw, ys-2-size/2+2, FILL, CMS);
+						RenderBox(xs+slen, ys-2-size/2, xs+xw, ys-2-size/2+1, FILL, CMCIT);
+						RenderString(t, xs, ys, xw, LEFT, size, color);
+					}
+					else if (comment == 3)
+					{
+						RenderBox(xs, ys-2-size/2+1, xs+xw-slen, ys-2-size/2+2, FILL, CMS);
+						RenderBox(xs, ys-2-size/2, xs+xw-slen, ys-2-size/2+1, FILL, CMCIT);
+						RenderString(t, xs, ys, xw, RIGHT, size, color);
+					}
+					else
+					{
+						RenderString(t, xs, ys, xw, just, size, color);
+					}
 					ys+=dy;
 				}
 			}
