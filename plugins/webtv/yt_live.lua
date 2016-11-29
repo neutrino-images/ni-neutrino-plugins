@@ -87,6 +87,7 @@ function getVideoData(url)
 
 	if string.find(url,"www.youtube.com/user/") then --check user link
 		local youtube_user = getdata(url)
+		if youtube_user == nil then return 0 end
 		local youtube_live_url = youtube_user:match('feature=c4%-live%-promo" href="(.-)">')
 		if youtube_live_url == nil then return 0 end
 		url = 'https://www.youtube.com' .. youtube_live_url

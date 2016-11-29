@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <webtvs>
-	<webtv title="TecTime TV" url="https://www.youtube.com/watch?v=dvblFe1W5Q8" description="TecTime TV" genre="YouTube Live" script="yt_live.lua" />
-	<webtv title="Qmusic" url="https://www.youtube.com/watch?v=q4KD1Jk_7K4" description="Qmusic" genre="YouTube Live" script="yt_live.lua" />
-	<webtv title="KBS World" url="https://www.youtube.com/watch?v=h-jJ9IP5XB8" description="KBS World" genre="YouTube Live" script="yt_live.lua" />
-	<webtv title="Newsmax TV" url="https://www.youtube.com/watch?v=6bqvoUMVmCs" description="Newsmax TV" genre="YouTube Live" script="yt_live.lua" />
-	<webtv title="FOX 5" url="https://www.youtube.com/watch?v=9lnegILrSEY" description="FOX 5" genre="YouTube Live" script="yt_live.lua" />
-	<webtv title="RT Deutsch" url="https://www.youtube.com/watch?v=MDYr1L-gQJg" description="RT Deutsch" genre="YouTube Live" script="yt_live.lua" />
-	<webtv title="Sky News HD" url="https://www.youtube.com/watch?v=y60wDzZt8yg" description="Sky News HD" genre="YouTube Live" script="yt_live.lua" />
-	<webtv title="France 24 HD" url="https://www.youtube.com/watch?v=gq11un3xqsA" description="France 24 HD" genre="YouTube Live" script="yt_live.lua" />
-	<webtv title="NASA ISS" url="https://www.youtube.com/watch?v=njCDZWTI-xg" description="NASA ISS" genre="YouTube Live" script="yt_live.lua" />
-	<webtv title="NASA Media" url="https://www.youtube.com/watch?v=OX9I1KyNa8M" description="NASA Media" genre="YouTube Live" script="yt_live.lua" />
-	<webtv title="The Good Life 24/7 Live Radio " url="https://www.youtube.com/watch?v=eH7hBiY9xkg" description="The Good Life | 24/7 Live Radio " genre="YouTube Live" script="yt_live.lua" />
-	<webtv title="NET TV" url="https://www.youtube.com/watch?v=mtG6bf7hsbw" description="NET TV" genre="YouTube Live" script="yt_live.lua" />
+	<webtv title="NASA ISS" url="https://www.youtube.com/user/NASAtelevision" description="NASA ISS" genre="YouTube Live" script="yt_live.lua" />
+	<webtv title="TecTime TV" url="https://www.youtube.com/user/DrDishTelevision" description="TecTime TV" genre="YouTube Live" script="yt_live.lua" />
+	<webtv title="FOX 5" url="https://www.youtube.com/watch?v=fj4Wy7cu_QU" description="FOX 5" genre="YouTube Live" script="yt_live.lua" />
+	<webtv title="Star TV Switzerland" url="https://www.youtube.com/user/startv " description="Youtube Livestream" script="yt_live.lua" />
+	<webtv title="Bloomberg" url="https://www.youtube.com/user/Bloomberg" description="Youtube Livestream" script="yt_live.lua" genre="YouTube Live" />
+	<webtv title="Sky News" url="https://www.youtube.com/user/skynews" description="Youtube Livestream" script="yt_live.lua" genre="YouTube Live" />
+	<webtv title="Newsmax TV" url="https://www.youtube.com/user/NewsmaxTV" description="Youtube Livestream" script="yt_live.lua" genre="YouTube Live" />
+	<webtv title="Al Jazeera English" url="https://www.youtube.com/user/AlJazeeraEnglish" description="Youtube Livestream" script="yt_live.lua" genre="YouTube Live" />
+	<webtv title="fashion TV" url="https://www.youtube.com/user/fashiontvFMEN" description="Youtube Livestream" script="yt_live.lua" genre="YouTube Live"/>
+	<webtv title="ChillYourMind Radio" url="https://www.youtube.com/user/ChillYourMind" description="Youtube Livestream" script="yt_live.lua" genre="YouTube Live"/>
+	<webtv title="The Good Life Radio" url="https://www.youtube.com/user/SensualMusique1" description="Youtube Livestream" script="yt_live.lua" genre="YouTube Live"/>
+	<webtv title="TOP CALCIO 24" url="https://www.youtube.com/user/TelelombardiaWeb" description="Youtube Livestream" script="yt_live.lua" genre="YouTube Live"/>
 </webtvs>
