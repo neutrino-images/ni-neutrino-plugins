@@ -328,8 +328,13 @@ int GetStringLen(int _sx, char *string, size_t size)
 				string+=5;
 				stringlen=i-_sx;
 			}
-			else if(*string=='!') {
-				string++;
+			else if(*string=='R' ||
+					*string=='G' ||
+					*string=='B' ||
+					*string=='Y' ||
+					*string=='S' ||
+					*string=='C') {
+				string+=1;
 			}
 			break;
 		default:
@@ -386,7 +391,7 @@ int RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int s
 			case CENTER:	if(stringlen < maxwidth) _sx += (maxwidth - stringlen)/2;
 					break;
 
-			case RIGHT:	if(stringlen < maxwidth) _sx += maxwidth - stringlen * 0.8;
+			case RIGHT:	if(stringlen < maxwidth) _sx += maxwidth - stringlen;
 		}
 	}
 

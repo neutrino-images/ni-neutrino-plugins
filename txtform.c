@@ -50,16 +50,20 @@ int just, comment, color=CMCT;
 					case 'r': just=RIGHT; break;
 					case 'c': just=CENTER; break;
 					case 'C':
+						rstr[j++]='C';
 						if (*(tptr+2) == '!') {
 							comment=1;
+							tptr++;
 							tptr++;
 						}
 						else if (*(tptr+2) == 'L') {
 							comment=2;
 							tptr++;
+							tptr++;
 						}
 						else if (*(tptr+2) == 'R') {
 							comment=3;
+							tptr++;
 							tptr++;
 						}
 						break;
@@ -84,27 +88,28 @@ int just, comment, color=CMCT;
 				if(loop>=line)
 				{
 					slen=GetStringLen(xs, t, size);
+					int boffs = slen ? (size/10*4)+2 : 0;
 					if (comment == 1)
 					{
 						int xxs = xs;
 						RenderBox(xs, ys-2-size/2+1, xs+xw, ys-2-size/2+2, FILL, CMS);
 						RenderBox(xs, ys-2-size/2, xs+xw, ys-2-size/2+1, FILL, CMCIT);
 						if(slen > 0 && slen < xw) {
-							xxs += (xw-slen-10)/2-5;
-							RenderBox(xxs, ys-2-size/2, xxs+slen+20, ys-2-size/2+2, FILL, CMC);
+							xxs += (xw-slen-boffs)/2-5;
+							RenderBox(xxs, ys-2-size/2, xxs+slen+10+boffs, ys-2-size/2+2, FILL, CMC);
 						}
 						RenderString(t, xs, ys, xw, CENTER, size, CMCIT);
 					}
 					else if (comment == 2)
 					{
-						RenderBox(xs+slen, ys-2-size/2+1, xs+xw, ys-2-size/2+2, FILL, CMS);
-						RenderBox(xs+slen, ys-2-size/2, xs+xw, ys-2-size/2+1, FILL, CMCIT);
+						RenderBox(xs+slen+boffs, ys-2-size/2+1, xs+xw, ys-2-size/2+2, FILL, CMS);
+						RenderBox(xs+slen+boffs, ys-2-size/2, xs+xw, ys-2-size/2+1, FILL, CMCIT);
 						RenderString(t, xs, ys, xw, LEFT, size, color);
 					}
 					else if (comment == 3)
 					{
-						RenderBox(xs, ys-2-size/2+1, xs+xw-slen, ys-2-size/2+2, FILL, CMS);
-						RenderBox(xs, ys-2-size/2, xs+xw-slen, ys-2-size/2+1, FILL, CMCIT);
+						RenderBox(xs, ys-2-size/2+1, xs+xw-slen-boffs, ys-2-size/2+2, FILL, CMS);
+						RenderBox(xs, ys-2-size/2, xs+xw-slen-boffs, ys-2-size/2+1, FILL, CMCIT);
 						RenderString(t, xs, ys, xw, RIGHT, size, color);
 					}
 					else
