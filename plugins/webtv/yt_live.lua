@@ -84,6 +84,14 @@ end
 
 function getVideoData(url)
 	if url == nil then return 0 end
+
+	if string.find(url,"www.youtube.com/user/") then --check user link
+		local youtube_user = getdata(url)
+		local youtube_live_url = youtube_user:match('feature=c4%-live%-promo" href="(.-)">')
+		if youtube_live_url == nil then return 0 end
+		url = 'https://www.youtube.com' .. youtube_live_url
+	end
+
 	local data = getdata(url)
 	if data then
 		local m3u_url = data:match('hlsvp.:.(https:\\.-m3u8)') 
