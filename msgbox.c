@@ -10,7 +10,7 @@
 #include "gfx.h"
 #include "txtform.h" 
 
-#define M_VERSION 1.22
+#define M_VERSION 1.23
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define HDF_FILE	"/tmp/.msgbox_hidden"

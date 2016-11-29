@@ -328,7 +328,10 @@ int GetStringLen(int _sx, char *string, size_t size)
 				string+=5;
 				stringlen=i-_sx;
 			}
-			else if(*string=='R' ||
+			else if(*string=='l' ||
+					*string=='c' ||
+					*string=='r' ||
+					*string=='R' ||
 					*string=='G' ||
 					*string=='B' ||
 					*string=='Y' ||
