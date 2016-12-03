@@ -274,7 +274,7 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 		if (_sx + sbit->xadvance >= _ex)
 			return -1; /* limit to maxwidth */
 
-		uint32_t bgcolor = *(lbb + (sy + _sy) * stride + (sx + _sx));
+		uint32_t bgcolor = *(lbb + (sy + _sy - sbit->top) * stride + (sx + _sx));
 		uint32_t fgcolor = bgra[color];
 		uint32_t *colors = lookup_colors(fgcolor, bgcolor);
 		uint32_t *p = lbb + (sx + _sx + sbit->left + kerning.x) + stride * (sy + _sy - sbit->top - _d);
