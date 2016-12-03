@@ -10,7 +10,7 @@
 #include "gfx.h"
 #include "txtform.h" 
 
-#define M_VERSION 1.23
+#define M_VERSION 1.24
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define HDF_FILE	"/tmp/.msgbox_hidden"
@@ -929,6 +929,10 @@ FILE *fh;
 						selection=buttons;
 					}
 					show_txt(1);
+				break;
+
+				default:
+					flash^=1;
 				break;
 			}
 		}

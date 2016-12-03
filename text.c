@@ -6,6 +6,7 @@ int FSIZE_BIG=28;
 int FSIZE_MED=24;
 int FSIZE_SMALL=20;
 int TABULATOR=72;
+extern int flash;
 
 static char *sc = "aouAOUzd",
 	*su= "\xA4\xB6\xBC\x84\x96\x9C\x9F",
@@ -273,9 +274,12 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 	{
 		if (_sx + sbit->xadvance >= _ex)
 			return -1; /* limit to maxwidth */
-
+		uint32_t fgcolor;
 		uint32_t bgcolor = *(lbb + (sy + _sy - sbit->top) * stride + (sx + _sx));
-		uint32_t fgcolor = bgra[color];
+		if ( color == -2) /* flash */
+			fgcolor = bgcolor;
+		else	
+			fgcolor = bgra[color];
 		uint32_t *colors = lookup_colors(fgcolor, bgcolor);
 		uint32_t *p = lbb + (sx + _sx + sbit->left + kerning.x) + stride * (sy + _sy - sbit->top - _d);
 		uint32_t *r = p + (_ex - _sx);	/* end of usable box */
@@ -336,6 +340,7 @@ int GetStringLen(int _sx, char *string, size_t size)
 					*string=='B' ||
 					*string=='Y' ||
 					*string=='S' ||
+					*string=='F' ||
 					*string=='C') {
 				string+=1;
 			}
@@ -373,9 +378,9 @@ void CatchTabs(char *text)
 
 int RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int size, int color)
 {
-	int stringlen, _ex, charwidth,i;
+	int stringlen, _ex, charwidth, i, col;
 	char rstr[BUFSIZE]={0}, *rptr=rstr;
-	int varcolor=color;
+	int varcolor=color, butcolor=color;
 
 	//set size
 
@@ -418,6 +423,15 @@ int RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int s
 				case 'Y': varcolor=YELLOW; break;
 				case 'B': varcolor=BLUE1; break;
 				case 'S': varcolor=color; break;
+				case 'F':
+					if(butcolor == CMCST)
+						col = CMCIT;
+					else if(butcolor == CMCIT)
+						col = CMCST;
+					else
+						col = -2;
+					varcolor = flash ? col : varcolor;
+					break;
 				case 't':
 					_sx=TABULATOR*((int)(_sx/TABULATOR)+1);
 					break;
