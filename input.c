@@ -10,7 +10,7 @@
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define BUFSIZE 	1024
-#define I_VERSION	1.09
+#define I_VERSION	1.10
 
 //#define FONT "/usr/share/fonts/md_khmurabi_10.ttf"
 #define FONT2 "/share/fonts/pakenham.ttf"
@@ -50,8 +50,20 @@ int radius=10;
 
 static void quit_signal(int sig)
 {
+	char *txt=NULL;
+	switch (sig)
+	{
+		case SIGINT:  txt=strdup("SIGINT");  break;
+		case SIGTERM: txt=strdup("SIGTERM"); break;
+		case SIGQUIT: txt=strdup("SIGQUIT"); break;
+		case SIGSEGV: txt=strdup("SIGSEGV"); break;
+		default:
+			txt=strdup("UNKNOWN"); break;
+	}
+
+	printf("input Version %.2f killed, signal %s(%d)\n", I_VERSION, txt, sig);
 	put_instance(get_instance()-1);
-	printf("input Version %.2f killed\n",I_VERSION);
+	free(txt);
 	exit(1);
 }
 
@@ -467,11 +479,10 @@ unsigned int alpha;
 		startx = sx /*+ (((ex-sx) - 620)/2)*/;
 		starty = sy /* + (((ey-sy) - 505)/2)*/;
 
-
-
 	signal(SIGINT, quit_signal);
 	signal(SIGTERM, quit_signal);
 	signal(SIGQUIT, quit_signal);
+	signal(SIGSEGV, quit_signal);
 
 	//main loop
 	put_instance(instance=get_instance()+1);
