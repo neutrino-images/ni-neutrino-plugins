@@ -8,7 +8,7 @@
 #include "io.h"
 #include "gfx.h"
 
-#define SH_VERSION 1.35
+#define SH_VERSION 1.36
 
 static char CFG_FILE[128]="/var/tuxbox/config/shellexec.conf";
 
@@ -120,8 +120,20 @@ void put_instance(int pval)
 
 static void quit_signal(int sig)
 {
+	char *txt=NULL;
+	switch (sig)
+	{
+		case SIGINT:  txt=strdup("SIGINT");  break;
+		case SIGTERM: txt=strdup("SIGTERM"); break;
+		case SIGQUIT: txt=strdup("SIGQUIT"); break;
+		case SIGSEGV: txt=strdup("SIGSEGV"); break;
+		default:
+			txt=strdup("UNKNOWN"); break;
+	}
+
+	printf("%s Version %.2f killed, signal %s(%d)\n", __plugin__, SH_VERSION, txt, sig);
 	put_instance(get_instance()-1);
-	printf("%s Version %.2f killed, signal %d\n", __plugin__, SH_VERSION, sig);
+	free(txt);
 	exit(1);
 }
 
@@ -1718,6 +1730,11 @@ int main (int argc, char **argv)
 	startx = sx + (((ex-sx) - (fix_screeninfo.line_length-200))/2);
 	starty = sy + (((ey-sy) - (var_screeninfo.yres-150))/2);
 
+	signal(SIGINT, quit_signal);
+	signal(SIGTERM, quit_signal);
+	signal(SIGQUIT, quit_signal);
+	signal(SIGSEGV, quit_signal);
+
 	index=0;
 	if(vfd)
 	{
@@ -1736,9 +1753,6 @@ int main (int argc, char **argv)
 		return -1;
 	}
 	cindex=0;
-	signal(SIGINT, quit_signal);
-	signal(SIGTERM, quit_signal);
-	signal(SIGQUIT, quit_signal);
 
 	put_instance(instance=get_instance()+1);
 
