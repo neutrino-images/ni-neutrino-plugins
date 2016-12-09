@@ -10,7 +10,7 @@
 #include "gfx.h"
 #include "txtform.h" 
 
-#define M_VERSION 1.24
+#define M_VERSION 1.25
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define HDF_FILE	"/tmp/.msgbox_hidden"
@@ -70,7 +70,7 @@ int rval=0;
 
 void put_instance(int pval)
 {
-FILE *fh;
+	FILE *fh;
 
 	if(pval)
 	{
@@ -88,8 +88,20 @@ FILE *fh;
 
 static void quit_signal(int sig)
 {
+	char *txt=NULL;
+	switch (sig)
+	{
+		case SIGINT:  txt=strdup("SIGINT");  break;
+		case SIGTERM: txt=strdup("SIGTERM"); break;
+		case SIGQUIT: txt=strdup("SIGQUIT"); break;
+		case SIGSEGV: txt=strdup("SIGSEGV"); break;
+		default:
+			txt=strdup("UNKNOWN"); break;
+	}
+
+	printf("%s Version %.2f killed, signal %s(%d)\n", __plugin__, M_VERSION, txt, sig);
 	put_instance(get_instance()-1);
-	printf("%s Version %.2f killed, signal %d\n", __plugin__, M_VERSION, sig);
+	free(txt);
 	exit(1);
 }
 
@@ -844,6 +856,7 @@ FILE *fh;
 	signal(SIGINT, quit_signal);
 	signal(SIGTERM, quit_signal);
 	signal(SIGQUIT, quit_signal);
+	signal(SIGSEGV, quit_signal);
 
 	put_instance(instance=get_instance()+1);
 
