@@ -27,6 +27,7 @@ unsigned rc;
 extern int radius;
 char INST_FILE[]="/tmp/rc.locked";
 int instance=0;
+int rclocked=0;
 
 int get_instance(void)
 {
@@ -47,6 +48,10 @@ FILE *fh;
 
 	if(pval)
 	{
+		if (!rclocked) {
+			rclocked=1;
+			system("pzapit -lockrc > /dev/null");
+		}
 		if((fh=fopen(INST_FILE,"w"))!=NULL)
 		{
 			fputc(pval,fh);
@@ -56,6 +61,7 @@ FILE *fh;
 	else
 	{
 		remove(INST_FILE);
+		system("pzapit -unlockrc > /dev/null");
 	}
 }
 
