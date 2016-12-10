@@ -10,7 +10,7 @@
 #include "gfx.h"
 #include "txtform.h" 
 
-#define M_VERSION 1.25
+#define M_VERSION 1.26
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define HDF_FILE	"/tmp/.msgbox_hidden"
@@ -53,6 +53,7 @@ char nstr[BUFSIZE]={0};
 char *trstr=NULL;
 const char INST_FILE[]="/tmp/rc.locked";
 int instance=0;
+int rclocked=0;
 int stride;
 
 int get_instance(void)
@@ -74,6 +75,10 @@ void put_instance(int pval)
 
 	if(pval)
 	{
+		if (!rclocked) {
+			rclocked=1;
+			system("pzapit -lockrc > /dev/null");
+		}
 		if((fh=fopen(INST_FILE,"w"))!=NULL)
 		{
 			fputc(pval,fh);
@@ -83,6 +88,7 @@ void put_instance(int pval)
 	else
 	{
 		remove(INST_FILE);
+		system("pzapit -unlockrc > /dev/null");
 	}
 }
 
