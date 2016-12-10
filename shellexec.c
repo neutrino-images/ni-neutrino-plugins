@@ -8,7 +8,7 @@
 #include "io.h"
 #include "gfx.h"
 
-#define SH_VERSION 1.36
+#define SH_VERSION 1.37
 
 static char CFG_FILE[128]="/var/tuxbox/config/shellexec.conf";
 
@@ -85,6 +85,7 @@ int paging=1, mtmo=120, radius=11;
 int ixw=600, iyw=680, xoffs=13, vfd=0;
 char INST_FILE[]="/tmp/rc.locked";
 int instance=0;
+int rclocked=0;
 int stride;
 
 int get_instance(void)
@@ -106,6 +107,10 @@ void put_instance(int pval)
 
 	if(pval)
 	{
+		if (!rclocked) {
+			rclocked=1;
+			system("pzapit -lockrc > /dev/null");
+		}
 		if((fh=fopen(INST_FILE,"w"))!=NULL)
 		{
 			fputc(pval,fh);
@@ -115,6 +120,7 @@ void put_instance(int pval)
 	else
 	{
 		remove(INST_FILE);
+		system("pzapit -unlockrc > /dev/null");
 	}
 }
 
