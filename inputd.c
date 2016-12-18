@@ -17,17 +17,21 @@
 #define NUM		'#'
 #define ANUM	'@'
 #define HEX		'^'
-#define ndelay	3
+#define ndelay	2
+#define REPEAT_TIMER 2
 
-char rstr[512],tstr[512], *format, *estr;
-int epos=-1,cpos=0,kpos=0,cnt,first=1,hex=0;
-char kcod[10][13]={"0 _.:,;$@()#","1-+*/", "2abcä", "3def", "4ghi", "5jkl", "6mnoö", "7pqrsß", "8tuvü", "9wxyz"};
-char hcod[10][13]={"0","1", "2abc", "3def", "4", "5", "6", "7", "8", "9"};
+char rstr[512]={0},tstr[512]={0}, *format=NULL, *estr=NULL;
+unsigned int kpos=0;
+int epos=-1,cpos=0,cnt,first=1,hex=0;
+const char kcod[10][13]={"0 _.:,;$@()#","1-+*/", "2abcä", "3def", "4ghi", "5jkl", "6mnoö", "7pqrsß", "8tuvü", "9wxyz"};
+const char hcod[10][13]={"0","1", "2abc", "3def", "4", "5", "6", "7", "8", "9"};
 unsigned rc;
 extern int radius;
-char INST_FILE[]="/tmp/rc.locked";
+extern int rcvalue;
+const char INST_FILE[]="/tmp/rc.locked";
 int instance=0;
 int rclocked=0;
+int rcvalue=0;
 
 int get_instance(void)
 {
@@ -67,7 +71,7 @@ FILE *fh;
 
 int IsAlpha(char ch)
 {
-	char uml[]="AÖÜaöü";
+	const char uml[]="ÄÖÜäöü";
 	return (((ch>='A')&&(ch<='Z')) || ((ch>='a')&&(ch<='z')) || strchr(uml,ch));
 }
 
@@ -238,14 +242,15 @@ void SetCode(int code)
 
 int ReTransform_Msg(char *msg)
 {
-int found=0,i;
+unsigned i;
+int found=0;
 char *sptr=msg, *tptr=tstr;
 
 	*tptr=0;
 	while(*sptr)
 	{
 		found=0;
-		for(i=0; i<sizeof(tc) && !found; i++)
+		for(i=0; i<sizeof(tc)/sizeof(tc[0]) && !found; i++)
 		{
 			rc=*sptr;
 			if(rc==tc[i])
@@ -263,14 +268,17 @@ char *sptr=msg, *tptr=tstr;
 	return strlen(rstr);
 }
 
-char *inputd(char *form, char *title, char *defstr, int keys, int frame, int mask, int bhelp, int cols, int tmo, int debounce)
+char *inputd(char *form, char *title, char *defstr, int keys, int frame, int mask, int bhelp, int cols, int tmo)
 {
-int exs,eys,wxs,wxw,wys,wyw,i,j,xp,yp;
+int i,j;
+int exs,eys,wxs,wxw,wys,wyw,xp,yp;
 char trnd[2]={0,0},tch;
-int act_key=-1, last_key=-1, b_key=-1, run=1, ipos=0;
+int act_key=-1, last_key=-1, run=1, ipos=0, count=0;
 time_t t1,t2,tm1;
-char knum[12][2]={"1","2","3","4","5","6","7","8","9"," ","0"};
-char kalp[12][5]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrs","tuvü","wxyz","","_,.;"};
+ // only for num block
+const char knum[12][2]={"1","2","3","4","5","6","7","8","9"," ","0"};
+const char kalp[12][5]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrs","tuvü","wxyz","","_,.;"};
+
 
 	epos=-1;
 	cpos=0;
@@ -285,10 +293,10 @@ char kalp[12][5]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrs","tuvü","wxyz",""
 	{
 		cols=1;
 	}
+
 	format=form;
 	estr=strdup(form);
 	cnt=strlen(form);
-	
 	i=GetStringLen(title, BIG)+10;
 	j=((cnt>cols)?cols:cnt)*exsz;
 	if(j>i)
@@ -319,7 +327,7 @@ char kalp[12][5]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrs","tuvü","wxyz",""
 
 	*estr=0;
 	*rstr=0;
-		
+
 	j=0;
 	for(i=0; i<strlen(format); i++)
 	{
@@ -346,10 +354,11 @@ char kalp[12][5]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrs","tuvü","wxyz",""
 	}
 	estr[i]=0;
 
-	RenderBox(wxs-2, wys-hsz-2, wxs+wxw+2, wys+wyw+2, radius, CMH);
+	// title
+	RenderBox(wxs-2, wys-hsz-2, wxs+wxw+2, wys+wyw+2, radius , CMH);
 	RenderBox(wxs, wys-hsz, wxs+wxw, wys+wyw, radius, CMC);
 	RenderBox(wxs, wys-hsz, wxs+wxw, wys, radius, CMH);
-	RenderString(title, wxs, wys-15, wxw, CENTER, BIG, CMHT);
+	RenderString(title, wxs, wys-7, wxw, CENTER, BIG, CMHT);
 	if(keys)
 	{
 		int bxs=wxs+(wxw-(3*bxsz))/2;
@@ -357,21 +366,21 @@ char kalp[12][5]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrs","tuvü","wxyz",""
 		
 		for(i=0; i<11; i++)
 		{
-			if(i!=9)
+			if(i!=9) //num fields
 			{
 				RenderBox(bxs+(i%3)*bxsz, bys+(i/3)*bysz, bxs+((i%3)+1)*bxsz, bys+((i/3)+1)*bysz, radius, CMS);
 				RenderBox(bxs+(i%3)*bxsz+2, bys+(i/3)*bysz+2, bxs+((i%3)+1)*bxsz-2, bys+((i/3)+1)*bysz-2, radius, CMC);
-				RenderString(knum[i], bxs+(i%3)*bxsz, bys+(i/3)*bysz+bysz/2, bxsz, CENTER, MED, CMCIT);
-				RenderString(kalp[i], bxs+(i%3)*bxsz, bys+(i/3)*bysz+bysz-8, bxsz, CENTER, SMALL, CMCIT);
+				RenderString(knum[i], bxs+(i%3)*bxsz, bys+(i/3)*bysz+bysz/2+8, bxsz, CENTER, MED, CMCIT);
+				RenderString(kalp[i], bxs+(i%3)*bxsz, bys+(i/3)*bysz+bysz-2, bxsz, CENTER, SMALL, CMCIT);
 				
 			}
 		}	
-		RenderCircle(bxs,wys+wyw-ybrd-8,RED);
-		RenderString("Groß/Klein",bxs+15,wys+wyw-ybrd+5,3*bxsz,LEFT,SMALL,CMCIT);
-		RenderCircle(bxs+3*bxsz-GetStringLen("löschen",SMALL)-15,wys+wyw-ybrd-8,YELLOW);
-		RenderString("löschen",bxs,wys+wyw-ybrd+5,3*bxsz,RIGHT,SMALL,CMCIT);
+		RenderCircle(bxs,wys+wyw-ybrd-11,RED);
+		RenderString("Groß/Klein",bxs+20,wys+wyw-ybrd+10,3*bxsz,LEFT,SMALL,CMCIT);
+		RenderCircle(bxs+3*bxsz-GetStringLen("löschen",SMALL)-15,wys+wyw-ybrd-11,YELLOW);
+		RenderString("löschen",bxs+5,wys+wyw-ybrd+10,3*bxsz,RIGHT,SMALL,CMCIT);
 	}
-	
+
 	while(run)
 	{
 		for(i=0; i<cnt; i++)
@@ -380,46 +389,44 @@ char kalp[12][5]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrs","tuvü","wxyz",""
 			yp=i/cols;
 			if(frame && IsInput(format[i]))
 			{
-				RenderBox(exs+xp*exsz, eys+5+yp*eysz, exs+(xp+1)*exsz, eys+(yp+1)*eysz, radius, CMS);
+				RenderBox(exs+xp*exsz, eys+5+yp*eysz, exs+(xp+1)*exsz, eys+(yp+1)*eysz, 0/*radius*/, CMS);
 			}
-			RenderBox(exs+xp*exsz+1, eys+5+yp*eysz+1, exs+(xp+1)*exsz-1, eys+(yp+1)*eysz-1, radius, (epos==i)?CMCS:CMC);
-			*trnd=(mask && format[i]==NUM && IsNum(estr[i]))?'*':estr[i];
-			RenderString(trnd, exs+xp*exsz+2, eys+yp*eysz+tys, exsz-2, CENTER, MED, (epos==i)?CMCST:(IsInput(format[i]))?CMCT:CMCIT);
-		}
-		memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
-		
-//		sleep(1);
+			RenderBox(exs+xp*exsz+1, eys+5+yp*eysz+1, exs+(xp+1)*exsz-1, eys+(yp+1)*eysz-1, 0/*radius*/, (epos==i)?CMCS:CMC);
 
+			*trnd=(mask && format[i]==NUM && IsNum(estr[i]))?'*':estr[i];
+			RenderString(trnd, exs+xp*exsz+2, eys+yp*eysz+tys+7, exsz-2, CENTER, MED, (epos==i)?CMCST:(IsInput(format[i]))?CMCT:CMCIT);
+		}
+		memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+		
 		time(&t1);
 		i=-1;
 		while(i==-1)
 		{
-			i=GetRCCode();
-			if(i!=-1)
+			i=GetRCCode(1000);
+			if (i != KEY_UP && i != KEY_DOWN && i != KEY_LEFT && i != KEY_RIGHT)
 			{
-				tmo=0;
-				if(i==b_key)
+				if (rcvalue == 2 && count < 3)
 				{
-					usleep(debounce*1000);
-					while((i=GetRCCode())!=-1);
+					count++;
+					i = -1;
 				}
-				b_key=i;
 			}
 			time(&t2);
 			if(tmo)
 			{
-				if((t2-tm1)>=tmo)
+				//printf("t2-t1 = %f %i\n", difftime(t2, t1), tmo);
+				if((t2-t1)>=tmo)
 				{
 					i=KEY_EXIT;
 				}
 			}
-			if((((format[epos]!=NUM) && (format[epos]!=HEX)) || ((format[epos]==HEX)&&(strlen(hcod[cpos])>1))) && ((t2-t1)>ndelay) && last_key>=0)
+			if((((format[epos]!=NUM) && (format[epos]!=HEX)) || ((format[epos]==HEX)&&(strlen(hcod[cpos])>1))) && ((t2-t1)>=ndelay) && last_key>=0)
 			{
 				act_key=i=-2;
-				b_key=-3;
 				NextPos();
 			}
 		}
+		count=0;
 		act_key=i;
 		
 		switch(act_key)
@@ -507,21 +514,8 @@ char kalp[12][5]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrs","tuvü","wxyz",""
 			break;
 			
 			case KEY_MUTE:
-				memset(lfb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres);
-				usleep(500000L);
-				while(GetRCCode()!=-1)
-				{
-					usleep(100000L);
-				}
-				while(GetRCCode()!=KEY_MUTE)
-				{
-					usleep(500000L);
-				}
-				while((act_key=GetRCCode())!=-1)
-				{
-					usleep(100000L);
-				}
-//				knew=1;
+				memset(lfb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+				while(GetRCCode(300)!=KEY_MUTE);
 			break;
 
 			case KEY_UP:
@@ -622,8 +616,8 @@ char kalp[12][5]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrs","tuvü","wxyz",""
 		}
 		rstr[j]=0;
 		free(estr);
-	}	
+	}
 	ReTransform_Msg(rstr);
-	return tstr;
+	return rstr;
 }
 

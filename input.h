@@ -1,7 +1,8 @@
 #ifndef __INPUT_H__
-
 #define __INPUT_H__
 
+//#include <config.h>
+#define _FILE_OFFSET_BITS 64
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -14,13 +15,14 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/un.h>
+#include <stdint.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_CACHE_H
 #include FT_CACHE_SMALL_BITMAPS_H
 
-//freetype stuff
+#define BUFSIZE 1024
 
 enum {LEFT, CENTER, RIGHT};
 enum {SMALL, MED, BIG};
@@ -106,20 +108,22 @@ enum {FILL, GRID};
 enum {CMCST, CMCS, CMCT, CMC, CMCIT, CMCI, CMHT, CMH, WHITE, BLUE1, GTRANSP, CMS, ORANGE, GREEN, YELLOW, RED};
 #define TRANSP 0
 
-extern unsigned char *lfb, *lbb, *obb;
-extern unsigned char rd[], gn[], bl[], tr[];
+extern uint32_t *lfb, *lbb, *obb;
+extern uint32_t bgra[];
+extern int stride;
 
 struct fb_fix_screeninfo fix_screeninfo;
 struct fb_var_screeninfo var_screeninfo;
 
 int startx, starty, sx, ex, sy, ey;
-extern unsigned char sc[8], tc[8];
+
 extern char *butmsg[3];
 extern int buttons,selection;
+extern const char sc[8], tc[8];
 
+#ifndef FB_DEVICE
 #define FB_DEVICE	"/dev/fb/0"
-
-#define BUFSIZE 1024
+#endif
 
 #endif
 

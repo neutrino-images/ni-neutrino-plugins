@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <time.h>
 #include <signal.h>
-#include "input.h"
+
+#include "current.h"
+
 #include "text.h"
 #include "io.h"
 #include "gfx.h"
@@ -10,7 +12,7 @@
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define BUFSIZE 	1024
-#define I_VERSION	1.11
+#define I_VERSION	1.42
 
 //#define FONT "/usr/share/fonts/md_khmurabi_10.ttf"
 #define FONT2 "/share/fonts/pakenham.ttf"
@@ -28,8 +30,10 @@ unsigned char rd[] = {	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00,
 					    0xFF, 	0x00, 	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0xFF};
 unsigned char tr[] = {	0xFF, 	0xFF, 	0xFF,  	0xA0,  	0xFF,  	0xA0,  	0xFF,  	0xFF,
 						0xFF, 	0xFF, 	0x00,  	0xFF,  	0xFF,  	0xFF,  	0xFF,  	0xFF};
+uint32_t bgra[20];
 
 void TrimString(char *strg);
+void closedown(void);
 
 // OSD stuff
 static char menucoltxt[][25]={"Content_Selected_Text","Content_Selected","Content_Text","Content","Content_inactive_Text","Content_inactive","Head_Text","Head"};
@@ -37,40 +41,40 @@ static char spres[][5]={"","_crt","_lcd"};
 
 char *buffer=NULL;
 
-//static void ShowInfo(void);
-
 // Misc
-char NOMEM[]="input <Out of memory>\n";
-char TMP_FILE[]="/tmp/input.tmp";
-unsigned char *lfb = 0, *lbb = 0, *obb = 0;
-unsigned char nstr[512]="",rstr[512]="";
-unsigned char *trstr;
-unsigned char rc,sc[8]={'a','o','u','A','O','U','z','d'}, tc[8]={0xE4,0xF6,0xFC,0xC4,0xD6,0xDC,0xDF,0xB0};
-int radius=10;
+const char NOMEM[]="input <Out of memory>\n";
+const char TMP_FILE[]="/tmp/input.tmp";
+uint32_t *lfb = NULL, *lbb = NULL, *obb = NULL;
+char nstr[512]={0};
+char *trstr=NULL;
+const char sc[8]={'a','o','u','A','O','U','z','d'}, tc[8]={0xE4,0xF6,0xFC,0xC4,0xD6,0xDC,0xDF,0xB0};
+int radius;
+int stride;
+
 
 static void quit_signal(int sig)
 {
 	char *txt=NULL;
 	switch (sig)
 	{
-		case SIGINT:  txt=strdup("SIGINT");  break;
-		case SIGTERM: txt=strdup("SIGTERM"); break;
-		case SIGQUIT: txt=strdup("SIGQUIT"); break;
-		case SIGSEGV: txt=strdup("SIGSEGV"); break;
+		case SIGINT:  txt=strdup("SIGINT");  break;  // 2
+		case SIGQUIT: txt=strdup("SIGQUIT"); break;  // 3
+		case SIGSEGV: txt=strdup("SIGSEGV"); break;  // 11
+		case SIGTERM: txt=strdup("SIGTERM"); break;  // 15
 		default:
 			txt=strdup("UNKNOWN"); break;
 	}
 
-	printf("input Version %.2f killed, signal %s(%d)\n", I_VERSION, txt, sig);
-	put_instance(get_instance()-1);
+	printf("%s Version %.2f killed, signal %s(%d)\n", __plugin__, I_VERSION, txt, sig);
 	free(txt);
+	closedown();
 	exit(1);
 }
 
 int Read_Neutrino_Cfg(char *entry)
 {
 FILE *nfh;
-char tstr [512], *cfptr=NULL;
+char tstr [512]={0}, *cfptr=NULL;
 int rv=-1;
 
 	if((nfh=fopen(NCF_FILE,"r"))!=NULL)
@@ -136,8 +140,9 @@ char *pt1=strg, *pt2=strg;
 
 int Transform_Msg(char *msg)
 {
-int found=0,i;
-char *sptr=msg, *tptr=msg;
+unsigned i;
+int found=0;
+char *sptr=msg, *tptr=msg, rc;
 
 	while(*sptr)
 	{
@@ -149,7 +154,7 @@ char *sptr=msg, *tptr=msg;
 		{
 			rc=*(sptr+1);
 			found=0;
-			for(i=0; i<sizeof(sc) && !found; i++)
+			for(i=0; i<sizeof(sc)/sizeof(sc[0]) && !found; i++)
 			{
 				if(rc==sc[i])
 				{
@@ -197,12 +202,10 @@ void ShowUsage(void)
 
 int main (int argc, char **argv)
 {
-int tv,cols=25,debounce=25,tmo=0,index, spr;
-char ttl[]="Eingabe";
+int tv,cols=25,tmo=0,ix, spr;
+const char ttl[]="Eingabe";
 int dloop=1,keys=0,frame=1,mask=0,bhelp=0;
-char *title=NULL, *format=NULL, *defstr=NULL, *aptr, *rptr; 
-unsigned int alpha;
-//FILE *fh;
+char rstr[512]={0}, *title=NULL, *format=NULL, *defstr=NULL, *aptr=NULL, *rptr=NULL;
 
 		if(argc==1)
 		{
@@ -306,12 +309,12 @@ unsigned int alpha;
 			switch (dloop)
 			{
 				case 1:
-					printf("input <param error: %s>\n",aptr);
+					fprintf(stderr, "%s <param error: %s>\n",__plugin__,aptr);
 					return 0;
 					break;
 				
 				case 2:
-					printf("input <unknown command: %s>\n\n",aptr);
+					fprintf(stderr, "%s <unknown command: %s>\n\n",__plugin__ ,aptr);
 					ShowUsage();
 					return 0;
 					break;
@@ -319,17 +322,17 @@ unsigned int alpha;
 		}
 		if(!format)
 		{
-			printf("input <missing format string>\n");
+			fprintf(stderr, "%s <missing format string>\n", __plugin__);
 			return 0;
     	}
 		if(!title)
 		{
-			title=ttl;
+			title=strdup(ttl);
 		}
 
 		if((buffer=calloc(BUFSIZE+1, sizeof(char)))==NULL)
 		{
-			printf(NOMEM);
+			fprintf(stderr, NOMEM);
 			return 0;
 		}
 
@@ -350,34 +353,37 @@ unsigned int alpha;
 		if((ey=Read_Neutrino_Cfg(buffer))<0)
 			ey=620;
 
-		for(index=CMCST; index<=CMH; index++)
+		for(ix=CMCST; ix<=CMH; ix++)
 		{
-			sprintf(rstr,"menu_%s_alpha",menucoltxt[index]);
+			sprintf(rstr,"menu_%s_alpha",menucoltxt[ix]);
 			if((tv=Read_Neutrino_Cfg(rstr))>=0)
-				tr[index]=255-(float)tv*2.55;
+				tr[ix]=255-(float)tv*2.55;
 
-			sprintf(rstr,"menu_%s_blue",menucoltxt[index]);
+			sprintf(rstr,"menu_%s_blue",menucoltxt[ix]);
 			if((tv=Read_Neutrino_Cfg(rstr))>=0)
-				bl[index]=(float)tv*2.55;
+				bl[ix]=(float)tv*2.55;
 
-			sprintf(rstr,"menu_%s_green",menucoltxt[index]);
+			sprintf(rstr,"menu_%s_green",menucoltxt[ix]);
 			if((tv=Read_Neutrino_Cfg(rstr))>=0)
-				gn[index]=(float)tv*2.55;
+				gn[ix]=(float)tv*2.55;
 
-			sprintf(rstr,"menu_%s_red",menucoltxt[index]);
+			sprintf(rstr,"menu_%s_red",menucoltxt[ix]);
 			if((tv=Read_Neutrino_Cfg(rstr))>=0)
-				rd[index]=(float)tv*2.55;
+				rd[ix]=(float)tv*2.55;
 		}
+		for (ix = 0; ix <= RED; ix++)
+			bgra[ix] = (tr[ix] << 24) | (rd[ix] << 16) | (gn[ix] << 8) | bl[ix];
+
 
 		if(Read_Neutrino_Cfg("rounded_corners")>0)
-			radius=10;
+			radius=11;
 		else
 			radius=0;
 
 		fb = open(FB_DEVICE, O_RDWR);
 		if(fb == -1)
 		{
-			perror("input <open framebuffer device>");
+			perror(__plugin__ " <open framebuffer device>");
 			exit(1);
 		}
 
@@ -385,7 +391,7 @@ unsigned int alpha;
 
 		if((trstr=malloc(BUFSIZE))==NULL)
 		{
-			printf(NOMEM);
+			fprintf(stderr, NOMEM);
 			return -1;
 		}
 
@@ -393,17 +399,18 @@ unsigned int alpha;
 
 		if(ioctl(fb, FBIOGET_FSCREENINFO, &fix_screeninfo) == -1)
 		{
-			perror("input <FBIOGET_FSCREENINFO>\n");
+			perror(__plugin__ " <FBIOGET_FSCREENINFO>\n");
 			return -1;
 		}
 		if(ioctl(fb, FBIOGET_VSCREENINFO, &var_screeninfo) == -1)
 		{
-			perror("input <FBIOGET_VSCREENINFO>\n");
+			perror(__plugin__ " <FBIOGET_VSCREENINFO>\n");
 			return -1;
 		}
-		if(!(lfb = (unsigned char*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0)))
+
+		if(!(lfb = (uint32_t*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0)))
 		{
-			perror("input <mapping of Framebuffer>\n");
+			perror(__plugin__ " <mapping of Framebuffer>\n");
 			return -1;
 		}
 
@@ -411,14 +418,14 @@ unsigned int alpha;
 
 		if((error = FT_Init_FreeType(&library)))
 		{
-			printf("input <FT_Init_FreeType failed with Errorcode 0x%.2X>", error);
+			fprintf(stderr, "%s <FT_Init_FreeType failed with Errorcode 0x%.2X>",__plugin__ , error);
 			munmap(lfb, fix_screeninfo.smem_len);
 			return -1;
 		}
 
 		if((error = FTC_Manager_New(library, 1, 2, 0, &MyFaceRequester, NULL, &manager)))
 		{
-			printf("input <FTC_Manager_New failed with Errorcode 0x%.2X>\n", error);
+			fprintf(stderr, "%s <FTC_Manager_New failed with Errorcode 0x%.2X>\n",__plugin__ , error);
 			FT_Done_FreeType(library);
 			munmap(lfb, fix_screeninfo.smem_len);
 			return -1;
@@ -426,7 +433,7 @@ unsigned int alpha;
 
 		if((error = FTC_SBitCache_New(manager, &cache)))
 		{
-			printf("input <FTC_SBitCache_New failed with Errorcode 0x%.2X>\n", error);
+			fprintf(stderr, "%s <FTC_SBitCache_New failed with Errorcode 0x%.2X>\n",__plugin__ , error);
 			FTC_Manager_Done(manager);
 			FT_Done_FreeType(library);
 			munmap(lfb, fix_screeninfo.smem_len);
@@ -437,7 +444,7 @@ unsigned int alpha;
 		{
 			if((error = FTC_Manager_LookupFace(manager, FONT2, &face)))
 			{
-				printf("input <FTC_Manager_LookupFace failed with Errorcode 0x%.2X>\n", error);
+				fprintf(stderr, "%s <FTC_Manager_LookupFace failed with Errorcode 0x%.2X>\n",__plugin__ , error);
 				FTC_Manager_Done(manager);
 				FT_Done_FreeType(library);
 				munmap(lfb, fix_screeninfo.smem_len);
@@ -451,51 +458,57 @@ unsigned int alpha;
 
 		use_kerning = FT_HAS_KERNING(face);
 
-		desc.flags = FT_LOAD_MONOCHROME;
+		desc.flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT;
 
 	//init backbuffer
 
-		if(!(lbb = malloc(fix_screeninfo.line_length*var_screeninfo.yres)))
+		if(!(lbb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
 		{
-			perror("input <allocating of Backbuffer>\n");
+			perror(__plugin__ " <allocating of Backbuffer>\n");
 			FTC_Manager_Done(manager);
 			FT_Done_FreeType(library);
 			munmap(lfb, fix_screeninfo.smem_len);
 			return -1;
 		}
-		if(!(obb = malloc(fix_screeninfo.line_length*var_screeninfo.yres)))
+		stride = fix_screeninfo.line_length/sizeof(uint32_t);
+
+		if(!(obb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
 		{
-			perror("input <allocating of Backbuffer>\n");
+			perror(__plugin__ " <allocating of Backbuffer>\n");
 			FTC_Manager_Done(manager);
 			FT_Done_FreeType(library);
 			free(lbb);
 			munmap(lfb, fix_screeninfo.smem_len);
 			return 0;
 		}
+		memcpy(lbb, lfb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+		memcpy(obb, lfb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 
-		memcpy(lbb, lfb, fix_screeninfo.line_length*var_screeninfo.yres);
-		memcpy(obb, lfb, fix_screeninfo.line_length*var_screeninfo.yres);
-
-		startx = sx /*+ (((ex-sx) - 620)/2)*/;
-		starty = sy /* + (((ey-sy) - 505)/2)*/;
+		startx = sx;
+		starty = sy;
 
 	signal(SIGINT, quit_signal);
-	signal(SIGTERM, quit_signal);
 	signal(SIGQUIT, quit_signal);
+	signal(SIGTERM, quit_signal);
 	signal(SIGSEGV, quit_signal);
 
 	//main loop
 	put_instance(instance=get_instance()+1);
-	printf("%s\n",inputd(format, title, defstr, keys, frame, mask, bhelp, cols, tmo, debounce));
+	printf("%s", inputd(format, title, defstr, keys, frame, mask, bhelp, cols, tmo));
+	closedown();
+	return 1;
+}
+
+/******************************************************************************
+ * input close
+ ******************************************************************************/
+void closedown(void)
+{
 	put_instance(get_instance()-1);
 	
-	//cleanup
-
 	// clear Display
-//	memset(lbb, 0, var_screeninfo.xres*var_screeninfo.yres);
-//	memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres);
-	
-	memcpy(lfb, obb, fix_screeninfo.line_length*var_screeninfo.yres);
+	memcpy(lfb, obb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+	munmap(lfb, fix_screeninfo.smem_len);
 
 	free(buffer);
 
@@ -504,12 +517,7 @@ unsigned int alpha;
 
 	free(lbb);
 	free(obb);
-	munmap(lfb, fix_screeninfo.smem_len);
 
 	close(fb);
 	CloseRC();
-
-
-	return 1;
 }
-
