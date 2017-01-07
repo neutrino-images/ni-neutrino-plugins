@@ -8,5 +8,6 @@ int RenderString(char *string, int sx, int sy, int maxwidth, int layout, int siz
 void TranslateString(char *src, size_t size);
 int GetStringLen(int sx, char *string, size_t size);
 void CatchTabs(char *text);
+void CatchLF(char *text);
 
 #endif

@@ -354,6 +354,17 @@ int GetStringLen(int _sx, char *string, size_t size)
 	return stringlen;
 }
 
+void CatchLF(char *text)
+{
+char *src, *dst;
+	for (src = dst = text; *src != '\0'; src++)
+	{
+		*dst = *src;
+		if (*dst != 0x0A) dst++;
+	}
+	*dst = '\0';
+}
+
 void CatchTabs(char *text)
 {
 	int i;

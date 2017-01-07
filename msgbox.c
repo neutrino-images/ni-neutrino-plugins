@@ -10,7 +10,7 @@
 #include "gfx.h"
 #include "txtform.h" 
 
-#define M_VERSION 1.26
+#define M_VERSION 1.27
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define HDF_FILE	"/tmp/.msgbox_hidden"
@@ -203,6 +203,7 @@ char *pt1=strdup(sptr),*pt2=NULL,*pt3=NULL;
 			char *t = (char *)alloca(l * 4 + 1);
 			memcpy(t, pt2, l + 1);
 			TranslateString(t, l * 4);
+			CatchLF(t);
 			butmsg[btn]=strdup(t);
 			CatchTabs(butmsg[btn++]);
 		}
