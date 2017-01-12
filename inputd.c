@@ -1,10 +1,14 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+
 #include "input.h"
+#include "icons.h"
 #include "text.h"
 #include "io.h"
 #include "gfx.h"
+#include "pngw.h"
+
 
 #define xbrd 	25
 #define ybrd	25
@@ -270,11 +274,12 @@ char *sptr=msg, *tptr=tstr;
 
 char *inputd(char *form, char *title, char *defstr, int keys, int frame, int mask, int bhelp, int cols, int tmo)
 {
-int i,j;
-int exs,eys,wxs,wxw,wys,wyw,xp,yp;
-char trnd[2]={0,0},tch;
+int iw, ih, xsize=0, ysize=0, icon_w=0, icon_h=0;
+int i, j, tlen;
+int exs, eys, wxs, wxw, wys, wyw, xp, yp;
+char trnd[2]={0,0}, tch;
 int act_key=-1, last_key=-1, run=1, ipos=0, count=0;
-time_t t1,t2,tm1;
+time_t t1, t2, tm1;
  // only for num block
 const char knum[12][2]={"1","2","3","4","5","6","7","8","9"," ","0"};
 const char kalp[12][5]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrs","tuvü","wxyz","","_,.;"};
@@ -297,7 +302,7 @@ const char kalp[12][5]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrs","tuvü","wx
 	format=form;
 	estr=strdup(form);
 	cnt=strlen(form);
-	i=GetStringLen(title, BIG)+10;
+	tlen=i=GetStringLen(title, BIG)+10;
 	j=((cnt>cols)?cols:cnt)*exsz;
 	if(j>i)
 	{
@@ -312,6 +317,7 @@ const char kalp[12][5]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrs","tuvü","wx
 		}
 	}
 	wxw=i+2*xbrd;
+	wxw=(keys==1 && wxw < 265) ? 265 : wxw;
 
 	i=(((cnt-1)/cols)+1)*eysz;
 	if(keys)
@@ -354,16 +360,35 @@ const char kalp[12][5]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrs","tuvü","wx
 	}
 	estr[i]=0;
 
-	// title
-	RenderBox(wxs-2, wys-hsz-2, wxs+wxw+2, wys+wyw+2, radius , CMH);
+	// icon & title
+	RenderBox(wxs+6, wys-hsz+6, wxs+wxw+6, wys+wyw+6, radius, COL_SHADOW_PLUS_0);
 	RenderBox(wxs, wys-hsz, wxs+wxw, wys+wyw, radius, CMC);
 	RenderBox(wxs, wys-hsz, wxs+wxw, wys, radius, CMH);
-	RenderString(title, wxs, wys-7, wxw, CENTER, BIG, CMHT);
-	if(keys)
+
+	png_getsize(ICON_KEYS, &icon_w, &icon_h);
+	if(icon_w > 40 || icon_h > 40)
+		icon_w = icon_h = xsize = ysize = 40;
+	paintIcon(ICON_KEYS, wxs+8, wys-hsz/2-icon_h/2, xsize, ysize, &iw, &ih);
+	int tstart, twide;
+	if(wxs+8+iw  >= wxs+wxw-8-iw-tlen ) {
+		tstart = wxs+8+iw;
+		twide  = wxw-8-iw;
+	}
+	else {
+		tstart = wxs;
+		twide  = wxw;
+	}
+	RenderString(title, tstart, wys-7, twide, CENTER, BIG, CMHT);
+
+	int bxs=wxs+(wxw-(3*bxsz))/2;
+	int bys=((wys+wyw)-2*ybrd)-4*bysz;
+	if(keys == 1)
 	{
-		int bxs=wxs+(wxw-(3*bxsz))/2;
-		int bys=((wys+wyw)-2*ybrd)-4*bysz;
-		
+		png_getsize(ICON_NUMERIC_PAD, &icon_w, &icon_h);
+		paintIcon(ICON_NUMERIC_PAD, wxs+wxw/2-icon_w/2, bys+10, 0, 0, &iw, &ih);	
+	}
+	if(keys == 2)
+	{
 		for(i=0; i<11; i++)
 		{
 			if(i!=9) //num fields
@@ -372,13 +397,16 @@ const char kalp[12][5]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrs","tuvü","wx
 				RenderBox(bxs+(i%3)*bxsz+2, bys+(i/3)*bysz+2, bxs+((i%3)+1)*bxsz-2, bys+((i/3)+1)*bysz-2, radius, CMC);
 				RenderString(knum[i], bxs+(i%3)*bxsz, bys+(i/3)*bysz+bysz/2+8, bxsz, CENTER, MED, CMCIT);
 				RenderString(kalp[i], bxs+(i%3)*bxsz, bys+(i/3)*bysz+bysz-2, bxsz, CENTER, SMALL, CMCIT);
-				
 			}
-		}	
-		RenderCircle(bxs,wys+wyw-ybrd-11,RED);
-		RenderString("Groß/Klein",bxs+20,wys+wyw-ybrd+10,3*bxsz,LEFT,SMALL,CMCIT);
-		RenderCircle(bxs+3*bxsz-GetStringLen("löschen",SMALL)-15,wys+wyw-ybrd-11,YELLOW);
-		RenderString("löschen",bxs+5,wys+wyw-ybrd+10,3*bxsz,RIGHT,SMALL,CMCIT);
+		}
+	}
+	if(keys)
+	{
+		png_getsize(ICON_BUTTON_RED, &icon_w, &icon_h);
+		paintIcon(ICON_BUTTON_RED, bxs-icon_w/2, wys+wyw-ybrd-2-icon_h/2, 0, 0, &iw, &ih);
+		RenderString("Groß/Klein", bxs+icon_w/2+5,wys+wyw-ybrd+10, 3*bxsz, LEFT, SMALL, CMCIT);
+		paintIcon(ICON_BUTTON_YELLOW, bxs+125-icon_w/2, wys+wyw-ybrd-2-icon_h/2, 0, 0, &iw, &ih);
+		RenderString("löschen", bxs+125+icon_w/2+5,wys+wyw-ybrd+10, 65, LEFT, SMALL, CMCIT);
 	}
 
 	while(run)

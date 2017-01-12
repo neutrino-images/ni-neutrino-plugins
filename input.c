@@ -12,34 +12,48 @@
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define BUFSIZE 	1024
-#define I_VERSION	1.42
+#define I_VERSION	2.0
 
-//#define FONT "/usr/share/fonts/md_khmurabi_10.ttf"
-#define FONT2 "/share/fonts/pakenham.ttf"
+
+char FONT[128]="/share/fonts/neutrino.ttf";
 // if font is not in usual place, we look here:
-#define FONT "/share/fonts/neutrino.ttf"
+#define FONT2 "/share/fonts/pakenham.ttf"
 
 //					   CMCST,   CMCS,  CMCT,    CMC,    CMCIT,  CMCI,   CMHT,   CMH
 //					   WHITE,   BLUE0, TRANSP,  CMS,    ORANGE, GREEN,  YELLOW, RED
+//					   COL_MENUCONTENT_PLUS_0 - 3, COL_SHADOW_PLUS_0
 
 unsigned char bl[] = {	0x00, 	0x00, 	0xFF, 	0x80, 	0xFF, 	0x80, 	0x00, 	0x80,
-					    0xFF, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0x00, 	0x00, 	0x00};
+					    0xFF, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0x00, 	0x00, 	0x00,
+						0x00,	0x00,	0x00,	0x00,	0x00};
 unsigned char gn[] = {	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0xC0, 	0x00,
-					    0xFF, 	0x80, 	0x00, 	0x80, 	0xC0, 	0xFF, 	0xFF, 	0x00};
+					    0xFF, 	0x80, 	0x00, 	0x80, 	0xC0, 	0xFF, 	0xFF, 	0x00,
+						0x00,	0x00,	0x00,	0x00,	0x00};
 unsigned char rd[] = {	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00,
-					    0xFF, 	0x00, 	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0xFF};
+					    0xFF, 	0x00, 	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0xFF,
+						0x00,	0x00,	0x00,	0x00,	0x00};
 unsigned char tr[] = {	0xFF, 	0xFF, 	0xFF,  	0xA0,  	0xFF,  	0xA0,  	0xFF,  	0xFF,
-						0xFF, 	0xFF, 	0x00,  	0xFF,  	0xFF,  	0xFF,  	0xFF,  	0xFF};
-uint32_t bgra[20];
+						0xFF, 	0xFF, 	0x00,  	0xFF,  	0xFF,  	0xFF,  	0xFF,  	0xFF,
+						0x00,	0x00,	0x00,	0x00,	0x00};
+uint32_t bgra[22];
 
 void TrimString(char *strg);
 void closedown(void);
 
 // OSD stuff
-static char menucoltxt[][25]={"Content_Selected_Text","Content_Selected","Content_Text","Content","Content_inactive_Text","Content_inactive","Head_Text","Head"};
-static char spres[][5]={"","_crt","_lcd"};
+static char menucoltxt[][25]={
+	"Content_Selected_Text",
+	"Content_Selected",
+	"Content_Text",
+	"Content",
+	"Content_inactive_Text",
+	"Content_inactive",
+	"Head_Text",
+	"Head"
+};
+static char spres[][5]={"", "_crt", "_lcd"};
 
-char *buffer=NULL;
+char *line_buffer=NULL;
 
 // Misc
 const char NOMEM[]="input <Out of memory>\n";
@@ -105,6 +119,11 @@ int rv=-1;
 						rv=-1;
 					}
 				}
+			}
+			if((strncmp(entry, tstr, 10) == 0) && (strncmp(entry, "font_file=", 10) == 0))
+			{
+				sscanf(tstr, "font_file=%127s", FONT);
+				rv = 1;
 			}
 //			printf("%s\n%s=%s -> %d\n",tstr,entry,cfptr,rv);
 		}
@@ -330,27 +349,27 @@ char rstr[512]={0}, *title=NULL, *format=NULL, *defstr=NULL, *aptr=NULL, *rptr=N
 			title=strdup(ttl);
 		}
 
-		if((buffer=calloc(BUFSIZE+1, sizeof(char)))==NULL)
+		if((line_buffer=calloc(BUFSIZE+1, sizeof(char)))==NULL)
 		{
 			fprintf(stderr, NOMEM);
 			return 0;
 		}
 
 		spr=Read_Neutrino_Cfg("screen_preset")+1;
-		sprintf(buffer,"screen_StartX%s",spres[spr]);
-		if((sx=Read_Neutrino_Cfg(buffer))<0)
+		sprintf(line_buffer,"screen_StartX%s",spres[spr]);
+		if((sx=Read_Neutrino_Cfg(line_buffer))<0)
 			sx=100;
 
-		sprintf(buffer,"screen_EndX%s",spres[spr]);
-		if((ex=Read_Neutrino_Cfg(buffer))<0)
+		sprintf(line_buffer,"screen_EndX%s",spres[spr]);
+		if((ex=Read_Neutrino_Cfg(line_buffer))<0)
 			ex=1180;
 
-		sprintf(buffer,"screen_StartY%s",spres[spr]);
-		if((sy=Read_Neutrino_Cfg(buffer))<0)
+		sprintf(line_buffer,"screen_StartY%s",spres[spr]);
+		if((sy=Read_Neutrino_Cfg(line_buffer))<0)
 			sy=100;
 
-		sprintf(buffer,"screen_EndY%s",spres[spr]);
-		if((ey=Read_Neutrino_Cfg(buffer))<0)
+		sprintf(line_buffer,"screen_EndY%s",spres[spr]);
+		if((ey=Read_Neutrino_Cfg(line_buffer))<0)
 			ey=620;
 
 		for(ix=CMCST; ix<=CMH; ix++)
@@ -371,14 +390,40 @@ char rstr[512]={0}, *title=NULL, *format=NULL, *defstr=NULL, *aptr=NULL, *rptr=N
 			if((tv=Read_Neutrino_Cfg(rstr))>=0)
 				rd[ix]=(float)tv*2.55;
 		}
-		for (ix = 0; ix <= RED; ix++)
-			bgra[ix] = (tr[ix] << 24) | (rd[ix] << 16) | (gn[ix] << 8) | bl[ix];
 
+		int	cix=CMC;
+		for(ix=COL_MENUCONTENT_PLUS_0; ix<=COL_MENUCONTENT_PLUS_3; ix++)
+		{
+			rd[ix]=rd[cix]+25;
+			gn[ix]=gn[cix]+25;
+			bl[ix]=bl[cix]+25;
+			tr[ix]=tr[cix];
+			cix=ix;
+		}
+
+		sprintf(rstr,"infobar_alpha");
+		if((tv=Read_Neutrino_Cfg(rstr))>=0)
+			tr[COL_SHADOW_PLUS_0]=255-(float)tv*2.55;
+
+		sprintf(rstr,"infobar_blue");
+		if((tv=Read_Neutrino_Cfg(rstr))>=0)
+			bl[COL_SHADOW_PLUS_0]=(float)tv*2.55*0.4;
+
+		sprintf(rstr,"infobar_green");
+		if((tv=Read_Neutrino_Cfg(rstr))>=0)
+			gn[COL_SHADOW_PLUS_0]=(float)tv*2.55*0.4;
+
+		sprintf(rstr,"infobar_red");
+		if((tv=Read_Neutrino_Cfg(rstr))>=0)
+			rd[COL_SHADOW_PLUS_0]=(float)tv*2.55*0.4;
+
+		for (ix = 0; ix <= COL_SHADOW_PLUS_0; ix++)
+			bgra[ix] = (tr[ix] << 24) | (rd[ix] << 16) | (gn[ix] << 8) | bl[ix];
 
 		if(Read_Neutrino_Cfg("rounded_corners")>0)
 			radius=11;
 		else
-			radius=0;
+			radius = 0;
 
 		fb = open(FB_DEVICE, O_RDWR);
 		if(fb == -1)
@@ -440,6 +485,7 @@ char rstr[512]={0}, *title=NULL, *format=NULL, *defstr=NULL, *aptr=NULL, *rptr=N
 			return -1;
 		}
 
+		Read_Neutrino_Cfg("font_file=");
 		if((error = FTC_Manager_LookupFace(manager, FONT, &face)))
 		{
 			if((error = FTC_Manager_LookupFace(manager, FONT2, &face)))
@@ -510,7 +556,7 @@ void closedown(void)
 	memcpy(lfb, obb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 	munmap(lfb, fix_screeninfo.smem_len);
 
-	free(buffer);
+	free(line_buffer);
 
 	FTC_Manager_Done(manager);
 	FT_Done_FreeType(library);

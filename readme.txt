@@ -46,9 +46,9 @@ Reihe nach den Eingabefeldern zugewiesen. Der Defaulstring enthält also keine F
 wie der Formatstring sondern nur die reinen Daten.
 
 Keys:
-Dieser Parameter kann 0 oder 1 sein. Bei 1 wird im Editorfenster die Tastenbelegung für die
-Eingabe von alphanumerischen Zeichen zusätzlich mit angezeigt. Mit 0 wird diese Anzeige un-
-terdrückt. Defaultwert ist 0.
+Dieser Parameter kann 0, 1 oder 2 sein. Bei 1 wird im Editorfenster die Tastenbelegung für die
+Eingabe von alphanumerischen Zeichen zusätzlich als PNG-Grafik mit angezeigt, bei 2 alternativ
+gezeichnet. Mit 0 wird diese Anzeige unterdrückt. Defaultwert ist 0.
 
 Frames:
 Dieser Parameter kann 0 oder 1 sein. Bei 1 werden Rahmen um die Eingabefelder gezeichnet,
