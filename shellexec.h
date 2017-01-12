@@ -128,14 +128,37 @@ FT_UInt			prev_glyphindex;
 FT_Bool			use_kerning;
 
 //devs
-
 int fb, debounce, rblock;
 
 //framebuffer stuff
+enum {
+	FILL,
+	GRID
+};
 
-enum {FILL, GRID};
-
-enum {CMCST, CMCS, CMCT, CMC, CMCIT, CMCI, CMHT, CMH, WHITE, BLUE0, GTRANSP, CMS, ORANGE, GREEN, YELLOW, RED, COL_MENUCONTENT_PLUS_0, COL_MENUCONTENT_PLUS_1, COL_MENUCONTENT_PLUS_2, COL_MENUCONTENT_PLUS_3};
+enum {
+	CMCST,
+	CMCS,
+	CMCT,
+	CMC,
+	CMCIT,
+	CMCI,
+	CMHT,
+	CMH,
+	WHITE,
+	BLUE0,
+	GTRANSP,
+	CMS,
+	ORANGE,
+	GREEN,
+	YELLOW,
+	RED,
+	COL_MENUCONTENT_PLUS_0,
+	COL_MENUCONTENT_PLUS_1,
+	COL_MENUCONTENT_PLUS_2,
+	COL_MENUCONTENT_PLUS_3,
+	COL_SHADOW_PLUS_0
+};
 #define TRANSP 0
 
 extern uint32_t bgra[];

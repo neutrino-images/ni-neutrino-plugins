@@ -1,39 +1,43 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "current.h"
-
+#include "icons.h"
 #include "text.h"
 #include "io.h"
 #include "gfx.h"
+#include "pngw.h"
 
-#define SH_VERSION 1.37
+
+#define SH_VERSION 2.0
 
 static char CFG_FILE[128]="/var/tuxbox/config/shellexec.conf";
 
-//#define FONT "/usr/share/fonts/md_khmurabi_10.ttf"
 #define FONT2 "/share/fonts/pakenham.ttf"
 // if font is not in usual place, we look here:
 char FONT[128]="/share/fonts/neutrino.ttf";
 
 //						CMCST,	CMCS,	CMCT,	CMC,	CMCIT,	CMCI,	CMHT,	CMH
 //						WHITE,	BLUE0,	TRANSP,	CMS,	ORANGE,	GREEN,	YELLOW,	RED
+//						COL_MENUCONTENT_PLUS_0 - 3, COL_SHADOW_PLUS_0
 
 unsigned char bl[] = {	0x00,	0x00,	0xFF,	0x80,	0xFF,	0x80,	0x00,	0x80,
 						0xFF,	0x80,	0x00,	0xFF,	0x00,	0x00,	0x00,	0x00,
-						0x00,	0x00,	0x00,	0x00};
+						0x00,	0x00,	0x00,	0x00,	0x00};
 unsigned char gn[] = {	0x00,	0x00,	0xFF,	0x00,	0xFF,	0x00,	0xC0,	0x00,
 						0xFF,	0x00,	0x00,	0x80,	0x80,	0x80,	0x80,	0x00,
-						0x00,	0x00,	0x00,	0x00};
+						0x00,	0x00,	0x00,	0x00,	0x00};
 unsigned char rd[] = {	0x00,	0x00,	0xFF,	0x00,	0xFF,	0x00,	0xFF,	0x00,
 						0xFF,	0x00,	0x00,	0x00,	0xFF,	0x00,	0x80,	0x80,
-						0x00,	0x00,	0x00,	0x00};
+						0x00,	0x00,	0x00,	0x00,	0x00};
 unsigned char tr[] = {	0xFF,	0xFF,	0xFF,	0xA0,	0xFF,	0x80,	0xFF,	0xFF,
 						0xFF,	0xFF,	0x00,	0xFF,	0xFF,	0xFF,	0xFF,	0xFF,
-						0x00,	0x00,	0x00,	0x00};
+						0x00,	0x00,	0x00,	0x00,	0x00};
 
-uint32_t bgra[20];
+uint32_t bgra[22];
 void TrimString(char *strg);
 
 // OSD stuff
@@ -81,7 +85,7 @@ char VFD[256]="";
 char url[256]="time.fu-berlin.de";
 char *line_buffer=NULL;
 char *trstr;
-int paging=1, mtmo=120, radius=11;
+int paging=1, mtmo=120, radius=0, radius_small=0;
 int ixw=600, iyw=680, xoffs=13, vfd=0;
 char INST_FILE[]="/tmp/rc.locked";
 int instance=0;
@@ -312,6 +316,11 @@ int Read_Neutrino_Cfg(char *entry)
 					}
 				}
 			}
+			if((strncmp(entry, tstr, 10) == 0) && (strncmp(entry, "font_file=", 10) == 0))
+			{
+				sscanf(tstr, "font_file=%127s", FONT);
+				rv = 1;
+			}
 			//printf("%s\n%s=%s -> %d\n",tstr,entry,cfptr,rv);
 		}
 		fclose(nfh);
@@ -476,7 +485,8 @@ int Check_Config(void)
 				}
 				else
 				{
-					if(strstr(line_buffer,"FONT=")==line_buffer)
+					int neutrinofont = Read_Neutrino_Cfg("font_file=");
+					if(neutrinofont!=1 && strstr(line_buffer,"FONT=")==line_buffer)
 					{
 						strcpy(FONT,strchr(line_buffer,'=')+1);
 					}
@@ -1303,6 +1313,7 @@ void clean_string(char *trstr, char *lcstr)
 
 static void ShowInfo(MENU *m, int knew )
 {
+	int icon_w=0, icon_h=0, xsize=0, ysize=0;
 	int loop, dloop, ldy, stlen;
 	double scrollbar_len, scrollbar_ofs, scrollbar_cor;
 	int index=m->act_entry,tind=m->act_entry;
@@ -1325,6 +1336,7 @@ static void ShowInfo(MENU *m, int knew )
 	tind=index;
 
 	//frame layout
+	RenderBox(6, 6, ixw+6, iyw+6, radius, COL_SHADOW_PLUS_0);
 	RenderBox(0, 0, ixw, iyw, radius, CMC);
 
 	// titlebar
@@ -1351,17 +1363,33 @@ static void ShowInfo(MENU *m, int knew )
 		scrollbar_cor = scrollbar_len*(double)MAX_FUNCS;
 		RenderBox(ixw-sbw + sbo, moffs + scrollbar_ofs + sbo, ixw - sbo, moffs + scrollbar_ofs + scrollbar_cor - sbo, radius, COL_MENUCONTENT_PLUS_3);
 	}
-
-	// Title text
-	lcstr=strdup(m->headertxt[m->act_header]);
-	clean_string(m->headertxt[m->act_header],lcstr);
-	RenderString(lcstr, (m->headermed[m->act_header]==1)?0:45, moffs-(moffs-FSIZE_BIG)/2, ixw-sbw-((m->headermed[m->act_header]==1)?0:45) , (m->headermed[m->act_header]==1)?CENTER:LEFT, FSIZE_BIG, CMHT);
-	free(lcstr);
-
+	int iw,ih;
+	int offset, hoffs = (m->headermed[m->act_header]==1)?0:46;
+	int ioffs = xoffs+8; // + half standard icon
 	if(m->icon[m->act_header])
 	{
-		//PaintIcon(m->icon[m->act_header],xoffs-6,soffs+2,1);
+		png_getsize(m->icon[m->act_header], &icon_w, &icon_h);
+		// limit icon size
+		if(icon_w > 150 || icon_h > 36) {
+			icon_w = xsize = 150;
+			icon_h = ysize = 36;
+		}
+		if (icon_w > 32) {
+			offset = ioffs-16;
+		}
+		else
+			offset = ioffs-icon_w/2;
+		paintIcon(m->icon[m->act_header], offset, (moffs-icon_h)/2+1, xsize, ysize, &iw, &ih);
 	}
+
+	// Title text
+	if (icon_w > 32) {
+		hoffs  = offset+iw+8;
+	}
+	lcstr=strdup(m->headertxt[m->act_header]);
+	clean_string(m->headertxt[m->act_header],lcstr);
+	RenderString(lcstr, hoffs, moffs-(moffs-FSIZE_BIG)/2+2, ixw-sbw-hoffs, (m->headermed[m->act_header]==1)?CENTER:LEFT, FSIZE_BIG, CMHT);
+	free(lcstr);
 
 	index /= MAX_FUNCS;
 	dloop=0;
@@ -1409,11 +1437,11 @@ static void ShowInfo(MENU *m, int knew )
 					coffs=clh;
 				}
 			}
-			RenderString(dstr, 45, my+soffs-(dy-font_size)/2-coffs, ixw-sbw-65, LEFT, font_type, (((loop%MAX_FUNCS) == (tind%MAX_FUNCS)) && (sbar) && (!nosel))?CMCST:(nosel)?CMCIT:CMCT);
+			RenderString(dstr, 46, my+soffs-(dy-font_size)/2-coffs+2, ixw-sbw-65, LEFT, font_type, (((loop%MAX_FUNCS) == (tind%MAX_FUNCS)) && (sbar) && (!nosel))?CMCST:(nosel)?CMCIT:CMCT);
 		}
 		if(pl->type==TYP_MENU)
 		{
-			RenderString(">", 30, my+soffs-(dy-FSIZE_MED)/2, 65, LEFT, MED, (((loop%MAX_FUNCS) == (tind%MAX_FUNCS)) && (sbar) && (!nosel))?CMCST:CMCT);
+			RenderString(">", 30, my+soffs-(dy-FSIZE_MED)/2+1, 65, LEFT, MED, (((loop%MAX_FUNCS) == (tind%MAX_FUNCS)) && (sbar) && (!nosel))?CMCST:CMCT);
 		}
 		if(pl->underline)
 		{
@@ -1456,25 +1484,20 @@ static void ShowInfo(MENU *m, int knew )
 		}
 		if((pl->type!=TYP_COMMENT) && ((pl->type!=TYP_INACTIVE) || (pl->showalways==2)))
 		{
-			int ch = GetCircleHeight();
+			icon_w = icon_h = 0;
+			png_getsize(ICON_BUTTON_RED, &icon_w, &icon_h);
 			direct[dloop++]=(pl->type!=TYP_INACTIVE)?loop:-1;
 			switch(dloop)
 			{
-				case 1: RenderCircle(xoffs,my+soffs-(dy+ch)/2,RED);    break;
-				case 2: RenderCircle(xoffs,my+soffs-(dy+ch)/2,GREEN);  break;
-				case 3: RenderCircle(xoffs,my+soffs-(dy+ch)/2,YELLOW); break;
-				case 4: RenderCircle(xoffs,my+soffs-(dy+ch)/2,BLUE0);  break;
-/*
-				case 1: PaintIcon("/share/tuxbox/neutrino/icons/rot.raw",xoffs-2,my-15,1); break;
-				case 2: PaintIcon("/share/tuxbox/neutrino/icons/gruen.raw",xoffs-2,my-15,1); break;
-				case 3: PaintIcon("/share/tuxbox/neutrino/icons/gelb.raw",xoffs-2,my-15,1); break;
-				case 4: PaintIcon("/share/tuxbox/neutrino/icons/blau.raw",xoffs-2,my-15,1); break;
-*/
+				case 1: paintIcon(ICON_BUTTON_RED,    ioffs-icon_w/2, my+soffs-(dy+icon_h)/2, 0, 0, &iw, &ih); break;
+				case 2: paintIcon(ICON_BUTTON_GREEN,  ioffs-icon_w/2, my+soffs-(dy+icon_h)/2, 0, 0, &iw, &ih); break;
+				case 3: paintIcon(ICON_BUTTON_YELLOW, ioffs-icon_w/2, my+soffs-(dy+icon_h)/2, 0, 0, &iw, &ih); break;
+				case 4: paintIcon(ICON_BUTTON_BLUE,   ioffs-icon_w/2, my+soffs-(dy+icon_h)/2, 0, 0, &iw, &ih); break;
 				default:
 					if(dloop<15)
 					{
 						sprintf(tstr,"%1d",(dloop-4)%10);
-						RenderString(tstr, xoffs, my+soffs-(dy-FSIZE_SMALL)/2, 15, CENTER, SMALL, ((loop%MAX_FUNCS) == (tind%MAX_FUNCS))?CMCST:((pl->type==TYP_INACTIVE)?CMCIT:CMCT));
+						RenderString(tstr, xoffs, my+soffs-(dy-FSIZE_SMALL)/2+2, 15, CENTER, SMALL, ((loop%MAX_FUNCS) == (tind%MAX_FUNCS))?CMCST:((pl->type==TYP_INACTIVE)?CMCIT:CMCT));
 					}
 				break;
 			}
@@ -1612,10 +1635,12 @@ int main (int argc, char **argv)
 			rd[index]=(float)tv*2.55;
 	}
 
-	if(Read_Neutrino_Cfg("rounded_corners")>0)
-		radius=11;
+	if(Read_Neutrino_Cfg("rounded_corners")>0) {
+		radius = 11;
+		radius_small = 7;
+	}
 	else
-		radius=0;
+		radius = radius_small = 0;
 
 	mtmo = Read_Neutrino_Cfg("timing.menu");
 	if (mtmo < 0)
@@ -1630,7 +1655,23 @@ int main (int argc, char **argv)
 		tr[index]=tr[cindex];
 		cindex=index;
 	}
-	for (index = 0; index <= COL_MENUCONTENT_PLUS_3; index++)
+	sprintf(trstr,"infobar_alpha");
+	if((tv=Read_Neutrino_Cfg(trstr))>=0)
+		tr[COL_SHADOW_PLUS_0]=255-(float)tv*2.55;
+
+	sprintf(trstr,"infobar_blue");
+	if((tv=Read_Neutrino_Cfg(trstr))>=0)
+		bl[COL_SHADOW_PLUS_0]=(float)tv*2.55*0.4;
+
+	sprintf(trstr,"infobar_green");
+	if((tv=Read_Neutrino_Cfg(trstr))>=0)
+		gn[COL_SHADOW_PLUS_0]=(float)tv*2.55*0.4;
+
+	sprintf(trstr,"infobar_red");
+	if((tv=Read_Neutrino_Cfg(trstr))>=0)
+			rd[COL_SHADOW_PLUS_0]=(float)tv*2.55*0.4;
+
+	for (index = 0; index <= COL_SHADOW_PLUS_0; index++)
 		bgra[index] = (tr[index] << 24) | (rd[index] << 16) | (gn[index] << 8) | bl[index];
 
 	fb = open(FB_DEVICE, O_RDWR);
@@ -1654,7 +1695,7 @@ int main (int argc, char **argv)
 		perror(__plugin__ " <FBIOGET_VSCREENINFO>\n");
 		return -1;
 	}
-	if(!(lfb = (uint32_t*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0)))
+	if(!(lfb = (uint32_t*)mmap(0, fix_screeninfo.smem_len, PROT_WRITE|PROT_READ, MAP_SHARED, fb, 0)))
 	{
 		perror(__plugin__ " <mapping of Framebuffer>\n");
 		return -1;

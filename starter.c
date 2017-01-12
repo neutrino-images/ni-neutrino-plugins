@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <plugin.h>
 
 #include "current.h"
 

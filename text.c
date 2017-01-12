@@ -485,8 +485,9 @@ char *rmptr, *rmstr, *rmdptr;
 
 void ShowMessage(char *mtitle, char *message, int wait)
 {
-	extern int radius;
+	extern int radius, radius_small;
 	int ixw=420;
+	int iyw=wait?327:300;
 	int lx=startx;
 	//int ly=starty;
 	char *tdptr;
@@ -495,23 +496,24 @@ void ShowMessage(char *mtitle, char *message, int wait)
 	//starty=sy;
 
 	//layout
-	RenderBox(0, 178, ixw, 327, radius, CMH);
-	RenderBox(2, 180, ixw-4, 323, radius, CMC);
+	RenderBox(0+4, 178+4, ixw+4, iyw+4, radius, COL_SHADOW_PLUS_0);
+	RenderBox(0, 178, ixw, iyw, radius, CMC);
 	RenderBox(0, 178, ixw, 220, radius, CMH);
 
 	//message
 	tdptr=strdup(mtitle);
 	remove_tabs(tdptr);
-	RenderString(tdptr, 2, 213, ixw-10, CENTER, FSIZE_BIG, CMHT);
+	RenderString(tdptr, 5, 215, ixw-10, CENTER, FSIZE_BIG, CMHT);
 	free(tdptr);
 	tdptr=strdup(message);
 	remove_tabs(tdptr);
-	RenderString(tdptr, 2, 270, ixw-10, CENTER, FSIZE_MED, CMCT);
+	RenderString(tdptr, 5, 270, ixw-10, CENTER, FSIZE_MED, CMCT);
 	free(tdptr);
 
 	if(wait)
 	{
-		RenderBox(ixw/2-25, 286, ixw/2+25, 310, radius, CMCS);
+		RenderBox(ixw/2-35+4, 286+4, ixw/2+35+4, 310+4, radius_small, COL_SHADOW_PLUS_0);
+		RenderBox(ixw/2-35, 286, ixw/2+35, 310, radius_small, CMCS);
 		RenderString("OK", ixw/2-25, 312, 50, CENTER, FSIZE_MED, CMCT);
 	}
 	memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
