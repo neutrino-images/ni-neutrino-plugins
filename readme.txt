@@ -156,7 +156,7 @@ n=3 kombiniert 1 und 2, die MessageBox blendet sich über vorher angezeigte Info
 Beenden den Bildschirmzustand wieder her, welcher vor dem Start der MessageBox aktuell war.
 Dieser Parameter kann entfallen, in diesem Fall wird standardmäßig mit refresh=3 gearbeitet.
 
-Normalerweise wird die MessageBox auf dem Bildschirm seit der Version 2.60 jede Sekunde aufgefrischt.
+Normalerweise wird die MessageBox auf dem Bildschirm jede Sekunde aufgefrischt.
 Sollte das bie bestimmten Anwendungen stören, kann dieser zyklische Refresh ausgeschaltet werden.
 Dazu wird der Parameter
 
@@ -164,6 +164,15 @@ cyclic=0
 
 übergeben. Damit wird die Box nur noch ein Mal beim Aufruf und der Änderung des Inhaltes einer ange-
 zeigten Datei dargestellt. Der Defaultwert für cyclic ist 1.
+
+Im Titelbereich wird standardmäßig ein Info-Icon im PNG-Format angezeigt. Es werden Icons bis zu
+einer Größe von 100 x 60 angezeigt. Größere werden skaliert. Die Anzeige von eigenen Icons wird mit
+icon=/Pfad_zum_Icon/mein_Icon.png angegeben.
+
+icon=
+
+Mit icon="none" oder icon=0  wird kein Icon angezeigt. Weitere sind "error" oder 1, "info" oder 2.
+
 
 Formatierung des übergebenen Textes
 -----------------------------------

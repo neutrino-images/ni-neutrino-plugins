@@ -4,46 +4,65 @@
 #include <signal.h>
 
 #include "current.h"
-
+#include "icons.h"
 #include "text.h"
 #include "io.h"
 #include "gfx.h"
-#include "txtform.h" 
+#include "txtform.h"
+#include "pngw.h"
 
-#define M_VERSION 1.27
+
+#define max(a,b) ( \
+    { __auto_type __a = (a); __auto_type __b = (b); \
+      __a > __b ? __a : __b; })
+
+#define M_VERSION 2.0
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define HDF_FILE	"/tmp/.msgbox_hidden"
 
-//#define FONT "/usr/share/fonts/md_khmurabi_10.ttf"
 #define FONT2 "/share/fonts/pakenham.ttf"
 // if font is not in usual place, we look here:
-#define FONT "/share/fonts/neutrino.ttf"
+char FONT[128]="/share/fonts/neutrino.ttf";
 
-//					   CMCST,   CMCS,  CMCT,    CMC,    CMCIT,  CMCI,   CMHT,   CMH
-//					   WHITE,   BLUE0, TRANSP,  CMS,    ORANGE, GREEN,  YELLOW, RED
+//						CMCST,   CMCS,  CMCT,    CMC,    CMCIT,  CMCI,   CMHT,   CMH
+//						WHITE,   BLUE0, TRANSP,  CMS,    ORANGE, GREEN,  YELLOW, RED
+//						COL_MENUCONTENT_PLUS_0 - 3, COL_SHADOW_PLUS_0
 
 unsigned char bl[] = {	0x00, 	0x00, 	0xFF, 	0x80, 	0xFF, 	0x80, 	0x00, 	0x80,
-						0xFF, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0x00, 	0x00, 	0x00};
+						0xFF, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0x00, 	0x00, 	0x00,
+						0x00,	0x00,	0x00,	0x00,	0x00};
 unsigned char gn[] = {	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0xC0, 	0x00,
-						0xFF, 	0x80, 	0x00, 	0x80, 	0xC0, 	0xFF, 	0xFF, 	0x00};
+						0xFF, 	0x80, 	0x00, 	0x80, 	0xC0, 	0xFF, 	0xFF, 	0x00,
+						0x00,	0x00,	0x00,	0x00,	0x00};
 unsigned char rd[] = {	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00,
-						0xFF, 	0x00, 	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0xFF};
+						0xFF, 	0x00, 	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0xFF,
+						0x00,	0x00,	0x00,	0x00,	0x00};
 unsigned char tr[] = {	0xFF, 	0xFF, 	0xFF,  	0xA0,  	0xFF,  	0xA0,  	0xFF,  	0xFF,
-						0xFF, 	0xFF, 	0x00,  	0xFF,  	0xFF,  	0xFF,  	0xFF,  	0xFF};
+						0xFF, 	0xFF, 	0x00,  	0xFF,  	0xFF,  	0xFF,  	0xFF,  	0xFF,
+						0x00,	0x00,	0x00,	0x00,	0x00};
 
-uint32_t bgra[20];
+uint32_t bgra[22];
 
 void TrimString(char *strg);
 
 // OSD stuff
-static char menucoltxt[][25]={"Content_Selected_Text","Content_Selected","Content_Text","Content","Content_inactive_Text","Content_inactive","Head_Text","Head"};
+static char menucoltxt[][25]={
+	"Content_Selected_Text",
+	"Content_Selected",
+	"Content_Text",
+	"Content",
+	"Content_inactive_Text",
+	"Content_inactive",
+	"Head_Text",
+	"Head"
+};
 static char spres[][5]={"","_crt","_lcd"};
 
-char *line_buffer=NULL, *title=NULL;
+char *line_buffer=NULL, *title=NULL, *icon=NULL;
 int size=24, type=0, timeout=0, refresh=3, flash=0, selection=0, tbuttons=0, buttons=0, bpline=3, echo=0, absolute=0, mute=1, header=1, cyclic=1;
 char *butmsg[16]={0};
-int rbutt[16],hide=0,radius=11;
+int rbutt[16],hide=0,radius=0, radius_small=0;
 
 // Misc
 const char NOMEM[]="MsgBox <Out of memory>\n";
@@ -146,7 +165,12 @@ int rv=-1;
 					}
 				}
 			}
-//			printf("%s\n%s=%s -> %d\n",tstr,entry,cfptr,rv);
+			if((strncmp(entry, tstr, 10) == 0) && (strncmp(entry, "font_file=", 10) == 0))
+			{
+				sscanf(tstr, "font_file=%127s", FONT);
+				rv = 1;
+			}
+			//printf("%s\n%s=%s -> %d\n",tstr,entry,cfptr,rv);
 		}
 		fclose(nfh);
 	}
@@ -230,6 +254,8 @@ static int psx, psy, pxw, pyw, myo=0, buttx=80, butty=30, buttdx=20, buttdy=10, 
 int show_txt(int buttonly)
 {
 FILE *tfh;
+char const *fname=NULL;
+int icon_w=0, icon_h=0, xsize=0, ysize=0;
 int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(buttons>bpline)?bpline:buttons,blines=1+((btns-1)/lbtns);
 
 	if(hide)
@@ -237,9 +263,26 @@ int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(butto
 		memcpy(lfb, hbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 		return 0;
 	}
+	if (strcmp(icon, "none")==0 || strcmp(icon, "0")==0)
+		fname = "";
+	else if (strcmp(icon, "error")==0 || strcmp(icon, "1")==0)
+		fname = ICON_ERROR;
+	else if (strcmp(icon, "info")==0 || strcmp(icon, "2")==0)
+		fname = ICON_INFO;
+	else	
+		fname = icon;
+	png_getsize(fname, &icon_w, &icon_h);
 
-	yo=20+((header)?FSIZE_MED*5/4:0);
-	int moffs=yo*3/4+6;
+	// limit icon size
+	if(icon_w > 100 || icon_h > 60) {
+		icon_w = xsize = 100;
+		icon_h = ysize = 60;
+	}
+
+	int h_head = max(FSIZE_MED+(size/2), icon_h);
+	yo=((header)?h_head:0);
+
+	int moffs=yo-h_head/3-(size/2);
 	if(!buttonly)
 	{
 		memcpy(lbb, ibb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
@@ -300,7 +343,7 @@ int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(butto
 			if(btns)
 			{
 				buttxstart=psx+pxw/2-(((double)lbtns*(double)buttsize+(((lbtns>2)&&(lbtns&1))?((double)buttdx):0.0))/2.0);
-				buttystart=psy+y1*dy+15;
+				buttystart=psy+y1*dy+20;
 			}
 		}
 
@@ -311,15 +354,21 @@ int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(butto
 			{
 				if(!buttonly)
 				{
-					RenderBox(psx-20, psy-yo, psx+pxw+20, psy+pyw+myo+15, radius, CMH);
-					RenderBox(psx-20+2, psy-yo+2, psx+pxw+20-2, psy+pyw+myo+15-2, radius, CMC);
+					int iw, ih, pxoffs = 0;
+					int slen = GetStringLen(sx, title, FSIZE_BIG)+20;
+					if (icon_w > 0 && (psx+pxw-20-slen <= psx-10+icon_w+10))
+						pxoffs = (icon_w)/2;
+					RenderBox(psx-20-pxoffs+6, psy-yo-h_head/3-6, psx+pxw+pxoffs+26, psy+pyw+myo+(h_head/3)+16, radius, COL_SHADOW_PLUS_0);
+					RenderBox(psx-20-pxoffs, psy-yo-h_head/3-10, psx+pxw+pxoffs+20, psy+pyw+myo+(h_head/3)+10, radius, CMC);
 					if(header)
 					{
-						RenderBox(psx-20, psy-yo+2-FSIZE_BIG/2, psx+pxw+20, psy-yo+FSIZE_BIG*3/4, radius, CMH);
-						RenderString(title, psx, psy-moffs+FSIZE_BIG/2, pxw, CENTER, FSIZE_BIG, CMHT);
+						int pyoffs=(icon_h < h_head)?1:0;
+						RenderBox(psx-20-pxoffs, psy-yo-h_head/3-10, psx+pxw+pxoffs+20, psy-yo+(h_head*2)/3-10, radius, CMH);
+						paintIcon(fname,  psx-10-pxoffs, psy-yo-h_head/3+h_head/2-icon_h/2+pyoffs-10, xsize, ysize, &iw, &ih);
+						RenderString(title, psx+pxoffs, psy-moffs-10, pxw, CENTER, FSIZE_BIG, CMHT);
 					}
 				}
-				if(buttonly || !(rv=fh_txt_load(TMP_FILE, psx, pxw, psy+20, dy, size, line, &cut)))
+				if(buttonly || !(rv=fh_txt_load(TMP_FILE, psx, pxw, psy+size, dy, size, line, &cut)))
 				{
 					if(type==1)
 					{
@@ -327,8 +376,9 @@ int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(butto
 						{
 							bx=i%lbtns;
 							by=i/lbtns;
-							RenderBox(buttxstart+bx*(buttsize+buttdx/2), buttystart+by*(butty+buttdy/2), buttxstart+(bx+1)*buttsize+bx*(buttdx/2), buttystart+by*(butty+buttdy/2)+butty, radius, YELLOW);
-							RenderBox(buttxstart+bx*(buttsize+buttdx/2)+2, buttystart+by*(butty+buttdy/2)+2, buttxstart+(bx+1)*buttsize+bx*(buttdx/2)-2, buttystart+by*(butty+buttdy/2)+butty-2, radius, ((by*bpline+bx)==(selection-1))?CMCS:CMC);
+							RenderBox(buttxstart+bx*(buttsize+buttdx/2)+4, buttystart+by*(butty+buttdy/2)+4, buttxstart+(bx+1)*buttsize+bx*(buttdx/2)+4, buttystart+by*(butty+buttdy/2)+butty+4, radius_small, COL_SHADOW_PLUS_0);
+							RenderBox(buttxstart+bx*(buttsize+buttdx/2), buttystart+by*(butty+buttdy/2), buttxstart+(bx+1)*buttsize+bx*(buttdx/2), buttystart+by*(butty+buttdy/2)+butty, radius_small, CMCS/*YELLOW*/);
+							RenderBox(buttxstart+bx*(buttsize+buttdx/2)+1, buttystart+by*(butty+buttdy/2)+1, buttxstart+(bx+1)*buttsize+bx*(buttdx/2)-1, buttystart+by*(butty+buttdy/2)+butty-1, radius_small, ((by*bpline+bx)==(selection-1))?CMCS:CMC);
 							RenderString(butmsg[i], buttxstart+bx*(buttsize+buttdx/2), buttystart+by*(butty+buttdy/2)+butty, buttsize, CENTER, 26, (i==(selection-1))?CMCST:CMCIT);
 						}
 					}
@@ -339,6 +389,16 @@ int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(butto
 		}
 	}
 	return (rv)?-1:0;	
+}
+
+int Transform_Icon(char *msg)
+{
+char *sptr=msg;
+
+	while(*sptr)
+		sptr++;
+	*sptr=0;
+	return strlen(msg);
 }
 
 int Transform_Msg(char *msg)
@@ -407,14 +467,15 @@ void ShowUsage(void)
 	printf("    title=\"Window-Title\"  : specify title of window\n");
 	printf("    size=nn               : set fontsize\n");
 	printf("    timeout=nn            : set autoclose-timeout\n");
+	printf("    icon=n                : n=none(0), error(1), info(2) or /path/my.png (default: \"info\")\n");
 	printf("    refresh=n             : n=1..3, see readme.txt\n");
 	printf("    select=\"Button1,..\"   : Labels of up to 16 Buttons, see readme.txt\n");
-	printf("    absolute=n            : n=0/1 return relative/absolute button number (default is 0)\n");
-	printf("    order=n               : maximal buttons per line (default is 3)\n");
+	printf("    absolute=n            : n=0/1 return relative/absolute button number (default: 0)\n");
+	printf("    order=n               : maximal buttons per line (default: 3)\n");
 	printf("    default=n             : n=1..buttons, initially selected button, see readme.txt\n");
-	printf("    echo=n                : n=0/1 print the button-label to console on return (default is 0)\n");
-	printf("    hide=n                : n=0..2, function of mute-button, see readme.txt (default is 1)\n");
-	printf("    cyclic=n              : n=0/1, cyclic screen refresh (default is 1)\n");
+	printf("    echo=n                : n=0/1 print the button-label to console on return (default: 0)\n");
+	printf("    hide=n                : n=0..2, function of mute-button, see readme.txt (default: 1)\n");
+	printf("    cyclic=n              : n=0/1, cyclic screen refresh (default: 1)\n");
 
 }
 /******************************************************************************
@@ -573,7 +634,15 @@ FILE *fh;
 																}
 																else
 																{
-																dloop=2;
+																	if(strstr(aptr,"icon=")!=NULL)
+																	{
+																		icon=rptr;
+																		dloop=Transform_Icon(icon)==0;
+																	}
+																	else
+																	{
+																		dloop=2;
+																	}
 																}
 															}
 														}
@@ -603,7 +672,7 @@ FILE *fh;
 			}
 		}
 
-		FSIZE_BIG=(FSIZE_MED*5)/4;
+		FSIZE_BIG=(float)FSIZE_MED*1.25;
 		FSIZE_SMALL=(FSIZE_MED*4)/5;
 		TABULATOR=2*FSIZE_MED;
 		size=FSIZE_MED;
@@ -652,6 +721,10 @@ FILE *fh;
 				}
 			}
 		}
+		if(!icon)
+		{
+			icon=strdup("info");
+		}
 		if(!title)
 		{
 			title=strdup("Information");
@@ -679,7 +752,6 @@ FILE *fh;
 		if((ey=Read_Neutrino_Cfg(line_buffer))<0)
 			ey=620;
 
-
 		for(ix=CMCST; ix<=CMH; ix++)
 		{
 			sprintf(rstr,"menu_%s_alpha",menucoltxt[ix]);
@@ -698,14 +770,43 @@ FILE *fh;
 			if((tv=Read_Neutrino_Cfg(rstr))>=0)
 				rd[ix]=(float)tv*2.55;
 		}
-		for (ix = 0; ix <= RED; ix++)
+
+		int	cix=CMC;
+		for(ix=COL_MENUCONTENT_PLUS_0; ix<=COL_MENUCONTENT_PLUS_3; ix++)
+		{
+			rd[ix]=rd[cix]+25;
+			gn[ix]=gn[cix]+25;
+			bl[ix]=bl[cix]+25;
+			tr[ix]=tr[cix];
+			cix=ix;
+		}
+
+		sprintf(rstr,"infobar_alpha");
+		if((tv=Read_Neutrino_Cfg(rstr))>=0)
+			tr[COL_SHADOW_PLUS_0]=255-(float)tv*2.55;
+
+		sprintf(rstr,"infobar_blue");
+		if((tv=Read_Neutrino_Cfg(rstr))>=0)
+			bl[COL_SHADOW_PLUS_0]=(float)tv*2.55*0.4;
+
+		sprintf(rstr,"infobar_green");
+		if((tv=Read_Neutrino_Cfg(rstr))>=0)
+			gn[COL_SHADOW_PLUS_0]=(float)tv*2.55*0.4;
+
+		sprintf(rstr,"infobar_red");
+		if((tv=Read_Neutrino_Cfg(rstr))>=0)
+			rd[COL_SHADOW_PLUS_0]=(float)tv*2.55*0.4;
+
+		for (ix = 0; ix <= COL_SHADOW_PLUS_0; ix++)
 			bgra[ix] = (tr[ix] << 24) | (rd[ix] << 16) | (gn[ix] << 8) | bl[ix];
 
-
 		if(Read_Neutrino_Cfg("rounded_corners")>0)
-			radius=11;
+		{
+			radius = 11;
+			radius_small = 7;
+		}
 		else
-			radius=0;
+			radius = radius_small = 0;
 
 		fb = open(FB_DEVICE, O_RDWR);
 		if(fb == -1)
@@ -767,6 +868,7 @@ FILE *fh;
 			return -1;
 		}
 
+		Read_Neutrino_Cfg("font_file=");
 		if((error = FTC_Manager_LookupFace(manager, FONT, &face)))
 		{
 			if((error = FTC_Manager_LookupFace(manager, FONT2, &face)))
@@ -1006,4 +1108,3 @@ FILE *fh;
 	}
 	return 0;
 }
-

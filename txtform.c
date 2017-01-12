@@ -69,8 +69,7 @@ int just, comment, color=CMCT;
 						break;
 					case 's':
 						ys-=(dy/2);
-						RenderBox(xs, ys-2-size/3+1, xs+xw, ys-2-size/3+2, FILL, CMS);
-						RenderBox(xs, ys-2-size/3, xs+xw, ys-2-size/3+1, FILL, CMCIT);
+						RenderBox(xs, ys-2-size/3, xs+xw, ys-2-size/3+2, FILL, COL_MENUCONTENT_PLUS_3);
 						break;
 				}
 			}
@@ -92,8 +91,7 @@ int just, comment, color=CMCT;
 					if (comment == 1)
 					{
 						int xxs = xs;
-						RenderBox(xs, ys-2-size/2+1, xs+xw, ys-2-size/2+2, FILL, CMS);
-						RenderBox(xs, ys-2-size/2, xs+xw, ys-2-size/2+1, FILL, CMCIT);
+						RenderBox(xs, ys-2-size/2, xs+xw, ys-2-size/2+2, FILL, COL_MENUCONTENT_PLUS_3);
 						if(slen > 0 && slen < xw) {
 							xxs += (xw-slen-boffs)/2-5;
 							RenderBox(xxs, ys-2-size/2, xxs+slen+10+boffs, ys-2-size/2+2, FILL, CMC);
@@ -102,14 +100,12 @@ int just, comment, color=CMCT;
 					}
 					else if (comment == 2)
 					{
-						RenderBox(xs+slen+boffs, ys-2-size/2+1, xs+xw, ys-2-size/2+2, FILL, CMS);
-						RenderBox(xs+slen+boffs, ys-2-size/2, xs+xw, ys-2-size/2+1, FILL, CMCIT);
+						RenderBox(xs+slen+boffs, ys-2-size/2, xs+xw, ys-2-size/2+2, FILL, COL_MENUCONTENT_PLUS_3);
 						RenderString(t, xs, ys, xw, LEFT, size, color);
 					}
 					else if (comment == 3)
 					{
-						RenderBox(xs, ys-2-size/2+1, xs+xw-slen-boffs, ys-2-size/2+2, FILL, CMS);
-						RenderBox(xs, ys-2-size/2, xs+xw-slen-boffs, ys-2-size/2+1, FILL, CMCIT);
+						RenderBox(xs, ys-2-size/2, xs+xw-slen-boffs, ys-2-size/2+2, FILL, COL_MENUCONTENT_PLUS_3);
 						RenderString(t, xs, ys, xw, RIGHT, size, color);
 					}
 					else
