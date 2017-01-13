@@ -12,9 +12,10 @@
 #include "pngw.h"
 
 
-#define max(a,b) ( \
-    { __auto_type __a = (a); __auto_type __b = (b); \
-      __a > __b ? __a : __b; })
+#define max(a,b) ({ \
+	typeof (a) __a = (a); \
+	typeof (b) __b = (b); \
+	__a > __b ? __a : __b; })
 
 #define M_VERSION 2.0
 
