@@ -1256,13 +1256,13 @@ int Get_Menu(int showwait)
 	return rv;
 }
 
-void clean_string(char *trstr, char *lcstr)
+void clean_string(char *_trstr, char *lcstr)
 {
 	int i;
 	char *lcdptr,*lcptr,*tptr;
 
 	lcdptr=lcstr;
-	lcptr=trstr;
+	lcptr=_trstr;
 	while(*lcptr)
 	{
 		if(*lcptr=='~')

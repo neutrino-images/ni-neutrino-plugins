@@ -8,9 +8,9 @@
 
 extern const char NOMEM[];
 
-void RenderBox(int sx, int sy, int ex, int ey, int rad, int col)
+void RenderBox(int _sx, int _sy, int _ex, int _ey, int rad, int col)
 {
-	int F,R=rad,ssx=startx+sx,ssy=starty+sy,dxx=ex-sx,dyy=ey-sy,rx,ry,wx,wy,count;
+	int F,R=rad,ssx=startx+_sx,ssy=starty+_sy,dxx=_ex-_sx,dyy=_ey-_sy,rx,ry,wx,wy,count;
 
 	uint32_t *pos = lbb + ssx + stride * ssy;
 	uint32_t *pos0, *pos1, *pos2, *pos3, *i;

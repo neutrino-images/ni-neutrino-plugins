@@ -360,10 +360,10 @@ int GetStringLen(int _sx, char *string, size_t size)
  * RenderString
  ******************************************************************************/
 
-void RenderString(char *string, int sx, int sy, int maxwidth, int layout, int size, int color)
+void RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int size, int color)
 {
-	int stringlen, ex, charwidth, i;
-	char rstr[256], *rptr=rstr;
+	int stringlen, _ex, charwidth, i;
+	char rstr[256]={0}, *rptr=rstr;
 	int varcolor=color;
 
 	strcpy(rstr,string);
@@ -382,21 +382,21 @@ void RenderString(char *string, int sx, int sy, int maxwidth, int layout, int si
 	//set alignment
 	if(layout != LEFT)
 	{
-		stringlen = GetStringLen(sx, string, size);
+		stringlen = GetStringLen(_sx, string, size);
 
 		switch(layout)
 		{
-			case CENTER:	if(stringlen < maxwidth) sx += (maxwidth - stringlen)/2;
+			case CENTER:	if(stringlen < maxwidth) _sx += (maxwidth - stringlen)/2;
 					break;
 
-			case RIGHT:	if(stringlen < maxwidth) sx += maxwidth - stringlen;
+			case RIGHT:	if(stringlen < maxwidth) _sx += maxwidth - stringlen;
 		}
 	}
 
 	//reset kerning
 	prev_glyphindex = 0;
 
-	ex = sx + maxwidth;
+	_ex = _sx + maxwidth;
 
 	//render string
 	while(*rptr != '\0')
@@ -411,16 +411,16 @@ void RenderString(char *string, int sx, int sy, int maxwidth, int layout, int si
 				case 'Y': varcolor=YELLOW; break;
 				case 'B': varcolor=BLUE0; break;
 				case 'S': varcolor=color; break;
-				case 't': sx=((sx/TABULATOR)+1)*TABULATOR; break;
+				case 't': _sx=((_sx/TABULATOR)+1)*TABULATOR; break;
 				case 'T':
 					if(sscanf(rptr+1,"%4d",&i)==1)
 					{
 						rptr+=4;
-						sx=i;
+						_sx=i;
 					}
 					else
 					{
-						sx=((sx/TABULATOR)+1)*TABULATOR;
+						_sx=((_sx/TABULATOR)+1)*TABULATOR;
 					}
 				break;
 			}
@@ -428,9 +428,9 @@ void RenderString(char *string, int sx, int sy, int maxwidth, int layout, int si
 		}
 		else
 		{
-			if ((charwidth = RenderChar(UTF8ToUnicode(&rptr, 1), sx, sy, ex, ((color!=CMCIT) && (color!=CMCST)) ? varcolor : color)) == -1)
+			if ((charwidth = RenderChar(UTF8ToUnicode(&rptr, 1), _sx, _sy, _ex, ((color!=CMCIT) && (color!=CMCST)) ? varcolor : color)) == -1)
 				return; /* string > maxwidth */
-			sx += charwidth;
+			_sx += charwidth;
 		}
 	}
 }

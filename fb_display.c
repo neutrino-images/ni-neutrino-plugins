@@ -23,7 +23,6 @@
 #include "gfx.h"
 #include "fb_display.h"
 
-extern unsigned int alpha;
 
 void blit2FB(void *fbbuff,
 	uint32_t width, uint32_t height,
