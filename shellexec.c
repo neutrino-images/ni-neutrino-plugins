@@ -12,7 +12,7 @@
 #include "pngw.h"
 
 
-#define SH_VERSION 2.0
+#define SH_VERSION 2.01
 
 static char CFG_FILE[128]="/var/tuxbox/config/shellexec.conf";
 
@@ -665,7 +665,7 @@ int Get_Selection(MENU *m)
 			ShowInfo(m, knew);
 		}
 		knew=1;
-		switch(rccode = GetRCCode(mtmo * 1000))
+		switch(rccode = GetRCCode(1000))
 		{
 			case RC_RED:
 				if(active && direct[0]>=0)
