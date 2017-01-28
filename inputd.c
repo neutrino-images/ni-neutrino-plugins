@@ -282,8 +282,7 @@ int act_key=-1, last_key=-1, run=1, ipos=0, count=0;
 time_t t1, t2, tm1;
  // only for num block
 const char knum[12][2]={"1","2","3","4","5","6","7","8","9"," ","0"};
-const char kalp[12][5]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrs","tuvü","wxyz","","_,.;"};
-
+const char kalp[12][6]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrsß","tuvü","wxyz","","_,.;"};
 
 	epos=-1;
 	cpos=0;
