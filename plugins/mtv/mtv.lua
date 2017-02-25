@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.de Version 0.12" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.13" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -120,7 +120,9 @@ function init()
 	glob.mtv={
 		{name = "Brandneu",url="http://www.mtv.de/musik",fav=false},
 		{name = "Hitlist Germany - Top 100",url="http://www.mtv.de/charts/5-hitlist-germany-top-100",fav=false},
-		{name = "Hitlist Schweiz - Top 50",url="http://www.mtv.ch/charts/11-single-top-50",fav=false},
+		{name = "Hitlist Schweiz - Top 50",url="http://www.mtv.ch/charts/206-mtv-ch-videocharts",fav=false},
+		{name = "SINGLE TOP 20",url="http://www.mtv.ch/charts/280-single-top-20",fav=false},
+		{name = "SINGLE TOP 100",url="http://www.mtv.ch/charts/279-single-top-100",fav=false},
 		{name = "MTV.de Videocharts",url="http://www.mtv.de/charts/8-mtv-de-videocharts",fav=false},
 		{name = "MTV.ch Videocharts",url="http://www.mtv.ch/charts/206-mtv-ch-videocharts",fav=false},
 		{name = "VIVA Top 100",url="http://at.mtv.de/charts/16-viva-top-100",fav=false},
@@ -179,8 +181,8 @@ end
 function getliste(url)
 	local clip_page = getdata(url)
 	if clip_page == nil then return nil end
-
 	local videosection = string.match(clip_page,"window.pagePlaylist = %[(.-)%];")
+	if videosection == nil then return nil end
 	local liste = {}
 	local json = require "json"
 	for j in string.gmatch(videosection, "(%{.id.-%})") do
