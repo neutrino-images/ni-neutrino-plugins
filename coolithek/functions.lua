@@ -274,19 +274,19 @@ function setFonts()
 	if (useDynFont == false) then error("Failed to create fonts.") end
 	local fontError = 0;
 	if (fontMainMenu == nil) then
-		fontMainMenu, fontError = N:getDynFont(0, conf.guiMainMenuSize)
+		fontMainMenu, fontError = N:getDynFont(0, N:scale2Res(conf.guiMainMenuSize))
 		fontMainMenu_h = N:FontHeight(useDynFont, fontMainMenu)
 	end
 	if (fontMiniInfo == nil) then
-		fontMiniInfo, fontError = N:getDynFont(0, 26)
+		fontMiniInfo, fontError = N:getDynFont(0, N:scale2Res(26))
 		fontMiniInfo_h = N:FontHeight(useDynFont, fontMiniInfo)
 	end
 	if (fontLeftMenu1 == nil) then
-		fontLeftMenu1, fontError = N:getDynFont(0, 24)
+		fontLeftMenu1, fontError = N:getDynFont(0, N:scale2Res(24))
 		fontLeftMenu1_h = N:FontHeight(useDynFont, fontLeftMenu1)
 	end
 	if (fontLeftMenu2 == nil) then
-		fontLeftMenu2, fontError = N:getDynFont(0, 26, "", DYNFONT.STYLE_BOLD)
+		fontLeftMenu2, fontError = N:getDynFont(0, N:scale2Res(26), "", DYNFONT.STYLE_BOLD)
 		fontLeftMenu2_h = N:FontHeight(useDynFont, fontLeftMenu2)
 	end
 end
