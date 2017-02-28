@@ -1,10 +1,10 @@
 
 function paintMovieInfo(isMP, res, ratio, rate)
 
-	local box_w	= 860
-	local box_h	= 520
-	if box_w > SCREEN.X_RES then box_w = SCREEN.X_RES-80 end
-	if box_h > SCREEN.Y_RES then box_h = SCREEN.Y_RES-80 end
+	local box_w	= N:scale2Res(860)
+	local box_h	= N:scale2Res(520)
+	if box_w > SCREEN.X_RES then box_w = SCREEN.X_RES-N:scale2Res(80) end
+	if box_h > SCREEN.Y_RES then box_h = SCREEN.Y_RES-N:scale2Res(80) end
 	local box	= mtInfoBox("Filminfo (" .. mtList[mtRightMenu_select].channel .. " Mediathek)", box_w, box_h)
 
 	local hh	= box:headerHeight()
@@ -15,8 +15,8 @@ function paintMovieInfo(isMP, res, ratio, rate)
 	if y < 0 then y = 0 end
 	local real_h	= box_h - hh - fh
 
-	local space_x = 6
-	local space_y = 6
+	local space_x = N:scale2Res(6)
+	local space_y = N:scale2Res(6)
 	local frame_x = x + space_x
 	local frame_y = y + space_y
 	local frame_w = box_w - 2*space_x
@@ -25,16 +25,16 @@ function paintMovieInfo(isMP, res, ratio, rate)
 			COL.MENUCONTENT_TEXT, 0)
 
 	local function paintInfoItem(_x, _y, info1, info2, frame)
-		local tmp1_h = fontLeftMenu1_h+4
-		local tmp2_h = fontLeftMenu2_h+4
+		local tmp1_h = fontLeftMenu1_h+N:scale2Res(4)
+		local tmp2_h = fontLeftMenu2_h+N:scale2Res(4)
 		local _y1 = _y
-		local _y = _y+fontLeftMenu1_h+10
-		N:RenderString(useDynFont, fontLeftMenu1, info1, _x+14, _y,
+		local _y = _y+fontLeftMenu1_h+N:scale2Res(10)
+		N:RenderString(useDynFont, fontLeftMenu1, info1, _x+N:scale2Res(14), _y,
 				COL.MENUCONTENT_TEXT, frame_w, tmp1_h, 0)
 		_y = _y + tmp1_h+0
 
 		if type(info2) ~= "table" then
-			N:RenderString(useDynFont, fontLeftMenu2, info2, _x+12+10, _y,
+			N:RenderString(useDynFont, fontLeftMenu2, info2, _x+N:scale2Res(12+10), _y,
 					COL.MENUCONTENT_TEXT, frame_w, tmp2_h, 0)
 		else
 			local maxLines = 4
@@ -43,19 +43,19 @@ function paintMovieInfo(isMP, res, ratio, rate)
 			local i = 1
 			for i=1, lines do
 				local txt = string.gsub(info2[i],"\n", " ");
-				N:RenderString(useDynFont, fontLeftMenu2, txt, _x+12+10, _y,
+				N:RenderString(useDynFont, fontLeftMenu2, txt, _x+N:scale2Res(12+10), _y,
 						COL.MENUCONTENT_TEXT, frame_w, tmp2_h, 0)
 				_y = _y + tmp2_h
 			end
 			_y = _y - tmp2_h
 		end
 		if (frame == true) then
-			G.paintSimpleFrame(_x+8, _y1+6, frame_w-16, _y-_y1, COL.MENUCONTENT_TEXT, 0)
+			G.paintSimpleFrame(_x+N:scale2Res(8), _y1+N:scale2Res(6), frame_w-N:scale2Res(16), _y-_y1, COL.MENUCONTENT_TEXT, 0)
 		end
 		return _y
 	end
 
-	local step = 6
+	local step = N:scale2Res(6)
 	-- theme
 	local start_y = frame_y
 	start_y = paintInfoItem(frame_x, start_y, "Thema", mtList[mtRightMenu_select].theme, true)
@@ -76,7 +76,7 @@ function paintMovieInfo(isMP, res, ratio, rate)
 	-- description
 	if (#mtList[mtRightMenu_select].description > 0) then
 		start_y = start_y + step
-		txt = autoLineBreak(mtList[mtRightMenu_select].description, frame_w-36, fontLeftMenu2)
+		txt = autoLineBreak(mtList[mtRightMenu_select].description, frame_w-N:scale2Res(36), fontLeftMenu2)
 		start_y = paintInfoItem(frame_x, start_y, "Beschreibung", txt, true)
 	end
 

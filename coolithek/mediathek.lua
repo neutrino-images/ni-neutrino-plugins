@@ -1,10 +1,10 @@
 
 mtLeftMenu_x		= SCREEN.OFF_X + 10
-mtLeftMenu_w		= 240
-subMenuTop		= 10
-subMenuLeft		= 8
-subMenuSpace		= 16
-subMenuHight		= 26
+mtLeftMenu_w		= N:scale2Res(240)
+subMenuTop		= N:scale2Res(10)
+subMenuLeft		= N:scale2Res(8)
+subMenuSpace		= N:scale2Res(16)
+subMenuHight		= N:scale2Res(26)
 mtRightMenu_x		= mtLeftMenu_x + 8 + mtLeftMenu_w
 mtRightMenu_w		= SCREEN.END_X - mtRightMenu_x-8
 mtRightMenu_select	= 1
