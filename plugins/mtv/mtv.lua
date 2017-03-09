@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.de Version 0.14" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.15" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -234,7 +234,7 @@ function getliste(url)
 	return liste
 end
 
-function getvideourl(url,vidname,tok,typ)
+function getvideourl(url,vidname,tok,typ,h)
 	if url == nil then return nil end
 	local video_url = nil
 	if typ ~= "arc" and tok  ~= nil then
@@ -268,7 +268,10 @@ function getvideourl(url,vidname,tok,typ)
 	  print("###########################")
 	end
 	if video_url and video_url:find("copyright_error") then
-		info("Video Not Available", "Copyright Error\n" .. vidname,1)
+		if h then
+			h:hide()
+		end
+		info("Video Not Available", "Copyright Error\n" .. vidname,2)
 	end
 	return video_url
 end
@@ -430,11 +433,13 @@ function dlstart(name)
 			if glob.MTVliste[i].name == nil then
 				glob.MTVliste[i].name = "NoName_" .. i
 			end
-			local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name,glob.MTVliste[i].tok,glob.MTVliste[i].type)
+			local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name,glob.MTVliste[i].tok,glob.MTVliste[i].type,h)
 			if url then
 				local fname = v.name:gsub([[%s+]], "_")
 				fname = fname:gsub("[:'()]", "_")
-				h:hide()
+				if h then
+					h:hide()
+				end
 				h = hintbox.new{caption=infotext, text= fname}
 				h:paint()
 				local videoformat = url:sub(-4)
@@ -442,8 +447,6 @@ function dlstart(name)
 					videoformat = ".mp4"
 				end
 				if videoformat ~= ".flv" or conf.flvflag then
-					local fname = v.name:gsub([[%s+]], "_")
-					fname = fname:gsub("[:'()]", "_")
 					dl:write("rtmpdump -e -r " .. url .. " -o " .. conf.path .. "/" .. fname  .. videoformat .."\n")
 					script_start = true
 				end
