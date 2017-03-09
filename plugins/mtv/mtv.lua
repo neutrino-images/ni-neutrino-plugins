@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.de Version 0.13" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.14" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -121,15 +121,31 @@ function init()
 		{name = "Brandneu",url="http://www.mtv.de/musik",fav=false},
 		{name = "Hitlist Germany - Top 100",url="http://www.mtv.de/charts/5-hitlist-germany-top-100",fav=false},
 		{name = "Hitlist Schweiz - Top 50",url="http://www.mtv.ch/charts/206-mtv-ch-videocharts",fav=false},
-		{name = "SINGLE TOP 20",url="http://www.mtv.ch/charts/280-single-top-20",fav=false},
+		{name = "SINGLE TOP 10",url="http://www.mtv.de/charts/261-single-top-10",fav=false},
+		{name = "SINGLE TOP 20",url="http://www.mtv.de/charts/260-single-top-20",fav=false},
 		{name = "SINGLE TOP 100",url="http://www.mtv.ch/charts/279-single-top-100",fav=false},
 		{name = "MTV.de Videocharts",url="http://www.mtv.de/charts/8-mtv-de-videocharts",fav=false},
 		{name = "MTV.ch Videocharts",url="http://www.mtv.ch/charts/206-mtv-ch-videocharts",fav=false},
 		{name = "VIVA Top 100",url="http://at.mtv.de/charts/16-viva-top-100",fav=false},
+		{name = "Top 100 Jahrescharts 2016",url="http://www.mtv.de/charts/274-top-100-jahrescharts-2016",fav=false},
+		{name = "Top 100 Jahrescharts 2015",url="http://www.mtv.de/charts/275-top-100-jahrescharts-2015",fav=false},
 		{name = "Top 100 Jahrescharts 2014",url="http://www.mtv.de/charts/241-top-100-single-jahrescharts-2014",fav=false},
 		{name = "Top 100 Jahrescharts 2013",url="http://www.mtv.de/charts/199-top-100-single-jahrescharts-2013",fav=false},
+		{name = "Viva Top 100 Jahrescharts 2016",url="http://www.viva.tv/charts/277-eure-viva-jahrescharts-2016",fav=false},
 		{name = "Dance Charts",url="http://www.mtv.de/charts/6-dance-charts",fav=false},
 		{name = "Deutsche Urban Charts",url="http://www.mtv.de/charts/9-deutsche-black-charts",fav=false},
+		{name = "Deutsche Urban Charts",url="http://www.mtv.de/charts/9-deutsche-urban-charts",fav=false},
+		{name = "DDP Charts",url="http://www.mtv.de/charts/18-ddp-charts",fav=false},
+		{name = "Midweek Charts",url="http://www.mtv.de/charts/258-offizielle-deutsche-single-midweek-charts",fav=false},
+		{name = "Throwback Charts CH",url="http://www.mtv.ch/charts/278-throwback-charts-ch",fav=false},
+		{name = "Videocharts CH",url="http://www.mtv.ch/charts/206-mtv-ch-videocharts",fav=false},
+		{name = "Midweek Charts CH",url="http://www.mtv.ch/charts/283-single-midweek-charts",fav=false},
+		{name = "SINGLE TOP 20 CH",url="http://www.mtv.ch/charts/280-single-top-20",fav=false},
+		{name = "SINGLE TOP 100 CH",url="http://www.mtv.ch/charts/279-single-top-100",fav=false},
+		{name = "Viva SINGLE TOP 20",url="http://www.viva.tv/charts/260-single-top-20",fav=false},
+		{name = "Viva SINGLE TOP 100",url="http://www.viva.tv/charts/16-viva-top-100",fav=false},
+		{name = "Viva Dance Charts",url="http://www.viva.tv/charts/6-dance-charts",fav=false},
+		{name = "Viva Brandneu",url="http://www.viva.tv/news/19363-viva-neu",fav=false},
 	}
 	local mtvconf = get_conf_mtvfavFile()
 	local havefile = file_exists(mtvconf)
@@ -391,7 +407,7 @@ function playlist(filename)
 end
 
 function dlstart(name)
-	local infotext = name .." - Dateien werden heruntergeladen\n"
+	local infotext = name .." : Dateien werden für Download vorbereitet.  "
 	name = name:gsub([[%s+]], "_")
 	name = name:gsub("[:'&()/]", "_")
 	local dlname = "/tmp/" .. name ..".dl"
@@ -416,6 +432,11 @@ function dlstart(name)
 			end
 			local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name,glob.MTVliste[i].tok,glob.MTVliste[i].type)
 			if url then
+				local fname = v.name:gsub([[%s+]], "_")
+				fname = fname:gsub("[:'()]", "_")
+				h:hide()
+				h = hintbox.new{caption=infotext, text= fname}
+				h:paint()
 				local videoformat = url:sub(-4)
 				if videoformat == nil then
 					videoformat = ".mp4"
