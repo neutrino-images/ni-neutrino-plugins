@@ -51,7 +51,7 @@ static char menucoltxt[][25]={
 	"Head_Text",
 	"Head"
 };
-static char spres[][5]={"", "_crt", "_lcd"};
+static char spres[][4]={"", "crt", "lcd"};
 
 char *line_buffer=NULL;
 
@@ -221,7 +221,7 @@ void ShowUsage(void)
 
 int main (int argc, char **argv)
 {
-int tv,cols=25,tmo=0,ix, spr;
+int tv,cols=25,tmo=0,ix, spr, resolution;
 const char ttl[]="Eingabe";
 int dloop=1,keys=0,frame=1,mask=0,bhelp=0;
 char rstr[512]={0}, *title=NULL, *format=NULL, *defstr=NULL, *aptr=NULL, *rptr=NULL;
@@ -356,19 +356,21 @@ char rstr[512]={0}, *title=NULL, *format=NULL, *defstr=NULL, *aptr=NULL, *rptr=N
 		}
 
 		spr=Read_Neutrino_Cfg("screen_preset")+1;
-		sprintf(line_buffer,"screen_StartX%s",spres[spr]);
+		resolution=Read_Neutrino_Cfg("osd_resolution");
+
+		sprintf(line_buffer,"screen_StartX_%s_%d", spres[spr], resolution);
 		if((sx=Read_Neutrino_Cfg(line_buffer))<0)
 			sx=100;
 
-		sprintf(line_buffer,"screen_EndX%s",spres[spr]);
+		sprintf(line_buffer,"screen_EndX_%s_%d", spres[spr], resolution);
 		if((ex=Read_Neutrino_Cfg(line_buffer))<0)
 			ex=1180;
 
-		sprintf(line_buffer,"screen_StartY%s",spres[spr]);
+		sprintf(line_buffer,"screen_StartY_%s_%d", spres[spr], resolution);
 		if((sy=Read_Neutrino_Cfg(line_buffer))<0)
 			sy=100;
 
-		sprintf(line_buffer,"screen_EndY%s",spres[spr]);
+		sprintf(line_buffer,"screen_EndY_%s_%d", spres[spr], resolution);
 		if((ey=Read_Neutrino_Cfg(line_buffer))<0)
 			ey=620;
 
