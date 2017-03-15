@@ -51,7 +51,7 @@ static char menucoltxt[][25]={
 	"Head_Text",
 	"Head"
 };
-static char spres[][5]={"","_crt","_lcd"};
+static char spres[][4]={"","crt","lcd"};
 
 #define LIST_STEP 	10
 #define BUFSIZE 	4095
@@ -1574,7 +1574,7 @@ int llev=m->headerlevels[m->act_header], lmen=m->act_header, lentr=m->lastheader
 
 int main (int argc, char **argv)
 {
-	int index=0,cindex=0,mainloop=1,dloop=1,tv, spr;
+	int index=0,cindex=0,mainloop=1,dloop=1,tv, spr, resolution;
 	char tstr[BUFSIZE]={0}, *rptr;
 	PLISTENTRY pl;
 
@@ -1600,19 +1600,21 @@ int main (int argc, char **argv)
 	}
 
 	spr=Read_Neutrino_Cfg("screen_preset")+1;
-	sprintf(trstr,"screen_StartX%s",spres[spr]);
+	resolution=Read_Neutrino_Cfg("osd_resolution");
+
+	sprintf(trstr,"screen_StartX_%s_%d", spres[spr], resolution);
 	if((sx=Read_Neutrino_Cfg(trstr))<0)
 		sx=100;
 
-	sprintf(trstr,"screen_EndX%s",spres[spr]);
+	sprintf(trstr,"screen_EndX_%s_%d", spres[spr], resolution);
 	if((ex=Read_Neutrino_Cfg(trstr))<0)
 		ex=1180;
 
-	sprintf(trstr,"screen_StartY%s",spres[spr]);
+	sprintf(trstr,"screen_StartY_%s_%d", spres[spr], resolution);
 	if((sy=Read_Neutrino_Cfg(trstr))<0)
 		sy=100;
 
-	sprintf(trstr,"screen_EndY%s",spres[spr]);
+	sprintf(trstr,"screen_EndY_%s_%d", spres[spr], resolution);
 	if((ey=Read_Neutrino_Cfg(trstr))<0)
 		ey=620;
 
