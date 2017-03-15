@@ -66,7 +66,7 @@ class CLogoView
 		int stride;
 		std::string nomem, start_logo;
 		unsigned int screen_StartX, screen_StartY, screen_EndX, screen_EndY;
-		int screen_preset, fb;
+		int screen_preset, osd_resolution, fb;
 		time_t timeout;
 		bool clearScreen, onlyClearScreen, background;
 

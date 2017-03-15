@@ -72,6 +72,7 @@ CLogoView::CLogoView()
 	screen_EndX   = 0;
 	screen_EndY   = 0;
 	screen_preset = 0;
+	osd_resolution = 0;
 	stride        = 0;
 	lfb           = 0;
 	PicBuf        = 0;
@@ -152,14 +153,15 @@ bool CLogoView::ReadConfig()
 	}
 
 	screen_preset = config.getInt32("screen_preset", 1);
+	osd_resolution = config.getInt32("osd_resolution", 0);
 	char buf1[512] = "";
-	sprintf(buf1, "screen_StartX_%s", (screen_preset) ? "lcd" : "crt");
+	sprintf(buf1, "screen_StartX_%s_%d", (screen_preset) ? "lcd" : "crt", osd_resolution);
 	screen_StartX = config.getInt32(buf1, (screen_preset) ? DEFAULT_X_START_HD : DEFAULT_X_START_SD);
-	sprintf(buf1, "screen_StartY_%s", (screen_preset) ? "lcd" : "crt");
+	sprintf(buf1, "screen_StartY_%s_%d", (screen_preset) ? "lcd" : "crt", osd_resolution);
 	screen_StartY = config.getInt32(buf1, (screen_preset) ? DEFAULT_Y_START_HD : DEFAULT_Y_START_SD);
-	sprintf(buf1, "screen_EndX_%s", (screen_preset) ? "lcd" : "crt");
+	sprintf(buf1, "screen_EndX_%s_%d", (screen_preset) ? "lcd" : "crt", osd_resolution);
 	screen_EndX = config.getInt32(buf1, (screen_preset) ? DEFAULT_X_END_HD : DEFAULT_X_END_SD);
-	sprintf(buf1, "screen_EndY_%s", (screen_preset) ? "lcd" : "crt");
+	sprintf(buf1, "screen_EndY_%s_%d", (screen_preset) ? "lcd" : "crt", osd_resolution);
 	screen_EndY = config.getInt32(buf1, (screen_preset) ? DEFAULT_Y_END_HD : DEFAULT_Y_END_SD);
 //	printf("\n##### [%s] screen_StartX: %d, screen_StartY: %d, screen_EndX: %d, screen_EndY: %d\n \n", __FUNCTION__, screen_StartX, screen_StartY, screen_EndX, screen_EndY);
 
