@@ -1329,7 +1329,7 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 		int i;
 		unsigned char grstr[XL+1]={'G'^XX,'r'^XX,'\xFC'^XX,'\xDF'^XX,'e'^XX,' '^XX,'v'^XX,'o'^XX,'m'^XX,' '^XX,'N'^XX,'e'^XX,'w'^XX,'-'^XX,'T'^XX,'u'^XX,'x'^XX,'w'^XX,'e'^XX,'t'^XX,'t'^XX,'e'^XX,'r'^XX,'-'^XX,'T'^XX,'e'^XX,'a'^XX,'m'^XX,'!'^XX,' '^XX,' '^XX,';'^XX,'-'^XX,')'^XX,' '^XX,' '^XX,'w'^XX,'w'^XX,'w'^XX,'.'^XX,'k'^XX,'e'^XX,'y'^XX,'w'^XX,'e'^XX,'l'^XX,'t'^XX,'-'^XX,'b'^XX,'o'^XX,'a'^XX,'r'^XX,'d'^XX,'.'^XX,'c'^XX,'o'^XX,'m'^XX,0};
 
-		sprintf(rstr,"CS-Tuxwetter    Version %s",P_VERSION);
+		sprintf(rstr,"Tuxwetter Version %s",P_VERSION);
 		RenderString(rstr, 0, 34, wxw, CENTER, FSIZE_BIG, CMHT);
 
 		sprintf(rstr,"%s",prs_translate("Steuertasten in den Menüs",CONVERT_LIST));
@@ -1392,7 +1392,7 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 
 		sprintf(rstr,"%s",prs_translate("Standby-Taste",CONVERT_LIST));
 		RenderString(rstr, col1, vy, col2-col1, LEFT, HMED, CMCT);
-		sprintf(rstr,"%s",prs_translate("CS-Tuxwetter beenden",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("Tuxwetter beenden",CONVERT_LIST));
 		RenderString(rstr, col2, vy, wxw-col2, LEFT, HMED, CMCT);
 		vy+=(1.5*(double)dy);
 
@@ -2906,7 +2906,7 @@ PLISTENTRY pl=&epl;
 		{
 			if((strstr(argv[tv],"-v")==argv[tv])||(strstr(argv[tv],"--Version")==argv[tv]))
 			{
-				printf("CS-Tuxwetter Version %s\n",P_VERSION);
+				printf("Tuxwetter Version %s\n",P_VERSION);
 				return 0;
 			}
 			if(*argv[tv]=='/')
