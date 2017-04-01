@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.de Version 0.15" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.16" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -119,33 +119,24 @@ function init()
 	glob.mtv_artist={}
 	glob.mtv={
 		{name = "Brandneu",url="http://www.mtv.de/musik",fav=false},
-		{name = "Hitlist Germany - Top 100",url="http://www.mtv.de/charts/5-hitlist-germany-top-100",fav=false},
-		{name = "Hitlist Schweiz - Top 50",url="http://www.mtv.ch/charts/206-mtv-ch-videocharts",fav=false},
-		{name = "SINGLE TOP 10",url="http://www.mtv.de/charts/261-single-top-10",fav=false},
-		{name = "SINGLE TOP 20",url="http://www.mtv.de/charts/260-single-top-20",fav=false},
-		{name = "SINGLE TOP 100",url="http://www.mtv.ch/charts/279-single-top-100",fav=false},
+		{name = "SINGLE TOP 20",url="http://www.mtv.de/charts/302-single-top-20",fav=false},
+		{name = "SINGLE TOP 100",url="http://www.mtv.de/charts/288-single-top-100",fav=false},
 		{name = "MTV.de Videocharts",url="http://www.mtv.de/charts/8-mtv-de-videocharts",fav=false},
 		{name = "MTV.ch Videocharts",url="http://www.mtv.ch/charts/206-mtv-ch-videocharts",fav=false},
-		{name = "VIVA Top 100",url="http://at.mtv.de/charts/16-viva-top-100",fav=false},
 		{name = "Top 100 Jahrescharts 2016",url="http://www.mtv.de/charts/274-top-100-jahrescharts-2016",fav=false},
 		{name = "Top 100 Jahrescharts 2015",url="http://www.mtv.de/charts/275-top-100-jahrescharts-2015",fav=false},
 		{name = "Top 100 Jahrescharts 2014",url="http://www.mtv.de/charts/241-top-100-single-jahrescharts-2014",fav=false},
-		{name = "Top 100 Jahrescharts 2013",url="http://www.mtv.de/charts/199-top-100-single-jahrescharts-2013",fav=false},
 		{name = "Viva Top 100 Jahrescharts 2016",url="http://www.viva.tv/charts/277-eure-viva-jahrescharts-2016",fav=false},
-		{name = "Dance Charts",url="http://www.mtv.de/charts/6-dance-charts",fav=false},
-		{name = "Deutsche Urban Charts",url="http://www.mtv.de/charts/9-deutsche-black-charts",fav=false},
-		{name = "Deutsche Urban Charts",url="http://www.mtv.de/charts/9-deutsche-urban-charts",fav=false},
-		{name = "DDP Charts",url="http://www.mtv.de/charts/18-ddp-charts",fav=false},
-		{name = "Midweek Charts",url="http://www.mtv.de/charts/258-offizielle-deutsche-single-midweek-charts",fav=false},
-		{name = "Throwback Charts CH",url="http://www.mtv.ch/charts/278-throwback-charts-ch",fav=false},
-		{name = "Videocharts CH",url="http://www.mtv.ch/charts/206-mtv-ch-videocharts",fav=false},
-		{name = "Midweek Charts CH",url="http://www.mtv.ch/charts/283-single-midweek-charts",fav=false},
-		{name = "SINGLE TOP 20 CH",url="http://www.mtv.ch/charts/280-single-top-20",fav=false},
-		{name = "SINGLE TOP 100 CH",url="http://www.mtv.ch/charts/279-single-top-100",fav=false},
-		{name = "Viva SINGLE TOP 20",url="http://www.viva.tv/charts/260-single-top-20",fav=false},
-		{name = "Viva SINGLE TOP 100",url="http://www.viva.tv/charts/16-viva-top-100",fav=false},
-		{name = "Viva Dance Charts",url="http://www.viva.tv/charts/6-dance-charts",fav=false},
+		{name = "Dance Charts",url="http://www.mtv.de/charts/293-dance-charts",fav=false},
 		{name = "Viva Brandneu",url="http://www.viva.tv/news/19363-viva-neu",fav=false},
+		{name = "HIP HOP CHARTS",url="http://www.mtv.de/charts/292-hip-hop-charts",fav=false},
+		{name = "SINGLE TRENDING",url="http://www.mtv.de/charts/301-single-trending",fav=false},
+		{name = "TOP 100 MUSIC STREAMING",url="http://www.mtv.de/charts/286-top-100-music-streaming",fav=false},
+		{name = "TOP 15 DEUTSCHSPRACHIGE SINGLES",url="http://www.mtv.de/charts/304-top-15-deutschsprachige-singles",fav=false},
+		{name = "DOWNLOAD CHARTS SINGLE",url="http://www.mtv.de/charts/289-download-charts-single",fav=false},
+		{name = "MOST WANTED 90'S",url="http://www.mtv.de/charts/295-most-wanted-90-s",fav=false},
+		{name = "MOST WANTED 2000'S",url="http://www.mtv.de/charts/296-most-wanted-2000-s",fav=false},
+
 	}
 	local mtvconf = get_conf_mtvfavFile()
 	local havefile = file_exists(mtvconf)
@@ -168,7 +159,12 @@ function info(captxt,infotxt, sleep)
 	local h = hintbox.new{caption=captxt, text=infotxt}
 	h:paint()
 	if sleep then
-		os.execute("sleep " .. sleep)
+		for i=1,sleep*5,1 do
+			msg, data = n:GetInput(500)
+			if msg == RC.ok or msg == RC.home then
+				break
+			end
+		end
 	else
 		repeat
 			msg, data = n:GetInput(500)
@@ -416,18 +412,14 @@ function dlstart(name)
 	local dlname = "/tmp/" .. name ..".dl"
 	local havefile = file_exists("/tmp/.rtmpdl")
 	if havefile == true then
-		infotext="Ein anderer Download ist bereits aktiv."
-	end
-	local h = hintbox.new{caption="Info", text=infotext}
-	h:paint()
-	if havefile == true then
-		os.execute("sleep 4")
-		h:hide()
+		info("Info", "Ein anderer Download ist bereits aktiv.",4)
 		return
 	end
-
 	local dl=io.open(dlname,"w")
 	local script_start = false
+
+	local pw = cprogresswindow.new{title=infotext}
+	pw:paint()
 	for i, v in ipairs(glob.MTVliste) do
 		if v.enabled == true then
 			if glob.MTVliste[i].name == nil then
@@ -437,11 +429,7 @@ function dlstart(name)
 			if url then
 				local fname = v.name:gsub([[%s+]], "_")
 				fname = fname:gsub("[:'()]", "_")
-				if h then
-					h:hide()
-				end
-				h = hintbox.new{caption=infotext, text= fname}
-				h:paint()
+				pw:showStatus{prog=i,max=#glob.MTVliste,statusText=fname}
 				local videoformat = url:sub(-4)
 				if videoformat == nil then
 					videoformat = ".mp4"
@@ -453,7 +441,7 @@ function dlstart(name)
 			end
 		end
 	end
-	h:hide()
+	pw:hide()
 	if script_start == true then
 	dl:close()
 	local scriptname  = "/tmp/" .. name ..".sh"
