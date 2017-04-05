@@ -1,6 +1,6 @@
 local resolution = {'1920x1080','1280x720','854x480','640x360','426x240','128x72'}
 local itags = {[37]='1920x1080',[96]='1920x1080',[22]='1280x720',[95]='1280x720',[94]='854x480',[35]='854x480',
-		[18]='640x360',[93]='640x360',[34]='640x360',[5]='400x240',[6]='450x270',[35]='320x240',[92]='320x240',[132]='320x240',
+		[18]='640x360',[93]='640x360',[34]='640x360',[5]='400x240',[6]='450x270',[36]='320x240',[92]='320x240',[132]='320x240',
 		[17]='176x144',[13]='176x144',[151]='128x72',
 		[85]='1920x1080p',[84]='1280x720',[83]='854x480',[82]='640x360'
 }
@@ -43,7 +43,7 @@ function js_extract(data,patern)
 end
 -- vlc youtube.lua code
 function js_descramble( sig, js )
-	local descrambler = js_extract( js, "%.set%(\"signature\",(.-)%(" )
+	local descrambler = js_extract( js, "%.set%(\"signature\",([^)]-)%(" )
 	if descrambler == nil then return sig end
 	local rules = js_extract( js, descrambler.."=function%([^)]*%){(.-)};" )
 	if rules == nil then return sig end
@@ -100,7 +100,7 @@ function getAlternatevideourl(youtube_url,newname)
 	local url = 'https://www.youtube.com/get_video_info?video_id=' .. id .. '&el=detailpage&ps=default&eurl=&gl=US&hl=en'
 	local data = getdata(url)
 	if data then
-		local stream_map = string.match( data, "url_encoded_fmt_stream_map(.-)$" )
+		local stream_map = string.match( data, "url_encoded_fmt_stream_map[%s+]?=[%s+]?(.-)$" )
 		data = nil
 		if stream_map == nil then
 			return 0
@@ -113,7 +113,7 @@ function getAlternatevideourl(youtube_url,newname)
 		end
 		if stream_map then
 			local count = 0
-			for d in stream_map:gmatch("(.-)[,;]") do
+			for d in stream_map:gmatch("(.-)[;,]") do
 				local item={}
 				d=unescape_uri(d)
 				local itagstr = d:match('itag=(%w+)')
@@ -135,10 +135,10 @@ function getAlternatevideourl(youtube_url,newname)
 						if  itags[itagnum] then
 							if sig then
 								local jsdata = getdata("https://www.youtube.com/watch?v=" .. id .. "&ps=default&eurl=&gl=US&hl=en")
-								local jsurl = jsdata:match('js":"(.-player%-en_US.-)"')
+								local jsurl = jsdata:match('"js":"(.-.js)"')
 								if jsurl then
 									jsurl = jsurl:gsub("\\","")
-									jsurl = "https:" .. jsurl
+									jsurl = "https://www.youtube.com" .. jsurl
 									jsdata = getdata(jsurl)
 									if sig and jsdata then
 										sig = js_descramble(sig,jsdata)
