@@ -1,53 +1,41 @@
 -------- cczwei
 function cczwei_updatefeed(feed,friendly_name)
-	local url='http://www.cczwei.de/index.php?id=tvissuearchive'
+	local url='http://cc2.tv/feedv.xml'
 	local rc=false
 	local feed_data=http.download(url)
 	if feed_data then
-		local f1 =string.find(feed_data,'<b>TV')
-		local f2 =string.find(feed_data,'class="header">ALLE BEITRÄGE')
-		if f1 and f2 then
-			feed_data = string.sub(feed_data,f1,f2)
-		end
+		feed_data=feed_data .. http.download("http://cc2.tv/feed.xml")
 		local tmp_m3u_filename = cfg.tmp_path..friendly_name..".m3u"
 		local feed_m3u_path= cfg.feeds_path..friendly_name..'.m3u'
 
 		local m3ufile = io.open(tmp_m3u_filename,"w")
 		m3ufile:write("#EXTM3U name=\""..friendly_name.."\" plugin=cczwei type=mp4\n")
-		for string in string.gmatch(feed_data, '(.-)<b>') do
-			if string then
-				local num,url,title = string.match(string, 'Folge.(%d+)</b>.*<a href="(index.php.*)#%w+">(.-)</a>') 
-				if num and url and title then
---					if url then url=string.gsub(url,'&amp;','&') 
---						url = "http://www.cczwei.de/" ..url
---					end
-					title = string.gsub(title,'ä','ae')
-					title = string.gsub(title,'ö','oe')
-					title = string.gsub(title,'ü','ue')
-					title = string.gsub(title,'Ü','Ue')
-					title = string.gsub(title,'ß','ss')
-					title = string.gsub(title,'–',' ')
-					title = string.gsub(title,'²','2')
-					title = string.gsub(title,'®',' ')
-					title = string.gsub(title,'€','Euro')
+		for item in feed_data:gmatch("<item>(.-)</item>") do
+			if item then
+				local title = item:match("<title>(.-)</title>")
+				local videourl = item:match('<enclosure url="(.-)"')
+				local day = item:match('<pubDate>%w+. (%d+ %w+ %d+)')
+				if videourl and title then
+					title = title:gsub('ä','ae')
+					title = title:gsub('ö','oe')
+					title = title:gsub('ü','ue')
+					title = title:gsub('Ü','Ue')
+					title = title:gsub('ß','ss')
+					title = title:gsub('–',' ')
+					title = title:gsub('²','2')
+					title = title:gsub('®',' ')
+					title = title:gsub('€','Euro')
 					for i = 1, #title do
-						local c=string.sub(title, i, i)
+						local c=title:sub( i, i)
 						if (string.byte(c)>128) then
-							title = string.gsub(title,c,' ')
+							title = title:gsub(c,' ')
 						end
 					end
-
-					fdi=string.find(feed_data,'<SPAN CLASS=.header.>',fdi)
-					if fdi then
-						d= string.match(feed_data, '(%d%d.%d%d.%d%d%d%d)',fdi)
-						fdi=fdi+22		  
+					if day == nil then
+						day = ""
 					end
-					if d == nil then
-						d = ""
-					end
-					num = string.format("%03d", num)
-					m3ufile:write("#EXTINF:0,".."Folge "..num.." -- "..d ..": "..title.."\n")
-					m3ufile:write("http://cczwei.mirror.speedpartner.de/cc2tv/CC2_"..num..".mp4\n")
+					m3ufile:write("#EXTINF:0,".. day ..": "..title.."\n")
+					m3ufile:write(videourl .. "\n")
 				end
 			end
 		end
