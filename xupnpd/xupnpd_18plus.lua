@@ -41,7 +41,7 @@ function youporn_updatefeed(feed,friendly_name)
     local feed_name='youporn_'..string.gsub(feed,'/','_')
     local feed_m3u_path=cfg.feeds_path..feed_name..'.m3u'
     local tmp_m3u_path=cfg.tmp_path..feed_name..'.m3u'
-    local feed_url='http://www.youporn.com'..ff..'?'
+    local feed_url='https://www.youporn.com'..ff..'?'
 
     local dfd=io.open(tmp_m3u_path,'w+')
 
@@ -57,11 +57,8 @@ function youporn_updatefeed(feed,friendly_name)
 
             if cfg.debug>0 then print('YouPorn try url '..url) end
 
-	    local feed_data=http.download(url)
-	    if feed_data == nil then
-		feed_data=https_download(url)
-	    end
-
+            local feed_data=http.download(url)
+	    if not feed_data then  return end
 	    local skipto = feed_data.find(feed_data, "<div class='container'>")
 	    if skipto and #feed_data > skipto then
 		feed_data = string.sub(feed_data,skipto,#feed_data)
@@ -69,21 +66,24 @@ function youporn_updatefeed(feed,friendly_name)
 	    local anythingtoparse = feed_data.find(feed_data,"<div class=")
             if feed_data  and anythingtoparse then
                 local n=0
-		for entry in feed_data:gmatch("<div class=(.-)</div>\n</div>") do
-		    local urn,name= string.match(entry,'<div class="video%-box%-title">\n<a href="(/watch.-)" >(.-)</a>')
-		    local logo = string.match(entry,'<img src="(.-)"')
-		    if urn then
-			urn=urn:gsub('"','')
+		for entry in feed_data:gmatch("<div class=(.-)</div>") do
+			local urn = entry:match('<a%s+href="(/watch/.-)"')
+			local name = entry:match('alt=[\'"](.-)[\'"]')
+			local logo = entry:match('img src="(.-)"')
+		    if urn and name then
 			local m=string.find(urn,'?',1,true)
 			if m then urn=urn:sub(1,m-1) end
-			    local f = string.find(logo, 'blankvideobox.png')
+			    local f = nil
+			    if logo then
+				f = string.find(logo, 'blankvideobox.png')
+			    end
 			    if f then
 			      logo = string.match(entry,'thumbnail="(.-)"')
 			      if logo == nil then
 				logo=""
 			      end
 			    end
-			    dfd:write('#EXTINF:0 logo=',logo,' ,',name,'\n','http://www.youporn.com',urn,'\n')
+			    dfd:write('#EXTINF:0 logo=',logo,' ,',name,'\n','https://www.youporn.com',urn,'\n')
 			    n=n+1
 		    end
 		end
@@ -100,58 +100,45 @@ function youporn_updatefeed(feed,friendly_name)
 		if os.rename(tmp_m3u_path, feed_m3u_path) then
 			rc=true
 		end
-		util.unlink(tmp_m3u_path)
-
 		if cfg.debug>0 then print('YouPorn feed \''..feed_name..'\' updated') end
         end
+	util.unlink(tmp_m3u_path)
     end
 
     return rc
 end
 
-function pop(cmd)
-	local f = assert(io.popen(cmd, 'r'))
-	local s = assert(f:read('*a'))
-	f:close()
-	return s
-end
-
-function https_download(url)
-	local clip_page = pop("curl -k " .. url)
-	return clip_page
-end
-
-
 function youporn_sendurl(youporn_url,range)
 
-     http.user_agent(cfg.user_agent..'\r\nCookie: age_verified=1')
-
-    local url=nil
-
+    http.user_agent(cfg.user_agent..'\r\nCookie: age_verified=1')
     if plugin_sendurl_from_cache(youporn_url,range) then return end
 
+    local url=nil
     local clip_page=plugin_download(youporn_url)
-    if clip_page == nil then
-	    clip_page=https_download(youporn_url)
-    end
     if clip_page then
-        url=string.match(clip_page, "1080: '(http://.-)'")
-        if not url then
-	        url=string.match(clip_page, "720: '(http://.-)'")
-        end
-        if not url then
-	        url=string.match(clip_page, "480: '(http://.-)'")
-        end
-        if not url then
-	        url=string.match(clip_page, "videoUrl: '(http://.-)'")
-        end
-        if not url then
-		url=string.match(clip_page,'<video id="player.html5"%s+.- src="(http://.-)"%s+x.webkit.airplay+')
-        end
-        --print(url)
-        clip_page=nil
-
+	    local skipto = clip_page.find(clip_page, "sources:")
+	    if skipto and #clip_page > skipto then
+		clip_page = string.sub(clip_page,skipto,#clip_page)
+	    end
+	    clip_page = clip_page:match('sources:(.-)}')
+	     url = clip_page:match("'1080_60':%s+'(.-)',")
+	    if url == nil or #url == 0 then
+		url = clip_page:match("1080:%s+'(.-)',")
+	    end
+	    if url == nil or #url == 0 then
+		url = clip_page:match("'720_60':%s+'(.-)',")
+	    end
+	    if url == nil or #url == 0 then
+		url = clip_page:match("720:%s+'(.-)',")
+	    end
+	    if url == nil or #url == 0 then
+		url = clip_page:match("480:%s+'(.-)',")
+	    end
+	    if url == nil or #url == 0 then
+		url = clip_page:match("240:%s+'(.-)',")
+	    end
         if url then url=string.gsub(url,'&amp;','&') end
+	print(url)
 
     else
         if cfg.debug>0 then print('Clip is not found') end
