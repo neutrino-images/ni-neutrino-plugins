@@ -83,6 +83,14 @@ function youporn_updatefeed(feed,friendly_name)
 				logo=""
 			      end
 			    end
+				if #logo+#name > 235 then
+					if #logo < 235 then
+						local shortname = logo .. name
+						name =shortname:sub(#logo+1, 235)
+					else
+						name = n .. " : to long name"
+					end
+				end
 			    dfd:write('#EXTINF:0 logo=',logo,' ,',name,'\n','https://www.youporn.com',urn,'\n')
 			    n=n+1
 		    end
@@ -137,8 +145,10 @@ function youporn_sendurl(youporn_url,range)
 	    if url == nil or #url == 0 then
 		url = clip_page:match("240:%s+'(.-)',")
 	    end
+	    if url and #url == 0 then
+		url = nil
+	    end
         if url then url=string.gsub(url,'&amp;','&') end
-	print(url)
 
     else
         if cfg.debug>0 then print('Clip is not found') end
