@@ -21,10 +21,10 @@ function cczwei_updatefeed(feed,friendly_name)
 					title = title:gsub('ü','ue')
 					title = title:gsub('Ü','Ue')
 					title = title:gsub('ß','ss')
-					title = title:gsub('',' ')
+					title = title:gsub('–',' ')
 					title = title:gsub('²','2')
 					title = title:gsub('®',' ')
-					title = title:gsub('','Euro')
+					title = title:gsub('€','Euro')
 					for i = 1, #title do
 						local c=title:sub( i, i)
 						if (string.byte(c)>128) then
