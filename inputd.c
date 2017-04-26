@@ -421,7 +421,7 @@ const char kalp[12][6]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrsß","tuvü","w
 			RenderBox(exs+xp*exsz+1, eys+5+yp*eysz+1, exs+(xp+1)*exsz-1, eys+(yp+1)*eysz-1, 0/*radius*/, (epos==i)?CMCS:CMC);
 
 			*trnd=(mask && format[i]==NUM && IsNum(estr[i]))?'*':estr[i];
-			RenderString(trnd, exs+xp*exsz+2, eys+yp*eysz+tys+7, exsz-2, CENTER, MED, (epos==i)?CMCST:(IsInput(format[i]))?CMCT:CMCIT);
+			RenderString(trnd, exs+xp*exsz, eys+yp*eysz+tys+7, exsz, CENTER, MED, (epos==i)?CMCST:(IsInput(format[i]))?CMCT:CMCIT);
 		}
 		memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 		
