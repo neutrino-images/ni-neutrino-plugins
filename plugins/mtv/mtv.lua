@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.de Version 0.16" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.17" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -123,6 +123,7 @@ function init()
 		{name = "SINGLE TOP 100",url="http://www.mtv.de/charts/288-single-top-100",fav=false},
 		{name = "MTV.de Videocharts",url="http://www.mtv.de/charts/8-mtv-de-videocharts",fav=false},
 		{name = "MTV.ch Videocharts",url="http://www.mtv.ch/charts/206-mtv-ch-videocharts",fav=false},
+		{name = "MTV unplugged DE",url="http://www.mtv.de/mtv-unplugged",fav=false},
 		{name = "Top 100 Jahrescharts 2016",url="http://www.mtv.de/charts/274-top-100-jahrescharts-2016",fav=false},
 		{name = "Top 100 Jahrescharts 2015",url="http://www.mtv.de/charts/275-top-100-jahrescharts-2015",fav=false},
 		{name = "Top 100 Jahrescharts 2014",url="http://www.mtv.de/charts/241-top-100-single-jahrescharts-2014",fav=false},
@@ -136,7 +137,7 @@ function init()
 		{name = "DOWNLOAD CHARTS SINGLE",url="http://www.mtv.de/charts/289-download-charts-single",fav=false},
 		{name = "MOST WANTED 90'S",url="http://www.mtv.de/charts/295-most-wanted-90-s",fav=false},
 		{name = "MOST WANTED 2000'S",url="http://www.mtv.de/charts/296-most-wanted-2000-s",fav=false},
-
+		{name = "MTV unplugged AT",url="http://at.mtv.de/mtv-unplugged",fav=false},
 	}
 	local mtvconf = get_conf_mtvfavFile()
 	local havefile = file_exists(mtvconf)
@@ -173,12 +174,20 @@ function info(captxt,infotxt, sleep)
 	h:hide()
 end
 
-function getdata(url)
-	local output = os.tmpname()
-	os.execute("wget -q -U 'Mozilla/5.0 (Linux; Android 5.1.1)' -O " .. output .." '".. url .. "'");
-	local clip_page = read_file(output)
-	os.remove(output)
-	return clip_page
+function getdata(Url,outputfile)
+	if Url == nil then return nil end
+	if Curl == nil then
+		Curl = curl.new()
+	end
+	local ret, data = Curl:download{url=Url,A="Mozilla/5.0;",maxRedirs=5,followRedir=true,o=outputfile }
+	if ret == CURL.OK then
+		if outputfile then
+			return 1
+		end
+		return data
+	else
+		return nil
+	end
 end
 
 function exist_id(table, id)
@@ -233,13 +242,13 @@ end
 function getvideourl(url,vidname,tok,typ,h)
 	if url == nil then return nil end
 	local video_url = nil
-	if typ ~= "arc" and tok  ~= nil then
+	if (typ ~= "arc" and typ ~="local_playlist") and tok  ~= nil then
 		url = 'http://intl.esperanto.mtvi.com/www/xml/media/mediaGen.jhtml?uri=mgid:uma:video:mtv.de:' .. tok
 	end
 	local clip_page = getdata(url)
 	if clip_page == nil then return nil end
 
-	if typ ~= "arc" and tok  ~= nil then
+	if (typ ~= "arc" and typ ~="local_playlist") and tok  ~= nil then
 		video_url  = clip_page:match("<src>(.-)</src>")
 		print(video_url)
 	else
@@ -258,9 +267,14 @@ function getvideourl(url,vidname,tok,typ,h)
 	end
 	if video_url and video_url:sub(1,5) == "rtmpe" then
 		video_url = "rtmp" .. video_url:sub(6,#video_url)
-	else
+	end
+	local x = nil
+	if video_url then
+		x = video_url:find("rtmp")
+	end
+	if not x then
 	  print("########## Error ##########")
-	  print(clip_page)
+	  print(url,video_url,clip_page)
 	  print("###########################")
 	end
 	if video_url and video_url:find("copyright_error") then
@@ -406,7 +420,7 @@ function playlist(filename)
 end
 
 function dlstart(name)
-	local infotext = name .." : Dateien werden für Download vorbereitet.  "
+	local infotext = "Dateien werden für Download vorbereitet.  "
 	name = name:gsub([[%s+]], "_")
 	name = name:gsub("[:'&()/]", "_")
 	local dlname = "/tmp/" .. name ..".dl"
@@ -429,7 +443,7 @@ function dlstart(name)
 			if url then
 				local fname = v.name:gsub([[%s+]], "_")
 				fname = fname:gsub("[:'()]", "_")
-				pw:showStatus{prog=i,max=#glob.MTVliste,statusText=fname}
+				pw:showStatus{prog=i,max=#glob.MTVliste,statusText=tostring(i) .. "/" .. tostring(#glob.MTVliste) .. "  " .. fname}
 				local videoformat = url:sub(-4)
 				if videoformat == nil then
 					videoformat = ".mp4"
