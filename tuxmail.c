@@ -27,10 +27,20 @@ void read_neutrino_osd_conf ( int *ex,int *sx,int *ey, int *sy, int *preset)
 			free(buffer);
 		rewind(fd);
 		++pres;
-		sprintf(sstr[0], "screen_EndX_%s_%d=%%d", spres[pres], resolution);
-		sprintf(sstr[1], "screen_StartX_%s_%d=%%d", spres[pres], resolution);
-		sprintf(sstr[2], "screen_EndY_%s_%d=%%d", spres[pres], resolution);
-		sprintf(sstr[3], "screen_StartY_%s_%d=%%d", spres[pres], resolution);
+		if (resolution == -1)
+		{
+			sprintf(sstr[0], "screen_EndX_%s=%%d", spres[pres]);
+			sprintf(sstr[1], "screen_StartX_%s=%%d", spres[pres]);
+			sprintf(sstr[2], "screen_EndY_%s=%%d", spres[pres]);
+			sprintf(sstr[3], "screen_StartY_%s=%%d", spres[pres]);
+		}
+		else
+		{
+			sprintf(sstr[0], "screen_EndX_%s_%d=%%d", spres[pres], resolution);
+			sprintf(sstr[1], "screen_StartX_%s_%d=%%d", spres[pres], resolution);
+			sprintf(sstr[2], "screen_EndY_%s_%d=%%d", spres[pres], resolution);
+			sprintf(sstr[3], "screen_StartY_%s_%d=%%d", spres[pres], resolution);
+		}
 
 		buffer=NULL;
 		len = 0;
