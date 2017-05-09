@@ -17,7 +17,7 @@
 	typeof (b) __b = (b); \
 	__a > __b ? __a : __b; })
 
-#define M_VERSION 2.0
+#define M_VERSION 2.01
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define HDF_FILE	"/tmp/.msgbox_hidden"
@@ -739,19 +739,31 @@ FILE *fh;
 		spr=Read_Neutrino_Cfg("screen_preset")+1;
 		resolution=Read_Neutrino_Cfg("osd_resolution");
 
-		sprintf(line_buffer,"screen_StartX_%s_%d", spres[spr], resolution);
+		if (resolution == -1)
+			sprintf(line_buffer,"screen_StartX_%s", spres[spr]);
+		else
+			sprintf(line_buffer,"screen_StartX_%s_%d", spres[spr], resolution);
 		if((sx=Read_Neutrino_Cfg(line_buffer))<0)
 			sx=100;
 
-		sprintf(line_buffer,"screen_EndX_%s_%d", spres[spr], resolution);
+		if (resolution == -1)
+			sprintf(line_buffer,"screen_EndX_%s", spres[spr]);
+		else
+			sprintf(line_buffer,"screen_EndX_%s_%d", spres[spr], resolution);
 		if((ex=Read_Neutrino_Cfg(line_buffer))<0)
 			ex=1180;
 
-		sprintf(line_buffer,"screen_StartY_%s_%d", spres[spr], resolution);
+		if (resolution == -1)
+			sprintf(line_buffer,"screen_StartY_%s", spres[spr]);
+		else
+			sprintf(line_buffer,"screen_StartY_%s_%d", spres[spr], resolution);
 		if((sy=Read_Neutrino_Cfg(line_buffer))<0)
 			sy=100;
 
-		sprintf(line_buffer,"screen_EndY_%s_%d", spres[spr], resolution);
+		if (resolution == -1)
+			sprintf(line_buffer,"screen_EndY_%s", spres[spr]);
+		else
+			sprintf(line_buffer,"screen_EndY_%s_%d", spres[spr], resolution);
 		if((ey=Read_Neutrino_Cfg(line_buffer))<0)
 			ey=620;
 
