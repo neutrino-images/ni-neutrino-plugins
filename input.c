@@ -12,7 +12,7 @@
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define BUFSIZE 	1024
-#define I_VERSION	2.01
+#define I_VERSION	2.02
 
 
 char FONT[128]="/share/fonts/neutrino.ttf";
@@ -358,19 +358,31 @@ char rstr[512]={0}, *title=NULL, *format=NULL, *defstr=NULL, *aptr=NULL, *rptr=N
 		spr=Read_Neutrino_Cfg("screen_preset")+1;
 		resolution=Read_Neutrino_Cfg("osd_resolution");
 
-		sprintf(line_buffer,"screen_StartX_%s_%d", spres[spr], resolution);
+		if (resolution == -1)
+			sprintf(line_buffer,"screen_StartX_%s", spres[spr]);
+		else
+			sprintf(line_buffer,"screen_StartX_%s_%d", spres[spr], resolution);
 		if((sx=Read_Neutrino_Cfg(line_buffer))<0)
 			sx=100;
 
-		sprintf(line_buffer,"screen_EndX_%s_%d", spres[spr], resolution);
+		if (resolution == -1)
+			sprintf(line_buffer,"screen_EndX_%s", spres[spr]);
+		else
+			sprintf(line_buffer,"screen_EndX_%s_%d", spres[spr], resolution);
 		if((ex=Read_Neutrino_Cfg(line_buffer))<0)
 			ex=1180;
 
-		sprintf(line_buffer,"screen_StartY_%s_%d", spres[spr], resolution);
+		if (resolution == -1)
+			sprintf(line_buffer,"screen_StartY_%s", spres[spr]);
+		else
+			sprintf(line_buffer,"screen_StartY_%s_%d", spres[spr], resolution);
 		if((sy=Read_Neutrino_Cfg(line_buffer))<0)
 			sy=100;
 
-		sprintf(line_buffer,"screen_EndY_%s_%d", spres[spr], resolution);
+		if (resolution == -1)
+			sprintf(line_buffer,"screen_EndY_%s", spres[spr]);
+		else
+			sprintf(line_buffer,"screen_EndY_%s_%d", spres[spr], resolution);
 		if((ey=Read_Neutrino_Cfg(line_buffer))<0)
 			ey=620;
 
