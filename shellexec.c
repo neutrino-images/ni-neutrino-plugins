@@ -12,7 +12,7 @@
 #include "pngw.h"
 
 
-#define SH_VERSION 2.01
+#define SH_VERSION 2.02
 
 static char CFG_FILE[128]="/var/tuxbox/config/shellexec.conf";
 
@@ -1602,19 +1602,31 @@ int main (int argc, char **argv)
 	spr=Read_Neutrino_Cfg("screen_preset")+1;
 	resolution=Read_Neutrino_Cfg("osd_resolution");
 
-	sprintf(trstr,"screen_StartX_%s_%d", spres[spr], resolution);
+	if (resolution == -1)
+		sprintf(trstr,"screen_StartX_%s", spres[spr]);
+	else
+		sprintf(trstr,"screen_StartX_%s_%d", spres[spr], resolution);
 	if((sx=Read_Neutrino_Cfg(trstr))<0)
 		sx=100;
 
-	sprintf(trstr,"screen_EndX_%s_%d", spres[spr], resolution);
+	if (resolution == -1)
+		sprintf(trstr,"screen_EndX_%s", spres[spr]);
+	else
+		sprintf(trstr,"screen_EndX_%s_%d", spres[spr], resolution);
 	if((ex=Read_Neutrino_Cfg(trstr))<0)
 		ex=1180;
 
-	sprintf(trstr,"screen_StartY_%s_%d", spres[spr], resolution);
+	if (resolution == -1)
+		sprintf(trstr,"screen_StartY_%s", spres[spr]);
+	else
+		sprintf(trstr,"screen_StartY_%s_%d", spres[spr], resolution);
 	if((sy=Read_Neutrino_Cfg(trstr))<0)
 		sy=100;
 
-	sprintf(trstr,"screen_EndY_%s_%d", spres[spr], resolution);
+	if (resolution == -1)
+		sprintf(trstr,"screen_EndY_%s", spres[spr]);
+	else
+		sprintf(trstr,"screen_EndY_%s_%d", spres[spr], resolution);
 	if((ey=Read_Neutrino_Cfg(trstr))<0)
 		ey=620;
 
