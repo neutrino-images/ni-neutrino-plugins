@@ -32,6 +32,7 @@ end
 function unescape_uri(url)
   return url:gsub("%%(%x%x)", hex2char)
 end
+
 function js_extract(data,patern)
 	for  line  in  data:gmatch("(.-};)"  )  do
 		local m = line:match(patern)
@@ -41,7 +42,8 @@ function js_extract(data,patern)
 	end
 	return nil
 end
--- vlc youtube.lua code
+
+--- vlc youtube.lua code
 function js_descramble( sig, js )
 	local descrambler = js_extract( js, "%.set%(\"signature\",([^)]-)%(" )
 	if descrambler == nil then return sig end
@@ -94,86 +96,23 @@ function js_descramble( sig, js )
 	end
 	return sig
 end
-
-function getAlternatevideourl(youtube_url,newname)
-	local id = youtube_url:match('v=(.-)$')
-	local url = 'https://www.youtube.com/get_video_info?video_id=' .. id .. '&el=detailpage&ps=default&eurl=&gl=US&hl=en'
-	local data = getdata(url)
-	if data then
-		local stream_map = string.match( data, "url_encoded_fmt_stream_map[%s+]?=[%s+]?(.-)$" )
-		data = nil
-		if stream_map == nil then
-			return 0
+local jsdata = nil
+function newsig(sig,js_url)
+	if sig and js_url then
+		if jsdata ==  nil then
+			jsdata = getdata("https://www.youtube.com" .. js_url)
 		end
-		stream_map=unescape_uri(stream_map)
-		stream_map = string.gsub( stream_map, "\\u0026", "&" )
-
-		if stream_map == nil then
-			return 0
-		end
-		if stream_map then
-			local count = 0
-			for d in stream_map:gmatch("(.-)[;,]") do
-				local item={}
-				d=unescape_uri(d)
-				local itagstr = d:match('itag=(%w+)')
-				if  itagstr ~= nil and itags[tonumber(itagstr)] then
-					local itagnum = tonumber(itagstr)
-					d=d:gsub("(&itag=%d+)","")
-					local sig = d:match("&s=(%w+%.%w+)")
-					local sigstr = "s"
-					if not sig then
-						sig = d:match("&sig=(%w+%.%w+)")
-						sigstr = "sig"
-					end
-
-					if sig then
-						d=d:gsub("&" .. sigstr .. "=" .. sig,"")
-					end
-					local video_url = d:match("url=(.-)$")
-					if video_url ~= nil then
-						if  itags[itagnum] then
-							if sig then
-								local jsdata = getdata("https://www.youtube.com/watch?v=" .. id .. "&ps=default&eurl=&gl=US&hl=en")
-								local jsurl = jsdata:match('"js":"(.-.js)"')
-								if jsurl then
-									jsurl = jsurl:gsub("\\","")
-									jsurl = "https://www.youtube.com" .. jsurl
-									jsdata = getdata(jsurl)
-									if sig and jsdata then
-										sig = js_descramble(sig,jsdata)
-										video_url=video_url .. "&signature="..sig
-									end
-								else
-									print("player url not found")
-								end
-							end
-							entry = {}
-							entry['url']  = video_url .. "&itag=" .. itagnum
-							entry['band'] = "1" --dummy
-							entry['res1'] = itags[itagnum]:match('(%d+)x')
-							entry['res2'] = itags[itagnum]:match('x(%d+)')
-							entry['name'] = ""
-							if newname then
-								entry['name'] = newname
-							end
-							count = count + 1
-							ret[count] = {}
-							ret[count] = entry
-						end
-					end
-				end
-			end
-			return count
+		if jsdata then
+			return js_descramble( sig, jsdata )
 		end
 	end
-	return 0
+	return nil
 end
 
 function getVideoData(url)
 	if url == nil then return 0 end
 
-	if string.find(url,"www.youtube.com/user/") then --check user link
+	if url:find("www.youtube.com/user/") then --check user link
 		local youtube_user = getdata(url)
 		if youtube_user == nil then return 0 end
 		local youtube_live_url = youtube_user:match('feature=c4.-href="(/watch.-)">')
@@ -181,41 +120,76 @@ function getVideoData(url)
 		url = 'https://www.youtube.com' .. youtube_live_url
 	end
 
+	local video_url = nil
+	local count = 0
 	local data = getdata(url)
 	if data then
-		local m3u_url = data:match('hlsvp.:.(https:\\.-m3u8)') 
+		local m3u_url = data:match('hlsvp.:.(https:\\.-m3u8)')
 		local newname = data:match('<title>(.-)</title>')
-		if m3u_url == nil then
-			local count = getAlternatevideourl(url,newname)
-			return count
-		end
-		m3u_url = m3u_url:gsub("\\", "")
-		local videodata = getdata(m3u_url)
-		local url = ""
-		local band = ""
-		local res1 = ""
-		local res2 = ""
-		local count = 0
-		for band, res1, res2, url in videodata:gmatch('#EXT.X.STREAM.INF.BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-(http.-)\n') do
-			if url ~= nil then
-				entry = {}
-				url = url:gsub("/keepalive/yes","")--fix for new ffmpeg
-				entry['url']  = url
-				entry['band'] = band
-				entry['res1'] = res1
-				entry['res2'] = res2
-				entry['name'] = ""
-				if newname then
-					entry['name'] = newname
+		if m3u_url then
+			m3u_url = m3u_url:gsub("\\", "")
+			local videodata = getdata(m3u_url)
+			for band, res1, res2, url in videodata:gmatch('#EXT.X.STREAM.INF.BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-(http.-)\n') do
+				if url and res1 then
+					url = url:gsub("/keepalive/yes","")--fix for new ffmpeg
+					entry = {}
+					entry['url']  = url
+					entry['band'] = band
+					entry['res1'] = res1
+					entry['res2'] = res2
+					entry['name'] = ""
+					if newname then
+						entry['name'] = newname
+					end
+					count = count + 1
+					ret[count] = {}
+					ret[count] = entry
 				end
-				count = count + 1
-				ret[count] = {}
-				ret[count] = entry
 			end
 		end
-		return count
+		if count > 0 then return count end
+		local myurl = nil
+		local url_map = data:match('"url_encoded_fmt_stream_map":"(.-)"' )
+		for url in url_map:gmatch( "[^,]+" ) do
+			if url then
+				myurl=url:match('url=(.-)$')
+				local myitag = myurl:match('itag=(%w+)')
+				if myurl and myitag ~= nil and itags[tonumber(myitag)] then
+					if url:sub(1, 4) == 'url=' then
+						myurl=url:match('url=(.-)$')
+					else
+						myurl=url:match('url=(.-)$') .. "&" .. url:match('(.-)url')
+					end
+					local s=myurl:match('s=(%w+.%w+)')
+					if s then
+						local js_url= data:match('<script src="([/%w%p]+base%.js)"')
+						local signature = newsig(s,js_url)
+						if signature then
+							myurl=myurl:gsub('s=' .. s ,'signature=' .. signature)
+						end
+					end
+					myurl=myurl:gsub("itag=" .. myitag, "")
+					myurl=myurl:gsub("\\u0026", "&")
+					myurl=myurl:gsub("&&", "&")
+					video_url=unescape_uri(myurl)
+					local itagnum = tonumber(myitag)
+					entry = {}
+					entry['url']  = video_url
+					entry['band'] = "1" --dummy
+					entry['res1'] = itags[itagnum]:match('(%d+)x')
+					entry['res2'] = itags[itagnum]:match('x(%d+)')
+					entry['name'] = ""
+					if newname then
+						entry['name'] = newname
+					end
+					count = count + 1
+					ret[count] = {}
+					ret[count] = entry
+				end
+			end
+		end
 	end
-	return 0
+	return count
 end
 
 if (getVideoData(_url) > 0) then
