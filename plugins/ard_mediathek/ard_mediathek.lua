@@ -463,9 +463,13 @@ function listMissingContent(selectedChannelId, tagId, areaId)
 
 			local count2 = 1
 			local im, vi, hl, st
+			local mandant = s:match('##width##(?%w+=%w+)&#039;')
+			if mandant ==  nil then
+				mandant=""
+			end
 			lRet[i].streams = {}
 			repeat
-				im, p = miniMatch(s, "urlScheme&#039;:&#039;", "##width##&#039;}\"/>", p)
+				im, p = miniMatch(s, "urlScheme&#039;:&#039;", "##width##" .. mandant .. "&#039;}\"/>", p)
 				if p == nil or p > nextP then break end
 				dId, p = miniMatch(s, "documentId=", '" class=', p)
 				if p == nil or p > nextP then break end
@@ -476,7 +480,11 @@ function listMissingContent(selectedChannelId, tagId, areaId)
 				if p == nil or p > nextP then break end
 				st = conv_str(st)
 				st = string.gsub(st, " | UT", "");
-				lRet[i].streams[count2] = {image=im, id=dId, headline=hl, subtitle=st}
+				if im and dId and hl and st then
+					lRet[i].streams[count2] = {image=im, id=dId, headline=hl, subtitle=st}
+				else
+					print("possible parse error, check: " .. tmpDataArea)
+				end
 				count2 = count2 + 1
 			until p == nil or p > nextP or count2 > 10
 			lRet[i].streamCount = count2 - 1
@@ -687,7 +695,7 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 			local hl      = listContent[dId].streams[aktBox].headline
 			local st      = listContent[dId].streams[aktBox].subtitle
 			local picName = tmpPath .. "/" .. string.gsub(listContent[dId].streams[aktBox].image, "/", "_") .. ".jpg"
-			local picUrl  = baseUrl .. listContent[dId].streams[aktBox].image .. "320"
+			local picUrl  = --[[baseUrl .. ]]listContent[dId].streams[aktBox].image .. "320"
 
 			local boxX = x + boxSpacerX * i2 + boxW * (i2-1)
 			local boxY = y + headerH + boxSpacerY * i1 + boxH * (i1-1)
