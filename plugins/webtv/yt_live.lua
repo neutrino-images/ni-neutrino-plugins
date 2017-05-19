@@ -192,7 +192,7 @@ function getVideoData(yurl)
 				end
 			end
 		end
-		if count > 0 and data then
+		if count > 0 then
 			print("TRY",i)
 			break
 		end
