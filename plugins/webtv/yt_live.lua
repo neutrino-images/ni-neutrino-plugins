@@ -109,84 +109,92 @@ function newsig(sig,js_url)
 	return nil
 end
 
-function getVideoData(url)
-	if url == nil then return 0 end
+function getVideoData(yurl)
+	if yurl == nil then return 0 end
 
-	if url:find("www.youtube.com/user/") then --check user link
-		local youtube_user = getdata(url)
+	if yurl:find("www.youtube.com/user/") then --check user link
+		local youtube_user = getdata(yurl)
 		if youtube_user == nil then return 0 end
 		local youtube_live_url = youtube_user:match('feature=c4.-href="(/watch.-)">')
 		if youtube_live_url == nil then return 0 end
-		url = 'https://www.youtube.com' .. youtube_live_url
+		yurl = 'https://www.youtube.com' .. youtube_live_url
 	end
 
 	local video_url = nil
 	local count = 0
-	local data = getdata(url)
-	if data then
-		local m3u_url = data:match('hlsvp.:.(https:\\.-m3u8)')
-		local newname = data:match('<title>(.-)</title>')
-		if m3u_url then
-			m3u_url = m3u_url:gsub("\\", "")
-			local videodata = getdata(m3u_url)
-			for band, res1, res2, url in videodata:gmatch('#EXT.X.STREAM.INF.BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-(http.-)\n') do
-				if url and res1 then
-					url = url:gsub("/keepalive/yes","")--fix for new ffmpeg
-					entry = {}
-					entry['url']  = url
-					entry['band'] = band
-					entry['res1'] = res1
-					entry['res2'] = res2
-					entry['name'] = ""
-					if newname then
-						entry['name'] = newname
+	for i = 1,6 do
+		local data = getdata(yurl)
+		if data then
+			local m3u_url = data:match('hlsvp.:.(https:\\.-m3u8)')
+			local newname = data:match('<title>(.-)</title>')
+			if m3u_url then
+				m3u_url = m3u_url:gsub("\\", "")
+				local videodata = getdata(m3u_url)
+				for band, res1, res2, url in videodata:gmatch('#EXT.X.STREAM.INF.BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-(http.-)\n') do
+					if url and res1 then
+						url = url:gsub("/keepalive/yes","")--fix for new ffmpeg
+						entry = {}
+						entry['url']  = url
+						entry['band'] = band
+						entry['res1'] = res1
+						entry['res2'] = res2
+						entry['name'] = ""
+						if newname then
+							entry['name'] = newname
+						end
+						count = count + 1
+						ret[count] = {}
+						ret[count] = entry
 					end
-					count = count + 1
-					ret[count] = {}
-					ret[count] = entry
+				end
+			end
+			if count > 0 then return count end
+			local myurl = nil
+			local url_map = data:match('"url_encoded_fmt_stream_map":"(.-)"' )
+			if url_map then
+				for url in url_map:gmatch( "[^,]+" ) do
+					if url then
+						myurl=url:match('url=(.-)$')
+						local myitag = myurl:match('itag=(%w+)')
+						if myurl and myitag ~= nil and itags[tonumber(myitag)] then
+							if url:sub(1, 4) == 'url=' then
+								myurl=url:match('url=(.-)$')
+							else
+								myurl=url:match('url=(.-)$') .. "&" .. url:match('(.-)url')
+							end
+							local s=myurl:match('s=(%w+.%w+)')
+							if s then
+								local js_url= data:match('<script src="([/%w%p]+base%.js)"')
+								local signature = newsig(s,js_url)
+								if signature then
+									myurl=myurl:gsub('s=' .. s ,'signature=' .. signature)
+								end
+							end
+							myurl=myurl:gsub("itag=" .. myitag, "")
+							myurl=myurl:gsub("\\u0026", "&")
+							myurl=myurl:gsub("&&", "&")
+							video_url=unescape_uri(myurl)
+							local itagnum = tonumber(myitag)
+							entry = {}
+							entry['url']  = video_url
+							entry['band'] = "1" --dummy
+							entry['res1'] = itags[itagnum]:match('(%d+)x')
+							entry['res2'] = itags[itagnum]:match('x(%d+)')
+							entry['name'] = ""
+							if newname then
+								entry['name'] = newname
+							end
+							count = count + 1
+							ret[count] = {}
+							ret[count] = entry
+						end
+					end
 				end
 			end
 		end
-		if count > 0 then return count end
-		local myurl = nil
-		local url_map = data:match('"url_encoded_fmt_stream_map":"(.-)"' )
-		for url in url_map:gmatch( "[^,]+" ) do
-			if url then
-				myurl=url:match('url=(.-)$')
-				local myitag = myurl:match('itag=(%w+)')
-				if myurl and myitag ~= nil and itags[tonumber(myitag)] then
-					if url:sub(1, 4) == 'url=' then
-						myurl=url:match('url=(.-)$')
-					else
-						myurl=url:match('url=(.-)$') .. "&" .. url:match('(.-)url')
-					end
-					local s=myurl:match('s=(%w+.%w+)')
-					if s then
-						local js_url= data:match('<script src="([/%w%p]+base%.js)"')
-						local signature = newsig(s,js_url)
-						if signature then
-							myurl=myurl:gsub('s=' .. s ,'signature=' .. signature)
-						end
-					end
-					myurl=myurl:gsub("itag=" .. myitag, "")
-					myurl=myurl:gsub("\\u0026", "&")
-					myurl=myurl:gsub("&&", "&")
-					video_url=unescape_uri(myurl)
-					local itagnum = tonumber(myitag)
-					entry = {}
-					entry['url']  = video_url
-					entry['band'] = "1" --dummy
-					entry['res1'] = itags[itagnum]:match('(%d+)x')
-					entry['res2'] = itags[itagnum]:match('x(%d+)')
-					entry['name'] = ""
-					if newname then
-						entry['name'] = newname
-					end
-					count = count + 1
-					ret[count] = {}
-					ret[count] = entry
-				end
-			end
+		if count > 0 and data then
+			print("TRY",i)
+			break
 		end
 	end
 	return count
