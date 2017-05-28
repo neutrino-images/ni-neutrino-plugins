@@ -2,7 +2,6 @@
 -- Attention!!! Adult only      *
 -- 18+                          *
 -- ******************************
-
 cfg.user_age=18
 cfg.youporn_max_pages=5
 
@@ -32,137 +31,132 @@ youporn_category=
 }
 
 function youporn_updatefeed(feed,friendly_name)
-    local rc=false
+	local rc=false
 
-    local ff=youporn_category[feed]
+	local ff=youporn_category[feed]
 
-    if not ff then return false end
+	if not ff then return false end
 
-    local feed_name='youporn_'..string.gsub(feed,'/','_')
-    local feed_m3u_path=cfg.feeds_path..feed_name..'.m3u'
-    local tmp_m3u_path=cfg.tmp_path..feed_name..'.m3u'
-    local feed_url='https://www.youporn.com'..ff..'?'
+	local feed_name='youporn_'..string.gsub(feed,'/','_')
+	local feed_m3u_path=cfg.feeds_path..feed_name..'.m3u'
+	local tmp_m3u_path=cfg.tmp_path..feed_name..'.m3u'
+	local feed_url='https://www.youporn.com'..ff..'?'
 
-    local dfd=io.open(tmp_m3u_path,'w+')
+	local dfd=io.open(tmp_m3u_path,'w+')
 
-    if dfd then
-        dfd:write('#EXTM3U name=\"',friendly_name or feed_name,'\" type=mp4 plugin=youporn\n')
+	if dfd then
+		dfd:write('#EXTM3U name=\"',friendly_name or feed_name,'\" type=mp4 plugin=youporn\n')
+-- 		http.user_agent(cfg.user_agent..'\r\nCookie: age_verified=1')
+		http.user_agent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/538.1 (KHTML, like Gecko) ' ..'\r\n')
+		local page=1
+		while(page<=cfg.youporn_max_pages) do
+			local url=feed_url..'&page='..page
+			if cfg.debug>0 then print('YouPorn try url '..url) end
+			local data=http.download(url)
+			if not data then  return end
 
-        local page=1
-
-	http.user_agent(cfg.user_agent..'\r\nCookie: age_verified=1')
-
-        while(page<=cfg.youporn_max_pages) do
-            local url=feed_url..'&page='..page
-
-            if cfg.debug>0 then print('YouPorn try url '..url) end
-
-            local feed_data=http.download(url)
-	    if not feed_data then  return end
-	    local skipto = feed_data.find(feed_data, "<div class='container'>")
-	    if skipto and #feed_data > skipto then
-		feed_data = string.sub(feed_data,skipto,#feed_data)
-	    end
-	    local anythingtoparse = feed_data.find(feed_data,"<div class=")
-            if feed_data  and anythingtoparse then
-                local n=0
-		for entry in feed_data:gmatch("<div class=(.-)</div>") do
-			local urn = entry:match('<a%s+href="(/watch/.-)"')
-			local name = entry:match('alt=[\'"](.-)[\'"]')
-			local logo = entry:match('img src="(.-)"')
-		    if urn and name then
-			local m=string.find(urn,'?',1,true)
-			if m then urn=urn:sub(1,m-1) end
-			    local f = nil
-			    if logo then
-				f = string.find(logo, 'blankvideobox.png')
-			    end
-			    if f then
-			      logo = string.match(entry,'thumbnail="(.-)"')
-			      if logo == nil then
-				logo=""
-			      end
-			    end
-				if #logo+#name > 235 then
-					if #logo < 235 then
-						local shortname = logo .. name
-						name =shortname:sub(#logo+1, 235)
-					else
-						name = n .. " : to long name"
+			local skipto = data.find(data, "<div class='container'>")
+			if skipto and #data > skipto then
+				data = string.sub(data,skipto,#data)
+			end
+			local anythingtoparse = data.find(data,"<div class=")
+			if data  and anythingtoparse then
+				local n=0
+				for entry in data:gmatch("<div class=(.-)</div>") do
+					local urn = entry:match('<a%s+href="(/watch/.-)"')
+					local name = entry:match('alt=[\'"](.-)[\'"]')
+					local logo = entry:match('img src="(.-)"')
+					if urn and name then
+						local m=string.find(urn,'?',1,true)
+						if m then urn=urn:sub(1,m-1) end
+						local f = nil
+						if logo then
+							f = string.find(logo, 'blankvideobox.png')
+						end
+						if f then
+							logo = string.match(entry,'thumbnail="(.-)"')
+							if logo == nil then
+								logo=""
+							end
+						end
+						if #logo+#name > 235 then
+							if #logo < 235 then
+								local shortname = logo .. name
+								name =shortname:sub(#logo+1, 235)
+							else
+								name = n .. " : to long name"
+							end
+						end
+						dfd:write('#EXTINF:0 logo=',logo,' ,',name,'\n','https://www.youporn.com',urn,'\n')
+						n=n+1
 					end
 				end
-			    dfd:write('#EXTINF:0 logo=',logo,' ,',name,'\n','https://www.youporn.com',urn,'\n')
-			    n=n+1
-		    end
+				if n<1 then page=cfg.youporn_max_pages end
+				data=nil
+			end
+			page=page+1
 		end
+		dfd:close()
 
-		if n<1 then page=cfg.youporn_max_pages end
-
-		feed_data=nil
-	     end
-	page=page+1
-        end
-        dfd:close()
-
-        if util.md5(tmp_m3u_path)~=util.md5(feed_m3u_path) then
-		if os.rename(tmp_m3u_path, feed_m3u_path) then
-			rc=true
+		if util.md5(tmp_m3u_path)~=util.md5(feed_m3u_path) then
+			if os.rename(tmp_m3u_path, feed_m3u_path) then
+				rc=true
+			end
+			if cfg.debug>0 then print('YouPorn feed \''..feed_name..'\' updated') end
 		end
-		if cfg.debug>0 then print('YouPorn feed \''..feed_name..'\' updated') end
-        end
-	util.unlink(tmp_m3u_path)
-    end
+		util.unlink(tmp_m3u_path)
+	end
 
-    return rc
+	return rc
 end
 
 function youporn_sendurl(youporn_url,range)
 
-    http.user_agent(cfg.user_agent..'\r\nCookie: age_verified=1')
-    if plugin_sendurl_from_cache(youporn_url,range) then return end
+	if plugin_sendurl_from_cache(youporn_url,range) then return end
+	http.user_agent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/538.1 (KHTML, like Gecko) ' ..'\r\n')
 
-    local url=nil
-    local clip_page=plugin_download(youporn_url)
-    if clip_page then
-	    local skipto = clip_page.find(clip_page, "sources:")
-	    if skipto and #clip_page > skipto then
-		clip_page = string.sub(clip_page,skipto,#clip_page)
-	    end
-	    clip_page = clip_page:match('sources:(.-)}')
-	     url = clip_page:match("'1080_60':%s+'(.-)',")
-	    if url == nil or #url == 0 then
-		url = clip_page:match("1080:%s+'(.-)',")
-	    end
-	    if url == nil or #url == 0 then
-		url = clip_page:match("'720_60':%s+'(.-)',")
-	    end
-	    if url == nil or #url == 0 then
-		url = clip_page:match("720:%s+'(.-)',")
-	    end
-	    if url == nil or #url == 0 then
-		url = clip_page:match("480:%s+'(.-)',")
-	    end
-	    if url == nil or #url == 0 then
-		url = clip_page:match("240:%s+'(.-)',")
-	    end
-	    if url and #url == 0 then
-		url = nil
-	    end
-        if url then url=string.gsub(url,'&amp;','&') end
+	local url=nil
+	local data=https_download(youporn_url)
+	if data then
+		local skipto = data.find(data, "sources:")
+		if skipto and #data > skipto then
+			data = string.sub(data,skipto,#data)
+		end
+		data = data:match('sources:(.-)}')
+		if data then
+			url = data:match('1080_60:%s+["\'](.-)["\']')
+			if url == nil or #url == 0 then
+				url = data:match('1080:%s+["\'](.-)["\']')
+			end
+			if url == nil or #url == 0 then
+				url = data:match('720_60:%s+["\'](.-)["\']')
+			end
+			if url == nil or #url == 0 then
+				url = data:match('720:%s+["\'](.-)["\']')
+			end
+			if url == nil or #url == 0 then
+				url = data:match('480:%s+["\'](.-)["\']')
+			end
+			if url == nil or #url == 0 then
+				url = data:match('240:%s+["\'](.-)["\']')
+			end
+			if url and #url == 0 then
+				url = nil
+			end
+		end
+		if url then url=string.gsub(url,'&amp;','&') end
 
-    else
-        if cfg.debug>0 then print('Clip is not found') end
-    end
+	else
+		if cfg.debug>0 then print('Clip is not found') end
+	end
 
-    if url then
-        if cfg.debug>0 then print('Real URL: '..url) end
-
-        plugin_sendurl(youporn_url,url,range)
-    else
-        if cfg.debug>0 then print('Real URL is not found') end
-
-        plugin_sendfile('www/corrupted.mp4')
-    end
+	if url then
+		if cfg.debug>0 then print('Real URL: '..url) end
+		plugin_sendurl(youporn_url,url,range)
+	else
+		if cfg.debug>0 then print('Real URL is not found') end
+		plugin_sendfile('www/corrupted.mp4')
+	end
 end
 
 plugins['youporn']={}
