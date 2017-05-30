@@ -124,6 +124,17 @@ function getVideoData(yurl)
 	local count = 0
 	for i = 1,6 do
 		local data = getdata(yurl)
+		if data:find('player%-age%-gate%-content') then
+			local id = yurl:match("/watch%?v=(%w+)")
+			if id then
+				data = getdata('https://www.youtube.com/embed/' .. id)
+				local sts = data:match('"sts":(%d+)')
+				if sts then
+					data = getdata('https://www.youtube.com/get_video_info?video_id=' .. id .. '&eurl=https%3A%2F%2Fyoutube.googleapis.com%2Fv%2F' .. id .. '&sts=' .. sts)
+				end
+			end
+		end
+
 		if data then
 			local m3u_url = data:match('hlsvp.:.(https:\\.-m3u8)')
 			local newname = data:match('<title>(.-)</title>')
@@ -151,11 +162,20 @@ function getVideoData(yurl)
 			if count > 0 then return count end
 			local myurl = nil
 			local url_map = data:match('"url_encoded_fmt_stream_map":"(.-)"' )
+			if url_map == nil then
+				url_map = data:match('url_encoded_fmt_stream_map=(.-)$' )
+				url_map=unescape_uri(url_map)
+			end
 			if url_map then
 				for url in url_map:gmatch( "[^,]+" ) do
 					if url then
 						myurl=url:match('url=(.-)$')
-						local myitag = myurl:match('itag=(%w+)')
+						local myitag = ""
+						if myurl then
+							myitag = myurl:match('itag=(%w+)')
+						else
+							myitag = data:match('fmt_list=(%d+)')
+						end
 						if myurl and myitag ~= nil and itags[tonumber(myitag)] then
 							if url:sub(1, 4) == 'url=' then
 								myurl=url:match('url=(.-)$')
