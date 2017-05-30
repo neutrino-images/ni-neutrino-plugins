@@ -125,7 +125,7 @@ function getVideoData(yurl)
 	for i = 1,6 do
 		local data = getdata(yurl)
 		if data:find('player%-age%-gate%-content') then
-			local id = yurl:match("/watch%?v=(%w+)")
+			local id = yurl:match("/watch%?v=([%w+%p+]+)")
 			if id then
 				data = getdata('https://www.youtube.com/embed/' .. id)
 				local sts = data:match('"sts":(%d+)')
@@ -172,7 +172,7 @@ function getVideoData(yurl)
 						myurl=url:match('url=(.-)$')
 						local myitag = ""
 						if myurl then
-							myitag = myurl:match('itag=(%w+)')
+							myitag = myurl:match('itag=(%d+)')
 						else
 							myitag = data:match('fmt_list=(%d+)')
 						end
