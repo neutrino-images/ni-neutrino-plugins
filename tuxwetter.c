@@ -43,23 +43,20 @@
 #include "resize.h"
 #include "gifdecomp.h"
 
-#define P_VERSION "3.06"
+#define P_VERSION "3.07"
 #define S_VERSION ""
 
 #ifndef HAVE_DREAMBOX_HARDWARE
-char CONVERT_LIST[]="/var/tuxbox/config/tuxwetter/convert.list";
-#define CFG_FILE       "/var/tuxbox/config/tuxwetter/tuxwetter.conf"
-#define MCF_FILE       "/var/tuxbox/config/tuxwetter/tuxwetter.mcfg"
-#define TIME_FILE      "/var/tuxbox/config/tuxwetter/swisstime"
-//#define MISS_FILE    "/var/tuxbox/config/tuxwetter/missing_translations.txt"
-#define START_PIC	"/var/plugins/tuxwet/startbild.jpg"
+#define	             CONFIGDIR "/var/tuxbox/config/tuxwetter"
+#define START_PIC	 CONFIGDIR "/startbild.jpg"
 #else
-char CONVERT_LIST[]="/var/bin/tuxwet/convert.list";
-#define CFG_FILE       "/var/bin/tuxwet/tuxwetter.conf"
-#define MCF_FILE       "/var/bin/tuxwet/tuxwetter.mcfg"
-#define TIME_FILE      "/var/bin/tuxwet/swisstime"
-#define MISS_FILE      "/var/bin/tuxwet/missing_translations.txt"
+#define	             CONFIGDIR "/var/bin/tuxwet"
 #endif
+char CONVERT_LIST[]= CONFIGDIR "/convert.list";
+#define CFG_FILE     CONFIGDIR "/tuxwetter.conf"
+#define MCF_FILE     CONFIGDIR "/tuxwetter.mcfg"
+//#define TIME_FILE    CONFIGDIR "/swisstime"
+//#define MISS_FILE    CONFIGDIR "/missing_translations.txt"
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define ECF_FILE	"/var/tuxbox/config/enigma/config"
 #define BMP_FILE 	"tuxwettr.bmp"
