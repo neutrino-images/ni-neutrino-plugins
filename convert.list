@@ -1,87 +1,313 @@
+null|0
+AM CLOUDS / PM SUN|Vormittags wolkig später sonnig
+AM FOG / PM CLOUDS|Vormittag Nebel / Nachmittag wolkig
+AM FOG / PM SUN|Vormittag Nebel / Nachmittag sonnig 
+AM LIGHT RAIN|vormittags leichter Regen
+AM LIGHT RAIN / WINDSHOWERS / WIND LATE|vorm. leichter Regen, windig
+AM LIGHT SNOW|vormittags leichter Schneefall
+AM RAIN / SNOW SHOWERS|vormittags Regen- u. Schneeschauer
+AM RAIN / SNOW SHOWERS / WIND|vorm. Regen-, Schneeschauer,windig
+AM SHOWERS / WIND|vormittags Schauer, windig
+AM SNOW SHOWERS|vormittags Schneeschauer
+AM SNOW SHOWERS / WIND|vormittags Schneeschauer, windig
+AM SHOWERS|vormittags Schauer
+AM T-STORMS|vormittags Gewitter
+AM|vormittags
+AND|und
+AT|mit
 BLIZZARD|Schneesturm
-BLOWING SNOW|Schneeverwehungen
-CLEAR/SUNNY|sonnig und klar
-CLOUDY |wolkig
-FOG|Nebel
-FREEZING DRIZZLE|gefrierender Nieselregen
-FREEZING FOG|gefrierender Nebel
-HEAVY FREEZING DRIZZLE|starker gefrierender Nieselregen
-HEAVY RAIN|starker Regen
-HEAVY SNOW|starker Schneefall
-ICE PELLETS|Hagel
-LIGHT DRIZZLE|leichter Nieselregen
-LIGHT FREEZING RAIN|leichter gefrierender Regen
-LIGHT RAIN SHOWER|leichter Regenschauer
-LIGHT RAIN|leichter Regen
-LIGHT SHOWERS OF ICE PELLETS|leichter Hagel
-LIGHT SLEET SHOWERS|leichter Graupelschauer
-LIGHT SLEET|leichter Graupel
-LIGHT SNOW SHOWERS|leichter Schneeschauer
-LIGHT SNOW|leichter Schneefall
-MIST|Dunst
-MODERATE OR HEAVY FREEZING RAIN|mäßig gefrierender Regen
-MODERATE OR HEAVY RAIN IN AREA WITH THUNDER|mäßiger Regen/vereinzelt Gewitter
-MODERATE OR HEAVY RAIN SHOWER|mäßiger Regenschauer
-MODERATE OR HEAVY SHOWERS OF ICE PELLETS|mäßiger Hagel
-MODERATE OR HEAVY SLEET SHOWERS|mäßiger Graupelschauer
-MODERATE OR HEAVY SLEET|mäßiger Graupel
-MODERATE OR HEAVY SNOW IN AREA WITH THUNDER|mäßiger Schneefall/vereinzelt Gewitter
-MODERATE OR HEAVY SNOW SHOWERS|mäßige Schneeschauer
-MODERATE RAIN AT TIMES|vereinzelt mäßiger Regen
-MODERATE RAIN|mäßiger Regen
-MODERATE SNOW|mäßiger Schnee
-OVERCAST |bedeckt
-PARTLY CLOUDY |teilweise bewölkt
-PATCHY FREEZING DRIZZLE NEARBY|ungleichmäßiger gefrierender Nieselregen
-PATCHY HEAVY SNOW|ungleichmäßiger schwerer Schneefall
-PATCHY LIGHT DRIZZLE|ungleichmäßiger leichter Nieselregen
-PATCHY LIGHT RAIN IN AREA WITH THUNDER|ungleichmäßiger leichter Regen/vereinzelt Gewitter
-PATCHY LIGHT RAIN|ungleichmäßiger leichter Regen
-PATCHY LIGHT SNOW IN AREA WITH THUNDER|ungleichmäßiger leichter Schneefall/vereinzelt Gewitter
-PATCHY LIGHT SNOW|ungleichmäßiger leichter Schneefall
-PATCHY MODERATE SNOW|ungleichmäßiger mäßiger Schneefall
-PATCHY RAIN NEARBY|vereinzelt ungleichmäßiger Regen
-PATCHY SLEET NEARBY|vereinzelt ungleichmäßiger Graupel
-PATCHY SNOW NEARBY|vereinzelt ungleichmäßiger Schneefall
-SUNNY|sonnig
-THUNDERY OUTBREAKS IN NEARBY|vereinzelt Gewitter
-TORRENTIAL RAIN SHOWER|heftiger Regenschauer
-#
+BLOWING SNOW|Schneetreiben
+CALM|windstill
+CET|MEZ
+CLEAR|heiter
+CLEARING|aufklarend
+CLEAR/SUNNY|klar/sonnig
+CLOUDS|wolkig
+CLOUDS EARLY / CLEARING LATE|wolkig, später aufklarend
+CLOUDY|wolkig
+CLOUDY AND WINDY|wolkig und stürmisch
+CLOUDY / WIND|bewölkt und stürmisch
+DRIFTING SNOW|Schneetreiben
+DRIFTING SNOW AND WINDY|Schneetreiben und stürmisch
+DRIZZLE|Nieselregen
+DRIZZLE AND WINDY|Nieselregen und stürmisch
 E|Ost
 ENE|OstNordOst
 ESE|OstSüdOst
+EXTREME|extrem stark
+FAIR|heiter
+FAIR AND WINDY|Heiter und windig
+FALLING|fallend
+FEW SHOWERS|etwas Schauer
+FEW SNOW SHOWERS|einige Schneeschauer
+FEW SNOW SHOWERS / WIND|einige Schneeschauer, windig
+FIRST QUARTER|zunehmender Halbmond
+FOG|Nebel
+FOG LATE|später neblig
+FOGGY|neblig
+FREEZING DRIZZLE|gefrierender Nieselregen
+FREEZING FOG|gefrierender Nebel
+FREEZING RAIN|Eisregen
+FREEZING RAIN / SLEET|gefrierender Regen, Graupel
+FRIDAY|Freitag
+FULL|Vollmond
+FULL MOON|Vollmond
+GERMANY|Deutschland
+HAZE|dunstig
+HEAVY FREEZING DRIZZLE|stark gefrierender Nieselregen
+HEAVY T-STORM AND WINDY|schwere Gewitter, stürmisch
+HEAVY RAIN|starker Regen
+HEAVY RAIN AT TIMES|zeitweise starker Regen
+HEAVY SNOW|starker Schneefall
+HIGH|hoch
+ICE CRYSTALS|Eiskristalle
+ICE EARLY|anfangs Eisglätte
+ICE PELLETS|Hagel
+ISOLATED T-STORMS|örtlich Gewitter
+ISOLATED|örtlich 
+LAST QUARTER|abnehmender Halbmond
+LIGHT DRIZZLE|leichter Nieselregen
+LIGHT FREEZING DRIZZLE|leichter Nieselregen, überfrierend
+LIGHT FREEZING RAIN|leicht überfrierender Regen
+LIGHT RAIN|leichter Regen
+LIGHT RAIN AND WINDY|leichter Regen, stürmisch
+LIGHT RAIN EARLY|anfangs leichter Regen
+LIGHT RAIN LATE|später leichter Regen
+LIGHT RAIN SHOWER|leichte Schauer 
+LIGHT RAIN SHOWER AND WINDY|leichte Regenschauer, stürmisch
+LIGHT RAIN / WIND|leichter Regen, windig
+LIGHT RAIN / WIND LATE|im Verlauf leichter Regen, windig
+LIGHT SHOWERS OF ICE PELLETS|leichte Hagelschauer
+LIGHT SLEET|Schneeregen oder Regen
+LIGHT SLEET SHOWERS|leichter Graupelschauer
+LIGHT SNOW|leichter Schneefall
+LIGHT SNOW EARLY|anfangs leichter Schneefall
+LIGHT SNOW GRAINSLIGHT SNOW LATE|leichter Schneegriesel
+LIGHT SNOW SHOWER|leichter Schneeschauer
+LIGHT SNOW SHOWERS|leichte Schneeschauer
+LIGHT SNOW AND FREEZING RAIN|leichter Schneefall, gefrierender Regen
+LIGHT SNOW AND WINDY|leichter Schneefall, stürmisch
+LIGHT SNOW / WIND|leichter Schneefall, stürmisch
+LOW|niedrig
+MIST|Dunst
+MIST AND WINDY|Dunst und windig
+MODERATE|mäßig
+MODERATE OR HEAVY FREEZING RAIN|mäßig bis stark gefrierender Regen
+MODERATE OR HEAVY RAIN IN AREA WITH THUNDER|mäßiger Regen im Nahbereich mit Donner 
+MODERATE OR HEAVY RAIN SHOWER|mäßig bis starker Regenschauer
+MODERATE OR HEAVY SHOWERS OF ICE PELLETS|leichte bis starke Hagelschauer
+MODERATE OR HEAVY SLEET|mäßig bis starker Schneeregen
+MODERATE OR HEAVY SLEET SHOWERS|mäßig bis starker Graupelschauer
+MODERATE OR HEAVY SNOW IN AREA WITH THUNDER|mäßig bis starker Schneefall mit Donner
+MODERATE OR HEAVY SNOW SHOWERS|mäßige bis starke Schneeschauer
+MODERATE RAIN|mäßiger Regen
+MODERATE RAIN AT TIMES|zeitweise mäßiger Regen
+MODERATE SNOW|mäßiger Schneefall
+MONDAY|Montag
+MOSTLY CLEAR|überwiegend heiter
+MOSTLY CLOUDY AND WINDY|überwiegend bewölkt, stürmisch
+MOSTLY CLOUDY / WIND|überwiegend bewölkt, stürmisch
+MOSTLY CLOUDY|überwiegend bewölkt
+MOSTLY SUNNY|überwiegend sonnig
+MOSTLY|überwiegend
 N|Nord
+N/A| 
 NE|NordOst
+NEW MOON|Neumond
+NEW|Neumond
 NNE|NordNordOst
 NNW|NordNordWest
 NW|NordWest
+OVERCAST|bedeckt
+PARTLY|teils
+PARTLY CLOUDY|teils wolkig
+PARTLY CLOUDY AND WINDY|teilweise bewölkt und stürmisch
+PARTLY CLOUDY / WIND|teils bewölkt und stürmisch
+PATCHES OF FOG|vereinzelt Nebel
+PATCHY FREEZING DRIZZLE NEARBY|leichter gefrierender Nieselregen in der Nähe
+PATCHY HEAVY SNOW|stellenweise starker Schneefall
+PATCHY LIGHT DRIZZLE|stellenweise leichter Nieselregen
+PATCHY LIGHT RAIN|stellenweise leichter Regen
+PATCHY LIGHT RAIN IN AREA WITH THUNDER|stellenweise leichter Regen mit Donner
+PATCHY LIGHT SNOW|stellenweise leichter Schneefall
+PATCHY LIGHT SNOW IN AREA WITH THUNDER|stellenweise leichter Schneefall mit Donner
+PATCHY MODERATE SNOW|stellenweise mäßiger Schneefall
+PATCHY RAIN NEARBY|stellenweise Regen in der Nähe
+PATCHY SLEET NEARBY|stellenweise Schneeregen in der Nähe
+PATCHY SNOW NEARBY|stellenweise Schneefall in der Nähe
+PM LIGHT RAIN|nachmittags leichter Regen
+PM LIGHT SNOW|nachmittags leichter Schneefall
+PM RAIN / SNOW SHOWERS|nachmittags Regen- u. Schneeschauer
+PM RAIN / SNOW SHOWERS / WIND|nachmittags Regen- u. Schneeschauer / windig
+PM SHOWERS|nachmittags Schauer
+PM SHOWERS / WIND|nachmittags Schauer, windig
+PM SNOW SHOWERS|nachmittags Schneeschauer
+PM SNOW SHOWERS / WIND|nachmittags Schneeschauer / windig
+PM T-STORMS|nachmittags Gewitter
+PM|nachmittags
+RAIN|Regen
+RAIN / FREEZING RAIN|Regen, später gefrierend
+RAIN / SNOW|Regen / Schnee
+RAIN / SNOW SHOWERS|Regen- und Schneeschauer
+RAIN / THUNDER|Regen / Gewitter
+RAIN / WIND|Regen, stürmisch
+RAIN / WINDY|Regen, stürmisch
+RAIN / SNOW SHOWERS EARLY|anfangs Schnee- und Regenschauer
+RAIN / SNOW SHOWERS LATE|später Schnee- und Regenschauer
+RAIN / SNOW SHOWERS / WIND|Regen- Schneeschauer, stürmisch
+RAIN / SNOW SHOWERS / WIND EARLY|Regen- Schneeschauer, stürmisch
+RAIN / SNOW / WIND|stürmisch, Regen und Schnee
+RAIN AND SNOW|Regen und Schnee
+RAIN AND WINDY|Regen, stürmisch
+RAIN EARLY|anfangs Regen
+RAIN LATE|später Regen
+RAIN SHOWER|Regenschauer
+RAIN SHOWER AND WINDY|Regenschauer, stürmisch
+RAIN TO SNOW|Regen, in Schnee übergehend
+RISING|steigend
 S|Süd
+SATURDAY|Samstag
+SCATTERED SHOWERS / WIND|vereinzelt Schauer, stürmisch
+SCATTERED SHOWERS|vereinzelt Schauer
+SCATTERED SNOW SHOWERS|vereinzelt Schneeschauer
+SCATTERED SNOW SHOWERS / WIND|vereinzelt Schneeschauer, stürmisch
+SCATTERED T-STORMS|vereinzelte Gewitter
+SCATTERED|vereinzelt
 SE|SüdOst
+SHOWER|Schauer
+SHOWERS / WIND|Schauer, stürmisch
+SHOWERS EARLY|anfangs Schauer
+SHOWERS IN THE VICINITY|im Verlauf Schauer
+SHOWERS LATE|später Schauer
+SHOWERS|Schauer
+SNOW|Schnee
+SNOW AND WINDY|Schnee, stürmisch
+SNOW EARLY|anfangs Schneefall
+SNOW SHOWERS|Schneeschauer
+SNOW SHOWER|Schneeschauer
+SNOW SHOWERS EARLY|anfangs Schneeschauer
+SNOW SHOWERS LATE|später Schneeschauer
+SNOW SHOWERS / WIND|Schneeschauer, stürmisch
+SNOW SHOWERS / WIND LATE|Schneeschauer, später stürmisch
+SNOW SHOWER / WIND|Schneeschauer, stürmisch
+SNOW TO WINTRY MIX|Schnee, später Schneeregen
+SNOW / WIND|Schnee / Wind
 SSE|SüdSüdOst
 SSW|SüdSüdWest
+STEADY|beständig
+SUNDAY|Sonntag
+SUNNY|sonnig
 SW|SüdWest
+THE|der
+THIRD QUARTER|abnehmender Halbmond
+THUNDER|Gewitter
+THUNDER IN THE VICINITY|Donner in der Umgebung
+THUNDER OUTBREAKS IN NEARBY|Donner-Ausbrüche in der Nähe
+THUNDERY OUTBREAKS IN NEARBY|Gewitter in der Nähe
+THURSDAY|Donnerstag
+TORRENTIAL RAIN SHOWER|sintflutartige Regenschauer
+T-SHOWERS|tropische Schauer
+T-SHOWERS / WIND|tropische Schauer / Wind
+T-STORM|Gewitter
+T-STORM AND WINDY|Gewitter, stürmisch
+T-STORMS|Gewitter
+T-STORMS EARLY|anfangs Gewitter
+T-STORMS LATE|später Gewitter
+TUESDAY|Dienstag
+UNLIMITED|unbegrenzt
+UNKNOWN PRECIP|Niederschlag
+VAR|versch. Richtungen
+VERY HIGH|Sehr hoch
 W|West
+WANING CRESCENT|abnehmende Sichel
+WANING GIBBOUS|abnehmender 3/4 Mond
+WANING HALF, LAST QUARTER|abnehmender Viertelmond
+WAXING CRESCENT|zunehmende Sichel
+WAXING GIBBOUS|zunehmender 3/4 Mond
+WAXING HALF, FIRST QUARTER|zunehmender Viertelmond
+WEDNESDAY|Mittwoch
+WINTRY MIX|Schneeregen
+WINTRY MIX / WIND|Schneeregen, stürmisch
 WNW|WestNordWest
 WSW|WestSüdWest
-#
-MONDAY|Montag
-TUESDAY|Dienstag
-WEDNESDAY|Mittwoch
-THURSDAY|Donnerstag
-FRIDAY|Freitag
-SATURDAY|Samstag
-SUNDAY|Sonntag
-#
-MONDAY_SIG|Mo
-TUESDAY_SIG|Di
-WEDNESDAY_SIG|Mi
-THURSDAY_SIG|Do
-FRIDAY_SIG|Fr
-SATURDAY_SIG|Sa
-SUNDAY_SIG|So
-#
-#Lokalisierung der Bildschirmanzeige
-#
+
+# Lokalisierung der Bildschirmanzeige
+
+Kein Eintrag|
+Bitte warten|
+Fehlende Übersetzungen|
+Keine fehlenden Übersetzungen|
+keine Daten vom Wetterserver erhalten!|
+Tage Vorschau nicht möglich!|
+Ungültige Daten aus tuxwetter.conf|
+Uhr|
+Steuertasten in den Menüs|
+Farbtasten Rot, Grün, Gelb, Blau|
+Direktanwahl Funktionen 1-4|
+Zifferntasten 1-6|
+Direktanwahl Funktionen 5-10|
+Hoch|
+vorheriger Menüeintrag|
+Runter|
+nächster Menüeintrag|
+Rechts (bei mehrseitigen Menüs)|
+eine Seite vorblättern|
+Links (bei mehrseitigen Menüs)|
+eine Seite zurückblättern|
+OK|
+Menüpunkt ausführen|
+Home|
+zurück zum vorigen Menü|
+Menü-Taste (im Hauptmenü)|
+fehlende Übersetzungen anzeigen|
+Standby-Taste|
+Tuxwetter beenden|
+Steuertasten in Daten- und Grafikanzeige|
+vorherigen Eintrag anzeigen|
+nächsten Eintrag anzeigen|
+Links (in Bildanzeige)|
+neu downloaden (für WebCams)|
+Rechts (bei Ani-GIF's)|
+Animation wiederholen|
+Rot (in fehlenden Übersetzungen)|
+Fehlliste löschen|
+OK / Home|
+Aktuelle Anzeige schließen|
+Aktuelles Wetter|
+Standort:|
+Längengrad:|
+Breitengrad:|
+Ortszeit:|
+Aktuelle Uhrzeit:|
+Zeitpunkt der Messung:|
+Bedingung:|
+Temperatur:|
+gefühlt:|
+Luftfeuchtigkeit:|
+Taupunkt:|
+Luftdruck:|
+Wind:|
+windstill|
+von|
+mit|
+Sonnenaufgang:|
+Sonnenuntergang:|
+Bewölkung:|
+Mondphase:|
+Fernsicht:|
+Niederschlag:|
+UV-Index:|
+Regenrisiko:|
+Heute|
+Wochentrend|
+Vorschau für|
+Höchste Temperatur:|
+Tiefste Temperatur:|
+Tageswerte|
+Nachtwerte|
+Bild|
+Wetterdaten für|
+Aktuelles Wetter|
 Januar|
 Februar|
 März|
@@ -94,86 +320,21 @@ September|
 Oktober|
 November|
 Dezember|
-#
-Aktuelle Anzeige schließen|
-Aktuelle Uhrzeit:|
-Aktuelles Wetter|
-Aktuelles Wetter|
-Animation wiederholen|
-Bedingung:|
-beim Download|
-Bild|
-Bitte warten|
-Bitte warten|
-Breitengrad:|
-Tuxwetter beenden|
-Datei kann nicht angezeigt werden.|
-Direktanwahl Funktionen 1-4|
-Direktanwahl Funktionen 5-10|
-eine Seite vorblättern|
-eine Seite zurückblättern|
-Farbtasten Rot, Grün, Gelb, Blau|
-fehlende Übersetzungen anzeigen|
-Fehlende Übersetzungen|
-Fehler|
-Fehlliste löschen|
-Fernsicht:|
 Formatfehler der URL in der tuxwetter.conf|
-gefühlt:|
-Heute|
-Hoch|
-Höchste Temperatur:|
-Höchstwerte|
-Home|
-Kein Eintrag|
-Keine Daten vom Wetterserver erhalten!|
-Keine fehlenden Übersetzungen|
-Längengrad:|
-Links (bei mehrseitigen Menüs)|
-Links (in Bildanzeige)|
-Luftdruck:|
-Luftfeuchtigkeit:|
-Menüpunkt ausführen|
-Menü-Taste (im Hauptmenü)|
-mit|
-Mondphase:|
-nächsten Eintrag anzeigen|
-nächster Menüeintrag|
-Nachtwerte|
-neu downloaden (für WebCams)|
 Nicht unterstütztes Dateiformat|
-OK/Home|
-OK|
-Ortszeit:|
-Rechts (bei Ani-GIF's)|
-Rechts (bei mehrseitigen Menüs)|
-Regenrisiko:|
-Rot (in fehlenden Übersetzungen)|
-Runter|
-Sonnenaufgang:|
-Sonnenuntergang:|
-Standby-Taste|
-Standort:|
-Steuertasten in Daten- und Grafikanzeige|
-Steuertasten in den Menüs|
-Tageswerte|
-Taupunkt:|
-Temperatur:|
-Tiefste Temperatur:|
+Bitte warten|
+Datei kann nicht angezeigt werden.|
+Fehler|
+beim Download|
+Formatfehler der URL in der tuxwetter.conf|
+Wochentrend anzeigen|
+Höchstwerte|
 Tiefstwerte|
 Trend für die kommende Woche|
-Uhr|
-Ungültige Daten aus tuxwetter.conf|
-UV-Index:|
-von|
-vorherigen Eintrag anzeigen|
-vorheriger Menüeintrag|
-Vorschau für|
-Wetterdaten für|
-Wind:|
-windstill|
-Wochentrend anzeigen|
-Wochentrend|
-Zeitpunkt der Messung:|
-Zifferntasten 1-6|
-zurück zum vorigen Menü|
+MONDAY_SIG|Mo
+TUESDAY_SIG|Di
+WEDNESDAY_SIG|Mi
+THURSDAY_SIG|Do
+FRIDAY_SIG|Fr
+SATURDAY_SIG|Sa
+SUNDAY_SIG|So
