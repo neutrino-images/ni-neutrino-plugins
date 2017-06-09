@@ -14,6 +14,10 @@ int fh_php_trans(const char *name, int sx, int sy, int dy, int cs, int line, int
 {
 char tstr[BUFSIZE],rstr[BUFSIZE],*tptr,*xptr,cc,br3flag=0;
 int loop=1, j, first, aline=0, fx=sx, fy=sy, slen, deg=0;
+
+int wxw=ex-sx-((preset)?120:30);		//box width 
+int wyw=ey-sy-((preset)?60:40);		//box height
+
 FILE *fh;
 
 	if(!(fh=fopen(name,"rb")))	return(FH_ERROR_FILE);
@@ -21,7 +25,7 @@ FILE *fh;
 	first=(line==0);
 	*x=0;
 	*y=0;
-	sy+=dy;
+//	sy+=dy;
 	while((loop>0) && (fgets(tstr, sizeof(tstr), fh)))
 	{
 		tptr=tstr+strlen(tstr);
@@ -60,7 +64,14 @@ FILE *fh;
 						}
 						else
 						{
-							if((*(tptr+1)!='#') && (strstr(tptr,"uml;")!=(tptr+2)) && (strstr(tptr,"nbsp;")!=(tptr+1)) && (strstr(tptr,"gt;")!=(tptr+1)) && (strstr(tptr,"lt;")!=(tptr+1)) && (strstr(tptr,"quot;")!=(tptr+1)) && (strstr(tptr,"zlig;")!=(tptr+2)))
+							if ((*(tptr+1)!='#') &&
+								(strstr(tptr,"uml;") != (tptr+2)) &&
+								(strstr(tptr,"nbsp;")!= (tptr+1)) &&
+								(strstr(tptr,"gt;")  != (tptr+1)) &&
+								(strstr(tptr,"lt;")  != (tptr+1)) &&
+								(strstr(tptr,"amp;") != (tptr+1)) &&
+								(strstr(tptr,"quot;")!= (tptr+1)) &&
+								(strstr(tptr,"zlig;")!= (tptr+2)))
 							{
 								rstr[j++]=*tptr++;
 							}
@@ -70,7 +81,14 @@ FILE *fh;
 								cc=' ';
 								switch (*tptr)
 								{
-									case 'a': cc='ä'; break;
+									case 'a':
+										if (strncmp(tptr,"amp;",4)==0) {
+											cc='&';
+										}
+										else {
+											cc='ä';
+										}
+										break;
 									case 'A': cc='Ä'; break;
 									case 'o': cc='ö'; break;
 									case 'O': cc='Ö'; break;
@@ -105,18 +123,18 @@ FILE *fh;
 							}
 						}
 					}
-					if((loop>0) && (sy<(fy+420)))
+					if((loop>0) && (sy<(fy+wyw/*420*/)))
 					{
 						rstr[j]=0;
 						if(plot)
 						{
 							if(!br3flag)
 							{
-								RenderString(rstr, sx, sy, 619, LEFT, cs, (first && highlite)?GREEN:CMCT);
+								RenderString(rstr, sx, sy, wxw/*619*/, LEFT, cs, (first && highlite)?GREEN:CMCT);
 							}
 							else
 							{
-								RenderString(rstr, sx, fx+250, 619, CENTER, FSIZE_BIG, CMCT);
+								RenderString(rstr, sx, fx+250, wxw/*619*/, CENTER, FSIZE_BIG, CMCT);
 							}
 							if(strlen(rstr))
 							{
@@ -140,14 +158,15 @@ FILE *fh;
 				}
 				if(plot)
 				{
-					*cut=(sy>=(fy+420));
+					int ssy = ((preset)?80:25);
+					*cut=(sy>=(fy+wyw/*420*/));
 					if(line)
 					{
-						RenderString("<<", fx, fy, sx, LEFT, FSIZE_MED, CMHT);
+						RenderString("<<", ssy, fy, sx, LEFT, FSIZE_MED, CMHT);
 					}
 					if(*cut)
 					{
-						RenderString(">>", fx, sy, sx, LEFT, FSIZE_MED, CMHT);
+						RenderString(">>", ssy, sy-dy, sx, LEFT, FSIZE_MED, CMHT);
 					}
 				}
 			}

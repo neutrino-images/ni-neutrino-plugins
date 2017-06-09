@@ -39,9 +39,10 @@
 
 int lcd_fd=-1;
 lcd_packed_buffer s;
-
+#if 0 // only dbox2 begin
 int bmp2lcd (char *bildfile) 
 {
+	char bild2lcd [50];
 	char filename[50];
 	char bmpfile[50];
 	
@@ -109,6 +110,7 @@ int bmp2lcd (char *bildfile)
 	}
 	if(colors)
 		free(colors);
+
 	// image
 	line_size = (bh.width*bh.bit_count / 8);
 	bmpline_size = (line_size + 3) & ~3;
@@ -163,7 +165,6 @@ void clear_lcd(void)
 }
 
 //************** bmp.c **********************
-
 
 int bmp2raw(struct bmp_header bh, unsigned char *bmp, lcd_raw_buffer raw) {
 	int x, y, ofs, linesize;
@@ -227,3 +228,4 @@ void raw2raw4bit(lcd_raw_buffer source, lcd_raw4bit_buffer dest) {
 		}
 	}
 }
+#endif // only dbox2 end

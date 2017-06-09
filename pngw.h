@@ -22,7 +22,7 @@
 #ifndef __PNGW_H__
 #define __PNGW_H__
 
-int fh_png_load(const char *filename,unsigned char *buffer,int x,int y);
-int fh_png_getsize(const char *filename,int *x,int *y, int wanted_width, int wanted_height);
+int fh_png_load(const char *filename, unsigned char *buffer, int x, int y);
+int fh_png_getsize(const char *filename, int *x, int *y, int wanted_width, int wanted_height);
 
 #endif

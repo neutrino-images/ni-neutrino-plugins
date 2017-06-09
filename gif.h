@@ -23,7 +23,7 @@
 #define __GIF_H__
 
 int fh_gif_id(const char *name);
-int fh_gif_load(const char *name,unsigned char *buffer,int x,int y);
-int fh_gif_getsize(const char *name,int *x,int *y, int wanted_width, int wanted_height);
+int fh_gif_load(const char *name,char *buffer,int x,int y);
+int fh_gif_getsize(char *name,int *x,int *y, int wanted_width, int wanted_height);
 
 #endif

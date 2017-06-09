@@ -72,6 +72,7 @@ int HTTP_downloadFile(char *URL, char *downloadTarget, int showprogress, int tmo
 		}
 		--i;
 	}
+
 	headerfile = fopen(downloadTarget, "w");
 	if (!headerfile)
 		return res;
@@ -94,7 +95,7 @@ int HTTP_downloadFile(char *URL, char *downloadTarget, int showprogress, int tmo
 						i=0;
 						while(fgets(tstr, strlen(URL), netfile) && !i)
 						{
-							if((pt3=strstr(tstr,"address"))!=NULL)
+							if((pt3=strstr(tstr,"address"))!=NULL && (tstr[0]!='#'))
 							{
 								strcpy(myself,pt3+8);
 								myself[strlen(myself)-1]=0;
@@ -112,14 +113,17 @@ int HTTP_downloadFile(char *URL, char *downloadTarget, int showprogress, int tmo
 				}
 			}
 		}
+
 */		speed=tmo;
 		while(res && repeats--)
 		{
 			curl_easy_setopt(curl, CURLOPT_URL, surl);
 			curl_easy_setopt(curl, CURLOPT_FILE, headerfile);
+#if 0
 			curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, show_progress);
 			curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, show_progress);
 			curl_easy_setopt(curl, CURLOPT_NOPROGRESS, (showprogress)?0:1);
+#endif
 //			curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 			curl_easy_setopt(curl, CURLOPT_USERAGENT, "neutrino/httpdownloader");
 			curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, (ctimo)?ctimo:(30+tmo*45));
@@ -133,7 +137,7 @@ int HTTP_downloadFile(char *URL, char *downloadTarget, int showprogress, int tmo
 			}
 			else
 			{
-				curl_easy_setopt(curl, CURLOPT_PROXY, 0);
+				curl_easy_setopt(curl, CURLOPT_PROXY, NULL);
 			}
 			if(proxyuserpwd && strstr(URL,"//127.0.0.1/")==NULL && strstr(URL,"//localhost/")==NULL)
 			{
