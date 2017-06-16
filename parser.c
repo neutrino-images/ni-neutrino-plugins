@@ -17,7 +17,7 @@
 Interne Variablen Bitte nicht direkt aufrufen!!!
 */
 #ifdef WWEATHER
-#	define MAXITEM	200
+#	define MAXITEM	1000
 #	define MAXMEM	300
 #else
 #	define MAXITEM	1000
@@ -199,6 +199,31 @@ int z;
 	return (strlen(out)==0);
 }
 
+#ifdef WWEATHER
+int prs_get_val2 (int i, int what, int nacht, char *out)
+{
+	int z;
+
+	strcpy(out,data[(what & ~TRANSLATION)+(i*PRE_STEP2)+(nacht*NIGHT_STEP2)]);
+	if(what & TRANSLATION)
+	{
+		for(z=0;z<=ptc;z++)
+		{
+			if (strcasecmp(out,conveng[z])==0)
+			{
+				strcpy (out,convger[z]);
+				return 0;
+			}
+		}
+		if(sscanf(out,"%d",&z)!=1)
+		{
+			prs_check_missing(out);
+		}
+	}
+	return (strlen(out)==0);
+}
+#endif
+
 int prs_get_dbl (int i, int what, int nacht, char *out)
 {
 int ret=1;
@@ -312,12 +337,11 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	FILE *wxfile=NULL;
 	char url[512];
 	char debug[505];
-	
+
 #ifdef WWEATHER
+	char tagname[512];
+	int getold=0, skip=1, tag=0, tcc=0;
 	extern char key[];
-	int d_flag=0;	//data flag ">DATA<"
-	int D_flag=0;	//data flag "[DATA]"
-	int l_flag=0;	//do not change to upper case (URL)
 #else
 	int day_data=PRE_DAY;
 	int previews=9;
@@ -338,7 +362,7 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	exit_ind=system(url);
 	sleep(1);
 */
-	sprintf (url,"http://api.worldweatheronline.com/free/v1/weather.ashx?q=%s&format=xml&num_of_days=%d&includeLocation=yes&key=%s",citycode,num_of_days,key);
+	sprintf (url,"http://api.wunderground.com/api/%s/geolookup/conditions/forecast10day/astronomy/lang:DL/pws:0/q/%s.json",key,citycode);
 	exit_ind=HTTP_downloadFile(url, "/tmp/tuxwettr.tmp", 0, inet, ctmo, 3);
 
 	if(exit_ind != 0)
@@ -357,17 +381,19 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	}
 	else
 	{
+		fgets(debug,5,wxfile);
+		fgets(debug,5,wxfile);
 		fgets(debug,50,wxfile);
 	    	//printf("%s\n",debug);
-		if((debug[45] != 'r')||(debug[46] != 'e')||(debug[47] != 'q'))
+		if((debug[3] != 'r')||(debug[4] != 'e')||(debug[5] != 's'))
 		{
 			fclose(wxfile);
 			return exit_ind;
 		 }
-		else 
+		else
 		{
 			// starting position forcast
-			bc = NA; 
+			bc = NA;
 			strcpy(data[bc],"N/A");
 			bc++;
 
@@ -375,37 +401,80 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 			while (!feof(wxfile))
 			{
 				gettemp=fgetc(wxfile);
-				if (gettemp == '<' || gettemp == ']') rec = 0;
-				if (gettemp == ':') l_flag = 1;
-				if (rec == 1)
+				if(rec==0 && tag==0 && gettemp=='"')
 				{
-					if(!l_flag)
-						data[bc][cc] = toupper(gettemp);
-					else
-						data[bc][cc] = gettemp;
+					tag=1;
+				}
+				if(tag==1 && gettemp!='"' && gettemp!=':')
+				{
+					tagname[tcc]=gettemp;
+					tcc++;
+				}
+				if(getold=='"' && gettemp==':')
+				{
+					tagname[tcc]='\0';
+					tag=0;
+					rec=1;
+
+					if(!strcmp(tagname,"current_observation"))
+					{
+						skip=0;
+					}
+					else if(!strcmp(tagname,"error"))
+					{
+						return exit_ind;
+					}
+
+					getold=gettemp;
+					continue;
+				}
+
+				if(gettemp=='\n')
+				{
+					if(!strcmp(tagname,"")) {
+						continue;
+					}
+
+					//remove last ","
+					if(data[bc][cc-1]==',') {
+
+						cc--;
+					}
+
+					data[bc][cc]='\0';
+					//printf("[%s%d]%s = %s\n",(skip==1?"skip ":""),bc,tagname,data[bc]);
+
+					if(skip==1) {
+						data[bc][0]='\0';
+						tagname[0]='\0';
+					}
+					else {
+						tagname[0]='\0';
+						bc++;
+					}
+
+					rec=0;
+					cc=0;
+					tag=0;
+					tcc=0;
+				}
+
+				if(rec==1 && gettemp!='"')
+				{
+					if(getold==':' && gettemp==' ')
+						continue;
+
+					data[bc][cc]=gettemp;
 					//printf("#2 data[%d][%d] = %c(%d)\n",bc,cc,gettemp,gettemp);
 					cc++;
-					d_flag=1;
-					if(cc == MAXMEM-1) rec = 0;
-				}
-				if (gettemp == '>' || gettemp == '[') rec = 1;
-				if (gettemp == '[' && !D_flag)
-				{
-					rec = 0;
-					D_flag = 1;
-				}
-				if ((gettemp == '<' || gettemp == ']') && d_flag)
-				{
-					data[bc][cc] = '\0';
-					//printf("data[%d][%d] = %s\n",bc,cc,data[bc]);
-					if (cc == ACT_UPTIME) days_count++;
-					bc++;
-					cc = 0;
-					rec = 0;
-					d_flag = 0;
-					D_flag = 0;
-					l_flag = 0;
-				}
+
+					if(cc==MAXMEM-1)
+					{
+						printf("data MAXMEM\n");
+						return exit_ind;
+					}
+ 				}
+				getold=gettemp;
 			}
 		}
 	}

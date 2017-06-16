@@ -23,6 +23,13 @@
 #include FT_CACHE_H
 #include FT_CACHE_SMALL_BITMAPS_H
 
+#ifndef HAVE_DREAMBOX_HARDWARE
+#define CONFIGDIR	"/var/tuxbox/config/tuxwetter"
+#else
+#define	CONFIGDIR	"/var/bin/tuxwet"
+#endif
+#define MISS_FILE	CONFIGDIR "/missing_translations.txt"
+
 //#define WWEATHER
 #define BUFSIZE 	4095
 
@@ -127,6 +134,7 @@ extern unsigned sc[8], tc[8];
 extern int instance;
 int get_instance(void);
 void put_instance(int pval);
+int PaintWideString(int dy, const char *string, int sx, int sy, int maxwidth, int layout, int size, int color);
 
 #define FB_DEVICE	"/dev/fb/0"
 
