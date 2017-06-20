@@ -43,7 +43,7 @@
 #include "resize.h"
 #include "gifdecomp.h"
 
-#define P_VERSION "3.08"
+#define P_VERSION "3.09"
 #define S_VERSION ""
 
 

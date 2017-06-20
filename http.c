@@ -53,12 +53,8 @@ int show_progress( void *clientp, double dltotal, double dlnow, double ultotal, 
 
 int HTTP_downloadFile(char *URL, char *downloadTarget, int showprogress, int tmo, int ctimo, int repeats)
 {
-	CURL *curl;
-	CURLcode res=-1;
-	//char *pt1,*pt2,*pt3=NULL,myself[25];
-	char *tstr=NULL,*surl=URL;
-	FILE *headerfile;
-	//FILE *netfile;
+	CURLcode res = -1;
+	char *surl=URL;
 	int i=strlen(URL),y;
 
 	for(y=0; y<4; y++) // change HTTP to lower case
@@ -73,63 +69,21 @@ int HTTP_downloadFile(char *URL, char *downloadTarget, int showprogress, int tmo
 		--i;
 	}
 
-	headerfile = fopen(downloadTarget, "w");
-	if (!headerfile)
-		return res;
-	curl = curl_easy_init();
-	if(curl)
-	{
-/*		pt1=strstr(URL,"localhost");
-		if(!pt1)
+	FILE *tmpFile = fopen(downloadTarget, "wb");
+	if (tmpFile) {
+		CURL *curl = curl_easy_init();
+		if(curl)
 		{
-			pt1=strstr(URL,"127.0.0.1");
-		}
-		if(pt1)
-		{
-			if((pt2=strchr(pt1,'/'))!=NULL)
-			{
-				if((tstr=malloc(strlen(URL)+20))!=NULL)
-				{
-					if((netfile=fopen("/etc/network/interfaces","r"))!=NULL)
-					{
-						i=0;
-						while(fgets(tstr, strlen(URL), netfile) && !i)
-						{
-							if((pt3=strstr(tstr,"address"))!=NULL && (tstr[0]!='#'))
-							{
-								strcpy(myself,pt3+8);
-								myself[strlen(myself)-1]=0;
-								i=1;
-							}
-						}
-						if(pt3 && i)
-						{
-							*pt1=0;
-							sprintf(tstr,"%s%s%s",URL,myself,pt2);
-							surl=tstr;
-						}
-						fclose(netfile);
-					}
-				}
-			}
-		}
-
-*/		speed=tmo;
-		while(res && repeats--)
-		{
+			curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
+			curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L/*(showprogress)?0:1*/);
+			curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
+			curl_easy_setopt(curl, CURLOPT_WRITEDATA, tmpFile);
+			curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
 			curl_easy_setopt(curl, CURLOPT_URL, surl);
-			curl_easy_setopt(curl, CURLOPT_FILE, headerfile);
-#if 0
-			curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, show_progress);
-			curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, show_progress);
-			curl_easy_setopt(curl, CURLOPT_NOPROGRESS, (showprogress)?0:1);
-#endif
-//			curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-			curl_easy_setopt(curl, CURLOPT_USERAGENT, "neutrino/httpdownloader");
 			curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, (ctimo)?ctimo:(30+tmo*45));
 			curl_easy_setopt(curl, CURLOPT_TIMEOUT, (tmo+1)*60);
-			curl_easy_setopt(curl, CURLOPT_FAILONERROR, 0);
-			curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+			curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 			if(proxyadress && strstr(URL,"//127.0.0.1/")==NULL && strstr(URL,"//localhost/")==NULL)
 			{
 				curl_easy_setopt(curl, CURLOPT_PROXY, proxyadress);
@@ -137,7 +91,7 @@ int HTTP_downloadFile(char *URL, char *downloadTarget, int showprogress, int tmo
 			}
 			else
 			{
-				curl_easy_setopt(curl, CURLOPT_PROXY, NULL);
+				curl_easy_setopt(curl, CURLOPT_PROXY, (char *)0);
 			}
 			if(proxyuserpwd && strstr(URL,"//127.0.0.1/")==NULL && strstr(URL,"//localhost/")==NULL)
 			{
@@ -145,26 +99,19 @@ int HTTP_downloadFile(char *URL, char *downloadTarget, int showprogress, int tmo
 			}
 
 			res = curl_easy_perform(curl);
-			if(res==CURLE_PARTIAL_FILE)
-			{
-				res=CURLE_OK;
+			if (res != CURLE_OK){
+				printf("[%s] curl_easy_perform() failed:%s\n",__func__, curl_easy_strerror(res));
 			}
+			curl_easy_cleanup(curl);
 		}
-		curl_easy_cleanup(curl);
+		fclose(tmpFile);
 	}
-	if(tstr)
-	{
-		free(tstr);
-	}
-	if (headerfile)
-	{
-		fflush(headerfile);
-		fclose(headerfile);
-	}
+
 	if(res)
 	{
 		remove(downloadTarget);
 	}
+
 #if 0
 	if(showprogress)
 	{
