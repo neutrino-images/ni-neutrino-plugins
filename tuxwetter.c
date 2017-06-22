@@ -2910,7 +2910,7 @@ void read_neutrino_osd_conf(int *ex,int *sx,int *ey, int *sy)
 {
 	const char *filename="/var/tuxbox/config/neutrino.conf";
 	const char spres[][4]={"","crt","lcd"};
-	char sstr[4][32]={0};
+	char sstr[4][32]={{0}};
 	int pres=-1, resolution=-1, loop, *sptr[4]={ex, sx, ey, sy};
 	char *buffer;
 	size_t len;

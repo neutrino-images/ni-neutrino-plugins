@@ -76,7 +76,6 @@ int i, err = 0;
     char tempout[80];
     GifByteType *Extension, *CodeBlock;
     GifFileType *GifFileIn = NULL, *GifFileOut = NULL;
-    int GifError = 0;
     for(i=0; i<32; i++)
     {
     	sprintf(tempout,"%s%02d.gif",OutFileName,i);
