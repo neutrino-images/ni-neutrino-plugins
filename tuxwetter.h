@@ -10,9 +10,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <linux/fb.h>
-#if HAVE_DVB_API_VERSION == 3
-#include <linux/input.h>
-#endif
+//#if HAVE_DVB_API_VERSION == 3
+//#include <linux/input.h>
+//#endif
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
@@ -23,9 +23,16 @@
 #include FT_CACHE_H
 #include FT_CACHE_SMALL_BITMAPS_H
 
+#ifndef HAVE_DREAMBOX_HARDWARE
+#define CONFIGDIR	"/var/tuxbox/config/tuxwetter"
+#else
+#define	CONFIGDIR	"/var/bin/tuxwet"
+#endif
+#define MISS_FILE	CONFIGDIR "/missing_translations.txt"
+
+//#define WWEATHER
 #define BUFSIZE 	4095
 
-#define MISS_FILE	"/var/tuxbox/config/tuxwetter/missing_translations.txt"
 
 enum {LEFT, CENTER, RIGHT};
 
@@ -71,7 +78,7 @@ FT_Bool			use_kerning;
 #define KEY_HELP                138
 #define KEY_HOME                102
 #define KEY_EXIT				174
-#define KEY_SETUP               141
+#define KEY_MENU               	139
 #define KEY_PAGEUP              104
 #define KEY_PAGEDOWN            109
 #define KEY_OK           		0x160
@@ -122,7 +129,7 @@ struct fb_fix_screeninfo fix_screeninfo;
 struct fb_var_screeninfo var_screeninfo;
 extern unsigned char rd[],gn[],bl[],tr[];
 
-int startx, starty, sx, ex, sy, ey, debounce, rblock;
+int startx, starty, sx, ex, sy, ey, preset, debounce, rblock;
 extern unsigned sc[8], tc[8];
 extern int instance;
 int get_instance(void);

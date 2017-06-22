@@ -1,1 +1,1 @@
-arm-cx2450x-linux-gnueabi-gcc -g -o tuxwetter tuxwetter.c gfx.c io.c text.c parser.c php.c http.c jpeg.c fb_display.c resize.c pngw.c gif.c -L$PREFIX/lib -I$PREFIX/include -I$PREFIX/include/freetype2 -O2 -lfreetype -lcurl -lz -ljpeg  -lpng -lungif -DWWEATHER gifdecomp.c
+arm-cx2450x-linux-gnueabi-gcc -g -o tuxwetter tuxwetter.c gfx.c io.c text.c parser.c php.c http.c jpeg.c fb_display.c resize.c pngw.c gif.c -L$PREFIX/lib -I$PREFIX/include -I$PREFIX/include/freetype2 -O2 -lfreetype -lcrypto -lssl -lcurl -lz -ljpeg  -lpng -lgif -DWWEATHER gifdecomp.c

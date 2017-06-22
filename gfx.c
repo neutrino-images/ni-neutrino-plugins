@@ -4,7 +4,7 @@
 #include "tuxwetter.h"
 #include "gfx.h"
 
-typedef struct { unsigned char width_lo; unsigned char width_hi; unsigned char height_lo; unsigned char height_hi; 	unsigned char transp; } IconHeader;
+//typedef struct { unsigned char width_lo; unsigned char width_hi; unsigned char height_lo; unsigned char height_hi; 	unsigned char transp; } IconHeader;
 
 char circle[] =
 {
@@ -197,6 +197,7 @@ void PaintIcon(char *filename, int x, int y, unsigned char offset)
 	return;
 }
 #endif
+
 /******************************************************************************
  * RenderLine
  ******************************************************************************/

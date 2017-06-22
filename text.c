@@ -145,7 +145,7 @@ int stringlen = 0;
 					else
 					{
 						found=0;
-						for(i=0; i<sizeof(sc) && !found; i++)
+						for(i=0; i<sizeof(sc)/sizeof(sc[0]) && !found; i++)
 						{
 							if(*string==sc[i])
 							{
@@ -227,7 +227,7 @@ int RenderString(char *string, int sx, int sy, int maxwidth, int layout, int siz
 				++rptr;
 				rc=*rptr;
 				found=0;
-				for(i=0; i<sizeof(sc) && !found; i++)
+				for(i=0; i<sizeof(sc)/sizeof(sc[0]) && !found; i++)
 				{
 					if(rc==sc[i])
 					{
@@ -264,19 +264,48 @@ int RenderString(char *string, int sx, int sy, int maxwidth, int layout, int siz
 			}
 			else
 			{
-				if (*rptr==0xC3)
+				int uml = 0;
+				switch(*rptr)    /* skip Umlauts */
 				{
-					++rptr;
-					switch(*rptr)
+					case '\xc4':
+					case '\xd6':
+					case '\xdc':
+					case '\xe4':
+					case '\xf6':
+					case '\xfc':
+					case '\xdf': uml=1; break;
+				}
+				if (uml == 0)
+				{
+					// UTF8_to_Latin1 encoding
+					if (((*rptr) & 0xf0) == 0xf0)      /* skip (can't be encoded in Latin1) */
 					{
-					case 0x84: *rptr='Ä'; break;
-					case 0x96: *rptr='Ö'; break;
-					case 0x9C: *rptr='Ü'; break;
-					case 0xA4: *rptr='ä'; break;
-					case 0xB6: *rptr='ö'; break;
-					case 0xBC: *rptr='ü'; break;
-					case 0x9F: *rptr='ß'; break;
-					default  : *rptr='.'; break;
+						rptr++;
+						if ((*rptr) == 0)
+							*rptr='\x3f'; // ? question mark
+						rptr++;
+						if ((*rptr) == 0)
+							*rptr='\x3f';
+						rptr++;
+						if ((*rptr) == 0)
+							*rptr='\x3f';
+					}
+					else if (((*rptr) & 0xe0) == 0xe0) /* skip (can't be encoded in Latin1) */
+					{
+						rptr++;
+						if ((*rptr) == 0)
+							*rptr='\x3f';
+						rptr++;
+						if ((*rptr) == 0)
+							*rptr='\x3f';
+					}
+					else if (((*rptr) & 0xc0) == 0xc0)
+					{
+						char c = (((*rptr) & 3) << 6);
+						rptr++;
+						if ((*rptr) == 0)
+							*rptr='\x3f';
+						*rptr = (c | ((*rptr) & 0x3f));
 					}
 				}
 				if((charwidth = RenderChar(*rptr, sx, sy, ex, varcolor)) == -1) return sx; /* string > maxwidth */
@@ -339,7 +368,7 @@ char rc,*rptr=src,*tptr=src;
 			++rptr;
 			rc=*rptr;
 			found=0;
-			for(i=0; i<sizeof(sc) && !found; i++)
+			for(i=0; i<sizeof(sc)/sizeof(sc[0]) && !found; i++)
 			{
 				if(rc==sc[i])
 				{

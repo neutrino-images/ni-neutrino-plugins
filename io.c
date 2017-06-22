@@ -30,7 +30,7 @@ int InitRC(void)
 	rc = open(RC_DEVICE, O_RDONLY);
 	if(rc == -1)
 	{
-		perror("msgbox <open remote control>");
+		perror("tuxwetter <open remote control>");
 		exit(1);
 	}
 	fcntl(rc, F_SETFL, O_NONBLOCK | O_SYNC);

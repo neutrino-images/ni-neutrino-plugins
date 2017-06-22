@@ -18,7 +18,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
- * $Id: tuxwetter.c,v 3.18 2010/06/18 20:00 SnowHead $
  */
 
 //getline needed #define _GNU_SOURCE
@@ -44,21 +43,15 @@
 #include "resize.h"
 #include "gifdecomp.h"
 
-#define P_VERSION "3.05"
+#define P_VERSION "3.09"
+#define S_VERSION ""
 
-#ifndef HAVE_DREAMBOX_HARDWARE
-char CONVERT_LIST[]="/var/tuxbox/config/tuxwetter/convert.list";
-#define CFG_FILE 	"/var/tuxbox/config/tuxwetter/tuxwetter.conf"
-#define MCF_FILE 	"/var/tuxbox/config/tuxwetter/tuxwetter.mcfg"
-#define TIME_FILE	"/var/tuxbox/config/tuxwetter/swisstime"
-//#define MISS_FILE	"/var/tuxbox/config/tuxwetter/missing_translations.txt"
-#else
-char CONVERT_LIST[]="/var/bin/tuxwet/convert.list";
-#define CFG_FILE 	"/var/bin/tuxwet/tuxwetter.conf"
-#define MCF_FILE 	"/var/bin/tuxwet/tuxwetter.mcfg"
-#define TIME_FILE	"/var/bin/tuxwet/swisstime"
-#define MISS_FILE	"/var/bin/tuxwet/missing_translations.txt"
-#endif
+
+char CONVERT_LIST[]= CONFIGDIR "/convert.list";
+#define CFG_FILE     CONFIGDIR "/tuxwetter.conf"
+#define MCF_FILE     CONFIGDIR "/tuxwetter.mcfg"
+//#define TIME_FILE    CONFIGDIR "/swisstime"
+#define START_PIC	 CONFIGDIR "/startbild.jpg"
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define ECF_FILE	"/var/tuxbox/config/enigma/config"
 #define BMP_FILE 	"tuxwettr.bmp"
@@ -73,7 +66,7 @@ char CONVERT_LIST[]="/var/bin/tuxwet/convert.list";
 static char TCF_FILE[128]="";
 
 #define LIST_STEP 	10
-#define MAX_FUNCS	2+10
+#define MAX_FUNCS   2+10
 #define LCD_CPL 	12
 #define LCD_RDIST 	10
 
@@ -83,7 +76,7 @@ char par[32]="1005530704", key[32]="a9c95f7636ad307b";
 void TrimString(char *strg);
 
 // Color table stuff
-static char menucoltxt[][25]={"Content_Selected_Text","Content_Selected","Content_Text","Content","Content_inactive_Text","Content_inactive","Head_Text","Head"};
+static const char menucoltxt[][25]={"Content_Selected_Text","Content_Selected","Content_Text","Content","Content_inactive_Text","Content_inactive","Head_Text","Head"};
 //static char spres[][5]={"","_crt","_lcd"};
 
 //#define FONT "/usr/share/fonts/md_khmurabi_10.ttf"
@@ -131,26 +124,27 @@ int Get_Menu();
 void ShowInfo(MENU *m);
 
 // Misc
-char NOMEM[]="Tuxwetter <Out of memory>\n";
+const char NOMEM[]="Tuxwetter <Out of memory>\n";
 unsigned char *lfb = 0, *lbb = 0;
 int intype=0, show_icons=0, gmodeon=0, ctmo=0, metric=1, loadalways=0, radius=0;
 char city_code[30] = "";
 char city_name[50] = "";
 unsigned int alpha=0x0202;
 int show_splash=0;
-char lastpicture[BUFSIZE]="";
-char nstr[BUFSIZE]="";
+char lastpicture[BUFSIZE]={0};
+char nstr[BUFSIZE]={0};
 char *trstr;
 char *htmstr;
 unsigned char *proxyadress=NULL, *proxyuserpwd=NULL;
-char INST_FILE[]="/tmp/rc.locked";
-char LCDL_FILE[]="/tmp/lcd.locked";
+const char INST_FILE[]="/tmp/rc.locked";
+//char LCDL_FILE[]="/tmp/lcd.locked";
 int instance=0;
+int rclocked=0;
 
 int get_instance(void)
 {
-FILE *fh;
-int rval=0;
+	FILE *fh;
+	int rval=0;
 
 	if((fh=fopen(INST_FILE,"r"))!=NULL)
 	{
@@ -162,16 +156,20 @@ int rval=0;
 
 void put_instance(int pval)
 {
-FILE *fh;
+	FILE *fh;
 
 	if(pval)
 	{
+		if (!rclocked) {
+			rclocked=1;
+			system("pzapit -lockrc > /dev/null");
+		}
 		if((fh=fopen(INST_FILE,"w"))!=NULL)
 		{
 			fputc(pval,fh);
 			fclose(fh);
 		}
-		if(pval==1)
+/*		if(pval==1)
 		{
 			if((fh=fopen(LCDL_FILE,"w"))!=NULL)
 			{
@@ -179,18 +177,31 @@ FILE *fh;
 				fclose(fh);
 			}
 		}
-	}
+*/	}
 	else
 	{
 		remove(INST_FILE);
-		remove(LCDL_FILE);
+		system("pzapit -unlockrc > /dev/null");
+//		remove(LCDL_FILE);
 	}
 }
 
 static void quit_signal(int sig)
 {
+	char *txt=NULL;
+	switch (sig)
+	{
+		case SIGINT:  txt=strdup("SIGINT");  break;
+		case SIGTERM: txt=strdup("SIGTERM"); break;
+		case SIGQUIT: txt=strdup("SIGQUIT"); break;
+		case SIGSEGV: txt=strdup("SIGSEGV"); break;
+		default:
+			txt=strdup("UNKNOWN"); break;
+	}
+
+	printf("Tuxwetter Version %s%s killed, signal %s(%d)\n", P_VERSION, S_VERSION, txt, sig);
 	put_instance(get_instance()-1);
-	printf("tuxwetter Version %s killed\n",P_VERSION);
+	free(txt);
 	exit(1);
 }
 
@@ -208,7 +219,7 @@ FILE *fh;
 int Read_Neutrino_Cfg(char *entry)
 {
 FILE *nfh;
-char tstr [512], *cfptr=NULL;
+char tstr[512]={0}, *cfptr=NULL;
 int rv=-1,styp=0;
 
 	if((((nfh=fopen(NCF_FILE,"r"))!=NULL)&&(styp=1)) || ((((nfh=fopen(ECF_FILE,"r"))!=NULL))&&(styp=2)))
@@ -241,7 +252,7 @@ int rv=-1,styp=0;
 					rv=-1;
 				}
 			}
-//			printf("%s\n%s=%s -> %d\n",tstr,entry,cfptr,rv);
+			//printf("%s\n%s=%s -> %d\n",tstr,entry,cfptr,rv);
 		}
 		fclose(nfh);
 	}
@@ -336,18 +347,6 @@ int ReadConf(char *iscmd)
 							intype=2;
 						}
 				}
-
-/*			if(strstr(line_buffer,"FONT=") == line_buffer)
-			{
-				strcpy(FONT,strchr(line_buffer,'=')+1);
-			}
-			if(strstr(line_buffer,"FONTSIZE=") == line_buffer)
-			{
-				sscanf(strchr(line_buffer,'=')+1,"%d",&FSIZE_MED);
-				FSIZE_FSIZE_BIG=(FSIZE_MED*4)/3;
-				FSIZE_SMALL=(FSIZE_MED*4)/5;
-			}
-*/
 		}
 	}
 	if(fd_conf)
@@ -357,10 +356,8 @@ int ReadConf(char *iscmd)
 
 int PaintWideString(int dy/*linespace*/, const char *string, int sx, int sy, int maxwidth, int layout, int size, int color)
 {
-	char vstr[512],tstr[512];
-	int tc	= 0;
-	vstr[0]	= '\0';
-	vstr[0]	= '\0';
+	char vstr[512]={0},tstr[512]={0};
+	int tc = 0;
 
 	char* txt= (char*) string;
 
@@ -412,7 +409,7 @@ int Transform_Entry(char *src, char *trg)
 {
 int tret=-1,fcnt,fpos,tval,ferr,tsub;
 int noprint,rndval,loctime=0;
-char /*pstr[512],nstr[512],dstr[50],*/fstr[5],*cptr,*tptr,*aptr;
+char /*pstr[512]={0},nstr[512]={0},dstr[50]={0},*/fstr[5]={0},*cptr,*tptr,*aptr;
 time_t stime;
 struct tm *tltime;
 
@@ -474,8 +471,7 @@ struct tm *tltime;
 		{
 			tltime=gmtime(&stime);
 		}	
-//		strncpy(nstr,src,cptr-src);
-//		++cptr;
+
 		fpos=0;
 		ferr=0;
 		tval=0;
@@ -858,10 +854,12 @@ char *lcptr = NULL, *lcstr= NULL, *lcdptr = NULL;
 			case KEY_VOLUMEUP:	++m->act_entry;
 					break;
 
-			case KEY_PAGEUP :	m->act_entry-=10;
+			case KEY_LEFT:
+			case KEY_PAGEUP:	m->act_entry-=10;
 					break;
 
-			case KEY_PAGEDOWN :	m->act_entry+=10;
+			case KEY_RIGHT:
+			case KEY_PAGEDOWN:	m->act_entry+=10;
 					break;
 
 			case KEY_OK:
@@ -886,7 +884,7 @@ char *lcptr = NULL, *lcstr= NULL, *lcdptr = NULL;
 				mloop=0;
 				break;
 
-			case KEY_SETUP:
+			case KEY_MENU:
 				rv=-98;
 				mloop=0;
 				break;
@@ -1119,11 +1117,13 @@ FILE *fh;
 
 void ShowInfo(MENU *m)
 {
-	int scrollbar_len, scrollbar_ofs, scrollbar_cor, loop;
-	int index=m->act_entry,tind=m->act_entry, sbw=(m->num_entrys>10)?14:0;
-	char tstr[BUFSIZE], *tptr;
-	int moffs=35, ixw=400, iyw=(m->num_entrys<10)?((m->num_entrys+1)*30+moffs):375, dy, my, mh=iyw-moffs-radius-8, toffs, soffs=4, isx, isy;
-	dy=(m->num_entrys<10)?30:(mh/11);
+	double scrollbar_len, scrollbar_ofs, scrollbar_cor;
+	int loop, index=m->act_entry,tind=m->act_entry, sbw=(m->num_entrys > LIST_STEP)?14:0;
+	char tstr[BUFSIZE]={0}, *tptr=NULL;
+	int moffs=35, roffs=8, ixw=400, iyw=(m->num_entrys < LIST_STEP)?((m->num_entrys+1)*30+moffs):375, dy, my, mh, toffs, soffs=4, isx, isy;
+
+	mh=iyw-moffs-roffs-(radius?4:0);
+	dy=(m->num_entrys < LIST_STEP)?30:(mh/(LIST_STEP+1));
 	toffs=dy/2;
 	my=moffs+dy+toffs;
 	
@@ -1136,7 +1136,7 @@ void ShowInfo(MENU *m)
 //	RenderBox(0, 0, ixw, iyw, GRID, CMCS);
 
 	// titlebar
-	RenderBox(isx+2, isy+2, ixw-2, moffs+5, radius, CMH);
+	RenderBox(isx+2, isy-2, ixw-2, moffs+roffs, radius, CMH);
 
 	//selectbar
 	RenderBox(isx+2, isy+moffs+toffs+soffs+(index%10)*dy+2, ixw-sbw-2, dy+2, radius, CMCS);
@@ -1145,12 +1145,12 @@ void ShowInfo(MENU *m)
 	if(sbw)
 	{
 		//sliderframe
-		RenderBox(isx+ixw-sbw, isy+moffs+8, sbw, mh, radius, CMCP1);
+		RenderBox(isx+ixw-sbw, isy+moffs+roffs, sbw, mh, radius, CMCP1);
 		//slider
-		scrollbar_len = (double)mh / (double)((m->num_entrys/LIST_STEP+1)*LIST_STEP);
-		scrollbar_ofs = scrollbar_len*(double)((index/LIST_STEP)*LIST_STEP);
+		scrollbar_len = (double)(mh-4) / (double)(((m->num_entrys-1)/LIST_STEP+1)*LIST_STEP);
+		scrollbar_ofs = scrollbar_len*(double)((index/LIST_STEP)*LIST_STEP)+roffs;
 		scrollbar_cor = scrollbar_len*(double)LIST_STEP;
-		RenderBox(isx+ixw-sbw, isy+moffs + scrollbar_ofs+8, sbw,  scrollbar_cor , radius, CMCP3);
+		RenderBox(isx+ixw-sbw+2, isy+moffs+scrollbar_ofs+2, sbw-4, scrollbar_cor, radius, CMCP3);
 	}
 
 	// Title text
@@ -1183,10 +1183,10 @@ void ShowInfo(MENU *m)
 			case 2: RenderCircle(isx+9,isy+my-15,YELLOW); break;
 			case 3: RenderCircle(isx+9,isy+my-15,BLUE0);  break;
 /*
-			case 0: PaintIcon("/share/tuxbox/neutrino/icons/rot.raw",9,my-17,1); break;
-			case 1: PaintIcon("/share/tuxbox/neutrino/icons/gruen.raw",9,my-17,1); break;
-			case 2: PaintIcon("/share/tuxbox/neutrino/icons/gelb.raw",9,my-17,1); break;
-			case 3: PaintIcon("/share/tuxbox/neutrino/icons/blau.raw",9,my-17,1); break;
+			case 0: PaintIcon("/share/tuxbox/neutrino/icons/rot.png"  ,isx+25,isy+my-17, 16, 16); break;
+			case 1: PaintIcon("/share/tuxbox/neutrino/icons/gruen.png",isx+25,isy+my-17, 16, 16); break;
+			case 2: PaintIcon("/share/tuxbox/neutrino/icons/gelb.png" ,isx+25,isy+my-17, 16, 16); break;
+			case 3: PaintIcon("/share/tuxbox/neutrino/icons/blau.png" ,isx+25,isy+my-17, 16, 16); break;
 */
 			default:
 				sprintf(tstr,"%1d",(loop % 10)-3);
@@ -1209,9 +1209,8 @@ static int prs_get_city(void)
 char *tptr;
 int cpos;
 int res;
-int len;
 
-	len=strlen(menu.list[menu.act_entry]->entry);
+	int len=strlen(menu.list[menu.act_entry]->entry);
 
 	if ((tptr=strchr(menu.list[menu.act_entry]->entry,','))!=NULL)
 	{
@@ -1245,7 +1244,6 @@ int len;
 
 void clear_screen(void)
 {
-//	for(; sy <= ey; sy++) memset(lbb + sx + var_screeninfo.xres*(sy),TRANSP, ex-sx + 1);
 	memset(lbb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres);
 	memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
 }
@@ -1259,29 +1257,37 @@ void show_data(int index)
 	int itmp;
 #endif
 
-char vstr[512],v2str[512],rstr[512],tstr[512],icon[60];
-int vy=70,col1=40,col2=340;
+char vstr[512]={0},v2str[512]={0},rstr[512]={0},tstr[512]={0},icon[60]={0};
+int col1=40, vy=70;
+int col2=((preset)?340:300);
 
-
-int wxw=ex-sx-10;		//box width 
-int wyw=ey-sy;			//box height
+int wxw=ex-sx-((preset)?120:30);  //box width
+int wyw=ey-sy-((preset)?50:40);   //box height
 int nc=10;			//table columns
 int gys=vy;			//table space top
 int gysf=34;			//table space bottom
 int gxs=40;			//table space left
+//int gxw=((wxw-(gxs*2))/nc) * nc;	//table width
 int gicw=((wxw-(gxs*2))/nc);	//table data width
 int gxw=gicw*nc;		//table width
 int gywf=100;			//table footer height
 int gyw=wyw-vy-gywf-gysf;	//table height
-int dy=26;			//linespace
+//int gicw=gxw/nc;			//table data width
 int vxs=0,wsx,wsy;
 int prelate=0;
 int rcd;
-int HMED=22;
+int HMED=((preset)?22:20);
+int dy=26;			//linespace
 int slim=0;			//using 720x576
+
 time_t atime;
 struct tm *sltime;
-char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
+char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
+
+	//recalculate wigth
+	gicw += ((gicw%10) > 5 ? 10-(gicw%10) : -(gicw%10)); //rounded table data width, needing for smoothed curves
+	gxw=gicw*nc;
+	gxs=(wxw-gxw)/2;
 
 	//recalculate wigth
 	gicw += ((gicw%10) > 5 ? 10-(gicw%10) : -(gicw%10)); //rounded table data width, needing for smoothed curves
@@ -1305,7 +1311,7 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 	if(index!=1)
 	{
 		RenderBox(wsx, wsy, wxw, wyw, radius, CMC);
-		RenderBox(wsx+2, wsy+2, wxw-2, 44, radius, CMH);
+		RenderBox(wsx+2, wsy+2, wxw-4, 44, radius, CMH);
 	}
 	else
 	{
@@ -1318,19 +1324,21 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 	strcpy(cun,prs_translate("Uhr",CONVERT_LIST));
 	if(!metric)
 	{
-		sprintf(tun,"F");
-		sprintf(sun,"mph");
-		sprintf(dun,"mi");
-		sprintf(pun,"in");
-		*cun=0;
+		sprintf(tun,"F");     // Fahrenheit
+		sprintf(sun,"mph");   // miles per hour
+		sprintf(dun,"miles");
+		sprintf(pun,"inch");    // millibar
+		sprintf(iun,"inch");
+		*cun=0;               // Uhrzeit
 	}
 	if(index==-99)
 	{
 		int i;
 		unsigned char grstr[XL+1]={'G'^XX,'r'^XX,'\xFC'^XX,'\xDF'^XX,'e'^XX,' '^XX,'v'^XX,'o'^XX,'m'^XX,' '^XX,'N'^XX,'e'^XX,'w'^XX,'-'^XX,'T'^XX,'u'^XX,'x'^XX,'w'^XX,'e'^XX,'t'^XX,'t'^XX,'e'^XX,'r'^XX,'-'^XX,'T'^XX,'e'^XX,'a'^XX,'m'^XX,'!'^XX,' '^XX,' '^XX,';'^XX,'-'^XX,')'^XX,' '^XX,' '^XX,'w'^XX,'w'^XX,'w'^XX,'.'^XX,'k'^XX,'e'^XX,'y'^XX,'w'^XX,'e'^XX,'l'^XX,'t'^XX,'-'^XX,'b'^XX,'o'^XX,'a'^XX,'r'^XX,'d'^XX,'.'^XX,'c'^XX,'o'^XX,'m'^XX,0};
 
-		sprintf(rstr,"Tuxwetter Version %s",P_VERSION);
-		RenderString(rstr, 0, 34, wxw, CENTER, FSIZE_BIG, CMHT);
+		dy = ((preset)?dy:22);
+		sprintf(rstr,"Tuxwetter    Version %s%s",P_VERSION,S_VERSION);
+		RenderString(rstr, wsx, wsy+34, wxw, CENTER, FSIZE_BIG, CMHT);
 
 		sprintf(rstr,"%s",prs_translate("Steuertasten in den Menüs",CONVERT_LIST));
 		RenderString(rstr, 0, vy, wxw, CENTER, HMED, GREEN);
@@ -1411,7 +1419,7 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 		sprintf(rstr,"%s",prs_translate("nächsten Eintrag anzeigen",CONVERT_LIST));
 		RenderString(rstr, col2, vy, wxw-col2, LEFT, HMED, CMCT);
 		vy+=dy;
-/*
+
 		sprintf(rstr,"%s",prs_translate("Links (in Bildanzeige)",CONVERT_LIST));
 		RenderString(rstr, col1, vy, col2-col1, LEFT, HMED, CMCT);
 		sprintf(rstr,"%s",prs_translate("neu downloaden (für WebCams)",CONVERT_LIST));
@@ -1423,7 +1431,7 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 		sprintf(rstr,"%s",prs_translate("Animation wiederholen",CONVERT_LIST));
 		RenderString(rstr, col2, vy, wxw-col2, LEFT, HMED, CMCT);
 		vy+=dy;
-*/
+
 		sprintf(rstr,"%s",prs_translate("Rot (in fehlenden Übersetzungen)",CONVERT_LIST));
 		RenderString(rstr, col1, vy, col2-col1, LEFT, HMED, CMCT);
 		sprintf(rstr,"%s",prs_translate("Fehlliste löschen",CONVERT_LIST));
@@ -1457,13 +1465,16 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 
 			RenderBox(wsx, wsy, wxw, wyw, radius, CMC);
 			RenderBox(wsx, wsy, wxw, 44, radius, CMH);
-			sprintf(rstr,"%s %d %s",prs_translate("Trend für die nächsten",CONVERT_LIST),nc,prs_translate("Tage",CONVERT_LIST));
+			sprintf(rstr,"%s %d %s",prs_translate("Trend für die kommende Woche",CONVERT_LIST),nc,prs_translate("Tage",CONVERT_LIST));
 			RenderString(rstr, wsx, wsy+34, wxw, CENTER, FSIZE_BIG, CMHT);
 			RenderLine(gxs,gys,gxs,gys+gyw+gywf,CMCIT);
 			RenderLine(gxs+1,gys,gxs+1,gys+gyw+gywf,CMCIT);
 			for(i=0; i<nc; i++)
 			{
-				prs_get_val(i, PRE_TEMPH,0,vstr);
+				if (metric)
+					prs_get_val(i, PRE_TEMPH_C,0,vstr);
+				else
+					prs_get_val(i, PRE_TEMPH_F,0,vstr);
 				if(sscanf(vstr,"%d",&tmax[i])!=1)
 				{
 					if(!i)
@@ -1476,7 +1487,10 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 						tmax[i]=tmax[i-1];
 					}
 				}
-				prs_get_val(i, PRE_TEMPL,0,vstr);
+				if (metric)
+					prs_get_val(i, PRE_TEMPL_C,0,vstr);
+				else
+					prs_get_val(i, PRE_TEMPL_F,0,vstr);
 				if(sscanf(vstr,"%d",&tmin[i])!=1)
 				{
 					tmin[i]=(i)?tmin[i-1]:0;
@@ -1525,6 +1539,8 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 			RenderLine(gxs,gys+gyw+2,gxs+gxw,gys+gyw+2,CMCIT);
 			RenderLine(gxs,gys+gyw+gywf,gxs+gxw,gys+gyw+gywf,CMCIT);
 			RenderLine(gxs,gys+gyw+gywf+1,gxs+gxw,gys+gyw+gywf+1,CMCIT);
+			RenderString((metric)? "°C":"°F", gxs-20, gys-3, 30, RIGHT, FSIZE_SMALL, CMCT);
+			RenderString((metric)? "°C":"°F", gxs+gxw-20, gys-3, 30, RIGHT, FSIZE_SMALL, CMCT);
 			RenderString(prs_translate("Höchstwerte",CONVERT_LIST), gxs, gys, gxw/2, CENTER, FSIZE_SMALL, YELLOW);
 			RenderString(prs_translate("Tiefstwerte",CONVERT_LIST), gxs+(gxw/2), gys, gxw/2, CENTER, FSIZE_SMALL, GREEN);
 
@@ -1646,7 +1662,7 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 #ifdef WWEATHER
 					if (HTTP_downloadFile(vstr, ICON_FILE, 0, intype, ctmo, 2) == 0)
 #else
-					sprintf  (icon,"http://image.weather.com/web/common/intlwxicons/52/%s.gif",vstr);
+					snprintf(icon, sizeof(icon), "http://image.weather.com/web/common/intlwxicons/52/%s.gif",vstr);
 					if (HTTP_downloadFile(icon, ICON_FILE, 0, intype, ctmo, 2) == 0)
 #endif
 					{
@@ -1685,7 +1701,7 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 #ifdef WWEATHER
 					if (HTTP_downloadFile(vstr, ICON_FILE, 0, intype, ctmo, 2) != 0) 
 #else
-					sprintf  (icon,"http://image.weather.com/web/common/intlwxicons/52/%s.gif",vstr);
+					snprintf(icon, sizeof(icon), "http://image.weather.com/web/common/intlwxicons/52/%s.gif",vstr);
 					if (HTTP_downloadFile(icon, ICON_FILE, 0, intype, ctmo, 2) != 0)
 #endif
 					{
@@ -1694,17 +1710,17 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 				}
 
 				sprintf(rstr,"%s",prs_translate("Aktuelles Wetter",CONVERT_LIST));
-				RenderString(rstr, 0, 34, wxw, CENTER, FSIZE_BIG, CMHT);
+				RenderString(rstr, wsx, wsy+34, wxw, CENTER, FSIZE_BIG, CMHT);
 
 				sprintf(rstr,"%s",prs_translate("Standort:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, GREEN);
-#ifdef WWEATHER
+/*ifdef WWEATHER
 				prs_get_val(0, ACT_CITY, 0, vstr);
 				RenderString(vstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 #else
-				sprintf(rstr,"%s",city_name);
+*/				sprintf(rstr,"%s",city_name);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
-#endif
+//#endif
 				vy+=dy;
 
 				sprintf(rstr,"%s",prs_translate("Längengrad:",CONVERT_LIST));
@@ -1782,9 +1798,14 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 
 				sprintf(rstr,"%s",prs_translate("Temperatur:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				prs_get_val(0, ACT_TEMP, 0, vstr);
-
-				prs_get_val(0, ACT_FTEMP, 0, v2str);
+				if (metric) {
+					prs_get_val(0, ACT_TEMP_C, 0, vstr);
+					prs_get_val(0, ACT_FTEMP_C, 0, v2str);
+				}
+				else {
+					prs_get_val(0, ACT_TEMP_F, 0, vstr);
+					prs_get_val(0, ACT_FTEMP_F, 0, v2str);
+				}
 				sprintf(rstr,"%s °%s  %s %s °%s",vstr,tun,prs_translate("gefühlt:",CONVERT_LIST),v2str,tun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
@@ -1802,8 +1823,10 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 
 				sprintf(rstr,"%s",prs_translate("Taupunkt:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-
-				prs_get_val(0, ACT_DEWP, 0, vstr);
+				if (metric)
+					prs_get_val(0, ACT_DEWP_C, 0, vstr);
+				else
+					prs_get_val(0, ACT_DEWP_F, 0, vstr);
 				sprintf(rstr,"%s °%s",vstr,tun);
 
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
@@ -1811,9 +1834,13 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 
 				sprintf(rstr,"%s",prs_translate("Luftdruck:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				prs_get_val(0, ACT_PRESS, 0, vstr);
+				if (metric)
+					prs_get_val(0, ACT_PRESS_MB, 0, vstr);
+				else
+					prs_get_val(0, ACT_PRESS_IN, 0, vstr);
 #ifdef WWEATHER
-				RenderString(vstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
+				sprintf(rstr,"%s %s",vstr,pun);
+				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 #else
 				prs_get_val(0, ACT_PRTEND, 0, v2str);
 				sprintf(rstr,"%s %s  %s",vstr,pun,v2str);
@@ -1824,7 +1851,12 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 				sprintf(rstr,"%s",prs_translate("Wind:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				prs_get_val(0, ACT_WINDD, 0, vstr);
-				prs_get_val(0, ACT_WSPEED, 0, v2str);
+				if (metric) {
+					prs_get_val(0, ACT_WSPEED_K, 0, v2str); //Km
+				}
+				else {
+					prs_get_val(0, ACT_WSPEED_M, 0, v2str); //miles
+				}
 				if((strstr(vstr,"windstill")!=NULL) || (strstr(v2str,"CALM")!=NULL))
 				{
 					sprintf(rstr,"%s",prs_translate("windstill",CONVERT_LIST));
@@ -1865,14 +1897,18 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 
 				sprintf(rstr,"%s",prs_translate("Mondphase:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				prs_get_val(0, ACT_MOON, 0, v2str);
-				sprintf(rstr,"%s",v2str);
+				prs_get_val(0, ACT_MOON, 0, vstr);
+				prs_get_val(0, ACT_MOON_VIS, 0, v2str);
+				sprintf(rstr,"%s, %s%% %s ",vstr,v2str,prs_translate("sichtbar",CONVERT_LIST));
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
-				vy+=dy;			
+				vy+=dy;
 
 				sprintf(rstr,"%s",prs_translate("Fernsicht:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				prs_get_val(0, ACT_VIS, 0, vstr);
+				if (metric)
+					prs_get_val(0, ACT_VIS_KM, 0, vstr);
+				else
+					prs_get_val(0, ACT_VIS_MI, 0, vstr);
 #ifdef WWEATHER
 				sprintf(rstr,"%s %s",vstr,dun);
 #else
@@ -1890,8 +1926,11 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 #ifdef WWEATHER
 				sprintf(rstr,"%s",prs_translate("Niederschlag:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				prs_get_val(0, ACT_PRECIPMM, 0, vstr);
-				sprintf(rstr,"%s mm",vstr);
+				if (metric)
+					prs_get_val(0, ACT_PRECIP_MM, 0, vstr);
+				else
+					prs_get_val(0, ACT_PRECIP_IN, 0, vstr);
+				sprintf(rstr,"%s %s",vstr,iun);
 #else
 				sprintf(rstr,"%s",prs_translate("UV-Index:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
@@ -1911,17 +1950,19 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
-//				memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres);
-
 				if(show_icons)
 				{
-					//pic_on_data(icon, 540, 115, 100, 100, 5, 3, 0, 0);
+/*
+					if(preset)
+						pic_on_data(icon,col2+350, wsy+115, 100, 100, 5, 3, 0, 0);
+					else
+						pic_on_data(icon,col2+200, wsy+115, 80, 80, 5, 3, 0, 0);
+*/
 					if(!slim)
 						pic_on_data(icon,800, 270, 100, 100, 5, 3, 0, 0);
 					else
 						pic_on_data(icon,540, 115, 80, 80, 5, 3, 0, 0);
 				}
-
 				memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
 			}
 			else
@@ -1929,7 +1970,10 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 				--index;
 				if(index==1)
 				{
-					prs_get_val(index-1, PRE_TEMPH, 0, vstr);
+					if (metric)
+						prs_get_val(index-1, PRE_TEMPH_C, 0, vstr);
+					else
+						prs_get_val(index-1, PRE_TEMPH_F, 0, vstr);
 					if(strstr(vstr,"N/A")!=NULL)
 					{
 						prelate=1;
@@ -1949,7 +1993,7 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 #ifdef WWEATHER
 					if (HTTP_downloadFile(vstr, ICON_FILE, 0, intype, ctmo, 2) != 0) 
 #else
-					sprintf  (icon,"http://image.weather.com/web/common/intlwxicons/52/%s.gif",vstr);
+					snprintf(icon, sizeof(icon), "http://image.weather.com/web/common/intlwxicons/52/%s.gif",vstr);
 					if (HTTP_downloadFile(icon, ICON_FILE,0,intype,ctmo,2) != 0)
 #endif
 					{
@@ -1970,7 +2014,7 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 #endif
 				}
 				sprintf(rstr,"%s %s",prs_translate("Vorschau für",CONVERT_LIST),vstr);
-				RenderString(rstr, 0, 34, wxw, CENTER, FSIZE_BIG, CMHT);
+				RenderString(rstr, wsx, wsy+34, wxw, CENTER, FSIZE_BIG, CMHT);
 
 				sprintf(rstr,"%s",prs_translate("Standort:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, GREEN);
@@ -1980,14 +2024,20 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 
 				sprintf(rstr,"%s",prs_translate("Höchste Temperatur:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				prs_get_val(index-1,PRE_TEMPH,0,vstr);
+				if (metric)
+					prs_get_val(index-1, PRE_TEMPH_C, 0, vstr);
+				else
+					prs_get_val(index-1, PRE_TEMPH_F, 0, vstr);
 				sprintf(rstr,"%s °%s",vstr,tun);
 				RenderString((prelate)?"---":rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
 				sprintf(rstr,"%s",prs_translate("Tiefste Temperatur:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				prs_get_val(index-1,PRE_TEMPL,0,vstr);
+				if (metric)
+					prs_get_val(index-1, PRE_TEMPL_C, 0, vstr);
+				else
+					prs_get_val(index-1, PRE_TEMPL_F, 0, vstr);
 				sprintf(rstr,"%s °%s",vstr,tun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
@@ -2020,7 +2070,10 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 				sprintf(rstr,"%s",prs_translate("Bedingung:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 #ifdef WWEATHER
-				prs_get_val2(index-1, PRE_COND, 0, rstr);
+				if (metric)
+					prs_get_val2(index-1, PRE_COND_M, 0, rstr);
+				else
+					prs_get_val2(index-1, PRE_COND, 0, rstr);
 				vy=PaintWideString(dy, rstr, col2, vy, wxw-col2-50, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
@@ -2036,15 +2089,17 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
 				prs_get_val(index-1, PRE_PRECIPMM, 0, vstr);
-				sprintf(rstr,"%s mm",vstr);
+				sprintf(rstr,"%s %s",vstr,iun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
 				sprintf(rstr,"%s",prs_translate("Schneemenge:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-
-				prs_get_val(index-1, PRE_SNOW, 0, vstr);
-				sprintf(rstr,"%s mm",vstr);
+				if (metric)
+					prs_get_val(index-1, PRE_SNOW_MM, 0, vstr);
+				else
+					prs_get_val(index-1, PRE_SNOW_IN, 0, vstr);
+				sprintf(rstr,"%s %s",vstr,iun);
 
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 #else
@@ -2090,7 +2145,10 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 				sprintf(rstr,"%s",prs_translate("Bedingung:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 #ifdef WWEATHER
-				prs_get_val2(index-1, PRE_COND, 1, rstr);
+				if (metric)
+					prs_get_val2(index-1, PRE_COND_M, 1, rstr);
+				else
+					prs_get_val2(index-1, PRE_COND, 1, rstr);
 				vy=PaintWideString(dy, rstr, col2, vy, wxw-col2-50, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
@@ -2106,17 +2164,18 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
 				prs_get_val(index-1, PRE_PRECIPMM, 1, vstr);
-				sprintf(rstr,"%s mm",vstr);
+				sprintf(rstr,"%s %s",vstr,iun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
 				sprintf(rstr,"%s",prs_translate("Schneemenge:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-
-				prs_get_val(index-1, PRE_SNOW, 1, vstr);
-				sprintf(rstr,"%s mm",vstr);
+				if (metric)
+					prs_get_val(index-1, PRE_SNOW_MM, 1, vstr);
+				else
+					prs_get_val(index-1, PRE_SNOW_IN, 1, vstr);
+				sprintf(rstr,"%s %s",vstr,iun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
-				vy+=dy;
 #else
 				prs_get_val(index-1, PRE_COND, 1, vstr);
 				sprintf(rstr,"%s",vstr);
@@ -2157,7 +2216,6 @@ char tun[2]="C",sun[5]="km/h",dun[3]="km",pun[5]="mbar",cun[20];
 				sprintf(rstr,"%s %%",vstr);
 
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
-				vy+=dy;
 #endif
 //				memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres);
 
@@ -2229,8 +2287,8 @@ void close_jpg_gif_png(void)
 //	for(; sy <= ey; sy++) memset(lbb + sx + var_screeninfo.xres*(sy),TRANSP, ex-sx + 1);
 	memset(lbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres);
 	memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
-	gmodeon=0; 
 #endif
+	gmodeon=0;
 }
 
 int wait_image(int repeat, int first)
@@ -2445,7 +2503,7 @@ char *buffer=NULL, fname[512];
 			else
 			{
 				showBusy(startx+3,starty+3,10,0xff,00,00);
-//				showBusy(startx+10,starty+10,20,170,0,0);
+
 				if(rcg==KEY_EXIT)
 				{
 					rcg=KEY_OK;
@@ -2469,24 +2527,22 @@ unsigned char *tbuf=lfb;
 
 	if((tfh=fopen(ICON_FILE,"r"))!=NULL)
 	{
+		fclose(tfh);
 		lfb=lbb;
 
 		if(fh_gif_getsize(ICON_FILE, &x1, &y1, xsize, ysize))
 		{
 			printf("Tuxwetter <invalid GIF-Format>\n");
-			fclose(tfh);
 			return -1;
 		}
 
 		if((buffer=(unsigned char *) malloc(x1*y1*4))==NULL)
 		{
 			printf(NOMEM);
-			fclose(tfh);
 			return -1;
 		}
 
 		if(!(rv=fh_gif_load(ICON_FILE, (char *)buffer, x1, y1)))
-
 		{
 			scale_pic(&buffer,x1,y1,xstart,ystart,xsize,ysize,&imx,&imy,&dxp,&dyp,&dxo,&dyo,center);
 			if (rahmen >0)
@@ -2524,7 +2580,6 @@ unsigned char *tbuf=lfb;
 
 		}
 		free(buffer);
-		fclose(tfh);
 		lfb=tbuf;
 	}
 	return (rv)?-1:0;
@@ -2534,18 +2589,16 @@ int show_php(char *name, char *title, int plain, int highlite)
 {
 FILE *tfh;
 int x1,y1,cs,rcp,rv=-1,run=1,line=0,action=1,cut;
-int col1,sy=0,dy=26,psx,psy,pxw=/*620*/ex-sx,pyw=/*510*/ey-sy;
+int col1,sy=0,dy=26,psx,psy;
+int pxw=ex-sx-((preset)?120:30);		//box width old 620
+int pyw=ey-sy-((preset)?60:40);		//box height old 510
 
 	Center_Screen(pxw,pyw,&psx,&psy);
-	col1=psx+40;
+	col1=psx+((preset)?60:40);
 	sy=psy+70;
 	if((tfh=fopen(name,"r"))!=NULL)
 	{
-/*		if(gmodeon)
-		{
-			close_jpg_gif_png();
-		}
-*/		fclose(tfh);
+		fclose(tfh);
 
 		RenderString("X", psx+pxw/2, psy+pyw/2, 100, LEFT, FSIZE_SMALL, CMCT);
 		if(fh_php_getsize(name, plain, &x1, &y1))
@@ -2579,7 +2632,12 @@ int col1,sy=0,dy=26,psx,psy,pxw=/*620*/ex-sx,pyw=/*510*/ey-sy;
 			if(!rv)
 			{
 				rcp=GetRCCode();
-				while((rcp != KEY_OK) && (rcp != KEY_EXIT) && (rcp != KEY_PAGEUP) && (rcp != KEY_PAGEDOWN) && (rcp != KEY_DOWN) && (rcp != KEY_UP) && (rcp != KEY_VOLUMEUP) && (rcp != KEY_VOLUMEDOWN)&& (rcp != KEY_RED))
+				while ((rcp != KEY_OK)       && (rcp != KEY_EXIT)      &&
+					   (rcp != KEY_PAGEUP)   && (rcp != KEY_PAGEDOWN)  &&
+					   (rcp != KEY_LEFT)     && (rcp != KEY_RIGHT)     &&
+					   (rcp != KEY_DOWN)     && (rcp != KEY_UP)        &&
+					   (rcp != KEY_VOLUMEUP) && (rcp != KEY_VOLUMEDOWN)&&
+					   (rcp != KEY_RED))
 				{
 					rcp=GetRCCode();
 				}
@@ -2587,13 +2645,15 @@ int col1,sy=0,dy=26,psx,psy,pxw=/*620*/ex-sx,pyw=/*510*/ey-sy;
 				{
 					rcp=KEY_OK;
 				}
-				if((rcp != KEY_PAGEUP) && (rcp != KEY_PAGEDOWN))
+				if( (rcp != KEY_PAGEUP) && (rcp != KEY_PAGEDOWN) &&
+					(rcp != KEY_LEFT)   && (rcp != KEY_RIGHT) )
 				{
 					return rcp;
 				}
 				switch(rcp)
 				{
 					case KEY_PAGEDOWN:
+					case KEY_RIGHT:
 						if((action=cut)!=0)
 						{
 							line+=5;
@@ -2601,6 +2661,7 @@ int col1,sy=0,dy=26,psx,psy,pxw=/*620*/ex-sx,pyw=/*510*/ey-sy;
 						break;
 						
 					case KEY_PAGEUP:
+					case KEY_LEFT:
 						if(line)
 						{				
 							if((line-=5)<0)
@@ -2849,7 +2910,7 @@ void read_neutrino_osd_conf(int *ex,int *sx,int *ey, int *sy)
 {
 	const char *filename="/var/tuxbox/config/neutrino.conf";
 	const char spres[][4]={"","crt","lcd"};
-	char sstr[4][32];
+	char sstr[4][32]={0};
 	int pres=-1, resolution=-1, loop, *sptr[4]={ex, sx, ey, sy};
 	char *buffer;
 	size_t len;
@@ -2904,235 +2965,235 @@ int main (int argc, char **argv)
 {
 int index=0,cindex=0,tv,rce,ferr=0,tret=-1;
 int mainloop=1,wloop=1, dloop=1;
-char rstr[BUFSIZE], *rptr;
-char tstr[BUFSIZE];
+char rstr[BUFSIZE]={0}, *rptr=NULL;
+char tstr[BUFSIZE]={0};
 FILE *tfh;
 LISTENTRY epl={NULL, 0, TYP_TXTPLAIN, TYP_TXTPLAIN, 0, 0, 0};
 PLISTENTRY pl=&epl;
 
-		// if problem with config file return from plugin
+	// if problem with config file return from plugin
 
-		for(tv=1; tv<argc; tv++)
+	for(tv=1; tv<argc; tv++)
+	{
+		if((strstr(argv[tv],"-v")==argv[tv])||(strstr(argv[tv],"--Version")==argv[tv]))
 		{
-			if((strstr(argv[tv],"-v")==argv[tv])||(strstr(argv[tv],"--Version")==argv[tv]))
-			{
-				printf("Tuxwetter Version %s\n",P_VERSION);
-				return 0;
-			}
-			if(*argv[tv]=='/')
-			{
-				strcpy(TCF_FILE,argv[tv]);
-			}
-			if(strchr(argv[tv],'='))
-			{
-				cmdline=strdup(argv[tv]);
-				TrimString(cmdline);
-				TranslateString(cmdline);
-			}
+			printf("Tuxwetter Version %s%s\n",P_VERSION,S_VERSION);
+			return 0;
 		}
+		if(*argv[tv]=='/')
+		{
+			strcpy(TCF_FILE,argv[tv]);
+		}
+		if(strchr(argv[tv],'='))
+		{
+			cmdline=strdup(argv[tv]);
+			TrimString(cmdline);
+			TranslateString(cmdline);
+		}
+	}
 
-//		system("ping -c 2 google.com &");
+//	system("ping -c 2 google.com &");
 
-		if((line_buffer=calloc(BUFSIZE+1, sizeof(char)))==NULL)
-		{
-			printf(NOMEM);
-			return -1;
-		}
-	
-		if (!ReadConf(cmdline))
-		{
-			printf("Tuxwetter <Configuration failed>\n");
-			return -1;
-		}
-	
-		if((trstr=malloc(BUFSIZE))==NULL)
-		{
-			printf(NOMEM);
-			return -1;
-		}
+	if((line_buffer=calloc(BUFSIZE+1, sizeof(char)))==NULL)
+	{
+		printf(NOMEM);
+		return -1;
+	}
+			if (!ReadConf(cmdline))
+	{
+		printf("Tuxwetter <Configuration failed>\n");
+		return -1;
+	}
 
-		memset(&menu,0,sizeof(MENU));
-		memset(&funcs,0,sizeof(MENU));
+	if((trstr=malloc(BUFSIZE))==NULL)
+	{
+		printf(NOMEM);
+		return -1;
+	}
+
+	memset(&menu,0,sizeof(MENU));
+	memset(&funcs,0,sizeof(MENU));
 /*
-		if((menu.headertxt=calloc(MAX_MENUTXT, sizeof(char*)))==NULL)
-		{
-			printf(NOMEM);
-			free(line_buffer);
-			Clear_List(&menu,-1);
-			return -1;
-		}
+	if((menu.headertxt=calloc(MAX_MENUTXT, sizeof(char*)))==NULL)
+	{
+		printf(NOMEM);
+		free(line_buffer);
+		Clear_List(&menu,-1);
+		return -1;
+	}
 */
 /*
-		if(Clear_List(&menu,1))
-		{
-			printf(NOMEM);
-			free(line_buffer);
-			Clear_List(&menu,-1);
-			return -1;
-		}
+	if(Clear_List(&menu,1))
+	{
+		printf(NOMEM);
+		free(line_buffer);
+		Clear_List(&menu,-1);
+		return -1;
+	}
 */
-		if(!cmdline)
+	if(!cmdline)
+	{
+		if(Check_Config())
 		{
-			if(Check_Config())
-			{
-				printf("<tuxwetter> Unable to read tuxwetter.conf\n");
-				Clear_List(&menu,-1);
-				free(line_buffer);
-				return -1;
-			}
-		}
-
-		if((funcs.headertxt=calloc(1, sizeof(char*)))==NULL)
-		{
-			printf(NOMEM);
-			free(line_buffer);
+			printf("<tuxwetter> Unable to read tuxwetter.conf\n");
 			Clear_List(&menu,-1);
-			Clear_List(&funcs,-1);
+			free(line_buffer);
 			return -1;
 		}
+	}
 
-		read_neutrino_osd_conf(&ex,&sx,&ey, &sy);
-		if((ex == -1) || (sx == -1) || (ey == -1) || (sy == -1)){
-			sx = 40;
-			ex = var_screeninfo.xres - 40;
-			sy = 40;
-			ey = var_screeninfo.yres - 40;
-		}
-		printf("sx=%i, ex =%i, sy=%i, ey=%i\n", sx, ex, sy, ey);
+	if((funcs.headertxt=calloc(1, sizeof(char*)))==NULL)
+	{
+		printf(NOMEM);
+		free(line_buffer);
+		Clear_List(&menu,-1);
+		Clear_List(&funcs,-1);
+		return -1;
+	}
 
-		for(index=CMCST; index<=CMH; index++)
-		{
-			sprintf(rstr,"menu_%s_alpha",menucoltxt[index]);
-			if((tv=Read_Neutrino_Cfg(rstr))>=0)
-				tr[index]=255-(float)tv*2.55;
+	read_neutrino_osd_conf(&ex,&sx,&ey, &sy);
+	if((ex == -1) || (sx == -1) || (ey == -1) || (sy == -1)){
+		sx = 40;
+		ex = var_screeninfo.xres - 40;
+		sy = 40;
+		ey = var_screeninfo.yres - 40;
+	}
+	//printf("sx=%i, ex =%i, sy=%i, ey=%i \n", sx, ex, sy, ey);
 
-			sprintf(rstr,"menu_%s_blue",menucoltxt[index]);
-			if((tv=Read_Neutrino_Cfg(rstr))>=0)
-				bl[index]=(float)tv*2.55;
+	for(index=CMCST; index<=CMH; index++)
+	{
+		sprintf(rstr,"menu_%s_alpha",menucoltxt[index]);
+		if((tv=Read_Neutrino_Cfg(rstr))>=0)
+			tr[index]=255-(float)tv*2.55;
 
-			sprintf(rstr,"menu_%s_green",menucoltxt[index]);
-			if((tv=Read_Neutrino_Cfg(rstr))>=0)
-				gn[index]=(float)tv*2.55;
+		sprintf(rstr,"menu_%s_blue",menucoltxt[index]);
+		if((tv=Read_Neutrino_Cfg(rstr))>=0)
+			bl[index]=(float)tv*2.55;
 
-			sprintf(rstr,"menu_%s_red",menucoltxt[index]);
-			if((tv=Read_Neutrino_Cfg(rstr))>=0)
-				rd[index]=(float)tv*2.55;
-		}
+		sprintf(rstr,"menu_%s_green",menucoltxt[index]);
+		if((tv=Read_Neutrino_Cfg(rstr))>=0)
+			gn[index]=(float)tv*2.55;
 
-		cindex=CMC;
-		for(index=CMCP0; index<=CMCP3; index++)
-		{
-			rd[index]=rd[cindex]+25;
-			gn[index]=gn[cindex]+25;
-			bl[index]=bl[cindex]+25;
-			tr[index]=tr[cindex];
-			cindex=index;
-		}
+		sprintf(rstr,"menu_%s_red",menucoltxt[index]);
+		if((tv=Read_Neutrino_Cfg(rstr))>=0)
+			rd[index]=(float)tv*2.55;
+	}
 
-		if(Read_Neutrino_Cfg("rounded_corners")>0)
-			radius=10;
-		else
-			radius=0;
+	cindex=CMC;
+	for(index=CMCP0; index<=CMCP3; index++)
+	{
+		rd[index]=rd[cindex]+25;
+		gn[index]=gn[cindex]+25;
+		bl[index]=bl[cindex]+25;
+		tr[index]=tr[cindex];
+		cindex=index;
+	}
 
-		fb = open(FB_DEVICE, O_RDWR);
-		if(fb == -1)
-		{
-			perror("tuxwetter <open framebuffer device>");
-			exit(1);
-		}
+	if(Read_Neutrino_Cfg("rounded_corners")>0)
+		radius=10;
+	else
+		radius=0;
 
-		InitRC();
+	fb = open(FB_DEVICE, O_RDWR);
+	if(fb == -1)
+	{
+		perror("tuxwetter <open framebuffer device>");
+		exit(1);
+	}
 
-		if((trstr=malloc(BUFSIZE))==NULL)
-		{
-			printf(NOMEM);
-			return -1;
-		}
+	InitRC();
+
+	if((trstr=malloc(BUFSIZE))==NULL)
+	{
+		printf(NOMEM);
+		return -1;
+	}
 
 	//init framebuffer
 
-		if(ioctl(fb, FBIOGET_FSCREENINFO, &fix_screeninfo) == -1)
-		{
-			perror("tuxwetter <FBIOGET_FSCREENINFO>\n");
-			return -1;
-		}
-		if(ioctl(fb, FBIOGET_VSCREENINFO, &var_screeninfo) == -1)
-		{
-			perror("tuxwetter <FBIOGET_VSCREENINFO>\n");
-			return -1;
-		}
-		if(!(lfb = (unsigned char*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0)))
-		{
-			perror("tuxwetter <mapping of Framebuffer>\n");
-			return -1;
-		}
+	if(ioctl(fb, FBIOGET_FSCREENINFO, &fix_screeninfo) == -1)
+	{
+		perror("tuxwetter <FBIOGET_FSCREENINFO>\n");
+		return -1;
+	}
+	if(ioctl(fb, FBIOGET_VSCREENINFO, &var_screeninfo) == -1)
+	{
+		perror("tuxwetter <FBIOGET_VSCREENINFO>\n");
+		return -1;
+	}
+	if(!(lfb = (unsigned char*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0)))
+	{
+		perror("tuxwetter <mapping of Framebuffer>\n");
+		return -1;
+	}
 
 	//init fontlibrary
 
-		if((error = FT_Init_FreeType(&library)))
-		{
-			printf("tuxwetter <FT_Init_FreeType failed with Errorcode 0x%.2X>", error);
-			munmap(lfb, fix_screeninfo.smem_len);
-			return -1;
-		}
+	if((error = FT_Init_FreeType(&library)))
+	{
+		printf("tuxwetter <FT_Init_FreeType failed with Errorcode 0x%.2X>", error);
+		munmap(lfb, fix_screeninfo.smem_len);
+		return -1;
+	}
 
-		if((error = FTC_Manager_New(library, 1, 2, 0, &MyFaceRequester, NULL, &manager)))
-		{
-			printf("tuxwetter <FTC_Manager_New failed with Errorcode 0x%.2X>\n", error);
-			FT_Done_FreeType(library);
-			munmap(lfb, fix_screeninfo.smem_len);
-			return -1;
-		}
+	if((error = FTC_Manager_New(library, 1, 2, 0, &MyFaceRequester, NULL, &manager)))
+	{
+		printf("tuxwetter <FTC_Manager_New failed with Errorcode 0x%.2X>\n", error);
+		FT_Done_FreeType(library);
+		munmap(lfb, fix_screeninfo.smem_len);
+		return -1;
+	}
 
-		if((error = FTC_SBitCache_New(manager, &cache)))
+	if((error = FTC_SBitCache_New(manager, &cache)))
+	{
+		printf("tuxwetter <FTC_SBitCache_New failed with Errorcode 0x%.2X>\n", error);
+		FTC_Manager_Done(manager);
+		FT_Done_FreeType(library);
+		munmap(lfb, fix_screeninfo.smem_len);
+		return -1;
+	}
+
+	if((error = FTC_Manager_LookupFace(manager, FONT, &face)))
+	{
+		if((error = FTC_Manager_LookupFace(manager, FONT2, &face)))
 		{
-			printf("tuxwetter <FTC_SBitCache_New failed with Errorcode 0x%.2X>\n", error);
+			printf("tuxwetter <FTC_Manager_LookupFace failed with Errorcode 0x%.2X>\n", error);
 			FTC_Manager_Done(manager);
 			FT_Done_FreeType(library);
 			munmap(lfb, fix_screeninfo.smem_len);
-			return -1;
-		}
-
-		if((error = FTC_Manager_LookupFace(manager, FONT, &face)))
-		{
-			if((error = FTC_Manager_LookupFace(manager, FONT2, &face)))
-			{
-				printf("tuxwetter <FTC_Manager_LookupFace failed with Errorcode 0x%.2X>\n", error);
-				FTC_Manager_Done(manager);
-				FT_Done_FreeType(library);
-				munmap(lfb, fix_screeninfo.smem_len);
-				return 2;
-			}
-			else
-				desc.face_id = FONT2;
+			return 2;
 		}
 		else
-			desc.face_id = FONT;
-		
-		use_kerning = FT_HAS_KERNING(face);
+			desc.face_id = FONT2;
+	}
+	else
+		desc.face_id = FONT;
 
-		desc.flags = FT_LOAD_MONOCHROME;
+	use_kerning = FT_HAS_KERNING(face);
+
+	desc.flags = FT_LOAD_MONOCHROME;
 
 	//init backbuffer
 
-		if(!(lbb = malloc(fix_screeninfo.line_length*var_screeninfo.yres)))
-		{
-			perror("tuxwetter <allocating of Backbuffer>\n");
-			FTC_Manager_Done(manager);
-			FT_Done_FreeType(library);
-			munmap(lfb, fix_screeninfo.smem_len);
-			return -1;
-		}
+	if(!(lbb = malloc(fix_screeninfo.line_length*var_screeninfo.yres)))
+	{
+		perror("tuxwetter <allocating of Backbuffer>\n");
+		FTC_Manager_Done(manager);
+		FT_Done_FreeType(library);
+		munmap(lfb, fix_screeninfo.smem_len);
+		return -1;
+	}
 
-		memset(lbb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres);
+	memset(lbb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres);
 
-		startx = sx;
-		starty = sy;
+	startx = sx;
+	starty = sy;
 
 	/* Set up signal handlers. */
 	signal(SIGINT, quit_signal);
 	signal(SIGTERM, quit_signal);
 	signal(SIGQUIT, quit_signal);
+	signal(SIGSEGV, quit_signal);
 
 
 //  Startbildschirm
@@ -3147,7 +3208,7 @@ PLISTENTRY pl=&epl;
 		show_jpg("/tmp/startbild.jpg", sx, sy, ex-sx, ey-sy, 5, 0, 1, 1);
 		xremove("/tmp/startbild.jpg");
 #endif
-		show_jpg("/var/tuxbox/config/tuxwetter/startbild.jpg", sx, sy, ex-sx, ey-sy, 5, 0, 1, 1);
+		show_jpg(START_PIC, sx, sy, ex-sx, ey-sy, 5, 0, 1, 1);
 	}
 
 	//main loop
@@ -3349,8 +3410,9 @@ PLISTENTRY pl=&epl;
 									lrow++;
 								}
 								LCD_update();
-								ferr=(strlen(line_buffer))?0:-1;
 */
+								ferr=(strlen(line_buffer))?0:-1;
+
 								if((!ferr) && ((strcmp(line_buffer,lastpicture)!=0)||(loadalways)) && (pl->pictype!=TYP_TXTHTML))
 								{
 									rptr=line_buffer;
@@ -3405,7 +3467,7 @@ PLISTENTRY pl=&epl;
 														fprintf(fh2,"<br>");
 														while(*pt1)
 														{	
-															if(*pt1==' ' && cnt>40)
+															if ( *pt1==' ' && cnt > ((preset)?90:40) )
 															{
 																fprintf(fh2,"\n<br>");
 																cnt=0;
@@ -3435,7 +3497,7 @@ PLISTENTRY pl=&epl;
 									
 									if(cindex!=-98)
 									{
-										strncpy(lastpicture,line_buffer,BUFSIZE);
+										strncpy(lastpicture,line_buffer,BUFSIZE-1);
 	
 										index=menu.act_entry;						
 										switch(tret)
@@ -3487,8 +3549,7 @@ PLISTENTRY pl=&epl;
 								else
 								{
 									close_jpg_gif_png();
-									sprintf(tstr,"%s",prs_translate("Fehler",CONVERT_LIST));
-									sprintf(tstr,"%s %d %s.",tstr,ferr,prs_translate("beim Download",CONVERT_LIST));
+									sprintf(tstr,"%s %d %s.", prs_translate("Fehler",CONVERT_LIST), ferr, prs_translate("beim Download",CONVERT_LIST));
 									ShowMessage(tstr,1);
 									ferr = 0;
 									dloop=-1;
@@ -3512,12 +3573,11 @@ PLISTENTRY pl=&epl;
 					case TYP_CITY:
 						if(!prs_get_city())
 						{
-							sprintf(tstr," ");
-							
+							//sprintf(tstr," ");
 							Clear_List(&funcs, 1);
 							funcs.act_entry=0;
-							
-							sprintf(tstr,"%s %s",prs_translate("Wetter für",CONVERT_LIST),city_name);
+
+							sprintf(tstr,"%s %s",prs_translate("Wetterdaten für",CONVERT_LIST),city_name);
 							if(funcs.headertxt[0])
 							{
 								free(funcs.headertxt[0]);
@@ -3610,16 +3670,16 @@ PLISTENTRY pl=&epl;
 												case KEY_UP:
 												case KEY_VOLUMEDOWN:
 													if(--index < 0)
-													{							
-														index=MAX_FUNCS-1;
+													{				
+														index=menu.num_entrys-1;
 													}
 													break;
-						
+
 												case KEY_DOWN:
 												case KEY_VOLUMEUP:
 													if(++index>=MAX_FUNCS)
 													{
-													index=0;
+														index=0;
 													}
 													break;
 
@@ -3682,20 +3742,21 @@ PLISTENTRY pl=&epl;
 	sprintf(tstr,"[ -e /tmp/picture* ] && rm /tmp/picture*");
 	system(tstr);
 	xremove("/tmp/tuxwettr.tmp");
-	xremove("/tmp/bmps.tar");
+//	xremove("/tmp/bmps.tar");
 	xremove("/tmp/icon.gif");
 	xremove("/tmp/tempgif.gif");
 	xremove(PHP_FILE);
 	put_instance(get_instance()-1);
-	
+# if 0
+// 	swisstime
 	if((tfh=fopen(TIME_FILE,"r"))!=NULL)
 	{
 		fclose(tfh);
 		sprintf(line_buffer,"%s &",TIME_FILE);
 		system(line_buffer);
-		free(line_buffer);
 	}
-	
+#endif
+	free(line_buffer);
 
 	// clear Display
 	memset(lbb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres);

@@ -73,7 +73,7 @@ int fh_jpeg_load(const char *filename,unsigned char *buffer,int x,int y)
 	struct jpeg_decompress_struct *ciptr;
 	struct r_jpeg_error_mgr emgr;
 	unsigned char *bp;
-	int px,c;
+	int px,/*py,*/c;
 	FILE *fh;
 	JSAMPLE *lb;
 
@@ -108,6 +108,7 @@ int fh_jpeg_load(const char *filename,unsigned char *buffer,int x,int y)
 	jpeg_start_decompress(ciptr);
 
 	px=ciptr->output_width;
+	/*py=ciptr->output_height;*/
 	c=ciptr->output_components;
 
 
@@ -137,7 +138,7 @@ int fh_jpeg_getsize(const char *filename,int *x,int *y, int wanted_width, int wa
 	struct jpeg_decompress_struct *ciptr;
 	struct r_jpeg_error_mgr emgr;
 
-	int px,py;
+	int px,py/*,c*/;
 	FILE *fh;
 	
 	ciptr=&cinfo;
@@ -173,6 +174,7 @@ int fh_jpeg_getsize(const char *filename,int *x,int *y, int wanted_width, int wa
 
 	jpeg_start_decompress(ciptr);
 	px=ciptr->output_width; py=ciptr->output_height;
+	/*c=ciptr->output_components;*/
 	*x=px; *y=py;
 //	jpeg_finish_decompress(ciptr);
 	jpeg_destroy_decompress(ciptr);

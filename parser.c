@@ -4,11 +4,11 @@
 *********************************************************************************************
 */
 //getline needed #define _GNU_SOURCE
-#define _GNU_SOURCE
-#include <ctype.h>
+//#define _GNU_SOURCE
+//#include <ctype.h>
 
 #include <curl/curl.h>
-#include <strings.h>
+//#include <strings.h>
 #include "tuxwetter.h"
 #include "parser.h"
 #include "http.h"
@@ -27,6 +27,7 @@ char 	data		[MAXITEM][MAXMEM];
 char 	conveng		[500][40]; 
 char	convger		[500][40];
 int	prev_count =	0;
+int days_count =	0;
 char    null[2]=  	{0,0};
 int 	ptc=		0;
 int 	t_actday=	0;
@@ -34,10 +35,11 @@ int	t_actmonth=	0;
 int 	t_actyear=	0;
 const char mnames[12][10]={"Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"};
 char prstrans[512];
+extern int num_of_days;
 
 //**************************************** Preview Counter ********************************
 
-extern char CONVERT_LIST[];
+extern const char CONVERT_LIST[];
 extern void TrimString(char *strg);
 
 void prs_check_missing(char *entry)
@@ -71,7 +73,7 @@ FILE *fh;
 	}
 }
 
-char  *prs_translate(char *trans, char *tfile)
+char  *prs_translate(char *trans, const char *tfile)
 {
 char *sptr;
 int i,found=0;
@@ -110,6 +112,11 @@ FILE *fh;
 int prs_get_prev_count (void)
 {
 	return prev_count;
+}
+
+int prs_get_days_count(void)
+{
+	return days_count;
 }
 
 int prs_get_day (int i, char *out, int metric)
@@ -172,6 +179,8 @@ int prs_get_val (int i, int what, int nacht, char *out)
 int z;
 
 	strcpy(out,data[(what & ~TRANSLATION)+(i*PRE_STEP)+(nacht*NIGHT_STEP)]);
+	TrimString(out);
+
 	if(what & TRANSLATION)
 	{
 		for(z=0;z<=ptc;z++)
@@ -320,7 +329,7 @@ int prs_get_dwday(int i, int what, char *out)
 
 //*** XML File ***
 
-int parser(char *citycode, char *trans, int metric, int inet, int ctmo)
+int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 {
 	int  rec=0, flag=0;
 	int cc=0, bc=1, exit_ind=-1;
@@ -342,6 +351,7 @@ int parser(char *citycode, char *trans, int metric, int inet, int ctmo)
 	memset(conveng,0,500*40); 
 	memset(convger,0,500*40);
 	prev_count=0;
+	days_count=0;
 	memset(null,0,2);
 	ptc=0;
 	t_actday=0;
@@ -374,7 +384,7 @@ int parser(char *citycode, char *trans, int metric, int inet, int ctmo)
 		fgets(debug,5,wxfile);
 		fgets(debug,5,wxfile);
 		fgets(debug,50,wxfile);
-//		printf("\"%s\"\n",debug);
+	    	//printf("%s\n",debug);
 		if((debug[3] != 'r')||(debug[4] != 'e')||(debug[5] != 's'))
 		{
 			fclose(wxfile);
@@ -391,18 +401,15 @@ int parser(char *citycode, char *trans, int metric, int inet, int ctmo)
 			while (!feof(wxfile))
 			{
 				gettemp=fgetc(wxfile);
-
 				if(rec==0 && tag==0 && gettemp=='"')
 				{
 					tag=1;
 				}
-
 				if(tag==1 && gettemp!='"' && gettemp!=':')
 				{
 					tagname[tcc]=gettemp;
 					tcc++;
 				}
-
 				if(getold=='"' && gettemp==':')
 				{
 					tagname[tcc]='\0';
@@ -430,6 +437,7 @@ int parser(char *citycode, char *trans, int metric, int inet, int ctmo)
 
 					//remove last ","
 					if(data[bc][cc-1]==',') {
+
 						cc--;
 					}
 
@@ -465,7 +473,7 @@ int parser(char *citycode, char *trans, int metric, int inet, int ctmo)
 						printf("data MAXMEM\n");
 						return exit_ind;
 					}
-				}
+ 				}
 				getold=gettemp;
 			}
 		}
@@ -475,9 +483,11 @@ int parser(char *citycode, char *trans, int metric, int inet, int ctmo)
 
 	exit_ind=1;
 #else
+/*	sprintf (url,"http://xoap.weather.com/weather/local/%s?cc=*&dayf=%d&prod=xoap&unit=%c&par=1005530704&key=a9c95f7636ad307b",citycode,previews,(metric)?'m':'u');
+	exit_ind=HTTP_downloadFile(url, "/tmp/tuxwettr.tmp", 0, inet, ctmo, 3);
+*/
 	sprintf (url,"wget -q -O /tmp/tuxwettr.tmp http://xoap.weather.com/weather/local/%s?unit=%c\\&dayf=%d\\&cc=*\\&prod=xoap\\&link=xoap\\&par=%s\\&key=%s",citycode,(metric)?'m':'u',previews,par,key);
 	exit_ind=system(url);
-
 	sleep(1);
 	if(exit_ind != 0)
 	{
@@ -530,34 +540,7 @@ int parser(char *citycode, char *trans, int metric, int inet, int ctmo)
 				{
 					bc++;
 					cc = 0;
-				int prs_get_dwday(int i, int what, char *out)
-{
-	int ret=1;
-	char *wday[] = {"SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY","???"};
-
-	struct tm ts;
-
-	*out=0;
-
-	if(sscanf(data[(what & ~TRANSLATION)+(i*PRE_STEP)],"%d-%d-%d",&t_actyear,&t_actmonth,&t_actday)==3)
-	{
-		ts.tm_year = t_actyear - 1900;
-		ts.tm_mon  = t_actmonth - 1;
-		ts.tm_mday = t_actday;
-
-		ts.tm_hour = 0;
-		ts.tm_min  = 0;
-		ts.tm_sec  = 1;
-		ts.tm_isdst = -1;
-
-		if ( mktime(&ts) == -1 )
-			ts.tm_wday = 7;
-
-		sprintf(out,"%s", wday[ts.tm_wday]);
-		ret=0;
-	}
-	return ret;
-}	rec = 0;
+					rec = 0;
 					flag=1;
 					prev_count++;
 				}
@@ -594,6 +577,7 @@ int parser(char *citycode, char *trans, int metric, int inet, int ctmo)
 
 	exit_ind=1;
 #endif
+
 //*** Übersetzungs File ***
 	
 	if ((wxfile = fopen(trans,"r"))==NULL)
