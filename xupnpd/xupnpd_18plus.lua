@@ -116,41 +116,43 @@ function youporn_sendurl(youporn_url,range)
 	http.user_agent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/538.1 (KHTML, like Gecko) ' ..'\r\n')
 
 	local url=nil
-	local data=https_download(youporn_url)
+	local data=http.download(youporn_url)
 	if data then
-		local skipto = data.find(data, "sources:")
+		local tmpurl = data:match('videoUrl["\']:["\'](.-)["\']')
+		local skipto = data.find(data, "page_params.video.mediaDefinition =")
 		if skipto and #data > skipto then
 			data = string.sub(data,skipto,#data)
 		end
-		data = data:match('sources:(.-)}')
 		if data then
-			url = data:match('1080_60:%s+["\'](.-)["\']')
 			if url == nil or #url == 0 then
-				url = data:match('1080:%s+["\'](.-)["\']')
+				url = data:match('1080["\'].["\']videoUrl["\']:["\'](.-)["\']')
 			end
 			if url == nil or #url == 0 then
-				url = data:match('720_60:%s+["\'](.-)["\']')
+				url = data:match('720_60["\'].["\']videoUrl["\']:["\'](.-)["\']')
 			end
 			if url == nil or #url == 0 then
-				url = data:match('720:%s+["\'](.-)["\']')
+				url = data:match('720["\'].["\']videoUrl["\']:["\'](.-)["\']')
 			end
 			if url == nil or #url == 0 then
-				url = data:match('480:%s+["\'](.-)["\']')
+				url = data:match('480["\'].["\']videoUrl["\']:["\'](.-)["\']')
 			end
 			if url == nil or #url == 0 then
-				url = data:match('240:%s+["\'](.-)["\']')
+				url = data:match('240["\'].["\']videoUrl["\']:["\'](.-)["\']')
 			end
 			if url and #url == 0 then
 				url = nil
 			end
+			if url == nil then
+				url = tmpurl
+			end
 		end
-		if url then url=string.gsub(url,'&amp;','&') end
-
 	else
 		if cfg.debug>0 then print('Clip is not found') end
 	end
 
 	if url then
+		url=string.gsub(url,'&amp;','&')
+		url=string.gsub(url,'\\','')
 		if cfg.debug>0 then print('Real URL: '..url) end
 		plugin_sendurl(youporn_url,url,range)
 	else
