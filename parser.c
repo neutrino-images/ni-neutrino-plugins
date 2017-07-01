@@ -389,7 +389,7 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 		{
 			fclose(wxfile);
 			return exit_ind;
-		}
+		 }
 		else
 		{
 			// starting position forcast

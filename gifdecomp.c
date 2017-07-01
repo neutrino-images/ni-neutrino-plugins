@@ -50,6 +50,7 @@
   printfe("%s " format, __func__, ## __VA_ARGS__)
 
 static int
+//	ImageNum = 0,
     InterlacedFlag = FALSE,
     InterlacedOffset[] = { 0, 4, 2, 1 }, /* The way Interlaced image should. */
     InterlacedJumps[] = { 8, 8, 4, 2 };    /* be read - offsets and jumps... */
@@ -93,7 +94,8 @@ int i, err = 0;
 		if ((GifFileOut = EGifOpenFileName(TempGifName, TRUE, &err)) == NULL)
 		QuitGifError(GifFileIn, GifFileOut, err);
    
-		if (EGifPutScreenDesc(GifFileOut,
+    
+    		if (EGifPutScreenDesc(GifFileOut,
 		GifFileIn->SWidth, GifFileIn->SHeight,
 		GifFileIn->SColorResolution, GifFileIn->SBackGroundColor,
 		GifFileIn->SColorMap) == GIF_ERROR)
@@ -107,7 +109,7 @@ int i, err = 0;
 		switch (RecordType) {
 	    	case IMAGE_DESC_RECORD_TYPE:
 			if (DGifGetImageDesc(GifFileIn) == GIF_ERROR)
-			QuitGifError(GifFileIn, GifFileOut, err);
+			    QuitGifError(GifFileIn, GifFileOut, err);
 
 			/* Put the image descriptor to out file: */
 			if (EGifPutImageDesc(GifFileOut,
@@ -155,8 +157,8 @@ int i, err = 0;
 	QuitGifError(GifFileIn, GifFileOut, err);
 
     
-		/* Scan the content of GIF file and dump image(s) to seperate file(s): */
-		do {
+   		 /* Scan the content of GIF file and dump image(s) to seperate file(s): */
+    		do {
 		sprintf(CrntFileName, "%s%02d.gif", OutFileName, FileNum++);
 		if ((GifFileOut = EGifOpenFileName(CrntFileName, TRUE, &err)) == NULL)
 		    QuitGifError(GifFileIn, GifFileOut, err);
@@ -175,7 +177,7 @@ int i, err = 0;
 
 	   		switch (RecordType) {
 			case IMAGE_DESC_RECORD_TYPE:
-			FileEmpty = false;
+			FileEmpty = FALSE;
 			if (DGifGetImageDesc(GifFileIn) == GIF_ERROR)
 			    QuitGifError(GifFileIn, GifFileOut, err);
 		 	   /* Put same image descriptor to out file: */
@@ -197,7 +199,7 @@ int i, err = 0;
 				    QuitGifError(GifFileIn, GifFileOut, err);
 		    	break;
 			case EXTENSION_RECORD_TYPE:
-				FileEmpty = false;
+				FileEmpty = FALSE;
 		    		/* Skip any extension blocks in file: */
 		    		if (DGifGetExtension(GifFileIn, &ExtCode, &Extension)
 				    == GIF_ERROR)
@@ -261,18 +263,15 @@ int LoadImage(GifFileType *GifFile, GifRowType **ImageBufferPtr)
     /* Allocate the image as vector of column of rows. We cannt allocate     */
     /* the all screen at once, as this broken minded CPU can allocate up to  */
     /* 64k at a time and our image can be bigger than that:		     */
-    if ((ImageBuffer = (GifRowType *) malloc(GifFile->Image.Height * sizeof(GifRowType *))) == NULL) {
-	printf("Failed to allocate memory required, aborted.");
-	return GIF_ERROR;
-	}
+    if ((ImageBuffer = (GifRowType *)
+	malloc(GifFile->Image.Height * sizeof(GifRowType *))) == NULL)
+	    GIF_EXIT("Failed to allocate memory required, aborted.");
 
     Size = GifFile->Image.Width * sizeof(GifPixelType);/* One row size in bytes.*/
     for (i = 0; i < GifFile->Image.Height; i++) {
 	/* Allocate the rows: */
-	if ((ImageBuffer[i] = (GifRowType) malloc(Size)) == NULL) {
-		printf("Failed to allocate memory required, aborted.");
-		return GIF_ERROR;
-	}
+	if ((ImageBuffer[i] = (GifRowType) malloc(Size)) == NULL)
+	    GIF_EXIT("Failed to allocate memory required, aborted.");
     }
 
     *ImageBufferPtr = ImageBuffer;
@@ -286,12 +285,14 @@ int LoadImage(GifFileType *GifFile, GifRowType **ImageBufferPtr)
 	for (/*Count =*/ i = 0; i < 4; i++)
 	    for (j = InterlacedOffset[i]; j < GifFile->Image.Height;
 						 j += InterlacedJumps[i]) {
+//		GifQprintf("\b\b\b\b%-4d", Count++);
 		if (DGifGetLine(GifFile, ImageBuffer[j], GifFile->Image.Width)
 		    == GIF_ERROR) return GIF_ERROR;
 	    }
     }
     else {
 	for (i = 0; i < GifFile->Image.Height; i++) {
+//	    GifQprintf("\b\b\b\b%-4d", i);
 	    if (DGifGetLine(GifFile, ImageBuffer[i], GifFile->Image.Width)
 		== GIF_ERROR) return GIF_ERROR;
 	}
@@ -315,6 +316,7 @@ int DumpImage(GifFileType *GifFile, GifRowType *ImageBuffer)
 	for (/*Count = GifFile->Image.Height,*/ i = 0; i < 4; i++)
 	    for (j = InterlacedOffset[i]; j < GifFile->Image.Height;
 						 j += InterlacedJumps[i]) {
+//		GifQprintf("\b\b\b\b%-4d", Count--);
 		if (EGifPutLine(GifFile, ImageBuffer[j], GifFile->Image.Width)
 		    == GIF_ERROR) return GIF_ERROR;
 	    }
