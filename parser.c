@@ -33,7 +33,7 @@ int 	ptc=		0;
 int 	t_actday=	0;
 int	t_actmonth=	0;
 int 	t_actyear=	0;
-const char mnames[12][10]={"Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"};
+const char mnames[12][10]={"Januar","Februar","MÃ¤rz","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"};
 char prstrans[512];
 extern int num_of_days;
 
@@ -578,7 +578,7 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	exit_ind=1;
 #endif
 
-//*** Übersetzungs File ***
+//*** Ãœbersetzungs File ***
 	
 	if ((wxfile = fopen(trans,"r"))==NULL)
 	{

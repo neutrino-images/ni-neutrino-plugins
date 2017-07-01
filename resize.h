@@ -22,7 +22,7 @@
 #ifndef __RESIZE_H__
 #define __RESIZE_H__
 
-unsigned char * simple_resize(unsigned char * orgin,int ox,int oy,int dx,int dy);
-unsigned char * color_average_resize(unsigned char * orgin,int ox,int oy,int dx,int dy);
+//unsigned char * simple_resize(unsigned char * orgin,int ox,int oy,int dx,int dy);
+unsigned char * color_average_resize(unsigned char * orgin,int ox,int oy,int dx,int dy,int alpha);
 
 #endif

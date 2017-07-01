@@ -21,7 +21,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
+#if 0
 unsigned char * simple_resize(unsigned char * orgin,int ox,int oy,int dx,int dy)
 {
 //   dbout("simple_resize{\n");
@@ -51,42 +53,84 @@ unsigned char * simple_resize(unsigned char * orgin,int ox,int oy,int dx,int dy)
 //   dbout("simple_resize}\n");
 	return(cr);
 }
+#endif
 
-unsigned char * color_average_resize(unsigned char * orgin,int ox,int oy,int dx,int dy)
+unsigned char * color_average_resize(unsigned char * orgin, int ox, int oy, int dx, int dy, int alpha)
 {
-//   dbout("color_average_resize{\n");
+#if DEBUG
+printf(" COLOR_AVERAGE_RESIZE in\n");
+#endif
 	unsigned char *cr,*p,*q;
-	int i,j,k,l,xa,xb,ya,yb;
-	int sq,r,g,b;
-	cr=(unsigned char*) malloc(dx*dy*3); 
+	int i,j,k,l,ya,yb;
+	int sq,r,g,b,a;
+	cr = (unsigned char*) malloc(dx * dy * ((alpha) ? 4 : 3));
 	if(cr==NULL)
 	{
 		printf("Error: malloc\n");
-//      dbout("color_average_resize}\n");
 		return(orgin);
 	}
 	p=cr;
 
-	for(j=0;j<dy;j++)
+	int xa_v[dx];
+	for(i=0;i<dx;i++)
+		xa_v[i] = i*ox/dx;
+	int xb_v[dx+1];
+	for(i=0;i<dx;i++)
 	{
-		for(i=0;i<dx;i++,p+=3)
+		xb_v[i]= (i+1)*ox/dx;
+		if(xb_v[i]>=ox)
+			xb_v[i]=ox-1;
+	}
+
+	if (alpha)
+	{
+		for(j=0;j<dy;j++)
 		{
-			xa=i*ox/dx;
-			ya=j*oy/dy;
-			xb=(i+1)*ox/dx; if(xb>=ox)	xb=ox-1;
-			yb=(j+1)*oy/dy; if(yb>=oy)	yb=oy-1;
-			for(l=ya,r=0,g=0,b=0,sq=0;l<=yb;l++)
+			ya= j*oy/dy;
+			yb= (j+1)*oy/dy; if(yb>=oy) yb=oy-1;
+			for(i=0;i<dx;i++,p+=4)
 			{
-				q=orgin+((l*ox+xa)*3);
-				for(k=xa;k<=xb;k++,q+=3,sq++)
+				for(l=ya,r=0,g=0,b=0,a=0,sq=0;l<=yb;l++)
 				{
-					r+=q[0]; g+=q[1]; b+=q[2];
+					q=orgin+((l*ox+xa_v[i])*4);
+					for(k=xa_v[i];k<=xb_v[i];k++,q+=4,sq++)
+					{
+						r+=q[0]; g+=q[1]; b+=q[2]; a+=q[3];
+					}
 				}
+				int sq_tmp = sq ? sq : 1;//avoid division by zero
+				p[0]= (uint8_t)(r/sq_tmp);
+				p[1]= (uint8_t)(g/sq_tmp);
+				p[2]= (uint8_t)(b/sq_tmp);
+				p[3]= (uint8_t)(a/sq_tmp);
 			}
-			p[0]=r/sq; p[1]=g/sq; p[2]=b/sq;
+		}
+	}else
+	{
+		for(j=0;j<dy;j++)
+		{
+			ya= j*oy/dy;
+			yb= (j+1)*oy/dy; if(yb>=oy) yb=oy-1;
+			for(i=0;i<dx;i++,p+=3)
+			{
+				for(l=ya,r=0,g=0,b=0,sq=0;l<=yb;l++)
+				{
+					q=orgin+((l*ox+xa_v[i])*3);
+					for(k=xa_v[i];k<=xb_v[i];k++,q+=3,sq++)
+					{
+						r+=q[0]; g+=q[1]; b+=q[2];
+					}
+				}
+				int sq_tmp = sq ? sq : 1;//avoid division by zero
+				p[0]= (uint8_t)(r/sq_tmp);
+				p[1]= (uint8_t)(g/sq_tmp);
+				p[2]= (uint8_t)(b/sq_tmp);
+			}
 		}
 	}
 	free(orgin);
-//   dbout("color_average_resize}\n");
+#if DEBUG
+printf(" COLOR_AVERAGE_RESIZE out\n");
+#endif
 	return(cr);
 }

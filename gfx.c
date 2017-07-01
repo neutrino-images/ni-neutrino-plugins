@@ -3,24 +3,11 @@
 
 #include "tuxwetter.h"
 #include "gfx.h"
+#include "resize.h"
+#include "pngw.h"
+#include "fb_display.h"
 
-//typedef struct { unsigned char width_lo; unsigned char width_hi; unsigned char height_lo; unsigned char height_hi; 	unsigned char transp; } IconHeader;
-
-char circle[] =
-{
-	0,0,0,0,0,1,1,0,0,0,0,0,
-	0,0,0,1,1,1,1,1,1,0,0,0,
-	0,0,1,1,1,1,1,1,1,1,0,0,
-	0,1,1,1,1,1,1,1,1,1,1,0,
-	0,1,1,1,1,1,1,1,1,1,1,0,
-	1,1,1,1,1,1,1,1,1,1,1,1,
-	1,1,1,1,1,1,1,1,1,1,1,1,
-	0,1,1,1,1,1,1,1,1,1,1,0,
-	0,1,1,1,1,1,1,1,1,1,1,0,
-	0,0,1,1,1,1,1,1,1,1,0,0,
-	0,0,0,1,1,1,1,1,1,0,0,0,
-	0,0,0,0,0,1,1,0,0,0,0,0
-};
+extern const char NOMEM[];
 
 void Center_Screen(int wx, int wy, int *csx, int *csy)
 {
@@ -35,13 +22,13 @@ void RenderBox(int rsx, int rsy, int rex, int rey, int rad, int col)
 {
 	int F,R=rad,ssx=sx+rsx,ssy=sy+rsy,dxx=rex,dyy=rey,rx,ry,wx,wy,count;
 
-	unsigned char *pos=(lbb+(ssx<<2)+fix_screeninfo.line_length*ssy);
-	unsigned char *pos0, *pos1, *pos2, *pos3, *i;
-	unsigned char pix[4]={bl[col],gn[col],rd[col],tr[col]};
+	uint32_t *pos = lbb + ssx + stride * ssy;
+	uint32_t *pos0, *pos1, *pos2, *pos3, *i;
+	uint32_t pix = bgra[col];
 
 	if (dxx<0)
 	{
-		printf("[shellexec] RenderBox called with dx < 0 (%d)\n", dxx);
+		printf("[tuxwetter] %s called with dxx < 0 (%d)\n", __func__, dxx);
 		dxx=0;
 	}
 
@@ -79,10 +66,10 @@ void RenderBox(int rsx, int rsy, int rex, int rey, int rad, int col)
 		rx=R-ssx;
 		ry=R-ssy;
 
-		pos0=pos+((dyy-ry)*fix_screeninfo.line_length);
-		pos1=pos+(ry*fix_screeninfo.line_length);
-		pos2=pos+(rx*fix_screeninfo.line_length);
-		pos3=pos+((dyy-rx)*fix_screeninfo.line_length);
+		pos0=pos+(dyy-ry)*stride;
+		pos1=pos+ry*stride;
+		pos2=pos+rx*stride;
+		pos3=pos+(dyy-rx)*stride;
 		while (ssx <= ssy)
 		{
 			rx=R-ssx;
@@ -90,18 +77,18 @@ void RenderBox(int rsx, int rsy, int rex, int rey, int rad, int col)
 			wx=rx<<1;
 			wy=ry<<1;
 
-			for(i=pos0+(rx<<2); i<pos0+((rx+dxx-wx)<<2);i+=4)
-				memcpy(i, pix, 4);
-			for(i=pos1+(rx<<2); i<pos1+((rx+dxx-wx)<<2);i+=4)
-				memcpy(i, pix, 4);
-			for(i=pos2+(ry<<2); i<pos2+((ry+dxx-wy)<<2);i+=4)
-				memcpy(i, pix, 4);
-			for(i=pos3+(ry<<2); i<pos3+((ry+dxx-wy)<<2);i+=4)
-				memcpy(i, pix, 4);
+			for(i=pos0+rx; i<pos0+rx+dxx-wx;i++)
+				*i = pix;
+			for(i=pos1+rx; i<pos1+rx+dxx-wx;i++)
+				*i = pix;
+			for(i=pos2+ry; i<pos2+ry+dxx-wy;i++)
+				*i = pix;
+			for(i=pos3+ry; i<pos3+ry+dxx-wy;i++)
+				*i = pix;
 
 			ssx++;
-			pos2-=fix_screeninfo.line_length;
-			pos3+=fix_screeninfo.line_length;
+			pos2-=stride;
+			pos3+=stride;
 			if (F<0)
 			{
 				F+=(ssx<<1)-1;
@@ -110,93 +97,114 @@ void RenderBox(int rsx, int rsy, int rex, int rey, int rad, int col)
 			{
 				F+=((ssx-ssy)<<1);
 				ssy--;
-				pos0-=fix_screeninfo.line_length;
-				pos1+=fix_screeninfo.line_length;
+				pos0-=stride;
+				pos1+=stride;
 			}
 		}
-		pos+=R*fix_screeninfo.line_length;
+		pos+=R*stride;
 	}
 
 	for (count=R; count<(dyy-R); count++)
 	{
-		for(i=pos; i<pos+(dxx<<2);i+=4)
-			memcpy(i, pix, 4);
-		pos+=fix_screeninfo.line_length;
+		for(i=pos; i<pos+dxx;i++)
+			*i = pix;
+		pos+=stride;
 	}
 }
 
-/******************************************************************************
- * RenderCircle
- ******************************************************************************/
-
-void RenderCircle(int sx, int sy, int col)
-{
-	int x, y;
-	unsigned char pix[4]={bl[col],gn[col],rd[col],tr[col]};
-	//render
-
-		for(y = 0; y < 12; y++)
-		{
-			for(x = 0; x < 12; x++) if(circle[x + y*12]) memcpy(lbb + (startx + sx + x)*4 + fix_screeninfo.line_length*(starty + sy + y), pix, 4);
-		}
-}
-
-#if 0
 /******************************************************************************
  * PaintIcon
  ******************************************************************************/
-void PaintIcon(char *filename, int x, int y, unsigned char offset)
+
+int paintIcon(const char *const fname, int xstart, int ystart, int xsize, int ysize, int *iw, int *ih)
 {
-	IconHeader iheader;
-	unsigned int  width, height,count,count2;
-	unsigned char pixbuf[768],*pixpos,compressed,pix1,pix2;
-	unsigned char * d = (lbb+(startx+x)+var_screeninfo.xres*(starty+y));
-	unsigned char * d2;
-	int fd;
+	FILE *tfh;
+	int x1, y1, rv=-1, alpha=0, bpp=0;
+	int imx,imy,dxo,dyo,dxp,dyp;
+	unsigned char *buffer=NULL;
 
-	fd = open(filename, O_RDONLY);
-
-	if (fd == -1)
+	if((tfh=fopen(fname,"r"))!=NULL)
 	{
-		printf("shellexec <unable to load icon: %s>\n", filename);
-		return;
-	}
-
-	read(fd, &iheader, sizeof(IconHeader));
-
-	width  = (iheader.width_hi  << 8) | iheader.width_lo;
-	height = (iheader.height_hi << 8) | iheader.height_lo;
-
-
-	for (count=0; count<height; count ++ )
-	{
-		read(fd, &pixbuf, width >> 1 );
-		pixpos = (unsigned char*) &pixbuf;
-		d2 = d;
-		for (count2=0; count2<width >> 1; count2 ++ )
+		if(png_getsize(fname, &x1, &y1))
 		{
-			compressed = *pixpos;
-			pix1 = (compressed & 0xf0) >> 4;
-			pix2 = (compressed & 0x0f);
-
-			if (pix1 != iheader.transp)
-			{
-				*d2=pix1 + offset;
-			}
-			d2++;
-			if (pix2 != iheader.transp)
-			{
-				*d2=pix2 + offset;
-			}
-			d2++;
-			pixpos++;
+			perror("tuxwetter <invalid PNG-Format>\n");
+			fclose(tfh);
+			return -1;
 		}
-		d += var_screeninfo.xres;
+		// no resize
+		if (xsize == 0 || ysize == 0)
+		{
+			xsize = x1;
+			ysize = y1;
+		}
+		if((buffer=(unsigned char *) malloc(x1*y1*4))==NULL)
+		{
+			printf(NOMEM);
+			fclose(tfh);
+			return -1;
+		}
+
+		if(!(rv=png_load(fname, &buffer, &x1, &y1, &bpp)))
+		{
+			alpha=(bpp==4)?1:0;
+			scale_pic(&buffer,x1,y1,xstart,ystart,xsize,ysize,&imx,&imy,&dxp,&dyp,&dxo,&dyo,0,alpha);
+
+			fb_display(buffer, imx, imy, dxp, dyp, dxo, dyo, 0, 0, alpha);
+		}
+		free(buffer);
+		fclose(tfh);
 	}
-	close(fd);
-	return;
+	*iw = imx;
+	*ih = imy;
+	return (rv)?-1:0;
 }
-#endif
+
+void scale_pic(unsigned char **buffer, int x1, int y1, int xstart, int ystart, int xsize, int ysize,
+			   int *imx, int *imy, int *dxp, int *dyp, int *dxo, int *dyo, int center, int alpha)
+{
+	float xfact=0, yfact=0;
+	int txsize=0, tysize=0;
+	int txstart =xstart, tystart= ystart;
+
+	if (xsize > (ex-xstart)) txsize= (ex-xstart);
+	else  txsize= xsize;
+	if (ysize > (ey-ystart)) tysize= (ey-ystart);
+	else tysize=ysize;
+	xfact= 1000*txsize/x1;
+	xfact= xfact/1000;
+	yfact= 1000*tysize/y1;
+	yfact= yfact/1000;
+
+	if ( xfact <= yfact)
+	{
+		*imx=(int)x1*xfact;
+		*imy=(int)y1*xfact;
+		if (center !=0)
+		{
+			tystart=(ey-sy)-*imy;
+			tystart=tystart/2;
+			tystart=tystart+ystart;
+		}
+	}
+	else
+	{
+		*imx=(int)x1*yfact;
+		*imy=(int)y1*yfact;
+		if (center !=0)
+		{
+			txstart=(ex-sx)-*imx;
+			txstart=txstart/2;
+			txstart=txstart+xstart;
+		}
+	}
+	if ((x1 != *imx) || (y1 != *imy))
+		*buffer=color_average_resize(*buffer,x1,y1,*imx,*imy,alpha);
+
+	*dxp=0;
+	*dyp=0;
+	*dxo=txstart;
+	*dyo=tystart;
+}
 
 /******************************************************************************
  * RenderLine
@@ -210,7 +218,7 @@ void RenderLine( int xa, int ya, int xb, int yb, unsigned char col )
 	int	y;
 	int	End;
 	int	step;
-	unsigned char pix[4]={bl[col],gn[col],rd[col],tr[col]};
+	uint32_t pix = bgra[col];
 
 	dx = abs (xa - xb);
 	dy = abs (ya - yb);
@@ -235,8 +243,7 @@ void RenderLine( int xa, int ya, int xb, int yb, unsigned char col )
 			End = xb;
 			step = yb < ya ? -1 : 1;
 		}
-
-		memcpy(lbb + (startx+x)*4 + fix_screeninfo.line_length*(y+starty), pix, sizeof(pix));
+		*(lbb + startx+x + stride*(y+starty)) = pix;
 
 		while( x < End )
 		{
@@ -248,7 +255,7 @@ void RenderLine( int xa, int ya, int xb, int yb, unsigned char col )
 				y += step;
 				p += twoDyDx;
 			}
-			memcpy(lbb + (startx+x)*4 + fix_screeninfo.line_length*(y+starty), pix, sizeof(pix));
+			*(lbb + startx+x + stride*(y+starty)) = pix;
 		}
 	}
 	else
@@ -271,8 +278,7 @@ void RenderLine( int xa, int ya, int xb, int yb, unsigned char col )
 			End = yb;
 			step = xb < xa ? -1 : 1;
 		}
-
-		memcpy(lbb + (startx+x)*4 + fix_screeninfo.line_length*(y+starty), pix, sizeof(pix));
+		*(lbb + startx+x + stride*(y+starty)) = pix;
 
 		while( y < End )
 		{
@@ -284,9 +290,8 @@ void RenderLine( int xa, int ya, int xb, int yb, unsigned char col )
 				x += step;
 				p += twoDxDy;
 			}
-			memcpy(lbb + (startx+x)*4 + fix_screeninfo.line_length*(y+starty), pix, sizeof(pix));
+
+			*(lbb + startx+x + stride*(y+starty)) = pix;
 		}
 	}
 }
-
-

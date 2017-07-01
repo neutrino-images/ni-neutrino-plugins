@@ -22,9 +22,6 @@
 //#include "config.h"
 #include <string.h>
 #include <stdio.h>
-#ifdef HAVE_DBOX_HARDWARE
-#include <dbox/fb.h>
-#endif
 #include "tuxwetter.h"
 #include "parser.h"
 //#include "bmps.h"
@@ -55,12 +52,11 @@
 
 static unsigned short red[256], green[256], blue[256], transp[256];
 static struct fb_cmap map332 = {0, 256, red, green, blue, NULL};
-extern int fbd; // Framebuffer device
-extern unsigned char *lfb;
-extern unsigned int alpha;
+
+extern int multiple_pics;
 static int gbpp, gccp, gmode_on=0;
 static struct fb_fix_screeninfo fix;
-//static struct fb_cmap colormap = {1, 8, rd, gn, bl, tr};
+extern void blit();
 
 typedef struct pixelformat{
 	char *name;
@@ -85,6 +81,7 @@ const struct pixelformat gpix = {
 int openFB(const char *name);
 void getFixScreenInfo(struct fb_fix_screeninfo *fix);
 int set332map(void);
+
 void blit2FB(void *fbbuff,
 	unsigned int pic_xs, unsigned int pic_ys,
 	unsigned int scr_xs, unsigned int scr_ys,
@@ -92,7 +89,7 @@ void blit2FB(void *fbbuff,
 	unsigned int xoffs, unsigned int yoffs,
 	int cpp, int setpal);
 
-inline unsigned short make16color(unsigned long r, unsigned long g, 
+static inline unsigned short make16color(unsigned long r, unsigned long g,
 											 unsigned long b, unsigned long rl, 
 											 unsigned long ro, unsigned long gl, 
 											 unsigned long go, unsigned long bl, 
@@ -109,7 +106,7 @@ int fb_set_gmode(int gmode)
 		return -1;
 	}
 
-	struct fb_fix_screeninfo fix;
+//	struct fb_fix_screeninfo fix;
 
 	if (ioctl(fb, FBIOGET_FSCREENINFO, &fix)<0) {
 		perror("FBIOGET_FSCREENINFO");
@@ -125,11 +122,10 @@ int fb_set_gmode(int gmode)
 	return 0;
 }
 
-
-void fb_display(unsigned char *rgbbuff, int x_size, int y_size, int x_pan, int y_pan, int x_offs, int y_offs, int clearflag, int setpal)
+void fb_display(unsigned char *rgbbuff, int x_size, int y_size, int x_pan, int y_pan, int x_offs, int y_offs, int clearflag, int setpal, int alpha)
 {
     struct fb_var_screeninfo var;
-    unsigned short *fbbuff = NULL;
+    void *fbbuff = NULL;
     int bp = 0;
     if(rgbbuff==NULL)
 		 return;
@@ -154,13 +150,16 @@ void fb_display(unsigned char *rgbbuff, int x_size, int y_size, int x_pan, int y
     if(y_offs + y_size > (int)var.yres) y_offs = 0;
     
     /* blit buffer 2 fb */
-    fbbuff = (unsigned short *) convertRGB2FB(rgbbuff, x_size * y_size, var.bits_per_pixel, &bp);
+    fbbuff = convertRGB2FB(rgbbuff, x_size * y_size, var.bits_per_pixel, &bp, alpha);
     if(fbbuff==NULL)
 		 return;
+
 	 /* ClearFB if image is smaller */
-   if(clearflag)
-       clearFB(0,0,var.bits_per_pixel, bp);
+	if(clearflag)
+		setBG();
+
     blit2FB(fbbuff, x_size, y_size, var.xres, var.yres, x_pan, y_pan, x_offs, y_offs, bp, setpal);
+
     free(fbbuff);
     gbpp=bp;
     gccp=var.bits_per_pixel;
@@ -227,7 +226,7 @@ void blit2FB(void *fbbuff,
 	unsigned int xoffs, unsigned int yoffs,
 	int cpp, int setpal)
 {
-    int i, xc, yc;
+    int i, xc, yc, count, count2;
     unsigned char *cp; unsigned short *sp; unsigned int *ip;
     ip = (unsigned int *) fbbuff;
     sp = (unsigned short *) ip;
@@ -236,32 +235,75 @@ void blit2FB(void *fbbuff,
     xc = (pic_xs > scr_xs) ? scr_xs : pic_xs;
     yc = (pic_ys > scr_ys) ? scr_ys : pic_ys;
 
-    unsigned int stride = fix.line_length;
+	int xo = (xoffs * cpp)/sizeof(uint32_t);
 
-	 switch(cpp){
+	switch(cpp){
 		case 1:
-		if(setpal)
+			if(setpal)
+			{
+				set332map();
+			}
+		for(i = 0; i < yc; i++){
+				memcpy(lbb+(i+yoffs)*stride+xo,cp + (i+yp)*pic_xs+xp,xc*cpp);
+			}
+			break;
+		case 2:
+			for(i = 0; i < yc; i++){
+				memcpy(lbb+(i+yoffs)*stride+xo,sp + (i+yp)*pic_xs+xp, xc*cpp);
+			}
+			break;
+		case 4:
 		{
-			set332map();
+			uint32_t * data = (uint32_t *) fbbuff;
+
+			uint32_t * d = (uint32_t *)lbb + xo + stride * yoffs;
+			uint32_t * d2;
+
+			for (count = 0; count < yc; count++ ) {
+				uint32_t *pixpos = &data[(count + yp) * pic_xs];
+				d2 = (uint32_t *) d;
+				for (count2 = 0; count2 < xc; count2++ ) {
+					uint32_t pix = *(pixpos + xp);
+					if ((pix & 0xff000000) == 0xff000000)
+						*d2 = pix;
+					else {
+						uint8_t *in = (uint8_t *)(pixpos + xp);
+						uint8_t *out = (uint8_t *)d2;
+						int a = in[3];	/* TODO: big/little endian */
+						*out = (*out + ((*in - *out) * a) / 256);
+						in++; out++;
+						*out = (*out + ((*in - *out) * a) / 256);
+						in++; out++;
+						*out = (*out + ((*in - *out) * a) / 256);
+					}
+					d2++;
+					pixpos++;
+				}
+				d += stride;
+			}
 		}
-	    for(i = 0; i < yc; i++){
-			 memcpy(lfb+(i+yoffs)*stride+xoffs*cpp,cp + (i+yp)*pic_xs+xp,xc*cpp);
-		 }
-		 break;
-		 case 2:
-			 for(i = 0; i < yc; i++){
-				 memcpy(lfb+(i+yoffs)*stride+xoffs*cpp,sp + (i+yp)*pic_xs+xp, xc*cpp);
-			 }
-			 break;
-		 case 4:
-			 for(i = 0; i < yc; i++){
-				 memcpy(lfb+(i+yoffs)*stride+xoffs*cpp,ip + (i+yp)*pic_xs+xp, xc*cpp);
-			 }
-			 break;
-	 }
+		break;
+	}
+	if (!multiple_pics)
+		blit();
 }
 
+void setBG()
+{
+	RenderBox(0, 0, var_screeninfo.xres, var_screeninfo.yres, 0, 0/*black*/);
+}
 
+void clearBB()
+{
+	memset(lbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+}
+
+void clearFB(int cfx __attribute((unused)) __attribute((unused)), int cfy __attribute((unused)) __attribute((unused)), int bpp __attribute((unused)), int cpp __attribute((unused)))
+{
+	clearBB();
+	blit();
+}
+#if 0
 void clearFB(int cfx, int cfy, int bpp, int cpp)
 {
 int x,y;
@@ -322,13 +364,14 @@ int x,y;
 	}
 
 }
+#endif
 
 void closeFB(void)
 {
 	clearFB(0, 0, gbpp, gccp);
 }
 
-inline unsigned char make8color(unsigned char r, unsigned char g, unsigned char b)
+static inline unsigned char make8color(unsigned char r, unsigned char g, unsigned char b)
 {
     return (
 	(((r >> 5) & 7) << 5) |
@@ -336,36 +379,36 @@ inline unsigned char make8color(unsigned char r, unsigned char g, unsigned char 
 	 ((b >> 6) & 3)       );
 }
 
-inline unsigned short make15color(unsigned char r, unsigned char g, unsigned char b)
+static inline unsigned short make15color(unsigned char r, unsigned char g, unsigned char b)
 {
-    return ( 
-	(((b >> 3) & 31) << 10) |
+    return (
+	(((r >> 3) & 31) << 10) |
 	(((g >> 3) & 31) << 5)  |
-	 ((r >> 3) & 31)        );
+	 ((b >> 3) & 31)        );
 }
 
-inline unsigned short make16color(unsigned long r, unsigned long g, unsigned long b, 
+static inline unsigned short make16color(unsigned long r, unsigned long g, unsigned long b,
 				    unsigned long rl, unsigned long ro, 
 				    unsigned long gl, unsigned long go, 
 				    unsigned long bl, unsigned long bo, 
 				    unsigned long tl, unsigned long to)
 {
     return (
-//		 ((0xFF >> (8 - tl)) << to) |
+		//((0xFF >> (8 - tl)) << to) |
 	    ((r    >> (8 - rl)) << ro) |
 	    ((g    >> (8 - gl)) << go) |
 	    ((b    >> (8 - bl)) << bo));
 }
 
-void* convertRGB2FB(unsigned char *rgbbuff, unsigned long count, int bpp, int *cpp)
+void* convertRGB2FB(unsigned char *rgbbuff, unsigned long count, int bpp, int *cpp, int alpha)
 {
     unsigned long i;
     void *fbbuff = NULL;
-    unsigned char *c_fbbuff;
-    unsigned short *s_fbbuff;
-    unsigned int *i_fbbuff;
+    uint8_t  *c_fbbuff;
+    uint16_t *s_fbbuff;
+    uint32_t *i_fbbuff;
     unsigned long rl, ro, gl, go, bl, bo, tl, to;
-    
+
 	struct fb_var_screeninfo tvar;
     ioctl(fb, FBIOGET_VSCREENINFO, &tvar);
     rl = tvar.red.length;
@@ -376,19 +419,19 @@ void* convertRGB2FB(unsigned char *rgbbuff, unsigned long count, int bpp, int *c
     bo = tvar.blue.offset;
     tl = tvar.transp.length;
     to = tvar.transp.offset;
-	 
-	 switch(bpp)
-    {
+
+	switch(bpp)
+	{
 	case 8:
 	    *cpp = 1;
-	    c_fbbuff = (unsigned char *) malloc(count * sizeof(unsigned char));
+	     c_fbbuff = (unsigned char *) malloc(count * sizeof(unsigned char));
 		 if(c_fbbuff==NULL)
 		 {
 			 printf("Error: malloc\n");
 			 return NULL;
 		 }
 	    for(i = 0; i < count; i++)
-		c_fbbuff[i] = make8color(rgbbuff[i*3], rgbbuff[i*3+1], rgbbuff[i*3+2]);
+			c_fbbuff[i] = make8color(rgbbuff[i*3], rgbbuff[i*3+1], rgbbuff[i*3+2]);
 	    fbbuff = (void *) c_fbbuff;
 	    break;
 	case 15:
@@ -400,7 +443,7 @@ void* convertRGB2FB(unsigned char *rgbbuff, unsigned long count, int bpp, int *c
 			 return NULL;
 		 }
 	    for(i = 0; i < count ; i++)
-		s_fbbuff[i] = make15color(rgbbuff[i*3], rgbbuff[i*3+1], rgbbuff[i*3+2]);
+			s_fbbuff[i] = make15color(rgbbuff[i*3], rgbbuff[i*3+1], rgbbuff[i*3+2]);
 	    fbbuff = (void *) s_fbbuff;
 	    break;
 	case 16:
@@ -411,42 +454,57 @@ void* convertRGB2FB(unsigned char *rgbbuff, unsigned long count, int bpp, int *c
 			 printf("Error: malloc\n");
 			 return NULL;
 		 }
-	    for(i = 0; i < count ; i++)
-			 s_fbbuff[i]=make16color(rgbbuff[i*3], rgbbuff[i*3+1], rgbbuff[i*3+2], rl, ro, gl, go, bl, bo, tl, to);
+	     for(i = 0; i < count ; i++)
+			 s_fbbuff[i] = make16color(rgbbuff[i*3], rgbbuff[i*3+1], rgbbuff[i*3+2], rl, ro, gl, go, bl, bo, tl, to);
 		 fbbuff = (void *) s_fbbuff;
-	    break;
+		break;
 	case 24:
 	case 32:
-	    *cpp = 4;
-	    i_fbbuff = (unsigned int *) malloc(count * sizeof(unsigned int));
-		 if(i_fbbuff==NULL)
-		 {
-			 printf("Error: malloc\n");
-			 return NULL;
-		 }
-	    for(i = 0; i < count ; i++)
-		i_fbbuff[i] = (/*transp*/0xFF << 24) | ((rgbbuff[i*3] << 16) & 0xFF0000) | ((rgbbuff[i*3+1] << 8) & 0xFF00) | (rgbbuff[i*3+2] & 0xFF);
-
-	    fbbuff = (void *) i_fbbuff;
-	    break;
+		*cpp = 4;
+		i_fbbuff = (unsigned int *) malloc(count * sizeof(unsigned int));
+		if(i_fbbuff==NULL)
+		{
+			printf("Error: malloc\n");
+			return NULL;
+		}
+		if(alpha) {
+			for(i = 0; i < count ; i++) {
+				i_fbbuff[i] = ((rgbbuff[i*4+3] << 24) & 0xFF000000) |
+					    ((rgbbuff[i*4]   << 16) & 0x00FF0000) |
+					    ((rgbbuff[i*4+1] <<  8) & 0x0000FF00) |
+					    ((rgbbuff[i*4+2])       & 0x000000FF);
+			}
+		}
+		else
+		{
+			int _transp;
+			for(i = 0; i < count ; i++) {
+				_transp = 0;
+				if(rgbbuff[i*3] || rgbbuff[i*3+1] || rgbbuff[i*3+2])
+				_transp = 0xFF;
+				i_fbbuff[i] = (_transp << 24) |
+					((rgbbuff[i*3]    << 16) & 0xFF0000) |
+					((rgbbuff[i*3+1]  <<  8) & 0xFF00) |
+					(rgbbuff[i*3+2]          & 0xFF);
+			}
+		}
+		fbbuff = (void *) i_fbbuff;
+		break;
 	default:
-	    fprintf(stderr, "Unsupported video mode! You've got: %dbpp\n", bpp);
-	    exit(1);
-    }
-    return fbbuff;
+		fprintf(stderr, "Unsupported video mode! You've got: %dbpp\n", bpp);
+		exit(1);
+	}
+	return fbbuff;
 }
 
-
-
-
-int showBusy(int sx, int sy, int width, char r, char g, char b)
+int showBusy(int _sx, int _sy, int width, char r, char g, char b)
 {
 	unsigned char rgb_buffer[3];
 	unsigned char* fb_buffer;
 	unsigned char* m_busy_buffer=NULL;
 	unsigned char* busy_buffer_wrk;
 	int cpp;
-	struct fb_fix_screeninfo fix;
+//	struct fb_fix_screeninfo fix;
 	if(ioctl(fb, FBIOGET_FSCREENINFO, &fix) == -1)
 	{
 		printf("fb_display <FBIOGET_FSCREENINFO failed>\n");
@@ -459,13 +517,14 @@ int showBusy(int sx, int sy, int width, char r, char g, char b)
 		printf("fb_display <FBIOGET_VSCREENINFO failed>\n");
 		return -1;
 	}
-	var.bits_per_pixel = gpix.bpp;
+//	var.bits_per_pixel = gpix.bpp;
 
 	rgb_buffer[0]=r;
 	rgb_buffer[1]=g;
 	rgb_buffer[2]=b;
 
-	fb_buffer = (unsigned char*) convertRGB2FB(rgb_buffer, 1, var.bits_per_pixel, &cpp);
+	fb_buffer = convertRGB2FB(rgb_buffer, 1, var.bits_per_pixel, &cpp, 0);
+
 	if(fb_buffer==NULL)
 	{
 		printf("Error: malloc\n");
@@ -476,24 +535,25 @@ int showBusy(int sx, int sy, int width, char r, char g, char b)
 		free(m_busy_buffer);
 		m_busy_buffer=NULL;
 	}
-	m_busy_buffer = (unsigned char*) malloc(width*width*cpp);
+	size_t bufsize = width * width * cpp;
+	m_busy_buffer = (unsigned char*) malloc(bufsize);
 	if(m_busy_buffer==NULL)
 	{
 		printf("Error: malloc\n");
 		return -1;
 	}
 	busy_buffer_wrk = m_busy_buffer;
-      	unsigned int stride = fix_screeninfo.line_length*2;
 
 	int y=0, x=0;
 	for(y=sy ; y < sy+width; y++)
 	{
-		for(x=sx ; x< sx+width; x++)
+		for(x=_sx ; x< _sx+width; x++)
 		{
-			memcpy(busy_buffer_wrk, lfb + y * stride + x*cpp, cpp);
+			memcpy(busy_buffer_wrk, lbb + y * stride + (x * cpp)/sizeof(uint32_t), cpp);
 			busy_buffer_wrk+=cpp;
-			memcpy(lfb + y * stride + x*cpp, fb_buffer, cpp);
+			memcpy(lbb + y * stride + (x * cpp)/sizeof(uint32_t), fb_buffer, cpp);
 		}
 	}
-return 0;
+	blit();
+	return 0;
 }
