@@ -42,8 +42,9 @@
 #include "fb_display.h"
 #include "resize.h"
 #include "gifdecomp.h"
+#include "icons.h"
 
-#define P_VERSION "3.09"
+#define P_VERSION "4.0"
 #define S_VERSION ""
 
 
@@ -52,6 +53,7 @@ char CONVERT_LIST[]= CONFIGDIR "/convert.list";
 #define MCF_FILE     CONFIGDIR "/tuxwetter.mcfg"
 //#define TIME_FILE    CONFIGDIR "/swisstime"
 #define START_PIC	 CONFIGDIR "/startbild.jpg"
+#define TUX_ICON     CONFIGDIR "/tuxwetter.png"
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define ECF_FILE	"/var/tuxbox/config/enigma/config"
 #define BMP_FILE 	"tuxwettr.bmp"
@@ -70,6 +72,10 @@ static char TCF_FILE[128]="";
 #define LCD_CPL 	12
 #define LCD_RDIST 	10
 
+void blit(void) {
+	memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t));
+}
+
 // Forward defines
 int pic_on_data(char *name, int xstart, int ystart, int xsize, int ysize, int wait, int single, int center, int rahmen);
 char par[32]={0}, key[32]={0};
@@ -77,28 +83,29 @@ void TrimString(char *strg);
 
 // Color table stuff
 static const char menucoltxt[][25]={"Content_Selected_Text","Content_Selected","Content_Text","Content","Content_inactive_Text","Content_inactive","Head_Text","Head"};
-//static char spres[][5]={"","_crt","_lcd"};
+
 
 //#define FONT "/usr/share/fonts/md_khmurabi_10.ttf"
 #define FONT2 "/share/fonts/pakenham.ttf"
 // if font is not in usual place, we look here:
-#define FONT "/share/fonts/neutrino.ttf"
+char FONT[128]="/share/fonts/neutrino.ttf";
 
 //					    CMCST,  CMCS,   CMCT,   CMC,    CMCIT,  CMCI,   CMHT,   CMH
 //					    WHITE,  BLUE0,  TRANSP, CMS,    ORANGE, GREEN,  YELLOW, RED
-//					    CMCP0,  CMCP1,  CMCP2,  CMCP3
+//					    CMCP0,  CMCP1,  CMCP2,  CMCP3,  CSP0
 unsigned char bl[] = {	0x00, 	0x00, 	0xFF, 	0x80, 	0xFF, 	0x80, 	0x00, 	0x80,
 						0xFF, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0x00, 	0x00, 	0x00,
-						0x00, 	0x00,  	0x00,  	0x00};
+						0x00, 	0x00,  	0x00,  	0x00,  	0x00};
 unsigned char gn[] = {	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0xC0, 	0x00,
 						0xFF, 	0x80, 	0x00, 	0x80, 	0xC0, 	0xFF, 	0xFF, 	0x00,
-						0x00, 	0x00,  	0x00,  	0x00};
+						0x00, 	0x00,  	0x00,  	0x00,  	0x00};
 unsigned char rd[] = {	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00,
 						0xFF, 	0x00, 	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0xFF,
-						0x00, 	0x00,  	0x00,  	0x00};
+						0x00, 	0x00,  	0x00,  	0x00,  	0x00};
 unsigned char tr[] = {	0xFF, 	0xFF, 	0xFF,  	0xA0,  	0xFF,  	0x80,  	0xFF,  	0xFF,
 						0xFF, 	0xFF, 	0x00,  	0xFF,  	0xFF,  	0xFF,  	0xFF,  	0xFF,
-						0x00, 	0x00,  	0x00,  	0x00};
+						0x00, 	0x00,  	0x00,  	0x00,  	0x00};
+uint32_t bgra[22];
 
 // Menu structure stuff
 enum {TYP_MENU, TYP_CITY, TYP_PICTURE, TYP_PICHTML, TYP_TXTHTML, TYP_TEXTPAGE, TYP_TXTPLAIN, TYP_EXECUTE, TYP_ENDMENU, TYP_WEATH};
@@ -125,21 +132,23 @@ void ShowInfo(MENU *m);
 
 // Misc
 const char NOMEM[]="Tuxwetter <Out of memory>\n";
-unsigned char *lfb = 0, *lbb = 0;
-int intype=0, show_icons=0, gmodeon=0, ctmo=0, metric=1, loadalways=0, radius=0;
+uint32_t *lfb = NULL, *lbb = NULL;
+int intype=0, show_icons=0, gmodeon=0, ctmo=0, metric=1, loadalways=0, radius=0, radius_small=0;
 char city_code[30] = "";
 char city_name[50] = "";
-unsigned int alpha=0x0202;
+
 int show_splash=0;
+int multiple_pics=0;
 char lastpicture[BUFSIZE]={0};
 char nstr[BUFSIZE]={0};
 char *trstr;
 char *htmstr;
-unsigned char *proxyadress=NULL, *proxyuserpwd=NULL;
+char *proxyadress=NULL, *proxyuserpwd=NULL;
 const char INST_FILE[]="/tmp/rc.locked";
 //char LCDL_FILE[]="/tmp/lcd.locked";
 int instance=0;
 int rclocked=0;
+int stride;
 
 int get_instance(void)
 {
@@ -210,10 +219,10 @@ void xremove(char *fname)
 FILE *fh;
 
 	if((fh=fopen(fname,"r"))!=NULL)
-		{
+	{
 		fclose(fh);
 		remove(fname);
-		}
+	}
 }
 
 int Read_Neutrino_Cfg(char *entry)
@@ -251,6 +260,11 @@ int rv=-1,styp=0;
 				{
 					rv=-1;
 				}
+			}
+			if((strncmp(entry, tstr, 10) == 0) && (strncmp(entry, "font_file=", 10) == 0))
+			{
+				sscanf(tstr, "font_file=%127s", FONT);
+				rv = 1;
 			}
 			//printf("%s\n%s=%s -> %d\n",tstr,entry,cfptr,rv);
 		}
@@ -300,6 +314,11 @@ int ReadConf(char *iscmd)
 
 		if((line_buffer[0]) && (line_buffer[0]!='#') && (!isspace(line_buffer[0])) && ((cptr=strchr(line_buffer,'='))!=NULL))
 		{
+			int neutrinofont = Read_Neutrino_Cfg("font_file=");
+			if(neutrinofont!=1 && strstr(line_buffer, "FONT=") == line_buffer)
+			{
+				strcpy(FONT,strchr(line_buffer,'=')+1);
+			}
 			if(strstr(line_buffer,"SplashScreen") == line_buffer)
 				{
 					sscanf(cptr+1,"%d",&show_splash);
@@ -310,11 +329,11 @@ int ReadConf(char *iscmd)
 				}
 			if(strstr(line_buffer,"ProxyAdressPort") == line_buffer)
 				{
-					proxyadress=(unsigned char*)strdup(cptr+1);
+					proxyadress=strdup(cptr+1);
 				}
 			if(strstr(line_buffer,"ProxyUserPwd") == line_buffer)
 				{
-					proxyuserpwd=(unsigned char*)strdup(cptr+1);
+					proxyuserpwd=strdup(cptr+1);
 				}
 			if(strstr(line_buffer,"ConnectTimeout") == line_buffer)
 				{
@@ -354,7 +373,7 @@ int ReadConf(char *iscmd)
 	return 1;
 }
 
-int PaintWideString(int dy/*linespace*/, const char *string, int sx, int sy, int maxwidth, int layout, int size, int color)
+int PaintWideString(int dy/*linespace*/, const char *string, int _sx, int _sy, int maxwidth, int layout, int size, int color)
 {
 	char vstr[512]={0},tstr[512]={0};
 	int tc = 0;
@@ -369,8 +388,8 @@ int PaintWideString(int dy/*linespace*/, const char *string, int sx, int sy, int
 			tstr[tc+1]= '\0';
 			tc=-1;
 
-			int tl = GetStringLen(sx, tstr, size);
-			int vl = GetStringLen(sx, vstr, size);
+			int tl = GetStringLen(_sx, tstr, size);
+			int vl = GetStringLen(_sx, vstr, size);
 
 			if((vl+tl) < maxwidth)
 			{	//add to line
@@ -380,8 +399,8 @@ int PaintWideString(int dy/*linespace*/, const char *string, int sx, int sy, int
 			else
 			{	//new line
 				TrimString(vstr);
-				RenderString(vstr, sx, sy, maxwidth, layout, size, color);
-				sy+=dy;
+				RenderString(vstr, _sx, _sy, maxwidth, layout, size, color);
+				_sy+=dy;
 
 				vstr[0]= '\0';
 				strcat(vstr,tstr);
@@ -400,17 +419,17 @@ int PaintWideString(int dy/*linespace*/, const char *string, int sx, int sy, int
 	strcat(vstr,tstr);
 
 	TrimString(vstr);
-	RenderString(vstr, sx, sy, maxwidth, layout, size, color);
+	RenderString(vstr, _sx, _sy, maxwidth, layout, size, color);
 
-	return(sy);
+	return(_sy);
 }
 
 int Transform_Entry(char *src, char *trg)
 {
 int tret=-1,fcnt,fpos,tval,ferr,tsub;
 int noprint,rndval,loctime=0;
-char /*pstr[512]={0},nstr[512]={0},dstr[50]={0},*/fstr[5]={0},*cptr,*tptr,*aptr;
-time_t stime;
+char fstr[5]={0},*cptr,*tptr,*aptr;
+time_t subtime;
 struct tm *tltime;
 
 	tsub=0;
@@ -461,15 +480,15 @@ struct tm *tltime;
 				}
 			}
 		}
-		time(&stime);	
-		stime-=tsub;
+		time(&subtime);
+		subtime-=tsub;
 		if(loctime)
 		{
-			tltime=localtime(&stime);
+			tltime=localtime(&subtime);
 		}
 		else
 		{
-			tltime=gmtime(&stime);
+			tltime=gmtime(&subtime);
 		}	
 
 		fpos=0;
@@ -617,6 +636,7 @@ FILE *fh;
 	{
 		while(fgets(line_buffer, BUFSIZE, fh))
 		{
+			TranslateString(line_buffer, BUFSIZE);
 			TrimString(line_buffer);
 			if(strstr(line_buffer,TYPESTR[TYP_MENU])==line_buffer)
 			{
@@ -784,7 +804,7 @@ char *lcptr = NULL, *lcstr= NULL, *lcdptr = NULL;
 		}
 		LCD_update();
 #endif
-		switch((rccode = GetRCCode()))
+		switch(rccode = GetRCCode(-1))
 		{
 			case KEY_RED:
 				m->act_entry=(m->act_entry/10)*10;
@@ -1117,8 +1137,9 @@ FILE *fh;
 
 void ShowInfo(MENU *m)
 {
+	int iw, ih, icon_w=0, icon_h=0, xsize=0, ysize=0, loop;
 	double scrollbar_len, scrollbar_ofs, scrollbar_cor;
-	int loop, index=m->act_entry,tind=m->act_entry, sbw=(m->num_entrys > LIST_STEP)?14:0;
+	int ix=m->act_entry,tind=m->act_entry, sbw=(m->num_entrys > LIST_STEP)?14:0;
 	char tstr[BUFSIZE]={0}, *tptr=NULL;
 	int moffs=35, roffs=8, ixw=400, iyw=(m->num_entrys < LIST_STEP)?((m->num_entrys+1)*30+moffs):375, dy, my, mh, toffs, soffs=4, isx, isy;
 
@@ -1129,18 +1150,16 @@ void ShowInfo(MENU *m)
 	
 	Center_Screen(ixw, iyw, &isx, &isy);
 
-	tind=index;
+	tind=ix;
 	
 	//frame layout
+	RenderBox(isx+6, isy+6, ixw, iyw, radius, CSP0);
 	RenderBox(isx, isy, ixw, iyw, radius, CMC);
-//	RenderBox(0, 0, ixw, iyw, GRID, CMCS);
-
 	// titlebar
-	RenderBox(isx+2, isy-2, ixw-2, moffs+roffs, radius, CMH);
+	RenderBox(isx, isy, ixw, moffs+roffs, radius, CMH);
 
 	//selectbar
-	RenderBox(isx+2, isy+moffs+toffs+soffs+(index%10)*dy+2, ixw-sbw-2, dy+2, radius, CMCS);
-
+	RenderBox(isx+2, isy+moffs+toffs+soffs+(ix%10)*dy+2, ixw-sbw-2, dy+2, radius, CMCS);
 
 	if(sbw)
 	{
@@ -1148,27 +1167,36 @@ void ShowInfo(MENU *m)
 		RenderBox(isx+ixw-sbw, isy+moffs+roffs, sbw, mh, radius, CMCP1);
 		//slider
 		scrollbar_len = (double)(mh-4) / (double)(((m->num_entrys-1)/LIST_STEP+1)*LIST_STEP);
-		scrollbar_ofs = scrollbar_len*(double)((index/LIST_STEP)*LIST_STEP)+roffs;
+		scrollbar_ofs = scrollbar_len*(double)((ix/LIST_STEP)*LIST_STEP)+roffs;
 		scrollbar_cor = scrollbar_len*(double)LIST_STEP;
 		RenderBox(isx+ixw-sbw+2, isy+moffs+scrollbar_ofs+2, sbw-4, scrollbar_cor, radius, CMCP3);
 	}
 
-	// Title text
-	RenderString(m->headertxt[m->act_header], isx+45, isy+dy-soffs+3, ixw-sbw-45, LEFT, FSIZE_BIG, CMHT);
+	png_getsize(TUX_ICON, &icon_w, &icon_h);
+	// limit icon size
+	if(icon_w > 32 || icon_h > 32) {
+		icon_w = xsize = 32;
+		icon_h = ysize = 32;
+	}
+	multiple_pics=1;
+	paintIcon(TUX_ICON, isx+44-icon_w/2, (isy+dy-soffs+11)-icon_h/2, xsize, ysize, &iw, &ih);
 
-	index /= 10;
+	// Title text
+	RenderString(m->headertxt[m->act_header], isx+47, isy+dy-soffs+11, ixw-sbw-45, LEFT, FSIZE_BIG, CMHT);
+
+	ix /= 10;
 	//Show table of commands
-	for(loop = index*10; (loop < (index+1)*10) && (loop < m->num_entrys); ++loop)
+	for(loop = ix*10; (loop < (ix+1)*10) && (loop < m->num_entrys); ++loop)
 	{
 		strcpy(tstr,m->list[loop]->entry);
 		if((tptr=strchr(tstr,','))!=NULL)
 		{
 			*tptr=0;
 		}
-		RenderString(tstr, isx+45, isy+my, ixw-sbw-65, LEFT, FSIZE_MED, ((loop%10) == (tind%10))?CMCST:CMCT);
+		RenderString(tstr, isx+47, isy+my+7, ixw-sbw-65, LEFT, FSIZE_MED, ((loop%10) == (tind%10))?CMCST:CMCT);
 		if(m->list[loop]->type==TYP_MENU)
 		{
-			RenderString(">", isx+30, isy+my, 65, LEFT, FSIZE_MED, ((loop%10) == (tind%10))?CMCST:CMCT);
+			RenderString(">", isx+32, isy+my+7, 65, LEFT, FSIZE_MED, ((loop%10) == (tind%10))?CMCST:CMCT);
 		}
 		if(m->list[loop]->underline)
 		{
@@ -1176,28 +1204,25 @@ void ShowInfo(MENU *m)
 			RenderBox(isx+10, isy+my+soffs+3, ixw-10-sbw, my+soffs+3, 0, CMCP1);
 		}
 
+		icon_w = icon_h = 0;
+		png_getsize(ICON_BUTTON_RED, &icon_w, &icon_h);
+		//multiple_pics=1;
 		switch(loop % 10)
 		{
-			case 0: RenderCircle(isx+9,isy+my-15,RED);    break;
-			case 1: RenderCircle(isx+9,isy+my-15,GREEN);  break;
-			case 2: RenderCircle(isx+9,isy+my-15,YELLOW); break;
-			case 3: RenderCircle(isx+9,isy+my-15,BLUE0);  break;
-/*
-			case 0: PaintIcon("/share/tuxbox/neutrino/icons/rot.png"  ,isx+25,isy+my-17, 16, 16); break;
-			case 1: PaintIcon("/share/tuxbox/neutrino/icons/gruen.png",isx+25,isy+my-17, 16, 16); break;
-			case 2: PaintIcon("/share/tuxbox/neutrino/icons/gelb.png" ,isx+25,isy+my-17, 16, 16); break;
-			case 3: PaintIcon("/share/tuxbox/neutrino/icons/blau.png" ,isx+25,isy+my-17, 16, 16); break;
-*/
+			case 0: paintIcon(ICON_BUTTON_RED,   isx+42-icon_w/2, isy+my-9+(icon_h)/2, 0, 0, &iw, &ih); break;
+			case 1: paintIcon(ICON_BUTTON_GREEN, isx+42-icon_w/2, isy+my-9+(icon_h)/2, 0, 0, &iw, &ih); break;
+			case 2: paintIcon(ICON_BUTTON_YELLOW,isx+42-icon_w/2, isy+my-9+(icon_h)/2, 0, 0, &iw, &ih); break;
+			case 3: paintIcon(ICON_BUTTON_BLUE,  isx+42-icon_w/2, isy+my-9+(icon_h)/2, 0, 0, &iw, &ih); break;
 			default:
 				sprintf(tstr,"%1d",(loop % 10)-3);
-				RenderString(tstr, isx+10, isy+my-1, 15, CENTER, FSIZE_SMALL, ((loop%10) == (tind%10))?CMCST:CMCT);
+				RenderString(tstr, isx+10, isy+my+4, 15, CENTER, FSIZE_SMALL, ((loop%10) == (tind%10))?CMCST:CMCT);
 			break;
-
 		}
 		my += dy;
 	}
+	multiple_pics=0;
 	//copy backbuffer to framebuffer
-	memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
+	blit();
 }
 
 
@@ -1234,7 +1259,7 @@ int res;
 	}
 	else
 	{
-		ShowMessage(prs_translate("Ungültige Daten aus tuxwetter.conf",CONVERT_LIST),1);
+		ShowMessage(prs_translate("UngÃ¼ltige Daten aus tuxwetter.conf",CONVERT_LIST),1);
 		city_code[0]=0;
 		return 1;
 	}
@@ -1244,13 +1269,11 @@ int res;
 
 void clear_screen(void)
 {
-	memset(lbb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres);
-	memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
+	clearBB();
+	blit();
 }
 
-	
-
-void show_data(int index)
+void show_data(int ix)
 {
 #ifndef WWEATHER
 	char *pt1 = NULL;
@@ -1262,7 +1285,7 @@ int col1=40, vy=70;
 int col2=((preset)?340:300);
 
 int wxw=ex-sx-((preset)?120:30);  //box width
-int wyw=ey-sy-((preset)?50:40);   //box height
+int wyw=ey-sy-((preset)?60:20);   //box height
 int nc=10;			//table columns
 int gys=vy;			//table space top
 int gysf=34;			//table space bottom
@@ -1300,11 +1323,12 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 	gyw+=wsy;
 	col1+=wsx;
 	col2+=wsx;
-	vy+=wsy;
+	vy+=wsy+8;
 
 	//frame layout
-	if(index!=1)
+	if(ix!=1)
 	{
+		RenderBox(wsx+6, wsy+6, wxw, wyw, radius, CSP0);
 		RenderBox(wsx, wsy, wxw, wyw, radius, CMC);
 		RenderBox(wsx+2, wsy+2, wxw-4, 44, radius, CMH);
 	}
@@ -1326,20 +1350,20 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 		sprintf(iun,"inch");
 		*cun=0;               // Uhrzeit
 	}
-	if(index==-99)
+	if(ix==-99)
 	{
 		int i;
-		unsigned char grstr[XL+1]={'G'^XX,'r'^XX,'\xFC'^XX,'\xDF'^XX,'e'^XX,' '^XX,'v'^XX,'o'^XX,'m'^XX,' '^XX,'N'^XX,'e'^XX,'w'^XX,'-'^XX,'T'^XX,'u'^XX,'x'^XX,'w'^XX,'e'^XX,'t'^XX,'t'^XX,'e'^XX,'r'^XX,'-'^XX,'T'^XX,'e'^XX,'a'^XX,'m'^XX,'!'^XX,' '^XX,' '^XX,';'^XX,'-'^XX,')'^XX,' '^XX,' '^XX,'w'^XX,'w'^XX,'w'^XX,'.'^XX,'k'^XX,'e'^XX,'y'^XX,'w'^XX,'e'^XX,'l'^XX,'t'^XX,'-'^XX,'b'^XX,'o'^XX,'a'^XX,'r'^XX,'d'^XX,'.'^XX,'c'^XX,'o'^XX,'m'^XX,0};
+		char grstr[XL+1]={'G'^XX,'r'^XX,'\xFC'^XX,'\xDF'^XX,'e'^XX,' '^XX,'v'^XX,'o'^XX,'m'^XX,' '^XX,'N'^XX,'e'^XX,'w'^XX,'-'^XX,'T'^XX,'u'^XX,'x'^XX,'w'^XX,'e'^XX,'t'^XX,'t'^XX,'e'^XX,'r'^XX,'-'^XX,'T'^XX,'e'^XX,'a'^XX,'m'^XX,'!'^XX,' '^XX,' '^XX,';'^XX,'-'^XX,')'^XX,' '^XX,' '^XX,'w'^XX,'w'^XX,'w'^XX,'.'^XX,'k'^XX,'e'^XX,'y'^XX,'w'^XX,'e'^XX,'l'^XX,'t'^XX,'-'^XX,'b'^XX,'o'^XX,'a'^XX,'r'^XX,'d'^XX,'.'^XX,'c'^XX,'o'^XX,'m'^XX,0};
 
 		dy = ((preset)?dy:22);
 		sprintf(rstr,"Tuxwetter    Version %s%s",P_VERSION,S_VERSION);
-		RenderString(rstr, wsx, wsy+34, wxw, CENTER, FSIZE_BIG, CMHT);
+		RenderString(rstr, wsx, wsy+40, wxw, CENTER, FSIZE_BIG, CMHT);
 
-		sprintf(rstr,"%s",prs_translate("Steuertasten in den Menüs",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("Steuertasten in den MenÃ¼s",CONVERT_LIST));
 		RenderString(rstr, 0, vy, wxw, CENTER, HMED, GREEN);
 		vy+=dy;
 
-		sprintf(rstr,"%s",prs_translate("Farbtasten Rot, Grün, Gelb, Blau",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("Farbtasten Rot, GrÃ¼n, Gelb, Blau",CONVERT_LIST));
 		RenderString(rstr, col1, vy, col2-col1, LEFT, HMED, CMCT);
 		sprintf(rstr,"%s",prs_translate("Direktanwahl Funktionen 1-4",CONVERT_LIST));
 		RenderString(rstr, col2, vy, wxw-col2, LEFT, HMED, CMCT);
@@ -1353,43 +1377,43 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 
 		sprintf(rstr,"%s",prs_translate("Hoch",CONVERT_LIST));
 		RenderString(rstr, col1, vy, col2-col1, LEFT, HMED, CMCT);
-		sprintf(rstr,"%s",prs_translate("vorheriger Menüeintrag",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("vorheriger MenÃ¼eintrag",CONVERT_LIST));
 		RenderString(rstr, col2, vy, wxw-col2, LEFT, HMED, CMCT);
 		vy+=dy;
 
 		sprintf(rstr,"%s",prs_translate("Runter",CONVERT_LIST));
 		RenderString(rstr, col1, vy, col2-col1, LEFT, HMED, CMCT);
-		sprintf(rstr,"%s",prs_translate("nächster Menüeintrag",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("nÃ¤chster MenÃ¼eintrag",CONVERT_LIST));
 		RenderString(rstr, col2, vy, wxw-col2, LEFT, HMED, CMCT);
 		vy+=dy;
 
-		sprintf(rstr,"%s",prs_translate("PgDown (bei mehrseitigen Menüs)",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("PgDown (bei mehrseitigen MenÃ¼s)",CONVERT_LIST));
 		RenderString(rstr, col1, vy, col2-col1, LEFT, HMED, CMCT);
-		sprintf(rstr,"%s",prs_translate("eine Seite vorblättern",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("eine Seite vorblÃ¤ttern",CONVERT_LIST));
 		RenderString(rstr, col2, vy, wxw-col2, LEFT, HMED, CMCT);
 		vy+=dy;
 
-		sprintf(rstr,"%s",prs_translate("PgUp (bei mehrseitigen Menüs)",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("PgUp (bei mehrseitigen MenÃ¼s)",CONVERT_LIST));
 		RenderString(rstr, col1, vy, col2-col1, LEFT, HMED, CMCT);
-		sprintf(rstr,"%s",prs_translate("eine Seite zurückblättern",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("eine Seite zurÃ¼ckblÃ¤ttern",CONVERT_LIST));
 		RenderString(rstr, col2, vy, wxw-col2, LEFT, HMED, CMCT);
 		vy+=dy;
 
 		sprintf(rstr,"%s",prs_translate("OK",CONVERT_LIST));
 		RenderString(rstr, col1, vy, col2-col1, LEFT, HMED, CMCT);
-		sprintf(rstr,"%s",prs_translate("Menüpunkt ausführen",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("MenÃ¼punkt ausfÃ¼hren",CONVERT_LIST));
 		RenderString(rstr, col2, vy, wxw-col2, LEFT, HMED, CMCT);
 		vy+=dy;
 
 		sprintf(rstr,"%s",prs_translate("Home",CONVERT_LIST));
 		RenderString(rstr, col1, vy, col2-col1, LEFT, HMED, CMCT);
-		sprintf(rstr,"%s",prs_translate("zurück zum vorigen Menü",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("zurÃ¼ck zum vorigen MenÃ¼",CONVERT_LIST));
 		RenderString(rstr, col2, vy, wxw-col2, LEFT, HMED, CMCT);
 		vy+=dy;
 
-		sprintf(rstr,"%s",prs_translate("MENU-Taste (im Hauptmenü)",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("MENU-Taste (im HauptmenÃ¼)",CONVERT_LIST));
 		RenderString(rstr, col1, vy, col2-col1, LEFT, HMED, CMCT);
-		sprintf(rstr,"%s",prs_translate("fehlende Übersetzungen anzeigen",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("fehlende Ãœbersetzungen anzeigen",CONVERT_LIST));
 		RenderString(rstr, col2, vy, wxw-col2, LEFT, HMED, CMCT);
 		vy+=dy;
 
@@ -1411,13 +1435,13 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 
 		sprintf(rstr,"%s",prs_translate("Runter",CONVERT_LIST));
 		RenderString(rstr, col1, vy, col2-col1, LEFT, HMED, CMCT);
-		sprintf(rstr,"%s",prs_translate("nächsten Eintrag anzeigen",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("nÃ¤chsten Eintrag anzeigen",CONVERT_LIST));
 		RenderString(rstr, col2, vy, wxw-col2, LEFT, HMED, CMCT);
 		vy+=dy;
 
 		sprintf(rstr,"%s",prs_translate("Links (in Bildanzeige)",CONVERT_LIST));
 		RenderString(rstr, col1, vy, col2-col1, LEFT, HMED, CMCT);
-		sprintf(rstr,"%s",prs_translate("neu downloaden (für WebCams)",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("neu downloaden (fÃ¼r WebCams)",CONVERT_LIST));
 		RenderString(rstr, col2, vy, wxw-col2, LEFT, HMED, CMCT);
 		vy+=dy;
 
@@ -1427,15 +1451,15 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 		RenderString(rstr, col2, vy, wxw-col2, LEFT, HMED, CMCT);
 		vy+=dy;
 
-		sprintf(rstr,"%s",prs_translate("Rot (in fehlenden Übersetzungen)",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("Rot (in fehlenden Ãœbersetzungen)",CONVERT_LIST));
 		RenderString(rstr, col1, vy, col2-col1, LEFT, HMED, CMCT);
-		sprintf(rstr,"%s",prs_translate("Fehlliste löschen",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("Fehlliste lÃ¶schen",CONVERT_LIST));
 		RenderString(rstr, col2, vy, wxw-col2, LEFT, HMED, CMCT);
 		vy+=dy;
 
 		sprintf(rstr,"%s",prs_translate("OK / Home",CONVERT_LIST));
 		RenderString(rstr, col1, vy, col2-col1, LEFT, HMED, CMCT);
-		sprintf(rstr,"%s",prs_translate("Aktuelle Anzeige schließen",CONVERT_LIST));
+		sprintf(rstr,"%s",prs_translate("Aktuelle Anzeige schlieÃŸen",CONVERT_LIST));
 		RenderString(rstr, col2, vy, wxw-col2, LEFT, HMED, CMCT);
 		vy+=(1.5*(double)dy);
 
@@ -1443,25 +1467,26 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 			{
 				grstr[i]^=XX;
 			}
-		RenderString((char*)grstr, 0, vy, wxw, CENTER, HMED, CMHT);
-		memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
-		rcd=GetRCCode();
+		RenderString(grstr, 0, vy, wxw, CENTER, HMED, CMHT);
+		blit();
+
+		rcd=GetRCCode(-1);
 		while((rcd != KEY_OK) && (rcd != KEY_EXIT))
 		{
-			rcd=GetRCCode();
+			rcd=GetRCCode(-1);
 		}
 	}
 	else
 	{
-		if(index==1)
+		if(ix==1)
 		{
 			int i, tmax[nc], tmin[nc], mint=100, maxt=-100, j, pmin, pmax;
 			double tstep=1, garr[nc*10], tv1, tv2, tv3;
 
 			RenderBox(wsx, wsy, wxw, wyw, radius, CMC);
 			RenderBox(wsx, wsy, wxw, 44, radius, CMH);
-			sprintf(rstr,"%s %d %s",prs_translate("Trend für die kommende Woche",CONVERT_LIST),nc,prs_translate("Tage",CONVERT_LIST));
-			RenderString(rstr, wsx, wsy+34, wxw, CENTER, FSIZE_BIG, CMHT);
+			sprintf(rstr,"%s %d %s",prs_translate("Trend fÃ¼r die kommende Woche",CONVERT_LIST),nc,prs_translate("Tage",CONVERT_LIST));
+			RenderString(rstr, wsx, wsy+40, wxw, CENTER, FSIZE_BIG, CMHT);
 			RenderLine(gxs,gys,gxs,gys+gyw+gywf,CMCIT);
 			RenderLine(gxs+1,gys,gxs+1,gys+gyw+gywf,CMCIT);
 			for(i=0; i<nc; i++)
@@ -1518,7 +1543,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 					}
 #endif
 					strcpy(rstr,prs_translate(vstr,CONVERT_LIST));
-					RenderString(rstr, gxs+i*gicw, gys+gyw+(FSIZE_BIG/2+gywf/2), gicw, CENTER, FSIZE_BIG, CMCT);//weekday
+					RenderString(rstr, gxs+i*gicw, gys+gyw+7+(FSIZE_BIG/2+gywf/2), gicw, CENTER, FSIZE_BIG, CMCT);//weekday
 				}
 				RenderLine(gxs+(i+1)*gicw,gys,gxs+(i+1)*gicw,gys+gyw+gywf,CMCIT);
 			}
@@ -1534,10 +1559,10 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 			RenderLine(gxs,gys+gyw+2,gxs+gxw,gys+gyw+2,CMCIT);
 			RenderLine(gxs,gys+gyw+gywf,gxs+gxw,gys+gyw+gywf,CMCIT);
 			RenderLine(gxs,gys+gyw+gywf+1,gxs+gxw,gys+gyw+gywf+1,CMCIT);
-			RenderString((metric)? "°C":"°F", gxs-20, gys-3, 30, RIGHT, FSIZE_SMALL, CMCT);
-			RenderString((metric)? "°C":"°F", gxs+gxw-20, gys-3, 30, RIGHT, FSIZE_SMALL, CMCT);
-			RenderString(prs_translate("Höchstwerte",CONVERT_LIST), gxs, gys, gxw/2, CENTER, FSIZE_SMALL, YELLOW);
-			RenderString(prs_translate("Tiefstwerte",CONVERT_LIST), gxs+(gxw/2), gys, gxw/2, CENTER, FSIZE_SMALL, GREEN);
+			RenderString((metric)? "Â°C":"Â°F", gxs-22, gys+3, 30, RIGHT, FSIZE_SMALL, CMCT);
+			RenderString((metric)? "Â°C":"Â°F", gxs+gxw-22, gys+3, 30, RIGHT, FSIZE_SMALL, CMCT);
+			RenderString(prs_translate("HÃ¶chstwerte",CONVERT_LIST), gxs, gys+6, gxw/2, CENTER, FSIZE_SMALL, YELLOW);
+			RenderString(prs_translate("Tiefstwerte",CONVERT_LIST), gxs+(gxw/2), gys+6, gxw/2, CENTER, FSIZE_SMALL, GREEN);
 
 			for(i=1; i<=(5*(1+(int)((maxt-mint)/5))+1); i++)
 			{
@@ -1551,12 +1576,12 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 					RenderLine(gxs,gys+gyw-(i*tstep)-1,gxs+gxw,gys+gyw-(i*tstep)-1,CMCP3);
 				}
 				sprintf(vstr,"%d",mint+i-1);
-				RenderString(vstr,gxs-35,gys+gyw-(i*tstep)+7, 30, RIGHT, FSIZE_VSMALL, CMCT);
-				RenderString(vstr,gxs+gxw+2,gys+gyw-(i*tstep)+7, 30, RIGHT, FSIZE_VSMALL, CMCT);
+				RenderString(vstr,gxs-35,gys+10+gyw-(i*tstep), 30, RIGHT, FSIZE_VSMALL, CMCT);
+				RenderString(vstr,gxs+gxw+2,gys+10+gyw-(i*tstep), 30, RIGHT, FSIZE_VSMALL, CMCT);
 			}
 			RenderLine(gxs,gys+gyw-((i-1)*tstep)-3,gxs+gxw,gys+gyw-((i-1)*tstep)-3,((!(mint+i-1)))?CMCT:CMCIT);
 
-// Geglättete Kurven
+// GeglÃ¤ttete Kurven
 
 			for(i=0; i<nc; i++)
 			{
@@ -1632,7 +1657,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 			}
 
 #if 0
-//	Ungeglättete Kurven
+//	UngeglÃ¤ttete Kurven
 
 			for(i=1; i<nc; i++)
 			{
@@ -1647,10 +1672,9 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 			}
 #endif
 
-//			memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres);
-
 			if(show_icons)
 			{
+				multiple_pics=1;
 				for(i=0; i<nc; i++)
 				{
 					prs_get_val(i,PRE_ICON,prelate,vstr);
@@ -1671,15 +1695,15 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 					strcat(vstr,"_SIG");
 #endif
 					strcpy(rstr,prs_translate(vstr,CONVERT_LIST));
-					RenderString(rstr, gxs+(i*gicw+17), gys+gyw+FSIZE_BIG+5, gicw, LEFT, FSIZE_BIG,CMCIT );//weekday
+					RenderString(rstr, gxs+(i*gicw+17), gys+12+gyw+FSIZE_BIG, gicw, LEFT, FSIZE_BIG,CMCIT );//weekday
 				}
+				multiple_pics=0;
 			}
-
-			memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
+			blit();
 		}
 		else
 		{
-			if(index==0)
+			if(ix==0)
 			{
 				dy=24;
 				vy-=2;
@@ -1705,7 +1729,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				}
 
 				sprintf(rstr,"%s",prs_translate("Aktuelles Wetter",CONVERT_LIST));
-				RenderString(rstr, wsx, wsy+34, wxw, CENTER, FSIZE_BIG, CMHT);
+				RenderString(rstr, wsx, wsy+40, wxw, CENTER, FSIZE_BIG, CMHT);
 
 				sprintf(rstr,"%s",prs_translate("Standort:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, GREEN);
@@ -1718,7 +1742,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 //#endif
 				vy+=dy;
 
-				sprintf(rstr,"%s",prs_translate("Längengrad:",CONVERT_LIST));
+				sprintf(rstr,"%s",prs_translate("LÃ¤ngengrad:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				prs_get_dbl(0, ACT_LON, 0, vstr);
 				sprintf(rstr,"%s",vstr);
@@ -1801,7 +1825,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 					prs_get_val(0, ACT_TEMP_F, 0, vstr);
 					prs_get_val(0, ACT_FTEMP_F, 0, v2str);
 				}
-				sprintf(rstr,"%s °%s  %s %s °%s",vstr,tun,prs_translate("gefühlt:",CONVERT_LIST),v2str,tun);
+				sprintf(rstr,"%s Â°%s  %s %s Â°%s",vstr,tun,prs_translate("gefÃ¼hlt:",CONVERT_LIST),v2str,tun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
@@ -1822,7 +1846,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 					prs_get_val(0, ACT_DEWP_C, 0, vstr);
 				else
 					prs_get_val(0, ACT_DEWP_F, 0, vstr);
-				sprintf(rstr,"%s °%s",vstr,tun);
+				sprintf(rstr,"%s Â°%s",vstr,tun);
 
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
@@ -1958,17 +1982,17 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 					else
 						pic_on_data(icon,540, 115, 80, 80, 5, 3, 0, 0);
 				}
-				memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
+				blit();
 			}
 			else
 			{
-				--index;
-				if(index==1)
+				--ix;
+				if(ix==1)
 				{
 					if (metric)
-						prs_get_val(index-1, PRE_TEMPH_C, 0, vstr);
+						prs_get_val(ix-1, PRE_TEMPH_C, 0, vstr);
 					else
-						prs_get_val(index-1, PRE_TEMPH_F, 0, vstr);
+						prs_get_val(ix-1, PRE_TEMPH_F, 0, vstr);
 					if(strstr(vstr,"N/A")!=NULL)
 					{
 						prelate=1;
@@ -1977,7 +2001,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 
 
 				// show icon
-				prs_get_val(index-1,PRE_ICON,prelate,vstr);
+				prs_get_val(ix-1,PRE_ICON,prelate,vstr);
 #if 0
 				sprintf (rstr,"%s.bmp",vstr);
 				bmp2lcd (rstr);
@@ -1996,20 +2020,20 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 					}
 				}
 
-				if(index==1)
+				if(ix==1)
 				{
 					sprintf(vstr,"%s",prs_translate("Heute",CONVERT_LIST));
 				}
 				else
 				{
 #ifdef WWEATHER
-					prs_get_val(index-1,PRE_DAY,0,vstr);
+					prs_get_val(ix-1,PRE_DAY,0,vstr);
 #else
-					prs_get_day(index-1, vstr, metric);
+					prs_get_day(ix-1, vstr, metric);
 #endif
 				}
-				sprintf(rstr,"%s %s",prs_translate("Vorschau für",CONVERT_LIST),vstr);
-				RenderString(rstr, wsx, wsy+34, wxw, CENTER, FSIZE_BIG, CMHT);
+				sprintf(rstr,"%s %s",prs_translate("Vorschau fÃ¼r",CONVERT_LIST),vstr);
+				RenderString(rstr, wsx, wsy+40, wxw, CENTER, FSIZE_BIG, CMHT);
 
 				sprintf(rstr,"%s",prs_translate("Standort:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, GREEN);
@@ -2017,23 +2041,23 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=(1.5*(double)dy);
 
-				sprintf(rstr,"%s",prs_translate("Höchste Temperatur:",CONVERT_LIST));
+				sprintf(rstr,"%s",prs_translate("HÃ¶chste Temperatur:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				if (metric)
-					prs_get_val(index-1, PRE_TEMPH_C, 0, vstr);
+					prs_get_val(ix-1, PRE_TEMPH_C, 0, vstr);
 				else
-					prs_get_val(index-1, PRE_TEMPH_F, 0, vstr);
-				sprintf(rstr,"%s °%s",vstr,tun);
+					prs_get_val(ix-1, PRE_TEMPH_F, 0, vstr);
+				sprintf(rstr,"%s Â°%s",vstr,tun);
 				RenderString((prelate)?"---":rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
 				sprintf(rstr,"%s",prs_translate("Tiefste Temperatur:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				if (metric)
-					prs_get_val(index-1, PRE_TEMPL_C, 0, vstr);
+					prs_get_val(ix-1, PRE_TEMPL_C, 0, vstr);
 				else
-					prs_get_val(index-1, PRE_TEMPL_F, 0, vstr);
-				sprintf(rstr,"%s °%s",vstr,tun);
+					prs_get_val(ix-1, PRE_TEMPL_F, 0, vstr);
+				sprintf(rstr,"%s Â°%s",vstr,tun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
@@ -2042,7 +2066,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 #ifdef WWEATHER
 				sprintf(rstr,"---");
 #else
-				prs_get_time(index-1, PRE_SUNR,vstr,metric);
+				prs_get_time(ix-1, PRE_SUNR,vstr,metric);
 				sprintf(rstr,"%s %s",vstr,cun);
 #endif
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
@@ -2053,7 +2077,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 #ifdef WWEATHER
 				sprintf(rstr,"---");
 #else
-				prs_get_time(index-1, PRE_SUNS,vstr,metric);
+				prs_get_time(ix-1, PRE_SUNS,vstr,metric);
 				sprintf(rstr,"%s %s",vstr,cun);
 #endif
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
@@ -2066,16 +2090,16 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 #ifdef WWEATHER
 				if (metric)
-					prs_get_val2(index-1, PRE_COND_M, 0, rstr);
+					prs_get_val2(ix-1, PRE_COND_M, 0, rstr);
 				else
-					prs_get_val2(index-1, PRE_COND, 0, rstr);
+					prs_get_val2(ix-1, PRE_COND, 0, rstr);
 				vy=PaintWideString(dy, rstr, col2, vy, wxw-col2-50, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
 				sprintf(rstr,"%s",prs_translate("Regenrisiko:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
-				prs_get_val2(index-1, PRE_PPCP, 0, vstr);
+				prs_get_val2(ix-1, PRE_PPCP, 0, vstr);
 				sprintf(rstr,"%s %%",vstr);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
@@ -2083,7 +2107,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Niederschlag:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
-				prs_get_val(index-1, PRE_PRECIPMM, 0, vstr);
+				prs_get_val(ix-1, PRE_PRECIPMM, 0, vstr);
 				sprintf(rstr,"%s %s",vstr,iun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
@@ -2091,14 +2115,14 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Schneemenge:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				if (metric)
-					prs_get_val(index-1, PRE_SNOW_MM, 0, vstr);
+					prs_get_val(ix-1, PRE_SNOW_MM, 0, vstr);
 				else
-					prs_get_val(index-1, PRE_SNOW_IN, 0, vstr);
+					prs_get_val(ix-1, PRE_SNOW_IN, 0, vstr);
 				sprintf(rstr,"%s %s",vstr,iun);
 
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 #else
-				prs_get_val(index-1, PRE_COND, 0, vstr);
+				prs_get_val(ix-1, PRE_COND, 0, vstr);
 
 				sprintf(rstr,"%s",vstr);
 				RenderString((prelate)?"---":rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
@@ -2107,8 +2131,8 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Wind:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
-				prs_get_val(index-1, PRE_WINDD, 0, vstr);
-				prs_get_val(index-1, PRE_WSPEED, 0, v2str);
+				prs_get_val(ix-1, PRE_WINDD, 0, vstr);
+				prs_get_val(ix-1, PRE_WSPEED, 0, v2str);
 				sprintf(tstr,"%s",prs_translate("von",CONVERT_LIST));
 				sprintf(rstr,"%s %s %s %s %s",tstr,vstr,prs_translate("mit",CONVERT_LIST),v2str,sun);
 
@@ -2118,7 +2142,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Luftfeuchtigkeit:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
-				prs_get_val(index-1, PRE_HMID, 0, vstr);
+				prs_get_val(ix-1, PRE_HMID, 0, vstr);
 				sprintf(rstr,"%s %%",vstr);
 
 				RenderString((prelate)?"---":rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
@@ -2127,7 +2151,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Regenrisiko:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
-				prs_get_val(index-1, PRE_PPCP, 0, vstr);
+				prs_get_val(ix-1, PRE_PPCP, 0, vstr);
 				sprintf(rstr,"%s %%",vstr);
 
 				RenderString((prelate)?"---":rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
@@ -2141,16 +2165,16 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 #ifdef WWEATHER
 				if (metric)
-					prs_get_val2(index-1, PRE_COND_M, 1, rstr);
+					prs_get_val2(ix-1, PRE_COND_M, 1, rstr);
 				else
-					prs_get_val2(index-1, PRE_COND, 1, rstr);
+					prs_get_val2(ix-1, PRE_COND, 1, rstr);
 				vy=PaintWideString(dy, rstr, col2, vy, wxw-col2-50, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
 				sprintf(rstr,"%s",prs_translate("Regenrisiko:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
-				prs_get_val2(index-1, PRE_PPCP, 1, vstr);
+				prs_get_val2(ix-1, PRE_PPCP, 1, vstr);
 				sprintf(rstr,"%s %%",vstr);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
@@ -2158,7 +2182,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Niederschlag:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
-				prs_get_val(index-1, PRE_PRECIPMM, 1, vstr);
+				prs_get_val(ix-1, PRE_PRECIPMM, 1, vstr);
 				sprintf(rstr,"%s %s",vstr,iun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
@@ -2166,13 +2190,13 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Schneemenge:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				if (metric)
-					prs_get_val(index-1, PRE_SNOW_MM, 1, vstr);
+					prs_get_val(ix-1, PRE_SNOW_MM, 1, vstr);
 				else
-					prs_get_val(index-1, PRE_SNOW_IN, 1, vstr);
+					prs_get_val(ix-1, PRE_SNOW_IN, 1, vstr);
 				sprintf(rstr,"%s %s",vstr,iun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 #else
-				prs_get_val(index-1, PRE_COND, 1, vstr);
+				prs_get_val(ix-1, PRE_COND, 1, vstr);
 				sprintf(rstr,"%s",vstr);
 
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
@@ -2181,8 +2205,8 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Wind:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
-				prs_get_val(index-1, PRE_WINDD, 1, vstr);
-				prs_get_val(index-1, PRE_WSPEED, 1, v2str);
+				prs_get_val(ix-1, PRE_WINDD, 1, vstr);
+				prs_get_val(ix-1, PRE_WSPEED, 1, v2str);
 				if((strstr(vstr,"windstill")!=NULL) || (strstr(v2str,"CALM")!=NULL))
 				{
 					sprintf(rstr,"%s",prs_translate("windstill",CONVERT_LIST));
@@ -2199,7 +2223,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Luftfeuchtigkeit:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
-				prs_get_val(index-1, PRE_HMID, 1, vstr);
+				prs_get_val(ix-1, PRE_HMID, 1, vstr);
 				sprintf(rstr,"%s %%",vstr);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
@@ -2207,69 +2231,20 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Regenrisiko:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
-				prs_get_val(index-1, PRE_PPCP, 1, vstr);
+				prs_get_val(ix-1, PRE_PPCP, 1, vstr);
 				sprintf(rstr,"%s %%",vstr);
 
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 #endif
-//				memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres);
-
 				if(show_icons)
 				{
 					//pic_on_data(icon, 540, 115, 100, 100, 5, 3, 0, 0);
 					pic_on_data(icon,slim?540:700, 115, 100, 100, 5, 3, 0, 0);
 				}
-
-				memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
+				blit();
 			}
 		}
 	}
-}
-
-void scale_pic(unsigned char **buffer, int x1, int y1, int xstart, int ystart, int xsize, int ysize,
-			   int *imx, int *imy, int *dxp, int *dyp, int *dxo, int *dyo, int center)
-{
-	float xfact=0, yfact=0;
-	int txsize=0, tysize=0;
-	int txstart =xstart, tystart= ystart;
-	
-	if (xsize > (ex-xstart)) txsize= (ex-xstart);
-	else  txsize= xsize; 
-	if (ysize > (ey-ystart)) tysize= (ey-ystart);
-	else tysize=ysize;
-	xfact= 1000*txsize/x1;
-	xfact= xfact/1000;
-	yfact= 1000*tysize/y1;
-	yfact= yfact/1000;
-	
-	if ( xfact <= yfact)
-	{
-		*imx=(int)x1*xfact;
-		*imy=(int)y1*xfact;
-		if (center !=0) 
-		{
-			tystart=(ey-sy)-*imy;
-			tystart=tystart/2;
-			tystart=tystart+ystart;
-		}
-	}
-	else
-	{
-		*imx=(int)x1*yfact;
-		*imy=(int)y1*yfact;
-		if (center !=0) 
-		{
-			txstart=(ex-sx)-*imx;
-			txstart=txstart/2;
-			txstart=txstart+xstart;
-		}
-	}
-	*buffer=(unsigned char*)color_average_resize(*buffer,x1,y1,*imx,*imy);
-
-	*dxp=0;
-	*dyp=0;
-	*dxo=txstart;
-	*dyo=tystart;
 }
 
 void close_jpg_gif_png(void)
@@ -2280,27 +2255,27 @@ void close_jpg_gif_png(void)
 //	memcpy(&otr,&rtr,256);
 	ioctl(fb, FBIOPUTCMAP, oldcmap);
 //	for(; sy <= ey; sy++) memset(lbb + sx + var_screeninfo.xres*(sy),TRANSP, ex-sx + 1);
-	memset(lbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres);
-	memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
+	memset(lbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+	memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t));
 #endif
 	gmodeon=0;
 }
 
-int wait_image(int repeat, int first)
+int wait_image(int repeat, int first __attribute__((unused)))
 {
 time_t t1,t2;
 int rv;
 
 	if(!repeat)
 	{
-		rv=GetRCCode();
+		rv=GetRCCode(1000);
 		return rv;
 	}
 	time(&t1);
 	t2=t1;
 	while((t2-t1)<repeat)
 	{
-		rv=GetRCCode();
+		rv=GetRCCode(1000);
 		if(rv==-1)
 		{
 			usleep(200000L);
@@ -2337,10 +2312,11 @@ unsigned char *buffer=NULL;
 		}
 		if(!(rv=fh_jpeg_load(name, buffer, x1, y1)))
 		{
-			scale_pic(&buffer,x1,y1,xstart,ystart,xsize,ysize,&imx,&imy,&dxp,&dyp,&dxo,&dyo,center);
+			scale_pic(&buffer,x1,y1,xstart,ystart,xsize,ysize,&imx,&imy,&dxp,&dyp,&dxo,&dyo,center,0/*alpha*/);
 			//fb_set_gmode(1);
-			fb_display(buffer, imx, imy, dxp, dyp, dxo, dyo, 1, 1);
+			fb_display(buffer, imx, imy, dxp, dyp, dxo, dyo, 1, 0/*setpal*/, 0/*alpha*/);
 			gmodeon=1;
+			blit();
 		}
 		free(buffer);
 		
@@ -2358,7 +2334,6 @@ unsigned char *buffer=NULL;
 			else
 			{
 				showBusy(startx+3,starty+3,10,0xff,00,00);
-//				showBusy(startx+10,starty+10,20,170,0,0);
 				if(rcj==KEY_EXIT)
 				{
 					rcj=KEY_OK;
@@ -2374,14 +2349,14 @@ unsigned char *buffer=NULL;
 int show_png(char *name, int xstart, int ystart, int xsize, int ysize, int wait, int repeat, int single, int center)
 {
 FILE *tfh;
-int x1,y1,rcn,rv=-1;
+int x1,y1,rcn,rv=-1, alpha=0, bpp=0;
 int imx,imy,dxo,dyo,dxp,dyp;
 unsigned char *buffer=NULL;
 
 	if((tfh=fopen(name,"r"))!=NULL)
 	{
 		fclose(tfh);
-		if(fh_png_getsize(name, &x1, &y1, xsize, ysize))
+		if(png_getsize(name, &x1, &y1))
 		{
 			printf("Tuxwetter <invalid PNG-Format>\n");
 			return -1;
@@ -2391,11 +2366,12 @@ unsigned char *buffer=NULL;
 			printf(NOMEM);
 			return -1;
 		}
-		if(!(rv=fh_png_load(name, buffer, x1, y1)))
+		if(!(rv=png_load(name, &buffer, &x1, &y1, &bpp)))
 		{
-			scale_pic(&buffer,x1,y1,xstart,ystart,xsize,ysize,&imx,&imy,&dxp,&dyp,&dxo,&dyo,center);
+			alpha=(bpp==4)?1:0;
+			scale_pic(&buffer,x1,y1,xstart,ystart,xsize,ysize,&imx,&imy,&dxp,&dyp,&dxo,&dyo,center,alpha);
 			fb_set_gmode(1);
-			fb_display(buffer, imx, imy, dxp, dyp, dxo, dyo, 1, 1);
+			fb_display(buffer, imx, imy, dxp, dyp, dxo, dyo, 1, 1, alpha);
 			gmodeon=1;
 		}
 		free(buffer);
@@ -2414,7 +2390,6 @@ unsigned char *buffer=NULL;
 			else
 			{
 				showBusy(startx+3,starty+3,10,0xff,00,00);
-//				showBusy(startx+10,starty+10,20,170,0,0);
 				if(rcn==KEY_EXIT)
 				{
 					rcn=KEY_OK;
@@ -2434,7 +2409,8 @@ int show_gif(char *name, int xstart, int ystart, int xsize, int ysize, int wait,
 FILE *tfh;
 int x1,y1,rcg,count,cloop,rv=-1;
 int imx,imy,dxo,dyo,dxp,dyp;
-char *buffer=NULL, fname[512];
+char fname[512];
+unsigned char *buffer=NULL;
 
 	if((tfh=fopen(name,"r"))!=NULL)
 	{
@@ -2462,16 +2438,16 @@ char *buffer=NULL, fname[512];
 				printf("Tuxwetter <invalid GIF-Format>\n");
 				return -1;
 			}
-			if((buffer=(char *) malloc(x1*y1*4))==NULL)
+			if((buffer=(unsigned char *) malloc(x1*y1*4))==NULL)
 			{
 				printf(NOMEM);
 				return -1;
 			}
 			if(!(rv=fh_gif_load(fname, buffer, x1, y1)))
 			{
-				scale_pic((unsigned char**)&buffer,x1,y1,xstart,ystart,xsize,ysize,&imx,&imy,&dxp,&dyp,&dxo,&dyo,center);
+				scale_pic(&buffer,x1,y1,xstart,ystart,xsize,ysize,&imx,&imy,&dxp,&dyp,&dxo,&dyo,center,0/*alpha*/);
 				fb_set_gmode(1);
-				fb_display((unsigned char*)buffer, imx, imy, dxp, dyp, dxo, dyo, 1, 1);
+				fb_display(buffer, imx, imy, dxp, dyp, dxo, dyo, 1, 1, 0/*alpha*/);
 				gmodeon=1;
 
 				if(gifs>1)
@@ -2498,7 +2474,6 @@ char *buffer=NULL, fname[512];
 			else
 			{
 				showBusy(startx+3,starty+3,10,0xff,00,00);
-
 				if(rcg==KEY_EXIT)
 				{
 					rcg=KEY_OK;
@@ -2511,19 +2486,19 @@ char *buffer=NULL, fname[512];
 	return (rv)?-1:0;	
 }
 
-int pic_on_data(char *url, int xstart, int ystart, int xsize, int ysize, int wait, int single, int center, int rahmen)
+int pic_on_data(char *url __attribute__((unused)), int xstart, int ystart, int xsize, int ysize, int wait __attribute__((unused)), int single, int center, int rahmen)
 {
 FILE *tfh;
-int /*i,*/x1,y1,rv=-1;
+int x1,y1,rv=-1;
 
 int imx,imy,dxo,dyo,dxp,dyp;
 unsigned char *buffer=NULL/*,*gbuf*/;
-unsigned char *tbuf=lfb;
+//unsigned char *tbuf=lfb;
 
 	if((tfh=fopen(ICON_FILE,"r"))!=NULL)
 	{
 		fclose(tfh);
-		lfb=lbb;
+		//lfb=lbb;
 
 		if(fh_gif_getsize(ICON_FILE, &x1, &y1, xsize, ysize))
 		{
@@ -2537,13 +2512,12 @@ unsigned char *tbuf=lfb;
 			return -1;
 		}
 
-		if(!(rv=fh_gif_load(ICON_FILE, (char *)buffer, x1, y1)))
+		if(!(rv=fh_gif_load(ICON_FILE, buffer, x1, y1)))
 		{
-			scale_pic(&buffer,x1,y1,xstart,ystart,xsize,ysize,&imx,&imy,&dxp,&dyp,&dxo,&dyo,center);
+			scale_pic(&buffer,x1,y1,xstart,ystart,xsize,ysize,&imx,&imy,&dxp,&dyp,&dxo,&dyo,center,0/*alpha*/);
 			if (rahmen >0)
 			{
 				RenderBox(xstart+1-sx-rahmen, ystart-6-sy-rahmen,xstart+xsize+2-sx+rahmen,ystart+ysize-sy-6+rahmen, 0, CMCS);
-//				memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
 			}
 
 			if(single & 2)
@@ -2552,7 +2526,7 @@ unsigned char *tbuf=lfb;
 #if 0
 // don't know what this is about
 #ifndef HAVE_DREAMBOX_HARDWARE
-				i=fix_screeninfo.line_length*var_screeninfo.yres;
+				i=fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t);
 				gbuf=lfb;
 				while(i--)
 					if(*gbuf >=127)
@@ -2563,7 +2537,7 @@ unsigned char *tbuf=lfb;
 #endif
 			}
 
-			fb_display(buffer, imx, imy, dxp, dyp, dxo, dyo, 0, single);
+			fb_display(buffer, imx, imy, dxp, dyp, dxo, dyo, 0, single, 0/*alpha*/);
 #if 0
 // don't know what this is about
 			if(single & 1)
@@ -2575,7 +2549,7 @@ unsigned char *tbuf=lfb;
 
 		}
 		free(buffer);
-		lfb=tbuf;
+//		lfb=tbuf;
 	}
 	return (rv)?-1:0;
 }
@@ -2584,13 +2558,13 @@ int show_php(char *name, char *title, int plain, int highlite)
 {
 FILE *tfh;
 int x1,y1,cs,rcp,rv=-1,run=1,line=0,action=1,cut;
-int col1,sy=0,dy=26,psx,psy;
+int col1,ssy=0,dy=26,psx,psy;
 int pxw=ex-sx-((preset)?120:30);		//box width old 620
-int pyw=ey-sy-((preset)?60:40);		//box height old 510
+int pyw=ey-sy-((preset)?60:20);		//box height old 510
 
 	Center_Screen(pxw,pyw,&psx,&psy);
 	col1=psx+((preset)?60:40);
-	sy=psy+70;
+	ssy=psy+78;
 	if((tfh=fopen(name,"r"))!=NULL)
 	{
 		fclose(tfh);
@@ -2614,19 +2588,20 @@ int pyw=ey-sy-((preset)?60:40);		//box height old 510
 			//frame layout
 			if(action)
 			{
+				RenderBox(psx+6, psy+6, pxw, pyw, radius, CSP0);
 				RenderBox(psx, psy, pxw, pyw, radius, CMC);
 				RenderBox(psx+2, psy+2, pxw-4, 44, radius, CMH);
-				RenderString(title, psx, psy+34, pxw, CENTER, FSIZE_BIG, CMHT);
+				RenderString(title, psx, psy+40, pxw, CENTER, FSIZE_BIG, CMHT);
 
-				if(!(rv=fh_php_load(name, col1, sy, dy, cs, line, highlite, plain, &cut)))
+				if(!(rv=fh_php_load(name, col1, ssy, dy, cs, line, highlite, plain, &cut)))
 				{
-					memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
+					blit();
 				}
 			}
 	
 			if(!rv)
 			{
-				rcp=GetRCCode();
+				rcp=GetRCCode(-1);
 				while ((rcp != KEY_OK)       && (rcp != KEY_EXIT)      &&
 					   (rcp != KEY_PAGEUP)   && (rcp != KEY_PAGEDOWN)  &&
 					   (rcp != KEY_LEFT)     && (rcp != KEY_RIGHT)     &&
@@ -2634,7 +2609,7 @@ int pyw=ey-sy-((preset)?60:40);		//box height old 510
 					   (rcp != KEY_VOLUMEUP) && (rcp != KEY_VOLUMEDOWN)&&
 					   (rcp != KEY_RED))
 				{
-					rcp=GetRCCode();
+					rcp=GetRCCode(-1);
 				}
 				if(rcp==KEY_EXIT)
 				{
@@ -2698,7 +2673,7 @@ long flength = 0;
 		{
 			*pt3=0;
 			++pt3;
-			printf("Tuxwetter <Downloading %s>\n",pt1);
+			printf("Tuxwetter <%s Downloading %s>\n", __func__, pt1);
 			if(!HTTP_downloadFile(pt1, TRANS_FILE, 1, intype, ctmo, 2))
 			{
 				if((fh=fopen(TRANS_FILE,"r"))!=NULL)
@@ -2901,22 +2876,22 @@ int llev=m->headerlevels[m->act_header], lmen=m->act_header, lentr=m->lastheader
 	return 1;	
 }
 
-void read_neutrino_osd_conf(int *ex,int *sx,int *ey, int *sy)
+void read_neutrino_osd_conf(int *_ex,int *_sx,int *_ey, int *_sy)
 {
-	const char *filename="/var/tuxbox/config/neutrino.conf";
+	const char *filename=NCF_FILE;
 	const char spres[][4]={"","crt","lcd"};
-	char sstr[4][32]={0};
-	int pres=-1, resolution=-1, loop, *sptr[4]={ex, sx, ey, sy};
+	char sstr[4][32]={{0}};
+	int pres=-1, resolution=-1, loop, *sptr[4]={_ex, _sx, _ey, _sy};
 	char *buffer;
 	size_t len;
-	ssize_t read;
+	ssize_t r;
 	FILE* fd;
 
 	fd = fopen(filename, "r");
 	if(fd){
 		buffer=NULL;
 		len = 0;
-		while ((read = getline(&buffer, &len, fd)) != -1){
+		while ((r = getline(&buffer, &len, fd)) != -1){
 			sscanf(buffer, "screen_preset=%d", &pres);
 			sscanf(buffer, "osd_resolution=%d", &resolution);
 		}
@@ -2941,7 +2916,7 @@ void read_neutrino_osd_conf(int *ex,int *sx,int *ey, int *sy)
 
 		buffer=NULL;
 		len = 0;
-		while ((read = getline(&buffer, &len, fd)) != -1){
+		while ((r = getline(&buffer, &len, fd)) != -1){
 			for(loop=0; loop<4; loop++) {
 				sscanf(buffer, sstr[loop], sptr[loop]);
 			}
@@ -2958,7 +2933,7 @@ void read_neutrino_osd_conf(int *ex,int *sx,int *ey, int *sy)
 
 int main (int argc, char **argv)
 {
-int index=0,cindex=0,tv,rce,ferr=0,tret=-1;
+int ix=0,cindex=0,tv,rce,ferr=0,tret=-1;
 int mainloop=1,wloop=1, dloop=1;
 char rstr[BUFSIZE]={0}, *rptr=NULL;
 char tstr[BUFSIZE]={0};
@@ -2981,10 +2956,14 @@ PLISTENTRY pl=&epl;
 		}
 		if(strchr(argv[tv],'='))
 		{
-			cmdline=strdup(argv[tv]);
-			TrimString(cmdline);
-			TranslateString(cmdline);
+			size_t len = strlen(argv[tv]);
+			char *t = alloca(len * 4 + 1);
+			memcpy(t, argv[tv], len + 1);
+			TrimString(t);
+			TranslateString(t, len * 4 + 1);
+			cmdline=strdup(t);
 		}
+
 	}
 
 //	system("ping -c 2 google.com &");
@@ -2994,7 +2973,7 @@ PLISTENTRY pl=&epl;
 		printf(NOMEM);
 		return -1;
 	}
-			if (!ReadConf(cmdline))
+	if (!ReadConf(cmdline))
 	{
 		printf("Tuxwetter <Configuration failed>\n");
 		return -1;
@@ -3055,39 +3034,60 @@ PLISTENTRY pl=&epl;
 	}
 	//printf("sx=%i, ex =%i, sy=%i, ey=%i \n", sx, ex, sy, ey);
 
-	for(index=CMCST; index<=CMH; index++)
+	for(ix=CMCST; ix<=CMH; ix++)
 	{
-		sprintf(rstr,"menu_%s_alpha",menucoltxt[index]);
+		sprintf(rstr,"menu_%s_alpha",menucoltxt[ix]);
 		if((tv=Read_Neutrino_Cfg(rstr))>=0)
-			tr[index]=255-(float)tv*2.55;
+			tr[ix]=255-(float)tv*2.55;
 
-		sprintf(rstr,"menu_%s_blue",menucoltxt[index]);
+		sprintf(rstr,"menu_%s_blue",menucoltxt[ix]);
 		if((tv=Read_Neutrino_Cfg(rstr))>=0)
-			bl[index]=(float)tv*2.55;
+			bl[ix]=(float)tv*2.55;
 
-		sprintf(rstr,"menu_%s_green",menucoltxt[index]);
+		sprintf(rstr,"menu_%s_green",menucoltxt[ix]);
 		if((tv=Read_Neutrino_Cfg(rstr))>=0)
-			gn[index]=(float)tv*2.55;
+			gn[ix]=(float)tv*2.55;
 
-		sprintf(rstr,"menu_%s_red",menucoltxt[index]);
+		sprintf(rstr,"menu_%s_red",menucoltxt[ix]);
 		if((tv=Read_Neutrino_Cfg(rstr))>=0)
-			rd[index]=(float)tv*2.55;
+			rd[ix]=(float)tv*2.55;
 	}
 
 	cindex=CMC;
-	for(index=CMCP0; index<=CMCP3; index++)
+	for(ix=CMCP0; ix<=CSP0; ix++)
 	{
-		rd[index]=rd[cindex]+25;
-		gn[index]=gn[cindex]+25;
-		bl[index]=bl[cindex]+25;
-		tr[index]=tr[cindex];
-		cindex=index;
+		rd[ix]=rd[cindex]+25;
+		gn[ix]=gn[cindex]+25;
+		bl[ix]=bl[cindex]+25;
+		tr[ix]=tr[cindex];
+		cindex=ix;
 	}
 
-	if(Read_Neutrino_Cfg("rounded_corners")>0)
-		radius=10;
+	sprintf(trstr,"infobar_alpha");
+	if((tv=Read_Neutrino_Cfg(trstr))>=0)
+		tr[CSP0]=255-(float)tv*2.55;
+
+	sprintf(trstr,"infobar_blue");
+	if((tv=Read_Neutrino_Cfg(trstr))>=0)
+		bl[CSP0]=(float)tv*2.55*0.4;
+
+	sprintf(trstr,"infobar_green");
+	if((tv=Read_Neutrino_Cfg(trstr))>=0)
+		gn[CSP0]=(float)tv*2.55*0.4;
+
+	sprintf(trstr,"infobar_red");
+	if((tv=Read_Neutrino_Cfg(trstr))>=0)
+		rd[CSP0]=(float)tv*2.55*0.4;
+
+	for (ix = 0; ix <= CSP0; ix++)
+		bgra[ix] = (tr[ix] << 24) | (rd[ix] << 16) | (gn[ix] << 8) | bl[ix];
+
+	if(Read_Neutrino_Cfg("rounded_corners")>0) {
+		radius = 11;
+		radius_small = 7;
+	}
 	else
-		radius=0;
+		radius = radius_small = 0;
 
 	fb = open(FB_DEVICE, O_RDWR);
 	if(fb == -1)
@@ -3116,7 +3116,7 @@ PLISTENTRY pl=&epl;
 		perror("tuxwetter <FBIOGET_VSCREENINFO>\n");
 		return -1;
 	}
-	if(!(lfb = (unsigned char*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0)))
+	if(!(lfb = (uint32_t*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0)))
 	{
 		perror("tuxwetter <mapping of Framebuffer>\n");
 		return -1;
@@ -3163,14 +3163,14 @@ PLISTENTRY pl=&epl;
 	}
 	else
 		desc.face_id = FONT;
+	printf("tuxwetter <FTC_Manager_LookupFace Font \"%s\" loaded>\n", (char*)desc.face_id);
 
 	use_kerning = FT_HAS_KERNING(face);
-
-	desc.flags = FT_LOAD_MONOCHROME;
+	desc.flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT;
 
 	//init backbuffer
 
-	if(!(lbb = malloc(fix_screeninfo.line_length*var_screeninfo.yres)))
+	if(!(lbb = malloc(fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t))))
 	{
 		perror("tuxwetter <allocating of Backbuffer>\n");
 		FTC_Manager_Done(manager);
@@ -3179,7 +3179,9 @@ PLISTENTRY pl=&epl;
 		return -1;
 	}
 
-	memset(lbb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres);
+	stride = fix_screeninfo.line_length/sizeof(uint32_t);
+
+	memset(lbb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t));
 
 	startx = sx;
 	starty = sy;
@@ -3204,6 +3206,7 @@ PLISTENTRY pl=&epl;
 		xremove("/tmp/startbild.jpg");
 #endif
 		show_jpg(START_PIC, sx, sy, ex-sx, ey-sy, 5, 0, 1, 1);
+		clearBB();
 	}
 
 	//main loop
@@ -3258,12 +3261,12 @@ PLISTENTRY pl=&epl;
 				{
 					fclose(tfh);
 					pl=&epl;
-					sprintf(tstr,"%s,http://localhost/../../../..%s",prs_translate("Fehlende Übersetzungen",CONVERT_LIST),MISS_FILE);
+					sprintf(tstr,"%s,http://localhost/../../../..%s",prs_translate("Fehlende Ãœbersetzungen",CONVERT_LIST),MISS_FILE);
 					pl->entry=strdup(tstr);
 				}
 				else
 				{	
-					ShowMessage(prs_translate("Keine fehlenden Übersetzungen",CONVERT_LIST),1);
+					ShowMessage(prs_translate("Keine fehlenden Ãœbersetzungen",CONVERT_LIST),1);
 					break;
 				}
 			case 1:
@@ -3364,7 +3367,7 @@ PLISTENTRY pl=&epl;
 									if(pl->pictype==PTYP_ASK)
 									{
 										close_jpg_gif_png();
-										ShowMessage(prs_translate("Nicht unterstütztes Dateiformat",CONVERT_LIST),1);
+										ShowMessage(prs_translate("Nicht unterstÃ¼tztes Dateiformat",CONVERT_LIST),1);
 										dloop=-1;
 										break;
 									}
@@ -3415,7 +3418,7 @@ PLISTENTRY pl=&epl;
 									{
 										++rptr;
 									}
-									printf("Tuxwetter <Downloading %s>\n",rptr);
+									printf("Tuxwetter <%s Downloading %s>\n",__func__, rptr);
 									ferr=HTTP_downloadFile(rptr, (pl->pictype==PTYP_JPG)?JPG_FILE:(pl->pictype==PTYP_PNG)?PNG_FILE:(pl->pictype==PTYP_GIF)?GIF_FILE:PHP_FILE, 1, intype, ctmo, 2);
 								}
 					
@@ -3494,7 +3497,7 @@ PLISTENTRY pl=&epl;
 									{
 										strncpy(lastpicture,line_buffer,BUFSIZE-1);
 	
-										index=menu.act_entry;						
+										ix=menu.act_entry;
 										switch(tret)
 										{
 											case -1:
@@ -3505,17 +3508,17 @@ PLISTENTRY pl=&epl;
 									
 											case KEY_UP:
 											case KEY_VOLUMEDOWN:
-												if(--index < 0)
+												if(--ix < 0)
 												{
-													index=menu.num_entrys-1;
+													ix=menu.num_entrys-1;
 												}
 											break;
 								
 											case KEY_DOWN:
 											case KEY_VOLUMEUP:
-												if(++index>=menu.num_entrys)
+												if(++ix>=menu.num_entrys)
 												{
-													index=0;
+													ix=0;
 												}
 											break;
 								
@@ -3528,7 +3531,7 @@ PLISTENTRY pl=&epl;
 												dloop=0;
 											break;
 										}
-										menu.act_entry=index;
+										menu.act_entry=ix;
 										pl=menu.list[menu.act_entry];
 										if((pl->type!=TYP_PICTURE) && (pl->type!=TYP_PICHTML) && (pl->type!=TYP_TXTHTML) && (pl->type!=TYP_TXTPLAIN) && (pl->type!=TYP_TEXTPAGE))
 										{
@@ -3572,46 +3575,46 @@ PLISTENTRY pl=&epl;
 							Clear_List(&funcs, 1);
 							funcs.act_entry=0;
 
-							sprintf(tstr,"%s %s",prs_translate("Wetterdaten für",CONVERT_LIST),city_name);
+							sprintf(tstr,"%s %s",prs_translate("Wetterdaten fÃ¼r",CONVERT_LIST),city_name);
 							if(funcs.headertxt[0])
 							{
 								free(funcs.headertxt[0]);
 							}
 							funcs.headertxt[0]=strdup(tstr);
 
-							for(index=0; index<MAX_FUNCS; index++)
+							for(ix=0; ix<MAX_FUNCS; ix++)
 							{
 #ifdef WWEATHER
-								if(index==2)
+								if(ix==2)
 								{
 									sprintf(rstr,"%s",prs_translate("Heute",CONVERT_LIST));
 								}
 								else
 								{
-									prs_get_val(index-2,PRE_DAY,0,tstr);
+									prs_get_val(ix-2,PRE_DAY,0,tstr);
 									sprintf(rstr,"%s",prs_translate(tstr,CONVERT_LIST));
 								}
 #else
-								if(index==2)
+								if(ix==2)
 								{
 									sprintf(rstr,"%s",prs_translate("Heute",CONVERT_LIST));
 								}
 								else
 								{
-									prs_get_day(index-2, rstr, metric);
+									prs_get_day(ix-2, rstr, metric);
 								}
 								if((rptr=strchr(rstr,','))!=NULL)
 								{
 									*rptr=0;
 								}
 #endif
-								if(index>1)
+								if(ix>1)
 								{
-									sprintf(tstr,"%s %s",prs_translate("Vorschau für",CONVERT_LIST),rstr);
+									sprintf(tstr,"%s %s",prs_translate("Vorschau fÃ¼r",CONVERT_LIST),rstr);
 								}
 								else
 								{
-									if(index==1)
+									if(ix==1)
 									{
 										sprintf(tstr,"%s",prs_translate("Wochentrend",CONVERT_LIST));
 									}
@@ -3625,7 +3628,8 @@ PLISTENTRY pl=&epl;
 							wloop=1;
 							while(wloop)
 							{
-								clear_screen();
+								clearBB();
+								//clear_screen();
 								switch(Get_Selection(&funcs))
 								{
 									case -99:
@@ -3650,12 +3654,12 @@ PLISTENTRY pl=&epl;
 												ShowMessage(prs_translate("Bitte warten",CONVERT_LIST),0);
 											}
 											show_data(funcs.act_entry);
-											rce=GetRCCode();
+											rce=GetRCCode(-1);
 											while((rce != KEY_OK) && (rce != KEY_EXIT) && (rce != KEY_DOWN) && (rce != KEY_UP) && (rce != KEY_VOLUMEUP) && (rce != KEY_VOLUMEDOWN))
 											{
-												rce=GetRCCode();
+												rce=GetRCCode(-1);
 											}
-											index=funcs.act_entry;
+											ix=funcs.act_entry;
 											if(gmodeon)
 											{
 												close_jpg_gif_png();
@@ -3664,17 +3668,17 @@ PLISTENTRY pl=&epl;
 											{
 												case KEY_UP:
 												case KEY_VOLUMEDOWN:
-													if(--index < 0)
+													if(--ix < 0)
 													{				
-														index=menu.num_entrys-1;
+														ix=menu.num_entrys-1;
 													}
 													break;
 
 												case KEY_DOWN:
 												case KEY_VOLUMEUP:
-													if(++index>=MAX_FUNCS)
+													if(++ix>=MAX_FUNCS)
 													{
-														index=0;
+														ix=0;
 													}
 													break;
 
@@ -3683,7 +3687,7 @@ PLISTENTRY pl=&epl;
 													dloop=0;
 													break;	
 											}
-											funcs.act_entry=index;
+											funcs.act_entry=ix;
 										}
 								}
 							}
@@ -3729,12 +3733,12 @@ PLISTENTRY pl=&epl;
 	
 	CloseRC();
 
-    for(index=0; index<32; index++)
+    for(ix=0; ix<32; ix++)
     {
-    	sprintf(tstr,"%s%02d.gif",GIF_MFILE,index);
+	sprintf(tstr,"%s%02d.gif",GIF_MFILE,ix);
     	xremove(tstr);
     }
-	sprintf(tstr,"[ -e /tmp/picture* ] && rm /tmp/picture*");
+	sprintf(tstr,"ls /tmp/picture* &>/dev/null && rm /tmp/picture*");
 	system(tstr);
 	xremove("/tmp/tuxwettr.tmp");
 //	xremove("/tmp/bmps.tar");
@@ -3742,7 +3746,7 @@ PLISTENTRY pl=&epl;
 	xremove("/tmp/tempgif.gif");
 	xremove(PHP_FILE);
 	put_instance(get_instance()-1);
-# if 0
+#if 0
 // 	swisstime
 	if((tfh=fopen(TIME_FILE,"r"))!=NULL)
 	{
@@ -3754,9 +3758,8 @@ PLISTENTRY pl=&epl;
 	free(line_buffer);
 
 	// clear Display
-	memset(lbb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres);
-	memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
-//	memset(lfb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres);
+	memset(lbb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t));
+	blit();
 	munmap(lfb, fix_screeninfo.smem_len);
 	close(fb);
 	free(lbb);

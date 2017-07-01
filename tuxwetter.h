@@ -17,6 +17,7 @@
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <stdint.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -112,9 +113,34 @@ int fb;
 
 //framebuffer stuff
 
-enum {FILL, GRID};
+enum {
+	FILL,
+	GRID
+};
 
-enum {CMCST, CMCS, CMCT, CMC, CMCIT, CMCI, CMHT, CMH, WHITE, BLUE0, GTRANSP, CMS, ORANGE, GREEN, YELLOW, RED, CMCP0, CMCP1, CMCP2, CMCP3};
+enum {
+	CMCST,
+	CMCS,
+	CMCT,
+	CMC,
+	CMCIT,
+	CMCI,
+	CMHT,
+	CMH,
+	WHITE,
+	BLUE0,
+	GTRANSP,
+	CMS,
+	ORANGE,
+	GREEN,
+	YELLOW,
+	RED,
+	CMCP0,
+	CMCP1,
+	CMCP2,
+	CMCP3,
+	CSP0
+};
 #define TRANSP 0
 
 extern int FSIZE_BIG;
@@ -123,14 +149,15 @@ extern int FSIZE_SMALL;
 extern int FSIZE_VSMALL;
 extern int TABULATOR;
 
-extern unsigned char *lfb, *lbb;
-extern unsigned char *proxyadress, *proxyuserpwd;
+extern uint32_t bgra[];
+extern int stride;
+extern uint32_t *lfb, *lbb;
+
+extern char *proxyadress, *proxyuserpwd;
 struct fb_fix_screeninfo fix_screeninfo;
 struct fb_var_screeninfo var_screeninfo;
-extern unsigned char rd[],gn[],bl[],tr[];
 
-int startx, starty, sx, ex, sy, ey, preset, debounce, rblock;
-extern unsigned sc[8], tc[8];
+int startx, starty, sx, ex, sy, ey, preset;
 extern int instance;
 int get_instance(void);
 void put_instance(int pval);

@@ -26,7 +26,7 @@
 #include <plugin.h>
 #define SCRIPT "tuxwetter"
 
-int main()
+void main()
 {
         int ret, pid, status;
         pid=fork();
