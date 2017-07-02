@@ -73,7 +73,7 @@ static char TCF_FILE[128]="";
 #define LCD_RDIST 	10
 
 void blit(void) {
-	memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+	memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t));
 }
 
 // Forward defines
@@ -2261,7 +2261,7 @@ void close_jpg_gif_png(void)
 	ioctl(fb, FBIOPUTCMAP, oldcmap);
 //	for(; sy <= ey; sy++) memset(lbb + sx + var_screeninfo.xres*(sy),TRANSP, ex-sx + 1);
 	memset(lbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
-	memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+	memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t));
 #endif
 	gmodeon=0;
 }
@@ -2531,7 +2531,7 @@ unsigned char *buffer=NULL/*,*gbuf*/;
 #if 0
 // don't know what this is about
 #ifndef HAVE_DREAMBOX_HARDWARE
-				i=var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t);
+				i=fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t);
 				gbuf=lfb;
 				while(i--)
 					if(*gbuf >=127)
@@ -3175,7 +3175,7 @@ PLISTENTRY pl=&epl;
 
 	//init backbuffer
 
-	if(!(lbb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
+	if(!(lbb = malloc(fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t))))
 	{
 		perror("tuxwetter <allocating of Backbuffer>\n");
 		FTC_Manager_Done(manager);
@@ -3186,7 +3186,7 @@ PLISTENTRY pl=&epl;
 
 	stride = fix_screeninfo.line_length/sizeof(uint32_t);
 
-	memset(lbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+	memset(lbb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t));
 
 	startx = sx;
 	starty = sy;
@@ -3763,7 +3763,7 @@ PLISTENTRY pl=&epl;
 	free(line_buffer);
 
 	// clear Display
-	memset(lbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
+	memset(lbb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t));
 	blit();
 	munmap(lfb, fix_screeninfo.smem_len);
 	close(fb);
