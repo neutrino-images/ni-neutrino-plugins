@@ -290,7 +290,7 @@ void blit2FB(void *fbbuff,
 
 void setBG()
 {
-	RenderBox(0, 0, var_screeninfo.xres, var_screeninfo.yres, 0, 0/*black*/);
+	RenderBox(0, 0, var_screeninfo.xres-sx, var_screeninfo.yres-sy, 0, 0/*black*/);
 }
 
 void clearBB()

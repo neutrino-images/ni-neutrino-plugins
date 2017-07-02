@@ -32,6 +32,13 @@ void RenderBox(int rsx, int rsy, int rex, int rey, int rad, int col)
 		dxx=0;
 	}
 
+	int dyy_max = var_screeninfo.yres;
+	if (ssy + dyy > dyy_max)
+	{
+		printf("[tuxwetter] %s called with max. width = %d (max. %d)\n", __func__, ssy + dyy, var_screeninfo.yres);
+		dyy = dyy_max - ssy;
+	}
+
 	if(R)
 	{
 		if(--dyy<=0)
@@ -122,6 +129,9 @@ int paintIcon(const char *const fname, int xstart, int ystart, int xsize, int ys
 	int x1, y1, rv=-1, alpha=0, bpp=0;
 	int imx,imy,dxo,dyo,dxp,dyp;
 	unsigned char *buffer=NULL;
+
+	xstart += sx;
+	ystart += sy;
 
 	if((tfh=fopen(fname,"r"))!=NULL)
 	{
