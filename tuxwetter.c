@@ -44,7 +44,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.0"
+#define P_VERSION "4.02"
 #define S_VERSION ""
 
 
@@ -73,7 +73,7 @@ static char TCF_FILE[128]="";
 #define LCD_RDIST 	10
 
 void blit(void) {
-	memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t));
+	memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 }
 
 // Forward defines
@@ -1179,7 +1179,7 @@ void ShowInfo(MENU *m)
 		icon_h = ysize = 32;
 	}
 	multiple_pics=1;
-	paintIcon(TUX_ICON, isx+44-icon_w/2, (isy+dy-soffs+11)-icon_h/2, xsize, ysize, &iw, &ih);
+	paintIcon(TUX_ICON, isx+20-icon_w/2, (isy+dy-soffs-4)-icon_h/2, xsize, ysize, &iw, &ih);
 
 	// Title text
 	RenderString(m->headertxt[m->act_header], isx+47, isy+dy-soffs+11, ixw-sbw-45, LEFT, FSIZE_BIG, CMHT);
@@ -1209,10 +1209,10 @@ void ShowInfo(MENU *m)
 		//multiple_pics=1;
 		switch(loop % 10)
 		{
-			case 0: paintIcon(ICON_BUTTON_RED,   isx+42-icon_w/2, isy+my-9+(icon_h)/2, 0, 0, &iw, &ih); break;
-			case 1: paintIcon(ICON_BUTTON_GREEN, isx+42-icon_w/2, isy+my-9+(icon_h)/2, 0, 0, &iw, &ih); break;
-			case 2: paintIcon(ICON_BUTTON_YELLOW,isx+42-icon_w/2, isy+my-9+(icon_h)/2, 0, 0, &iw, &ih); break;
-			case 3: paintIcon(ICON_BUTTON_BLUE,  isx+42-icon_w/2, isy+my-9+(icon_h)/2, 0, 0, &iw, &ih); break;
+			case 0:	paintIcon(ICON_BUTTON_RED,   isx+18-icon_w/2, isy+my-8-(icon_h)/2, 0, 0, &iw, &ih); break;
+			case 1: paintIcon(ICON_BUTTON_GREEN, isx+18-icon_w/2, isy+my-8-(icon_h)/2, 0, 0, &iw, &ih); break;
+			case 2: paintIcon(ICON_BUTTON_YELLOW,isx+18-icon_w/2, isy+my-8-(icon_h)/2, 0, 0, &iw, &ih); break;
+			case 3: paintIcon(ICON_BUTTON_BLUE,  isx+18-icon_w/2, isy+my-8-(icon_h)/2, 0, 0, &iw, &ih); break;
 			default:
 				sprintf(tstr,"%1d",(loop % 10)-3);
 				RenderString(tstr, isx+10, isy+my+4, 15, CENTER, FSIZE_SMALL, ((loop%10) == (tind%10))?CMCST:CMCT);
@@ -2261,7 +2261,7 @@ void close_jpg_gif_png(void)
 	ioctl(fb, FBIOPUTCMAP, oldcmap);
 //	for(; sy <= ey; sy++) memset(lbb + sx + var_screeninfo.xres*(sy),TRANSP, ex-sx + 1);
 	memset(lbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
-	memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t));
+	memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 #endif
 	gmodeon=0;
 }
@@ -2531,7 +2531,7 @@ unsigned char *buffer=NULL/*,*gbuf*/;
 #if 0
 // don't know what this is about
 #ifndef HAVE_DREAMBOX_HARDWARE
-				i=fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t);
+				i=var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t);
 				gbuf=lfb;
 				while(i--)
 					if(*gbuf >=127)
@@ -3175,7 +3175,7 @@ PLISTENTRY pl=&epl;
 
 	//init backbuffer
 
-	if(!(lbb = malloc(fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t))))
+	if(!(lbb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
 	{
 		perror("tuxwetter <allocating of Backbuffer>\n");
 		FTC_Manager_Done(manager);
@@ -3186,7 +3186,7 @@ PLISTENTRY pl=&epl;
 
 	stride = fix_screeninfo.line_length/sizeof(uint32_t);
 
-	memset(lbb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t));
+	memset(lbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 
 	startx = sx;
 	starty = sy;
@@ -3763,7 +3763,7 @@ PLISTENTRY pl=&epl;
 	free(line_buffer);
 
 	// clear Display
-	memset(lbb, TRANSP, fix_screeninfo.line_length*var_screeninfo.yres*sizeof(uint32_t));
+	memset(lbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 	blit();
 	munmap(lfb, fix_screeninfo.smem_len);
 	close(fb);
