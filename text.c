@@ -275,7 +275,7 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 		if (_sx + sbit->xadvance >= _ex)
 			return -1; /* limit to maxwidth */
 		uint32_t fgcolor;
-		uint32_t bgcolor = *(lbb + (sy + _sy - sbit->top) * stride + (sx + _sx));
+		uint32_t bgcolor = *(lbb + (sy + _sy - _d - 1) * stride + (sx + _sx + sbit->left));
 		if ( color == -2) /* flash */
 			fgcolor = bgcolor;
 		else	
@@ -290,8 +290,8 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 			for(pitch = 0; pitch < sbit->width; pitch++)
 			{
 				if (*s)
-						*q = colors[*s];
-				q++, s++;
+					*q = colors[*s];
+				q++; s++;
 				if (q > r)	/* we are past _ex */
 					break;
 			}

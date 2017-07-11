@@ -19,12 +19,12 @@ void RenderBox(int _sx, int _sy, int _ex, int _ey, int rad, int col)
 		printf("%s RenderBox called with dx < 0 (%d)\n", __plugin__, dxx);
 		dxx=0;
 	}
-	int dyy_max = var_screeninfo.yres - 20;
-	if (dyy > dyy_max)
+
+	int dyy_max = var_screeninfo.yres;
+	if (ssy + dyy > dyy_max)
 	{
-		printf("%s RenderBox called with dy > %d (%d)\n", __plugin__, dyy_max, dyy); //FIXME
-		//*** Error in `msgbox': munmap_chunk(): invalid pointer: 0x31459008 *** //Nevis
-		dyy = dyy_max;
+		printf("[%s] %s called with height = %d (max. %d)\n", __plugin__, __func__, ssy + dyy, dyy_max);
+		dyy = dyy_max - ssy;
 	}
 
 	if(R)
