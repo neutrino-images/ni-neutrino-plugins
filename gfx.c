@@ -35,7 +35,7 @@ void RenderBox(int rsx, int rsy, int rex, int rey, int rad, int col)
 	int dyy_max = var_screeninfo.yres;
 	if (ssy + dyy > dyy_max)
 	{
-		printf("[tuxwetter] %s called with max. width = %d (max. %d)\n", __func__, ssy + dyy, var_screeninfo.yres);
+		printf("[tuxwetter] %s called with height = %d (max. %d)\n", __func__, ssy + dyy, dyy_max);
 		dyy = dyy_max - ssy;
 	}
 
