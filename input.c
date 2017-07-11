@@ -12,7 +12,7 @@
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define BUFSIZE 	1024
-#define I_VERSION	2.02
+#define I_VERSION	2.03
 
 
 char FONT[128]="/share/fonts/neutrino.ttf";
