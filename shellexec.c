@@ -12,7 +12,7 @@
 #include "pngw.h"
 
 
-#define SH_VERSION 2.02
+#define SH_VERSION 2.03
 
 static char CFG_FILE[128]="/var/tuxbox/config/shellexec.conf";
 

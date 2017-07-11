@@ -22,6 +22,13 @@ void RenderBox(int _sx, int _sy, int _ex, int _ey, int rad, int col)
 		dxx=0;
 	}
 
+	int dyy_max = var_screeninfo.yres;
+	if (ssy + dyy > dyy_max)
+	{
+		printf("[%s] %s called with height = %d (max. %d)\n", __plugin__, __func__, ssy + dyy, dyy_max);
+		dyy = dyy_max - ssy;
+	}
+
 	if(R)
 	{
 		if(--dyy<=0)
