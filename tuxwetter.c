@@ -44,7 +44,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.02"
+#define P_VERSION "4.03"
 #define S_VERSION ""
 
 
@@ -1335,7 +1335,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 	{
 		RenderBox(wsx+6, wsy+6, wxw, wyw, radius, CSP0);
 		RenderBox(wsx, wsy, wxw, wyw, radius, CMC);
-		RenderBox(wsx+2, wsy+2, wxw-4, 44, radius, CMH);
+		RenderBox(wsx, wsy, wxw, 44, radius, CMH);
 	}
 	else
 	{
@@ -2595,7 +2595,7 @@ int pyw=ey-sy-((preset)?60:20);		//box height old 510
 			{
 				RenderBox(psx+6, psy+6, pxw, pyw, radius, CSP0);
 				RenderBox(psx, psy, pxw, pyw, radius, CMC);
-				RenderBox(psx+2, psy+2, pxw-4, 44, radius, CMH);
+				RenderBox(psx, psy, pxw, 44, radius, CMH);
 				RenderString(title, psx, psy+40, pxw, CENTER, FSIZE_BIG, CMHT);
 
 				if(!(rv=fh_php_load(name, col1, ssy, dy, cs, line, highlite, plain, &cut)))
