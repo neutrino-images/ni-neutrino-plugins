@@ -77,9 +77,9 @@ int i, err = 0;
     char tempout[80];
     GifByteType *Extension, *CodeBlock;
     GifFileType *GifFileIn = NULL, *GifFileOut = NULL;
-    for(i=0; i<32; i++)
+    for(i=0; i<255; i++)
     {
-    	sprintf(tempout,"%s%02d.gif",OutFileName,i);
+    	sprintf(tempout,"%s%03d.gif",OutFileName,i);
     	xremove(tempout);
     }
     xremove(TempGifName);
@@ -159,7 +159,7 @@ int i, err = 0;
     
    		 /* Scan the content of GIF file and dump image(s) to seperate file(s): */
     		do {
-		sprintf(CrntFileName, "%s%02d.gif", OutFileName, FileNum++);
+		sprintf(CrntFileName, "%s%03d.gif", OutFileName, FileNum++);
 		if ((GifFileOut = EGifOpenFileName(CrntFileName, TRUE, &err)) == NULL)
 		    QuitGifError(GifFileIn, GifFileOut, err);
 		FileEmpty = TRUE;
@@ -251,7 +251,7 @@ void QuitGifError(GifFileType *GifFileIn, GifFileType *GifFileOut, int ErrorCode
 
     if (GifFileIn != NULL) DGifCloseFile(GifFileIn, &ErrorCode);
     if (GifFileOut != NULL) EGifCloseFile(GifFileOut, &ErrorCode);
-//    exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
 }
 
 
