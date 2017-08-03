@@ -218,8 +218,6 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 	FT_Vector kerning;
 	FT_Error err;
 
-	currentchar=currentchar & 0xFF;
-
 	if (currentchar == '\r') // display \r in windows edited files
 	{
 		if(color != -1)

@@ -44,7 +44,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.03"
+#define P_VERSION "4.05"
 #define S_VERSION ""
 
 
@@ -2437,7 +2437,7 @@ unsigned char *buffer=NULL;
 		cloop=0;
 		while(count--)
 		{
-			sprintf(fname,"%s%02d.gif",GIF_MFILE,cloop++);
+			sprintf(fname,"%s%03d.gif",GIF_MFILE,cloop++);
 			if(fh_gif_getsize(fname, &x1, &y1, xsize, ysize))
 			{
 				printf("Tuxwetter <invalid GIF-Format>\n");
@@ -2454,13 +2454,14 @@ unsigned char *buffer=NULL;
 				fb_set_gmode(1);
 				fb_display(buffer, imx, imy, dxp, dyp, dxo, dyo, 1, 1, 0/*alpha*/);
 				gmodeon=1;
-
+#if 0
 				if(gifs>1)
 				{
 					sprintf(fname,"%s %2d / %d", prs_translate("Bild",CONVERT_LIST),cloop, gifs);
-// 					LCD_draw_string(13, 9, fname);
-// 					LCD_update();
+ 					LCD_draw_string(13, 9, fname);
+ 					LCD_update();
 				}
+#endif
 			}
 			free(buffer);
 		}
@@ -3738,11 +3739,11 @@ PLISTENTRY pl=&epl;
 	
 	CloseRC();
 
-    for(ix=0; ix<32; ix++)
-    {
-	sprintf(tstr,"%s%02d.gif",GIF_MFILE,ix);
-    	xremove(tstr);
-    }
+	for(ix=0; ix<255; ix++)
+	{
+		sprintf(tstr,"%s%03d.gif",GIF_MFILE,ix);
+		xremove(tstr);
+	}
 	sprintf(tstr,"ls /tmp/picture* &>/dev/null && rm /tmp/picture*");
 	system(tstr);
 	xremove("/tmp/tuxwettr.tmp");

@@ -40,8 +40,8 @@
 #define gflush return(FH_ERROR_FILE);
 #define grflush { DGifCloseFile(gft, &err); return(FH_ERROR_FORMAT); }
 #define mgrflush { free(lb); free(slb); DGifCloseFile(gft, &err); return(FH_ERROR_FORMAT); }
-#define agflush return(FH_ERROR_FORMAT);
-#define agrflush { DGifCloseFile(gft, &err); return(FH_ERROR_FORMAT); }
+//#define agflush return(FH_ERROR_FORMAT);
+//#define agrflush { DGifCloseFile(gft, &err); return(FH_ERROR_FORMAT); }
 
 int fh_gif_id(const char *name)
 {
