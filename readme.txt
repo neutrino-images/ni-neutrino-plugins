@@ -1,8 +1,8 @@
 Was ist die Messagebox?
 ----------------------------------
 Die MessageBox dient beim Ausführen von Scripten zur Anzeige von Informationen auf dem
-Bildschirm und zur Abfrage von Entscheidungen des Nutzers über bis zu 16 frei beschrift-
-bare Tasten. Die Nummer der gedrückten Taste (1..16) oder 0 bei Timeout ohne gedrückte
+Bildschirm und zur Abfrage von Entscheidungen des Nutzers über bis zu 24 frei beschrift-
+bare Tasten. Die Nummer der gedrückten Taste (1..24) oder 0 bei Timeout ohne gedrückte
 Taste wird als Returnwert zurückgegeben und kann vom Script über die Variable "$?" ausge-
 wertet werden.
 
@@ -72,12 +72,12 @@ der Timeoutzeit, welche in den Neutrino-Einstellungen für die Info-Zeile festge
 Zeit wird durch einen beliebigen tastendruck (außer OK und HOME) neu gestartet. Soll die Message-
 box ohne Timeout unbegrenzt offenbleiben, ist als Wert für den Timeout "timeout=-1" anzugeben.
 
-In der Funktion als MessageBox ("msg=...") können bis zu 16 Tasten angezeigt und die Auswahl
+In der Funktion als MessageBox ("msg=...") können bis zu 24 Tasten angezeigt und die Auswahl
 des Nutzers abgefragt werden. Anzahl und Beschriftung der Tasten werden über den Parameter
 
 select="Label 1[,Label 2[,...]]"
 
-festgelegt. Dabei können 1 bis 16 Tasten mit den entsprechenden Texten (z.B. "Label 1") erzeugt
+festgelegt. Dabei können 1 bis 24 Tasten mit den entsprechenden Texten (z.B. "Label 1") erzeugt
 werden. Die einzelnen Label-Bezeichner können von beliebig vielen Kommas angeführt und auch ge-
 folgt werden. Ausgewertet werden nur die nichtleeren Bereiche zwischen zwei Kommas.
 Die Breite der Tasten und damit auch des gesamten Fensters richtet sich nach der längsten Tas-
@@ -99,7 +99,7 @@ Um die sinnvollste Taste bereits beim Start selektieren zu können, kann mit dem
 
 default=n
 
-die Nummer der Taste (1..16) übergeben werden, welche unmittelbar nach Anzeige der Messagebox
+die Nummer der Taste (1..24) übergeben werden, welche unmittelbar nach Anzeige der Messagebox
 selektiert sein soll und nur noch mit OK bestätigt werden braucht. Dabei ist zu beachten, daß
 bei "absolute=1" auch der Defaultwert absolut abgegeben werden muß.
 

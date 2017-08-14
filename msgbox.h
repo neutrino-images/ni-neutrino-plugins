@@ -25,7 +25,7 @@
 #include FT_CACHE_H
 #include FT_CACHE_SMALL_BITMAPS_H
 
-#define MAX_BUTTONS 16
+#define MAX_BUTTONS 24
 #define BUFSIZE 	4095
 
 enum {LEFT, CENTER, RIGHT};

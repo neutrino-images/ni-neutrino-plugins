@@ -17,7 +17,7 @@
 	typeof (b) __b = (b); \
 	__a > __b ? __a : __b; })
 
-#define M_VERSION 2.02
+#define M_VERSION 2.03
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define HDF_FILE	"/tmp/.msgbox_hidden"
@@ -62,8 +62,8 @@ static char spres[][4]={"","crt","lcd"};
 
 char *line_buffer=NULL, *title=NULL, *icon=NULL;
 int size=24, type=0, timeout=0, refresh=3, flash=0, selection=0, tbuttons=0, buttons=0, bpline=3, echo=0, absolute=0, mute=1, header=1, cyclic=1;
-char *butmsg[16]={0};
-int rbutt[16],hide=0,radius=0, radius_small=0;
+char *butmsg[MAX_BUTTONS]={0};
+int rbutt[MAX_BUTTONS],hide=0,radius=0, radius_small=0;
 
 // Misc
 const char NOMEM[]="MsgBox <Out of memory>\n";
@@ -470,7 +470,7 @@ void ShowUsage(void)
 	printf("    timeout=nn            : set autoclose-timeout\n");
 	printf("    icon=n                : n=none(0), error(1), info(2) or /path/my.png (default: \"info\")\n");
 	printf("    refresh=n             : n=1..3, see readme.txt\n");
-	printf("    select=\"Button1,..\"   : Labels of up to 16 Buttons, see readme.txt\n");
+	printf("    select=\"Button1,..\"   : Labels of up to 24 Buttons, see readme.txt\n");
 	printf("    absolute=n            : n=0/1 return relative/absolute button number (default: 0)\n");
 	printf("    order=n               : maximal buttons per line (default: 3)\n");
 	printf("    default=n             : n=1..buttons, initially selected button, see readme.txt\n");
