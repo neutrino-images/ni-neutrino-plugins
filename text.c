@@ -6,6 +6,11 @@ int FSIZE_BIG=28;
 int FSIZE_MED=24;
 int FSIZE_SMALL=20;
 int TABULATOR=72;
+
+int OFFSET_MED=10;
+int OFFSET_SMALL=5;
+int OFFSET_MIN=2;
+
 extern int flash;
 
 static char *sc = "aouAOUzd",
@@ -221,18 +226,18 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 	{
 		if(color != -1)
 		{
-			if (_sx + 10 < _ex)
-				RenderBox(_sx, _sy - 16, _sx + 10, _sy - 6, GRID, color);
+			if (_sx + OFFSET_MED < _ex)
+				RenderBox(_sx, _sy - OFFSET_MED - OFFSET_SMALL, _sx + OFFSET_MED, _sy - OFFSET_SMALL, GRID, color);
 			else
 				return -1;
 		}
-		return 10;
+		return OFFSET_MED;
 	}
 
 	if (currentchar == '\t')
 	{
 		/* simulate horizontal TAB */
-		return 15;
+		return scale2res(15);
 	}
 
 	//load char
@@ -330,7 +335,7 @@ int GetStringLen(int _sx, char *string, size_t size)
 				stringlen=desc.width+TABULATOR*((int)(stringlen/TABULATOR)+1);
 			else if(*string=='T' && sscanf(string+1,"%4d",&i)==1) {
 				string+=5;
-				stringlen=i-_sx;
+				stringlen=scale2res(i)-_sx;
 			}
 			else if(*string=='l' ||
 					*string=='c' ||
@@ -450,7 +455,7 @@ int RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int s
 					if(sscanf(rptr+1,"%4d",&i)==1)
 					{
 						rptr+=4;
-						_sx=i;
+						_sx=i; // scale2res() here too?
 					}
 				break;
 			}
@@ -464,4 +469,3 @@ int RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int s
 	}
 	return stringlen;
 }
-

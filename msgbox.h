@@ -138,7 +138,12 @@ enum {
 extern int FSIZE_BIG;
 extern int FSIZE_MED;
 extern int FSIZE_SMALL;
+
 extern int TABULATOR;
+
+extern int OFFSET_MED;
+extern int OFFSET_SMALL;
+extern int OFFSET_MIN;
 
 extern uint32_t *lfb, *lbb, *obb, *hbb;
 

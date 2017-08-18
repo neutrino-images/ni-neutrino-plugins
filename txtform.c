@@ -87,25 +87,25 @@ int just, comment, color=CMCT;
 				if(loop>=line)
 				{
 					slen=GetStringLen(xs, t, size);
-					int boffs = slen ? (size/10*4)+2 : 0;
+					int boffs = slen ? (size/10*4)+OFFSET_MIN : 0;
 					if (comment == 1)
 					{
 						int xxs = xs;
-						RenderBox(xs, ys-2-size/2, xs+xw, ys-2-size/2+2, FILL, COL_MENUCONTENT_PLUS_3);
+						RenderBox(xs, ys-OFFSET_MIN-size/2, xs+xw, ys-OFFSET_MIN-size/2+OFFSET_MIN, FILL, COL_MENUCONTENT_PLUS_3);
 						if(slen > 0 && slen < xw) {
-							xxs += (xw-slen-boffs)/2-5;
-							RenderBox(xxs, ys-2-size/2, xxs+slen+10+boffs, ys-2-size/2+2, FILL, CMC);
+							xxs += (xw-slen-boffs)/2-OFFSET_SMALL;
+							RenderBox(xxs, ys-OFFSET_MIN-size/2, xxs+slen+OFFSET_MED+boffs, ys-OFFSET_MIN-size/2+OFFSET_MIN, FILL, CMC);
 						}
 						RenderString(t, xs, ys, xw, CENTER, size, CMCIT);
 					}
 					else if (comment == 2)
 					{
-						RenderBox(xs+slen+boffs, ys-2-size/2, xs+xw, ys-2-size/2+2, FILL, COL_MENUCONTENT_PLUS_3);
+						RenderBox(xs+slen+boffs, ys-OFFSET_MIN-size/2, xs+xw, ys-OFFSET_MIN-size/2+OFFSET_MIN, FILL, COL_MENUCONTENT_PLUS_3);
 						RenderString(t, xs, ys, xw, LEFT, size, color);
 					}
 					else if (comment == 3)
 					{
-						RenderBox(xs, ys-2-size/2, xs+xw-slen-boffs, ys-2-size/2+2, FILL, COL_MENUCONTENT_PLUS_3);
+						RenderBox(xs, ys-OFFSET_MIN-size/2, xs+xw-slen-boffs, ys-OFFSET_MIN-size/2+OFFSET_MIN, FILL, COL_MENUCONTENT_PLUS_3);
 						RenderString(t, xs, ys, xw, RIGHT, size, color);
 					}
 					else

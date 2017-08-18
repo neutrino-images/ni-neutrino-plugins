@@ -178,6 +178,14 @@ int rv=-1;
 	return rv;
 }
 
+int scale2res(int s)
+{
+	if (var_screeninfo.xres == 1920)
+		s += s/2;
+
+	return s;
+}
+
 void TrimString(char *strg)
 {
 char *pt1=strg, *pt2=strg;
@@ -249,13 +257,12 @@ char *pt1=strdup(sptr),*pt2=NULL,*pt3=NULL;
 	return rv;
 }
 
-static int yo=80,dy;
-static int psx, psy, pxw, pyw, myo=0, buttx=80, butty=30, buttdx=20, buttdy=10, buttsize=0, buttxstart=0, buttystart=0;
-
 int show_txt(int buttonly)
 {
 FILE *tfh;
 char const *fname=NULL;
+int yo=scale2res(80),dy;
+int psx, psy, pxw, pyw, myo=0, buttx=scale2res(80), butty=scale2res(30), buttdx=scale2res(20), buttdy=scale2res(10), buttsize=0, buttxstart=0, buttystart=0;
 int icon_w=0, icon_h=0, xsize=0, ysize=0;
 int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(buttons>bpline)?bpline:buttons,blines=1+((btns-1)/lbtns);
 
@@ -299,13 +306,13 @@ int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(butto
 				myo=0;
 			}	
 		
-			pxw=GetStringLen(sx,title,FSIZE_BIG)+10;
+			pxw=GetStringLen(sx,title,FSIZE_BIG)+OFFSET_MED;
 			if(type==1)
 			{
 				myo=blines*(butty+buttdy);
 				for(i=0; i<btns; i++)
 				{
-					itmp=GetStringLen(sx,butmsg[i], 26)+10;
+					itmp=GetStringLen(sx,butmsg[i],FSIZE_MED)+OFFSET_MED;
 					if(itmp>buttx)
 					{
 						buttx=itmp;
@@ -319,7 +326,7 @@ int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(butto
 				printf(__plugin__ " <invalid Text-Format>\n");
 				return -1;
 			}
-			x1+=10;
+			x1+=OFFSET_MED;
 
 			dy=size;
 			if(pxw<x1)
@@ -344,7 +351,7 @@ int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(butto
 			if(btns)
 			{
 				buttxstart=psx+pxw/2-(((double)lbtns*(double)buttsize+(((lbtns>2)&&(lbtns&1))?((double)buttdx):0.0))/2.0);
-				buttystart=psy+y1*dy+20;
+				buttystart=psy+y1*dy+2*OFFSET_MED;
 			}
 		}
 
@@ -356,17 +363,17 @@ int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(butto
 				if(!buttonly)
 				{
 					int iw, ih, pxoffs = 0;
-					int slen = GetStringLen(sx, title, FSIZE_BIG)+20;
-					if (icon_w > 0 && (psx+pxw-20-slen <= psx-10+icon_w+10))
+					int slen = GetStringLen(sx, title, FSIZE_BIG)+2*OFFSET_MED;
+					if (icon_w > 0 && (psx+pxw-2*OFFSET_MED-slen <= psx-OFFSET_MED+icon_w+OFFSET_MED))
 						pxoffs = (icon_w)/2;
-					RenderBox(psx-20-pxoffs+6, psy-yo-h_head/3-6, psx+pxw+pxoffs+26, psy+pyw+myo+(h_head/3)+16, radius, COL_SHADOW_PLUS_0);
-					RenderBox(psx-20-pxoffs, psy-yo-h_head/3-10, psx+pxw+pxoffs+20, psy+pyw+myo+(h_head/3)+10, radius, CMC);
+					RenderBox(psx-2*OFFSET_MED-pxoffs+OFFSET_SMALL, psy-yo-h_head/3-OFFSET_SMALL, psx+pxw+pxoffs+2*OFFSET_MED+OFFSET_SMALL, psy+pyw+myo+(h_head/3)+OFFSET_MED+OFFSET_SMALL, radius, COL_SHADOW_PLUS_0);
+					RenderBox(psx-2*OFFSET_MED-pxoffs, psy-yo-h_head/3-OFFSET_MED, psx+pxw+pxoffs+2*OFFSET_MED, psy+pyw+myo+(h_head/3)+OFFSET_MED, radius, CMC);
 					if(header)
 					{
 						int pyoffs=(icon_h < h_head)?1:0;
-						RenderBox(psx-20-pxoffs, psy-yo-h_head/3-10, psx+pxw+pxoffs+20, psy-yo+(h_head*2)/3-10, radius, CMH);
-						paintIcon(fname,  psx-10-pxoffs, psy-yo-h_head/3+h_head/2-icon_h/2+pyoffs-10, xsize, ysize, &iw, &ih);
-						RenderString(title, psx+pxoffs, psy-moffs-10, pxw, CENTER, FSIZE_BIG, CMHT);
+						RenderBox(psx-2*OFFSET_MED-pxoffs, psy-yo-h_head/3-OFFSET_MED, psx+pxw+pxoffs+2*OFFSET_MED, psy-yo+(h_head*2)/3-OFFSET_MED, radius, CMH);
+						paintIcon(fname,  psx-OFFSET_MED-pxoffs, psy-yo-h_head/3+h_head/2-icon_h/2+pyoffs-OFFSET_MED, xsize, ysize, &iw, &ih);
+						RenderString(title, psx+pxoffs, psy-moffs-OFFSET_MED, pxw, CENTER, FSIZE_BIG, CMHT);
 					}
 				}
 				if(buttonly || !(rv=fh_txt_load(TMP_FILE, psx, pxw, psy+size, dy, size, line, &cut)))
@@ -377,10 +384,10 @@ int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(butto
 						{
 							bx=i%lbtns;
 							by=i/lbtns;
-							RenderBox(buttxstart+bx*(buttsize+buttdx/2)+4, buttystart+by*(butty+buttdy/2)+4, buttxstart+(bx+1)*buttsize+bx*(buttdx/2)+4, buttystart+by*(butty+buttdy/2)+butty+4, radius_small, COL_SHADOW_PLUS_0);
+							RenderBox(buttxstart+bx*(buttsize+buttdx/2)+OFFSET_SMALL/2, buttystart+by*(butty+buttdy/2)+OFFSET_SMALL/2, buttxstart+(bx+1)*buttsize+bx*(buttdx/2)+OFFSET_SMALL/2, buttystart+by*(butty+buttdy/2)+butty+OFFSET_SMALL/2, radius_small, COL_SHADOW_PLUS_0);
 							RenderBox(buttxstart+bx*(buttsize+buttdx/2), buttystart+by*(butty+buttdy/2), buttxstart+(bx+1)*buttsize+bx*(buttdx/2), buttystart+by*(butty+buttdy/2)+butty, radius_small, CMCS/*YELLOW*/);
 							RenderBox(buttxstart+bx*(buttsize+buttdx/2)+1, buttystart+by*(butty+buttdy/2)+1, buttxstart+(bx+1)*buttsize+bx*(buttdx/2)-1, buttystart+by*(butty+buttdy/2)+butty-1, radius_small, ((by*bpline+bx)==(selection-1))?CMCS:CMC);
-							RenderString(butmsg[i], buttxstart+bx*(buttsize+buttdx/2), buttystart+by*(butty+buttdy/2)+butty, buttsize, CENTER, 26, (i==(selection-1))?CMCST:CMCIT);
+							RenderString(butmsg[i], buttxstart+bx*(buttsize+buttdx/2), buttystart+by*(butty+buttdy/2)+butty, buttsize, CENTER, FSIZE_MED, (i==(selection-1))?CMCST:CMCIT);
 						}
 					}
 					memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
@@ -744,28 +751,28 @@ FILE *fh;
 		else
 			sprintf(line_buffer,"screen_StartX_%s_%d", spres[spr], resolution);
 		if((sx=Read_Neutrino_Cfg(line_buffer))<0)
-			sx=100;
+			sx=scale2res(100);
 
 		if (resolution == -1)
 			sprintf(line_buffer,"screen_EndX_%s", spres[spr]);
 		else
 			sprintf(line_buffer,"screen_EndX_%s_%d", spres[spr], resolution);
 		if((ex=Read_Neutrino_Cfg(line_buffer))<0)
-			ex=1180;
+			ex=scale2res(1180);
 
 		if (resolution == -1)
 			sprintf(line_buffer,"screen_StartY_%s", spres[spr]);
 		else
 			sprintf(line_buffer,"screen_StartY_%s_%d", spres[spr], resolution);
 		if((sy=Read_Neutrino_Cfg(line_buffer))<0)
-			sy=100;
+			sy=scale2res(100);
 
 		if (resolution == -1)
 			sprintf(line_buffer,"screen_EndY_%s", spres[spr]);
 		else
 			sprintf(line_buffer,"screen_EndY_%s_%d", spres[spr], resolution);
 		if((ey=Read_Neutrino_Cfg(line_buffer))<0)
-			ey=620;
+			ey=scale2res(620);
 
 		for(ix=CMCST; ix<=CMH; ix++)
 		{
@@ -817,8 +824,8 @@ FILE *fh;
 
 		if(Read_Neutrino_Cfg("rounded_corners")>0)
 		{
-			radius = 11;
-			radius_small = 7;
+			radius = scale2res(11);
+			radius_small = scale2res(5);
 		}
 		else
 			radius = radius_small = 0;
@@ -975,6 +982,19 @@ FILE *fh;
 		startx = sx;
 		starty = sy;
 
+
+	/* scale to resolution */
+	FSIZE_BIG = scale2res(FSIZE_BIG);
+	FSIZE_MED = scale2res(FSIZE_MED);
+	FSIZE_SMALL = scale2res(FSIZE_SMALL);
+
+	TABULATOR = scale2res(TABULATOR);
+
+	OFFSET_MED = scale2res(OFFSET_MED);
+	OFFSET_SMALL = scale2res(OFFSET_SMALL);
+	OFFSET_MIN = scale2res(OFFSET_MIN);
+
+	size = scale2res(size);
 
 	/* Set up signal handlers. */
 	signal(SIGINT, quit_signal);
