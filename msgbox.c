@@ -17,7 +17,7 @@
 	typeof (b) __b = (b); \
 	__a > __b ? __a : __b; })
 
-#define M_VERSION 2.03
+#define M_VERSION 2.04
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define HDF_FILE	"/tmp/.msgbox_hidden"

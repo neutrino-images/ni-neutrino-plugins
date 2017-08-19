@@ -455,7 +455,7 @@ int RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int s
 					if(sscanf(rptr+1,"%4d",&i)==1)
 					{
 						rptr+=4;
-						_sx=i; // scale2res() here too?
+						_sx=scale2res(i);
 					}
 				break;
 			}
