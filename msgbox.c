@@ -17,7 +17,7 @@
 	typeof (b) __b = (b); \
 	__a > __b ? __a : __b; })
 
-#define M_VERSION 2.04
+#define M_VERSION 2.05
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define HDF_FILE	"/tmp/.msgbox_hidden"
@@ -257,12 +257,13 @@ char *pt1=strdup(sptr),*pt2=NULL,*pt3=NULL;
 	return rv;
 }
 
+static int dy, psx, psy, pxw, pyw, myo=0, buttsize=0, buttxstart=0, buttystart=0;
+
 int show_txt(int buttonly)
 {
 FILE *tfh;
 char const *fname=NULL;
-int yo=scale2res(80),dy;
-int psx, psy, pxw, pyw, myo=0, buttx=scale2res(80), butty=scale2res(30), buttdx=scale2res(20), buttdy=scale2res(10), buttsize=0, buttxstart=0, buttystart=0;
+int yo=scale2res(80), buttx=scale2res(80), butty=scale2res(30), buttdx=scale2res(20), buttdy=scale2res(10);
 int icon_w=0, icon_h=0, xsize=0, ysize=0;
 int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(buttons>bpline)?bpline:buttons,blines=1+((btns-1)/lbtns);
 

@@ -12,6 +12,7 @@ int OFFSET_SMALL=5;
 int OFFSET_MIN=2;
 
 extern int flash;
+extern int scale2res(int s);
 
 static char *sc = "aouAOUzd",
 	*su= "\xA4\xB6\xBC\x84\x96\x9C\x9F",
