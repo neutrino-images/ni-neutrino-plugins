@@ -17,7 +17,7 @@
 	typeof (b) __b = (b); \
 	__a > __b ? __a : __b; })
 
-#define M_VERSION 2.05
+#define M_VERSION 2.06
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define HDF_FILE	"/tmp/.msgbox_hidden"
@@ -299,6 +299,8 @@ int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(butto
 	if((tfh=fopen(TMP_FILE,"r"))!=NULL)
 	{
 		fclose(tfh);
+		int fsizebut = scale2res(26);
+
 		if(!buttonly)
 		{
 			if(type!=1)
@@ -313,7 +315,7 @@ int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(butto
 				myo=blines*(butty+buttdy);
 				for(i=0; i<btns; i++)
 				{
-					itmp=GetStringLen(sx,butmsg[i],FSIZE_MED)+OFFSET_MED;
+					itmp=GetStringLen(sx,butmsg[i],fsizebut)+OFFSET_MED;
 					if(itmp>buttx)
 					{
 						buttx=itmp;
@@ -388,7 +390,7 @@ int i,bx,by,x1,y1,rv=-1,run=1,line=0,action=1,cut,itmp,btns=buttons,lbtns=(butto
 							RenderBox(buttxstart+bx*(buttsize+buttdx/2)+OFFSET_SMALL/2, buttystart+by*(butty+buttdy/2)+OFFSET_SMALL/2, buttxstart+(bx+1)*buttsize+bx*(buttdx/2)+OFFSET_SMALL/2, buttystart+by*(butty+buttdy/2)+butty+OFFSET_SMALL/2, radius_small, COL_SHADOW_PLUS_0);
 							RenderBox(buttxstart+bx*(buttsize+buttdx/2), buttystart+by*(butty+buttdy/2), buttxstart+(bx+1)*buttsize+bx*(buttdx/2), buttystart+by*(butty+buttdy/2)+butty, radius_small, CMCS/*YELLOW*/);
 							RenderBox(buttxstart+bx*(buttsize+buttdx/2)+1, buttystart+by*(butty+buttdy/2)+1, buttxstart+(bx+1)*buttsize+bx*(buttdx/2)-1, buttystart+by*(butty+buttdy/2)+butty-1, radius_small, ((by*bpline+bx)==(selection-1))?CMCS:CMC);
-							RenderString(butmsg[i], buttxstart+bx*(buttsize+buttdx/2), buttystart+by*(butty+buttdy/2)+butty, buttsize, CENTER, FSIZE_MED, (i==(selection-1))?CMCST:CMCIT);
+							RenderString(butmsg[i], buttxstart+bx*(buttsize+buttdx/2), buttystart+by*(butty+buttdy/2)+butty, buttsize, CENTER, fsizebut, (i==(selection-1))?CMCST:CMCIT);
 						}
 					}
 					memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
