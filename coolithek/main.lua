@@ -5,15 +5,18 @@ function getVersionInfo()
 	if checkJsonError(j_table) == false then return false end
 
 	local vdate  = os.date("%d.%m.%Y / %H:%M:%S", j_table.entry[1].vdate);
-	local mvdate = os.date("%d.%m.%Y / %H:%M:%S", j_table.entry[1].mvdate);
+	local mvdate = os.date("%d.%m.%Y / %H:%M", j_table.entry[1].mvdate);
 	local msg = string.format("Plugin v%s\n \n" ..
 			"Datenbank\n" ..
 			"Version: %s (Update %s)\n \n" ..
+			"Konverter MediathekView => Coolithek\n" ..
+			"%s (%s)\n \n" ..
 			"Datenbank MediathekView:\n" ..
 			"%s\n" ..
 			"%d Einträge (Stand vom %s)", 
 			pluginVersion,
 			j_table.entry[1].version, vdate,
+			j_table.entry[1].progname, j_table.entry[1].progversion,
 			j_table.entry[1].mvversion,
 			j_table.entry[1].mventrys, mvdate);
 
