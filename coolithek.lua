@@ -22,7 +22,6 @@ end
 V   = video.new()
 M   = misc.new()
 J   = loadLuaLib("json")
-P   = loadLuaLib("posix")
 G   = loadLuaLib("n_gui")
 H   = loadLuaLib("n_helpers")
 ZMQ = loadLuaLib("lzmq", true)

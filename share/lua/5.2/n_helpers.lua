@@ -46,9 +46,26 @@ scriptBase()
 checkAPIversion(major, minor)
 ]]
 
-local posix = require "posix"
 local helpers = {VERSION = VERSION}
 local H = helpers
+
+-- Copyright 2011-2014, Gianluca Fiore © <forod.g@gmail.com>
+--- Function equivalent to dirname in POSIX systems
+--@param str the path string
+function dirname(str)
+	if str:match(".-/.-") then
+		local name = string.gsub(str, "(.*/)(.*)", "%1")
+		return name
+	else
+		return ''
+	end
+end
+--- Function equivalent to basename in POSIX systems
+--@param str the path string
+function basename(str)
+	local name = string.gsub(str, "(.*/)(.*)", "%2")
+	return name
+end
 
 function H.which(prog)
 	local r = ""
@@ -200,9 +217,9 @@ function H.tprintFile (f, tbl, indent)
 end
 
 function H.fileExist(file)
-	if P == nil then P = posix end
-	if P.access(file, f) == nil then return false end
-	return true
+	local fh = filehelpers.new()
+	if fh:exist(file, "f") == true then return true end
+	return false
 end
 
 function H.trim(s)
@@ -236,13 +253,11 @@ function H.checkModulVersion(version)
 end
 
 function H.scriptPath()
-	if P == nil then P = posix end
-	return P.dirname(debug.getinfo(2, "S").source:sub(2));
+	return dirname(debug.getinfo(2, "S").source:sub(2));
 end
 
 function H.scriptBase()
-	if P == nil then P = posix end
-	local name = P.basename(debug.getinfo(2, "S").source:sub(2));
+	local name = basename(debug.getinfo(2, "S").source:sub(2));
 	return string.sub(name, 1, #name-4)
 end
 

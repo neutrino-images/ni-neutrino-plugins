@@ -37,7 +37,6 @@ paintFrame(x, y, w, h, f, c, [radius], [bg])
 paintSimpleFrame(x, y, w, h, c, [bg])
 ]]
 
-local posix = require "posix"
 local gui = {VERSION = VERSION}
 local G = gui
 
