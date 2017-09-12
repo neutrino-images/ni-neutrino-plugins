@@ -45,6 +45,10 @@ function paintMainMenu(frame, frameColor, textColor, info, count)
 	if (bgTransp == true) then
 		y_start = (SCREEN.END_Y - h_ges) / 6
 	end
+	x = math.floor(x)
+	h_tmp = math.floor(h_tmp)
+	y_start = math.floor(y_start)
+
 	for i = 1, count do
 		local y = y_start + (i-1)*h_tmp
 		local bg = 0
@@ -62,7 +66,7 @@ function paintMainMenu(frame, frameColor, textColor, info, count)
 		G.paintSimpleFrame(x, y, w, h, frameColor, bg)
 		N:paintVLine(x+w1, y, h, frameColor)
 		N:RenderString(useDynFont, fontText, info[i][1], x, y+h, txtC, w1, h, 1)
-		N:RenderString(useDynFont, fontText, info[i][2], x+w1+w1/4, y+h, txtC, w-w1, h, 0)
+		N:RenderString(useDynFont, fontText, info[i][2], math.floor(x+w1+w1/4), y+h, txtC, w-w1, h, 0)
 
 		::continue::
 	end

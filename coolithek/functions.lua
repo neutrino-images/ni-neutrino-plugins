@@ -296,8 +296,8 @@ function paintMiniInfoBox(txt)
 	local _h = N:FontHeight(useDynFont, fontMiniInfo)
 	local dx = _w + 40
 	local dy = _h
-	local x = ((SCREEN.END_X - SCREEN.OFF_X) - dx) / 2
-	local y = ((SCREEN.END_Y - SCREEN.OFF_Y) - dy) / 2
+	local x = math.floor(((SCREEN.END_X - SCREEN.OFF_X) - dx) / 2)
+	local y = math.floor(((SCREEN.END_Y - SCREEN.OFF_Y) - dy) / 2)
 	local ib = G.paintMiniInfoBox("", dx, dy)
 	local col_text = COL.MENUCONTENTSELECTED_TEXT
 	N:RenderString(useDynFont, fontMiniInfo, txt, x, y+dy, col_text, dx, dy, 1)

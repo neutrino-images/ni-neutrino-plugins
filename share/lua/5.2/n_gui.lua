@@ -49,6 +49,11 @@ function G.paintMiniInfoBox(txt, w, h)
 
 	local text = COL.MENUCONTENTSELECTED_TEXT
 	local body = COL.MENUCONTENTSELECTED_PLUS_0
+	x = math.floor(x)
+	y = math.floor(y)
+	dy = math.floor(dy)
+	dx = math.floor(dx)
+
 	local ib = cwindow.new{color_body=body, x=x, y=y, dx=dx, dy=dy, has_shadow=true, shadow_mode=1, show_footer=false, show_header=false}
 	if (txt ~= "") then
 		ctext.new{color_text=text, color_body=body, parent=ib, x=15, y=2, dx=dx-30, dy=dy-ib:headerHeight()-4, text=txt, font_text=FONT.MENU_TITLE, mode="ALIGN_CENTER"}
@@ -63,6 +68,10 @@ function G.paintInfoBox(txt, w, h)
 	if not h then dy = 120 else dy = h end
 	local x = ((SCREEN.END_X - SCREEN.OFF_X) - dx) / 2
 	local y = ((SCREEN.END_Y - SCREEN.OFF_Y) - dy) / 2
+	x = math.floor(x)
+	y = math.floor(y)
+	dy = math.floor(dy)
+	dx = math.floor(dx)
 
 	local ib = cwindow.new{x=x, y=y, dx=dx, dy=dy, title="Information", icon="information", has_shadow=true, shadow_mode=1, show_footer=false}
 	ctext.new{parent=ib, x=30, y=2, dx=dx-60, dy=dy-ib:headerHeight()-4, text=txt, font_text=FONT.MENU, mode="ALIGN_CENTER"}
@@ -91,6 +100,10 @@ function G.paintFrame(x, y, w, h, f, c, radius, bg)
 	if N == nil then N = n end
 	if (not radius) then radius = CORNER.RADIUS_LARGE end
 	if (not bg) then bg = 0 end
+	x = math.floor(x)
+	y = math.floor(y)
+	w = math.floor(w)
+	h = math.floor(h)
 	if (bg > 0) then
 		-- background
 		N:PaintBox(x, y, w, h, bg, radius, bit32.bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
@@ -108,6 +121,10 @@ end
 function G.paintSimpleFrame(x, y, w, h, c, bg)
 	if N == nil then N = n end
 	if (not bg) then bg = 0 end
+	x = math.floor(x)
+	y = math.floor(y)
+	w = math.floor(w)
+	h = math.floor(h)
 	if (bg > 0) then
 		-- background
 		N:PaintBox(x, y, w, h, bg)

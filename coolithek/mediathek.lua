@@ -1,10 +1,10 @@
 
 mtLeftMenu_x		= SCREEN.OFF_X + 10
-mtLeftMenu_w		= N:scale2Res(240)
-subMenuTop		= N:scale2Res(10)
-subMenuLeft		= N:scale2Res(8)
-subMenuSpace		= N:scale2Res(16)
-subMenuHight		= N:scale2Res(26)
+mtLeftMenu_w		= math.floor(N:scale2Res(240))
+subMenuTop		= math.floor(N:scale2Res(10))
+subMenuLeft		= math.floor(N:scale2Res(8))
+subMenuSpace		= math.floor(N:scale2Res(16))
+subMenuHight		= math.floor(N:scale2Res(26))
 mtRightMenu_x		= mtLeftMenu_x + 8 + mtLeftMenu_w
 mtRightMenu_w		= SCREEN.END_X - mtRightMenu_x-8
 mtRightMenu_select	= 1
@@ -131,7 +131,7 @@ function paintMtRightMenu()
 			vH = math.abs(vH)
 			paint = false
 		end
-		local w = ((rightItem_w / 100) * vH)
+		local w = math.floor(((rightItem_w / 100) * vH))
 		N:RenderString(useDynFont, fontLeftMenu1, txt, item_x, y+subMenuHight, textColor, w, subMenuHight, 1)
 		item_x = item_x + w
 		if (paint == true) then
@@ -308,7 +308,7 @@ function paintMtLeftMenu(entry)
 		G.paintSimpleFrame(mtLeftMenu_x+subMenuLeft, y, mtLeftMenu_w-subMenuLeft*2, subMenuHight, frameColor, bgCol)
 		N:paintVLine(mtLeftMenu_x+subMenuLeft+subMenuHight, y, subMenuHight, frameColor)
 		N:RenderString(useDynFont, fontLeftMenu1, txt1,
-				mtLeftMenu_x+subMenuLeft+subMenuHight+subMenuHight/3, y+subMenuHight, txtCol, mtLeftMenu_w-subMenuHight-subMenuLeft*2, subMenuHight, 0)
+				math.floor(mtLeftMenu_x+subMenuLeft+subMenuHight+subMenuHight/3), y+subMenuHight, txtCol, mtLeftMenu_w-subMenuHight-subMenuLeft*2, subMenuHight, 0)
 
 		buttonCol_x = mtLeftMenu_x+subMenuLeft+(subMenuHight-buttonCol_w)/2
 		buttonCol_y = y+(subMenuHight-buttonCol_h)/2
