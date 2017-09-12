@@ -62,7 +62,7 @@ function youporn_updatefeed(feed,friendly_name)
 			local anythingtoparse = data.find(data,"<div class=")
 			if data  and anythingtoparse then
 				local n=0
-				for entry in data:gmatch("<div class=(.-)</div>") do
+				for entry in data:gmatch('(<a href="/watch/.-)</a>') do
 					local urn = entry:match('<a%s+href="(/watch/.-)"')
 					local name = entry:match('alt=[\'"](.-)[\'"]')
 					local logo = entry:match('img src="(.-)"')
