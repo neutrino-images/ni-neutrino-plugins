@@ -12,7 +12,7 @@
 #include "pngw.h"
 
 
-#define SH_VERSION 2.10
+#define SH_VERSION 2.11
 
 static char CFG_FILE[128]="/var/tuxbox/config/shellexec.conf";
 
@@ -1374,7 +1374,7 @@ static void ShowInfo(MENU *m, int knew )
 		RenderBox(ixw-sbw + sbo, moffs + scrollbar_ofs + sbo, ixw - sbo, moffs + scrollbar_ofs + scrollbar_cor - sbo, radius, COL_MENUCONTENT_PLUS_3);
 	}
 	int iw,ih;
-	int offset, hoffs = (m->headermed[m->act_header]==1)?0:50;
+	int offset, hoffs = (m->headermed[m->act_header]==1)?0:scale2res(48);
 	int ioffs = xoffs+8; // + half standard icon
 	if(m->icon[m->act_header])
 	{
@@ -1447,11 +1447,11 @@ static void ShowInfo(MENU *m, int knew )
 					coffs=clh;
 				}
 			}
-			RenderString(dstr, 50, my+soffs-(dy-font_size)/2-coffs+2, ixw-sbw-scale2res(65), LEFT, font_type, (((loop%MAX_FUNCS) == (tind%MAX_FUNCS)) && (sbar) && (!nosel))?CMCST:(nosel)?CMCIT:CMCT);
+			RenderString(dstr, scale2res(48), my+soffs-(dy-font_size)/2-coffs+2, ixw-sbw-scale2res(65), LEFT, font_type, (((loop%MAX_FUNCS) == (tind%MAX_FUNCS)) && (sbar) && (!nosel))?CMCST:(nosel)?CMCIT:CMCT);
 		}
 		if(pl->type==TYP_MENU)
 		{
-			RenderString(">", 30, my+soffs-(dy-FSIZE_MED)/2+1, scale2res(65), LEFT, MED, (((loop%MAX_FUNCS) == (tind%MAX_FUNCS)) && (sbar) && (!nosel))?CMCST:CMCT);
+			RenderString(">", scale2res(30), my+soffs-(dy-FSIZE_MED)/2+OFFSET_MIN, scale2res(65), LEFT, MED, (((loop%MAX_FUNCS) == (tind%MAX_FUNCS)) && (sbar) && (!nosel))?CMCST:CMCT);
 		}
 		if(pl->underline)
 		{
