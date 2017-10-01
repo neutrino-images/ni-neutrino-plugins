@@ -7,6 +7,10 @@ int FSIZE_MED=24;
 int FSIZE_SMALL=20;
 int TABULATOR=72;
 
+int OFFSET_MED=10;
+int OFFSET_SMALL=5;
+int OFFSET_MIN=2;
+
 //extern void blit();
 
 static char	*sc = "aouAOUzd",
@@ -235,18 +239,18 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 	{
 		if(color != -1)
 		{
-			if (_sx + 10 < _ex)
-				RenderBox(_sx, _sy - 10, _sx + 10, _sy, GRID, color);
+			if (_sx + OFFSET_MED < _ex)
+				RenderBox(_sx, _sy - OFFSET_MED, _sx + OFFSET_MED, _sy, GRID, color);
 			else
 				return -1;
 		}
-		return 10;
+		return OFFSET_MED;
 	}
 
 	if (currentchar == '\t')
 	{
 		/* simulate horizontal TAB */
-		return 15;
+		return scale2res(15);
 	}
 
 	//load char
@@ -343,7 +347,7 @@ int GetStringLen(int _sx, char *string, size_t size)
 				stringlen=desc.width+TABULATOR*((int)(stringlen/TABULATOR)+1);
 			else if(*string=='T' && sscanf(string+1,"%4d",&i)==1) {
 				string+=5;
-				stringlen=i-_sx;
+				stringlen=scale2res(i)-_sx;
 			}
 			break;
 		default:
@@ -416,7 +420,7 @@ void RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int 
 					if(sscanf(rptr+1,"%4d",&i)==1)
 					{
 						rptr+=4;
-						_sx=i;
+						_sx=scale2res(i);
 					}
 					else
 					{
@@ -486,8 +490,8 @@ char *rmptr, *rmstr, *rmdptr;
 void ShowMessage(char *mtitle, char *message, int wait)
 {
 	extern int radius, radius_small;
-	int ixw=420;
-	int iyw=wait?327:300;
+	int ixw=scale2res(420);
+	int iyw=wait?scale2res(327):scale2res(300);
 	int lx=startx;
 	//int ly=starty;
 	char *tdptr;
@@ -496,25 +500,25 @@ void ShowMessage(char *mtitle, char *message, int wait)
 	//starty=sy;
 
 	//layout
-	RenderBox(0+4, 178+4, ixw+4, iyw+4, radius, COL_SHADOW_PLUS_0);
-	RenderBox(0, 178, ixw, iyw, radius, CMC);
-	RenderBox(0, 178, ixw, 220, radius, CMH);
+	RenderBox(0+OFFSET_SMALL, scale2res(178)+OFFSET_SMALL, ixw+OFFSET_SMALL, iyw+OFFSET_SMALL, radius, COL_SHADOW_PLUS_0);
+	RenderBox(0, scale2res(178), ixw, iyw, radius, CMC);
+	RenderBox(0, scale2res(178), ixw, scale2res(220), radius, CMH);
 
 	//message
 	tdptr=strdup(mtitle);
 	remove_tabs(tdptr);
-	RenderString(tdptr, 5, 215, ixw-10, CENTER, FSIZE_BIG, CMHT);
+	RenderString(tdptr, OFFSET_SMALL, scale2res(215), ixw-OFFSET_MED, CENTER, FSIZE_BIG, CMHT);
 	free(tdptr);
 	tdptr=strdup(message);
 	remove_tabs(tdptr);
-	RenderString(tdptr, 5, 270, ixw-10, CENTER, FSIZE_MED, CMCT);
+	RenderString(tdptr, OFFSET_SMALL, scale2res(270), ixw-OFFSET_MED, CENTER, FSIZE_MED, CMCT);
 	free(tdptr);
 
 	if(wait)
-	{
-		RenderBox(ixw/2-35+4, 286+4, ixw/2+35+4, 310+4, radius_small, COL_SHADOW_PLUS_0);
-		RenderBox(ixw/2-35, 286, ixw/2+35, 310, radius_small, CMCS);
-		RenderString("OK", ixw/2-25, 312, 50, CENTER, FSIZE_MED, CMCT);
+	{	int offs=2*OFFSET_MED+OFFSET_SMALL; // 35
+		RenderBox(ixw/2-offs+OFFSET_SMALL, scale2res(286)+OFFSET_SMALL, ixw/2+offs+OFFSET_SMALL, scale2res(310)+OFFSET_SMALL, radius_small, COL_SHADOW_PLUS_0);
+		RenderBox(ixw/2-offs, scale2res(286), ixw/2+offs, scale2res(310), radius_small, CMCS);
+		RenderString("OK", ixw/2-scale2res(25), scale2res(312), scale2res(50), CENTER, FSIZE_MED, CMCT);
 	}
 	memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 

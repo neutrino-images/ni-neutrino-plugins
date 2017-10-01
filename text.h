@@ -13,5 +13,6 @@ FT_Error MyFaceRequester(FTC_FaceID face_id, FT_Library library, FT_Pointer requ
 void RenderString(char *string, int sx, int sy, int maxwidth, int layout, int size, int color);
 void ShowMessage(char *mtitle, char *message, int wait);
 void remove_tabs(char *src);
+int scale2res(int s);
 
 #endif

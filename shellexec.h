@@ -168,7 +168,12 @@ extern uint32_t *lfb, *lbb;
 extern int FSIZE_BIG;
 extern int FSIZE_MED;
 extern int FSIZE_SMALL;
+
 extern int TABULATOR;
+
+extern int OFFSET_MED;
+extern int OFFSET_SMALL;
+extern int OFFSET_MIN;
 
 struct fb_fix_screeninfo fix_screeninfo;
 struct fb_var_screeninfo var_screeninfo;
