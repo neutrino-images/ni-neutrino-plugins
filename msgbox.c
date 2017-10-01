@@ -17,7 +17,7 @@
 	typeof (b) __b = (b); \
 	__a > __b ? __a : __b; })
 
-#define M_VERSION 2.06
+#define M_VERSION 2.10
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define HDF_FILE	"/tmp/.msgbox_hidden"
@@ -506,6 +506,31 @@ FILE *fh;
 			ShowUsage();
 			return 0;
 		}
+
+		//init framebuffer before 1st scale2res
+		fb = open(FB_DEVICE, O_RDWR);
+		if(fb == -1)
+		{
+			perror(__plugin__ " <open framebuffer device>");
+			exit(1);
+		}
+		if(ioctl(fb, FBIOGET_FSCREENINFO, &fix_screeninfo) == -1)
+		{
+			perror(__plugin__ " <FBIOGET_FSCREENINFO>\n");
+			return -1;
+		}
+		if(ioctl(fb, FBIOGET_VSCREENINFO, &var_screeninfo) == -1)
+		{
+			perror(__plugin__ " <FBIOGET_VSCREENINFO>\n");
+			return -1;
+		}
+
+		if(!(lfb = (uint32_t*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0)))
+		{
+			perror(__plugin__ " <mapping of Framebuffer>\n");
+			return -1;
+		}
+
 		dloop=0;
 		for(tv=1; !dloop && tv<argc; tv++)
 		{
@@ -833,37 +858,11 @@ FILE *fh;
 		else
 			radius = radius_small = 0;
 
-		fb = open(FB_DEVICE, O_RDWR);
-		if(fb == -1)
-		{
-			perror(__plugin__ " <open framebuffer device>");
-			exit(1);
-		}
-
 		InitRC();
 		
 		if((trstr=malloc(BUFSIZE))==NULL)
 		{
 			printf(NOMEM);
-			return -1;
-		}
-
-	//init framebuffer
-
-		if(ioctl(fb, FBIOGET_FSCREENINFO, &fix_screeninfo) == -1)
-		{
-			perror(__plugin__ " <FBIOGET_FSCREENINFO>\n");
-			return -1;
-		}
-		if(ioctl(fb, FBIOGET_VSCREENINFO, &var_screeninfo) == -1)
-		{
-			perror(__plugin__ " <FBIOGET_VSCREENINFO>\n");
-			return -1;
-		}
-
-		if(!(lfb = (uint32_t*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0)))
-		{
-			perror(__plugin__ " <mapping of Framebuffer>\n");
 			return -1;
 		}
 		
