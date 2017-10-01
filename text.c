@@ -7,6 +7,10 @@ int FSIZE_MED=24;
 int FSIZE_SMALL=20;
 int TABULATOR=300;
 
+int OFFSET_MED=10;
+int OFFSET_SMALL=5;
+int OFFSET_MIN=2;
+
 /******************************************************************************
  * MyFaceRequester
  ******************************************************************************/
