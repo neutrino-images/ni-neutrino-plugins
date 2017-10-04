@@ -135,7 +135,7 @@ enum {
 
 extern uint32_t *lfb, *lbb, *obb;
 extern uint32_t bgra[];
-extern int stride;
+extern int swidth;
 
 extern int FSIZE_BIG;
 extern int FSIZE_MED;

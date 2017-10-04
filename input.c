@@ -12,7 +12,7 @@
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define BUFSIZE 	1024
-#define I_VERSION	2.10
+#define I_VERSION	2.11
 
 
 char FONT[128]="/share/fonts/neutrino.ttf";
@@ -63,7 +63,7 @@ char nstr[512]={0};
 char *trstr=NULL;
 const char sc[8]={'a','o','u','A','O','U','z','d'}, tc[8]={0xE4,0xF6,0xFC,0xC4,0xD6,0xDC,0xDF,0xB0};
 int radius;
-int stride;
+int swidth;
 
 
 static void quit_signal(int sig)
@@ -528,8 +528,12 @@ char rstr[512]={0}, *title=NULL, *format=NULL, *defstr=NULL, *aptr=NULL, *rptr=N
 
 		desc.flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT;
 
-	//init backbuffer
-
+		//init backbuffer
+		int stride = fix_screeninfo.line_length;
+		swidth = stride/sizeof(uint32_t);
+		if (stride == 7680 && var_screeninfo.xres == 1280) {
+			var_screeninfo.yres = 1080;
+		}
 		if(!(lbb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
 		{
 			perror(__plugin__ " <allocating of Backbuffer>\n");
@@ -538,8 +542,6 @@ char rstr[512]={0}, *title=NULL, *format=NULL, *defstr=NULL, *aptr=NULL, *rptr=N
 			munmap(lfb, fix_screeninfo.smem_len);
 			return -1;
 		}
-		stride = fix_screeninfo.line_length/sizeof(uint32_t);
-
 		if(!(obb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
 		{
 			perror(__plugin__ " <allocating of Backbuffer>\n");
