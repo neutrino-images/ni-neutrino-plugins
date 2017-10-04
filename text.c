@@ -291,10 +291,10 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 		if (_sx + sbit->xadvance >= _ex)
 			return -1; /* limit to maxwidth */
 
-		uint32_t bgcolor = *(lbb + (starty + _sy - _d - 1) * stride + (startx + _sx + sbit->left));
+		uint32_t bgcolor = *(lbb + (starty + _sy - _d - 1) * swidth + (startx + _sx + sbit->left));
 		uint32_t fgcolor = bgra[color];
 		uint32_t *colors = lookup_colors(fgcolor, bgcolor);
-		uint32_t *p = lbb + (startx + _sx + sbit->left + kerning.x) + stride * (starty + _sy - sbit->top - _d);
+		uint32_t *p = lbb + (startx + _sx + sbit->left + kerning.x) + swidth * (starty + _sy - sbit->top - _d);
 		uint32_t *r = p + (_ex - _sx);	/* end of usable box */
 		for(row = 0; row < sbit->height; row++)
 		{
@@ -308,8 +308,8 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 				if (q > r)	/* we are past _ex */
 					break;
 			}
-			p += stride;
-			r += stride;
+			p += swidth;
+			r += swidth;
 		}
 	}
 

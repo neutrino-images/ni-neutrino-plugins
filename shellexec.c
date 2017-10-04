@@ -12,7 +12,7 @@
 #include "pngw.h"
 
 
-#define SH_VERSION 2.11
+#define SH_VERSION 2.12
 
 static char CFG_FILE[128]="/var/tuxbox/config/shellexec.conf";
 
@@ -90,7 +90,7 @@ int ixw, iyw, xoffs;
 char INST_FILE[]="/tmp/rc.locked";
 int instance=0;
 int rclocked=0;
-int stride;
+int swidth;
 
 int get_instance(void)
 {
@@ -1785,6 +1785,11 @@ int main (int argc, char **argv)
 	desc.flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT;
 
 	//init backbuffer
+	int stride = fix_screeninfo.line_length;
+	swidth = stride/sizeof(uint32_t);
+	if(stride == 7680 && var_screeninfo.xres == 1280) {
+		var_screeninfo.yres = 1080;
+	}
 	if(!(lbb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
 	{
 		printf("%s <allocating of Backbuffer failed>\n", __plugin__);
@@ -1793,7 +1798,6 @@ int main (int argc, char **argv)
 		munmap(lfb, fix_screeninfo.smem_len);
 		return -1;
 	}
-	stride = fix_screeninfo.line_length/sizeof(uint32_t);
 
 	//lbb=lfb;
 	memset(lbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));

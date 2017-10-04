@@ -76,7 +76,7 @@ void blit2FB(void *fbbuff,
 		{
 			uint32_t * data = (uint32_t *) fbbuff;
 
-			uint32_t * d = (uint32_t *)lbb + xo + stride * ssy/*yoffs*/;
+			uint32_t * d = (uint32_t *)lbb + xo + swidth * ssy/*yoffs*/;
 			uint32_t * d2;
 
 			for (count = 0; count < yc; count++ ) {
@@ -99,7 +99,7 @@ void blit2FB(void *fbbuff,
 					d2++;
 					pixpos++;
 				}
-				d += stride;
+				d += swidth;
 			}
 		}
 		break;

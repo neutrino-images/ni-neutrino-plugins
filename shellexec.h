@@ -162,7 +162,7 @@ enum {
 #define TRANSP 0
 
 extern uint32_t bgra[];
-extern int stride;
+extern int swidth;
 extern uint32_t *lfb, *lbb;
 
 extern int FSIZE_BIG;
