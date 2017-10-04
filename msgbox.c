@@ -17,7 +17,7 @@
 	typeof (b) __b = (b); \
 	__a > __b ? __a : __b; })
 
-#define M_VERSION 2.10
+#define M_VERSION 2.11
 
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define HDF_FILE	"/tmp/.msgbox_hidden"
@@ -74,7 +74,7 @@ char *trstr=NULL;
 const char INST_FILE[]="/tmp/rc.locked";
 int instance=0;
 int rclocked=0;
-int stride;
+int swidth;
 
 int get_instance(void)
 {
@@ -913,8 +913,12 @@ FILE *fh;
 
 		desc.flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT;
 
-	//init backbuffer
-
+		//init backbuffer
+		int stride = fix_screeninfo.line_length;
+		swidth = stride/sizeof(uint32_t);
+		if(stride == 7680 && var_screeninfo.xres == 1280) {
+			var_screeninfo.yres = 1080;
+		}
 		if(!(lbb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
 		{
 			perror(__plugin__ " <allocating of Backbuffer>\n");
@@ -923,8 +927,6 @@ FILE *fh;
 			munmap(lfb, fix_screeninfo.smem_len);
 			return -1;
 		}
-		stride = fix_screeninfo.line_length/sizeof(uint32_t);
-
 		if(!(obb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
 		{
 			perror(__plugin__ " <allocating of Backbuffer>\n");

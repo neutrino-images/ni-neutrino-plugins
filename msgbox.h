@@ -150,7 +150,7 @@ extern uint32_t *lfb, *lbb, *obb, *hbb;
 struct fb_fix_screeninfo fix_screeninfo;
 struct fb_var_screeninfo var_screeninfo;
 extern uint32_t bgra[];
-extern int stride;
+extern int swidth;
 
 int startx, starty, sx, ex, sy, ey;
 //int debounce, rblock;
