@@ -22,7 +22,7 @@ void RenderBox(int rsx, int rsy, int rex, int rey, int rad, int col)
 {
 	int F,R=rad,ssx=sx+rsx,ssy=sy+rsy,dxx=rex,dyy=rey,rx,ry,wx,wy,count;
 
-	uint32_t *pos = lbb + ssx + stride * ssy;
+	uint32_t *pos = lbb + ssx + swidth * ssy;
 	uint32_t *pos0, *pos1, *pos2, *pos3, *i;
 	uint32_t pix = bgra[col];
 
@@ -73,10 +73,10 @@ void RenderBox(int rsx, int rsy, int rex, int rey, int rad, int col)
 		rx=R-ssx;
 		ry=R-ssy;
 
-		pos0=pos+(dyy-ry)*stride;
-		pos1=pos+ry*stride;
-		pos2=pos+rx*stride;
-		pos3=pos+(dyy-rx)*stride;
+		pos0=pos+(dyy-ry)*swidth;
+		pos1=pos+ry*swidth;
+		pos2=pos+rx*swidth;
+		pos3=pos+(dyy-rx)*swidth;
 		while (ssx <= ssy)
 		{
 			rx=R-ssx;
@@ -94,8 +94,8 @@ void RenderBox(int rsx, int rsy, int rex, int rey, int rad, int col)
 				*i = pix;
 
 			ssx++;
-			pos2-=stride;
-			pos3+=stride;
+			pos2-=swidth;
+			pos3+=swidth;
 			if (F<0)
 			{
 				F+=(ssx<<1)-1;
@@ -104,18 +104,18 @@ void RenderBox(int rsx, int rsy, int rex, int rey, int rad, int col)
 			{
 				F+=((ssx-ssy)<<1);
 				ssy--;
-				pos0-=stride;
-				pos1+=stride;
+				pos0-=swidth;
+				pos1+=swidth;
 			}
 		}
-		pos+=R*stride;
+		pos+=R*swidth;
 	}
 
 	for (count=R; count<(dyy-R); count++)
 	{
 		for(i=pos; i<pos+dxx;i++)
 			*i = pix;
-		pos+=stride;
+		pos+=swidth;
 	}
 }
 
@@ -253,7 +253,7 @@ void RenderLine( int xa, int ya, int xb, int yb, unsigned char col )
 			End = xb;
 			step = yb < ya ? -1 : 1;
 		}
-		*(lbb + startx+x + stride*(y+starty)) = pix;
+		*(lbb + startx+x + swidth*(y+starty)) = pix;
 
 		while( x < End )
 		{
@@ -265,7 +265,7 @@ void RenderLine( int xa, int ya, int xb, int yb, unsigned char col )
 				y += step;
 				p += twoDyDx;
 			}
-			*(lbb + startx+x + stride*(y+starty)) = pix;
+			*(lbb + startx+x + swidth*(y+starty)) = pix;
 		}
 	}
 	else
@@ -288,7 +288,7 @@ void RenderLine( int xa, int ya, int xb, int yb, unsigned char col )
 			End = yb;
 			step = xb < xa ? -1 : 1;
 		}
-		*(lbb + startx+x + stride*(y+starty)) = pix;
+		*(lbb + startx+x + swidth*(y+starty)) = pix;
 
 		while( y < End )
 		{
@@ -301,7 +301,7 @@ void RenderLine( int xa, int ya, int xb, int yb, unsigned char col )
 				p += twoDxDy;
 			}
 
-			*(lbb + startx+x + stride*(y+starty)) = pix;
+			*(lbb + startx+x + swidth*(y+starty)) = pix;
 		}
 	}
 }

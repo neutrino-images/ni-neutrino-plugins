@@ -113,7 +113,7 @@ int fb_set_gmode(int gmode)
 		return -1;
 	}
 
-//	memset(lfb, 0, stride * yRes);
+//	memset(lfb, 0, swidth * yRes);
         if (ioctl(fb, FBIOBLANK, FB_BLANK_UNBLANK) < 0) {
                 printf("screen unblanking failed\n");
         }
@@ -244,19 +244,19 @@ void blit2FB(void *fbbuff,
 				set332map();
 			}
 		for(i = 0; i < yc; i++){
-				memcpy(lbb+(i+yoffs)*stride+xo,cp + (i+yp)*pic_xs+xp,xc*cpp);
+				memcpy(lbb+(i+yoffs)*swidth+xo,cp + (i+yp)*pic_xs+xp,xc*cpp);
 			}
 			break;
 		case 2:
 			for(i = 0; i < yc; i++){
-				memcpy(lbb+(i+yoffs)*stride+xo,sp + (i+yp)*pic_xs+xp, xc*cpp);
+				memcpy(lbb+(i+yoffs)*swidth+xo,sp + (i+yp)*pic_xs+xp, xc*cpp);
 			}
 			break;
 		case 4:
 		{
 			uint32_t * data = (uint32_t *) fbbuff;
 
-			uint32_t * d = (uint32_t *)lbb + xo + stride * yoffs;
+			uint32_t * d = (uint32_t *)lbb + xo + swidth * yoffs;
 			uint32_t * d2;
 
 			for (count = 0; count < yc; count++ ) {
@@ -279,7 +279,7 @@ void blit2FB(void *fbbuff,
 					d2++;
 					pixpos++;
 				}
-				d += stride;
+				d += swidth;
 			}
 		}
 		break;
@@ -318,7 +318,7 @@ int x,y;
    		y=cfy;
    	}
    	
-    unsigned int stride = fix.line_length;
+    unsigned int swidth = fix.line_length;
 	
 	switch(cpp){
 		case 2:
@@ -336,16 +336,16 @@ int x,y;
 				tl = tvar.transp.length;
 				to = tvar.transp.offset;
 				short black=make16color(0,0,0, rl, ro, gl, go, bl, bo, tl, to);
-				unsigned short *s_fbbuff = (unsigned short *) malloc(y*stride/2 * sizeof(unsigned short));
+				unsigned short *s_fbbuff = (unsigned short *) malloc(y*swidth/2 * sizeof(unsigned short));
 				if(s_fbbuff==NULL)
 				{
 					printf("Error: malloc\n");
 					return;
 				}
 
-				for(i = 0; i < y*stride/2; i++)
+				for(i = 0; i < y*swidth/2; i++)
 				   s_fbbuff[i] = black;
-				memcpy(lfb, s_fbbuff, y*stride);
+				memcpy(lfb, s_fbbuff, y*swidth);
 				free(s_fbbuff);
 			}
 			break;
@@ -354,13 +354,13 @@ int x,y;
 			unsigned int  col = 0xFF000000;
 			unsigned int  * dest = (unsigned int  *) lfb;
 			unsigned int i;
-			for(i = 0; i < stride*y/4; i ++)
+			for(i = 0; i < swidth*y/4; i ++)
 				dest[i] = col;
 			}
 			break;
 
 		default:
-			memset(lfb, 0, stride*y);
+			memset(lfb, 0, swidth*y);
 	}
 
 }
@@ -549,9 +549,9 @@ int showBusy(int _sx, int _sy, int width, char r, char g, char b)
 	{
 		for(x=_sx ; x< _sx+width; x++)
 		{
-			memcpy(busy_buffer_wrk, lbb + y * stride + (x * cpp)/sizeof(uint32_t), cpp);
+			memcpy(busy_buffer_wrk, lbb + y * swidth + (x * cpp)/sizeof(uint32_t), cpp);
 			busy_buffer_wrk+=cpp;
-			memcpy(lbb + y * stride + (x * cpp)/sizeof(uint32_t), fb_buffer, cpp);
+			memcpy(lbb + y * swidth + (x * cpp)/sizeof(uint32_t), fb_buffer, cpp);
 		}
 	}
 	blit();

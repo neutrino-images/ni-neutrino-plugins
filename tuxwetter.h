@@ -150,7 +150,7 @@ extern int FSIZE_VSMALL;
 extern int TABULATOR;
 
 extern uint32_t bgra[];
-extern int stride;
+extern int swidth;
 extern uint32_t *lfb, *lbb;
 
 extern char *proxyadress, *proxyuserpwd;
