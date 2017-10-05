@@ -15,8 +15,8 @@ int fh_php_trans(const char *name, int _sx, int _sy, int dy, int cs, int line, i
 char tstr[BUFSIZE]={0},rstr[BUFSIZE]={0},*tptr=NULL,*xptr=NULL,cc,br3flag=0;
 int loop=1, j, first, aline=0, fx=_sx, fy=_sy, slen, deg=0;
 
-int wxw=ex-_sx-((preset)?120:30);		//box width
-int wyw=ey-_sy-((preset)?60:40);		//box height
+int wxw=ex-_sx-((preset)?scale2res(120):scale2res(30));		//box width
+int wyw=ey-_sy-((preset)?scale2res(60):scale2res(40));		//box height
 
 FILE *fh;
 
@@ -127,12 +127,6 @@ FILE *fh;
 					if((loop>0) && (_sy<(fy+wyw/*420*/)))
 					{
 						rstr[j]=0;
-					//	printf(" # 1 # php.c %s \n",rstr);
-					//	char *t = (char *)alloca(j * 4 + 1);
-					//	memcpy(t, rstr, j + 1);
-					//	TranslateString(t, j * 4);
-					//	//strcpy(rstr, t);
-					//	printf(" # 2 # php.c %s \n",t);
 						if(plot)
 						{
 
@@ -142,7 +136,7 @@ FILE *fh;
 							}
 							else
 							{
-								RenderString(rstr, _sx, fx+250, wxw/*619*/, CENTER, FSIZE_BIG, CMCT);
+								RenderString(rstr, _sx, fx+scale2res(250), wxw/*619*/, CENTER, FSIZE_BIG, CMCT);
 							}
 							if(strlen(rstr))
 							{
@@ -166,7 +160,7 @@ FILE *fh;
 				}
 				if(plot)
 				{
-					int ssx = ((preset)?80:25);
+					int ssx = ((preset)?scale2res(82):scale2res(25));
 					*cut=(_sy>=(fy+wyw/*420*/));
 					if(line)
 					{

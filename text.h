@@ -10,5 +10,6 @@ void TranslateString(char *src, size_t size);
 int GetStringLen(int _sx, char *string, size_t size);
 void CatchTabs(char *text);
 void ShowMessage(char *message, int wait);
+int scale2res(int s);
 
 #endif
