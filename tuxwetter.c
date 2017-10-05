@@ -44,7 +44,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.05"
+#define P_VERSION "4.06"
 #define S_VERSION ""
 
 
@@ -148,7 +148,7 @@ const char INST_FILE[]="/tmp/rc.locked";
 //char LCDL_FILE[]="/tmp/lcd.locked";
 int instance=0;
 int rclocked=0;
-int stride;
+int swidth;
 
 int get_instance(void)
 {
@@ -3175,7 +3175,11 @@ PLISTENTRY pl=&epl;
 	desc.flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT;
 
 	//init backbuffer
-
+	int stride = fix_screeninfo.line_length;
+	swidth = stride/sizeof(uint32_t);
+	if (stride == 7680 && var_screeninfo.xres == 1280) {
+		var_screeninfo.yres = 1080;
+	}
 	if(!(lbb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
 	{
 		perror("tuxwetter <allocating of Backbuffer>\n");
@@ -3184,9 +3188,6 @@ PLISTENTRY pl=&epl;
 		munmap(lfb, fix_screeninfo.smem_len);
 		return -1;
 	}
-
-	stride = fix_screeninfo.line_length/sizeof(uint32_t);
-
 	memset(lbb, TRANSP, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 
 	startx = sx;
