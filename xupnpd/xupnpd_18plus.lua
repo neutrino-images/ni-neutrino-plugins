@@ -29,6 +29,14 @@ youporn_category=
     ['voyeur']='/category/34/voyeur/', ['webcam']='/category/35/webcam/', ['3d']='/category/63/3d/', ['hd']='/category/65/hd/',
     ['young-old']='/category/45/young-old/'
 }
+function check_if_double(tab,name)
+	for index,value in ipairs(tab) do
+		if value == name then
+			return false
+		end
+	end
+	return true
+end
 
 function youporn_updatefeed(feed,friendly_name)
 	local rc=false
@@ -49,6 +57,7 @@ function youporn_updatefeed(feed,friendly_name)
 -- 		http.user_agent(cfg.user_agent..'\r\nCookie: age_verified=1')
 		http.user_agent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/538.1 (KHTML, like Gecko) ' ..'\r\n')
 		local page=1
+		local urls = {}
 		while(page<=cfg.youporn_max_pages) do
 			local url=feed_url..'&page='..page
 			if cfg.debug>0 then print('YouPorn try url '..url) end
@@ -65,8 +74,9 @@ function youporn_updatefeed(feed,friendly_name)
 				for entry in data:gmatch('(<a href="/watch/.-)</a>') do
 					local urn = entry:match('<a%s+href="(/watch/.-)"')
 					local name = entry:match('alt=[\'"](.-)[\'"]')
-					local logo = entry:match('img src="(.-)"')
-					if urn and name then
+					local logo = entry:match('data%-thumbnail="(.-)"')
+					if check_if_double(urls,urn) and urn and name then
+						urls[#urls+1] =  urn
 						local m=string.find(urn,'?',1,true)
 						if m then urn=urn:sub(1,m-1) end
 						local f = nil
