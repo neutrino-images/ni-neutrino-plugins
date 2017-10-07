@@ -1,0 +1,51 @@
+-------------------------------------------------------------------------
+          logoview - Tool zum Anzeigen von Bildern auf CST STBs
+-------------------------------------------------------------------------
+
+Unterstützt werden zur Zeit nur JPG-Bilder.
+Das Bild sollte in HD Auflösung (1280x720) vorliegen, wird jedoch, wenn
+nötig, skaliert.
+logoview liest die Informationen über Bildschirmauflösung, OSD-Bereich aus
+der neutrino.conf, wenn diese nicht vorhanden ist (neues Image), wird
+kein Bild angezeigt.
+
+Wenn das Framebuffer Device nicht sofort zur Verfügung steht (tritt u.U. bei
+Apollo Hardware auf), wartet logoview einige Zeit auf die Bereitstellung.
+
+logoview benötigt keine libcoolstream, ist also unabhängig von eventuellen
+Änderungen in dieser Library.
+
+Lizenz:
+	GPL Version 2
+
+Sourcecode ansehen:
+	https://github.com/tuxbox-neutrino/plugin-logoview
+	https://gitweb.tuxcode.de/tuxbox-neutrino-plugins/?p=plugin-logoview.git;a=tree
+
+Sourcecode herunterladen:
+	git clone https://github.com/tuxbox-neutrino/plugin-logoview.git
+	git clone https://git.tuxcode.de/plugin-logoview.git
+
+    Aktualisieren:
+	git pull
+
+
+Aufruf:
+-------
+
+   logoview [LogoName] &
+       LogoName   : Path to logofile (jpg only)
+                    default = /share/tuxbox/neutrino/icons/start.jpg
+
+   logoview <Options>
+       Options:
+       --------
+         -l | --logo         Path to logofile (jpg only)
+         -b | --background   Run in background
+         -t | --timeout      Timeout in sec. (default 0 = no timeout)
+         -c | --clearscreen  Clear screen when timeout (default = no)
+         -o | --only-clear   No logo view, clear screen and exit
+         -h | --help         This help
+
+   Example:
+     logoview --background -t 3 --logo=/var/share/icons/logo.jpg
