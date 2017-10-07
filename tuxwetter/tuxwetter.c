@@ -78,7 +78,7 @@ void blit(void) {
 
 // Forward defines
 int pic_on_data(char *name, int xstart, int ystart, int xsize, int ysize, int wait, int single, int center, int rahmen);
-char par[32]={0}, key[32]={0};
+char par[32]="1005530704", key[32]="a9c95f7636ad307b";
 void TrimString(char *strg);
 
 // Color table stuff
@@ -1316,6 +1316,11 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 
 	//recalculate wigth
 	gicw += ((gicw%10) > OFFSET_SMALL ? OFFSET_MED-(gicw%10) : -(gicw%10)); //rounded table data width, needing for smoothed curves
+	gxw=gicw*nc;
+	gxs=(wxw-gxw)/2;
+
+	//recalculate wigth
+	gicw += ((gicw%10) > 5 ? 10-(gicw%10) : -(gicw%10)); //rounded table data width, needing for smoothed curves
 	gxw=gicw*nc;
 	gxs=(wxw-gxw)/2;
 
