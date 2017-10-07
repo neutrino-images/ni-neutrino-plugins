@@ -1,0 +1,18 @@
+#!/bin/sh
+
+case $1 in
+start)
+	if [ -e /var/etc/.tuxcald ]; then
+		echo "starte tuxcald..."
+		/bin/tuxcald
+	fi
+	;;
+stop)
+	if [ -e /var/etc/.tuxcald ]; then
+		echo "stoppe tuxcald..."
+		[ -e /var/run/tuxcald.pid ] && kill $( cat /var/run/tuxcald.pid )
+	fi
+	;;
+esac
+
+exit 0
