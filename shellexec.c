@@ -12,7 +12,7 @@
 #include "pngw.h"
 
 
-#define SH_VERSION 2.12
+#define SH_VERSION 2.13
 
 static char CFG_FILE[128]="/var/tuxbox/config/shellexec.conf";
 
@@ -1804,8 +1804,8 @@ int main (int argc, char **argv)
 	memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 	//blit();
 
-	startx = sx + (((ex-sx) - (fix_screeninfo.line_length-scale2res(200)))/2);
-	starty = sy + (((ey-sy) - (var_screeninfo.yres-scale2res(150)))/2);
+	startx = sx;
+	starty = sy;
 
 	/* scale to resolution */
 	FSIZE_BIG = scale2res(FSIZE_BIG);

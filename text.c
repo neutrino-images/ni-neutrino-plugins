@@ -493,11 +493,11 @@ void ShowMessage(char *mtitle, char *message, int wait)
 	int ixw=scale2res(420);
 	int iyw=wait?scale2res(327):scale2res(300);
 	int lx=startx;
-	//int ly=starty;
+	int ly=starty;
 	char *tdptr;
 
-	startx = sx + (((ex-sx) - ixw)/2);
-	//starty=sy;
+	startx = sx + ((ex-sx) - ixw)/2;
+	starty = sy + ((ey-sy) - iyw)/2 - iyw/2;
 
 	//layout
 	RenderBox(0+OFFSET_SMALL, scale2res(178)+OFFSET_SMALL, ixw+OFFSET_SMALL, iyw+OFFSET_SMALL, radius, COL_SHADOW_PLUS_0);
@@ -515,15 +515,16 @@ void ShowMessage(char *mtitle, char *message, int wait)
 	free(tdptr);
 
 	if(wait)
-	{	int offs=2*OFFSET_MED+OFFSET_SMALL; // 35
+	{
+		int offs=3*OFFSET_MED+OFFSET_SMALL;
 		RenderBox(ixw/2-offs+OFFSET_SMALL, scale2res(286)+OFFSET_SMALL, ixw/2+offs+OFFSET_SMALL, scale2res(310)+OFFSET_SMALL, radius_small, COL_SHADOW_PLUS_0);
 		RenderBox(ixw/2-offs, scale2res(286), ixw/2+offs, scale2res(310), radius_small, CMCS);
-		RenderString("OK", ixw/2-scale2res(25), scale2res(312), scale2res(50), CENTER, FSIZE_MED, CMCT);
+		RenderString("OK", ixw/2-scale2res(25), scale2res(310), scale2res(50), CENTER, FSIZE_MED, CMCT);
 	}
 	memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 
 	while(wait && (GetRCCode(300) != RC_OK));
 
-	startx=lx;
-	//starty=ly;
+	startx = lx;
+	starty = ly;
 }
