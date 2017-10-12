@@ -281,7 +281,7 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 		if (_sx + sbit->xadvance >= _ex)
 			return -1; /* limit to maxwidth */
 		uint32_t fgcolor;
-		uint32_t bgcolor = *(lbb + (sy + _sy - _d - 1) * swidth + (sx + _sx + sbit->left));
+		uint32_t bgcolor = *(lbb + (sy + _sy - _d - 1) * swidth + (sx + _sx + OFFSET_MIN + sbit->left));
 		if ( color == -2) /* flash */
 			fgcolor = bgcolor;
 		else	
