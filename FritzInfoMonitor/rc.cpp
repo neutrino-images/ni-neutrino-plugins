@@ -21,7 +21,7 @@ Crc::Crc()
 	rc = -1;
 
 	/* open Remote Control */
-	rc = open ( "/dev/input/nevis_ir", O_RDONLY );
+	rc = open(RC_DEVICE, O_RDONLY | O_CLOEXEC);
 	if ( rc == -1 )
 	{
 		perror ( "<open remote control>" );

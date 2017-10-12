@@ -295,7 +295,7 @@ void CSubMenu::ShowMessage(int message, int popup)
 		case INFO:
 			cfb->RenderString("Versionsinfo", mitte-180, 210, (mitte+180)-(mitte-180), CENTER, NORMAL, CMHT);
 			msg.str("");
-			msg << "FritzInfoMonitor " << VERSION;
+			msg << "FritzInfoMonitor " << FIMVERSION;
 			cfb->RenderString(msg.str().c_str(), mitte-180, 255, (mitte+180)-(mitte-180), CENTER, NORMAL, CMCT);
 			cfb->RenderString(COPYR, mitte-180, 290, (mitte+180)-(mitte-180), CENTER, NORMAL, CMCT);
 			break;

@@ -494,7 +494,7 @@ int main(int argc, char *argv[])
 //void plugin_exec(PluginParam *par)
 int CFIM::run(int argc, char *argv[])
 {
-	printf("[%s] - Version %s\n",  BASENAME, VERSION);
+	printf("[%s] - Version %s\n",  BASENAME, FIMVERSION);
 	if(cpars->ReadConfig(CONFIGFILE)) {
 		Cleanup();
 		exit(1);

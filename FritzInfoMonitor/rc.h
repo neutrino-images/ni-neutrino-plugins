@@ -9,6 +9,8 @@
 //rc stuff
 #include <linux/input.h>
 
+#include <rc_device.h>
+
 class Crc
 {
 	public:
