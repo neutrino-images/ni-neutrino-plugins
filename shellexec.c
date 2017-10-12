@@ -12,7 +12,7 @@
 #include "pngw.h"
 
 
-#define SH_VERSION 2.13
+#define SH_VERSION 2.14
 
 static char CFG_FILE[128]="/var/tuxbox/config/shellexec.conf";
 
@@ -1488,7 +1488,7 @@ static void ShowInfo(MENU *m, int knew )
 			if(ccenter)
 			{
 				stlen=GetStringLen(xoffs, dstr, MED);
-				RenderBox(xoffs+(ixw-xoffs-sbw)/2-stlen/2, my+soffs-ldy, xoffs+(ixw-xoffs-sbw)/2+stlen/2+3*OFFSET_SMALL/*15*/, my+soffs, FILL, CMC);
+				RenderBox(xoffs+(ixw-xoffs-sbw)/2-stlen/2, my+soffs-ldy, xoffs+(ixw-xoffs-sbw)/2+stlen/2+3*OFFSET_SMALL, my+soffs, FILL, CMC);
 				RenderString(dstr, xoffs, my+soffs-(dy-FSIZE_MED)/2, ixw-sbw, CENTER, MED, CMCIT);
 			}
 		}
