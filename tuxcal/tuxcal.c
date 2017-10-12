@@ -47,10 +47,13 @@
  ******************************************************************************/
 // lots of code is from the tuxmail-project
 
-#include "tuxcal.h"
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <fcntl.h>
+
 #include <rc_device.h>
 
-#include <stdio.h>
+#include "tuxcal.h"
 
 void read_neutrino_osd_conf(int *ex,int *sx,int *ey, int *sy)
 {

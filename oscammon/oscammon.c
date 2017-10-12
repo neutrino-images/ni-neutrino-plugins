@@ -1,3 +1,8 @@
+#define _GNU_SOURCE
+#include <fcntl.h>
+
+#include <rc_device.h>
+
 #include "oscammon.h"
 
 #ifdef BUILTIN_CRYPTO
@@ -16,8 +21,6 @@
 #define	MAXFIELDSIZE	32
 
 #include "icons.inc"
-
-#include <rc_device.h>
 
 typedef	struct	s_server
 {
