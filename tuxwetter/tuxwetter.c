@@ -47,15 +47,15 @@
 #define P_VERSION "4.10"
 #define S_VERSION ""
 
+char CONVERT_LIST[]=	TUXWETTERDIR "/convert.list";
+#define CFG_FILE	TUXWETTERDIR "/tuxwetter.conf"
+#define MCF_FILE	TUXWETTERDIR "/tuxwetter.mcfg"
+//#define TIME_FILE	TUXWETTERDIR "/swisstime"
+#define START_PIC	TUXWETTERDIR "/startbild.jpg"
+#define TUX_ICON	TUXWETTERDIR "/tuxwetter.png"
 
-char CONVERT_LIST[]= CONFIGDIR "/convert.list";
-#define CFG_FILE     CONFIGDIR "/tuxwetter.conf"
-#define MCF_FILE     CONFIGDIR "/tuxwetter.mcfg"
-//#define TIME_FILE    CONFIGDIR "/swisstime"
-#define START_PIC	 CONFIGDIR "/startbild.jpg"
-#define TUX_ICON     CONFIGDIR "/tuxwetter.png"
-#define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
-#define ECF_FILE	"/var/tuxbox/config/enigma/config"
+#define NCF_FILE	CONFIGDIR "/neutrino.conf"
+#define ECF_FILE	CONFIGDIR "/enigma/config"
 #define BMP_FILE 	"tuxwettr.bmp"
 #define JPG_FILE	"/tmp/picture.jpg"
 #define GIF_FILE	"/tmp/picture.gif"

@@ -24,12 +24,11 @@
 #include FT_CACHE_H
 #include FT_CACHE_SMALL_BITMAPS_H
 
-#ifndef HAVE_DREAMBOX_HARDWARE
-#define CONFIGDIR	"/var/tuxbox/config/tuxwetter"
-#else
-#define	CONFIGDIR	"/var/bin/tuxwet"
-#endif
-#define MISS_FILE	CONFIGDIR "/missing_translations.txt"
+#include <config.h>
+//#define CONFIGDIR	"/var/tuxbox/config"
+#define TUXWETTERDIR	CONFIGDIR "/tuxwetter"
+
+#define MISS_FILE	TUXWETTERDIR "/missing_translations.txt"
 
 //#define WWEATHER
 #define BUFSIZE 	4095

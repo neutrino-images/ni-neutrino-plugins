@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "tuxmail.h"
+#include <rc_device.h>
 
 void read_neutrino_osd_conf ( int *ex,int *sx,int *ey, int *sy, int *preset)
 {
@@ -3719,7 +3720,7 @@ int main ( void )
 	fb=open ( "/dev/fb/0", O_RDWR );
 
 	/* open Remote Control */
-	rc = open ( "/dev/input/nevis_ir", O_RDONLY );
+	rc = open(RC_DEVICE, O_RDONLY | O_CLOEXEC);
 	if ( rc == -1 )
 	{
 		perror ( "TuxMail <open remote control>" );

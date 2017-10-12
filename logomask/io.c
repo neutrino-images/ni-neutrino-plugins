@@ -18,8 +18,6 @@
 
 #include "io.h"
 
-#define RC_DEVICE	"/dev/input/nevis_ir"
-
 extern int instance;
 struct input_event ev;
 static unsigned short rccode=-1;
@@ -27,7 +25,7 @@ static int rc;
 
 int InitRC(void)
 {
-	rc = open(RC_DEVICE, O_RDONLY);
+	rc = open(RC_DEVICE, O_RDONLY | O_CLOEXEC);
 	if(rc == -1)
 	{
 		perror("msgbox <open remote control>");

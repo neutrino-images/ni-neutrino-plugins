@@ -22,6 +22,8 @@
 	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA
 */
 #include "tuxcom.h"
+#include <rc_device.h>
+
 /******************************************************************************
  * GetRCCode  (Code from Tuxmail)
  ******************************************************************************/
@@ -518,7 +520,7 @@ int main()
 	fb=open("/dev/fb/0", O_RDWR);
 
 	/* open Remote Control */
-	rc = open("/dev/input/nevis_ir", O_RDONLY);
+	rc = open(RC_DEVICE, O_RDONLY | O_CLOEXEC);
 	if(rc == -1) {
 		perror("TuxCom <open remote control>");
 		exit(1);

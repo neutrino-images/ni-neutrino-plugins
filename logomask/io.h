@@ -1,8 +1,7 @@
 #ifndef __IO_H__
-
 #define __IO_H__
 
-#define RC_DEVICE	"/dev/input/nevis_ir"
+#include <rc_device.h>
 
 int InitRC(void);
 int CloseRC(void);

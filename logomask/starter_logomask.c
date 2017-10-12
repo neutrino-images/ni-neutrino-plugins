@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <plugin.h>
+//#include <plugin.h>
 #define SCRIPT "logomask"
 
 int main(void)
