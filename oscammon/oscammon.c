@@ -17,6 +17,8 @@
 
 #include "icons.inc"
 
+#include <rc_device.h>
+
 typedef	struct	s_server
 {
 	char 	*name;
@@ -1490,7 +1492,7 @@ static int csmon_init()
 	fb=open("/dev/fb/0", O_RDWR);
       
 	// open Remote Control
-	rc = open("/dev/input/nevis_ir", O_RDONLY);
+	rc = open(RC_DEVICE, O_RDONLY | O_CLOEXEC);
 	if(rc == -1) {
 		csmon_log("error open remote control\n");
 		exit(1);
