@@ -1,4 +1,5 @@
 TUXBOX-REMOTES = \
+	cooliTSclimax \
 	getrc \
 	input \
 	logomask \
