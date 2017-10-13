@@ -3,10 +3,9 @@
 -- distributed under BSD-2-Clause License
 
 -- TODO: find current startup partition
--- TODO: add menu-timeout to chooser window
 
 caption = "STB-StartUp"
-version = 0.02
+version = 0.03
 
 n = neutrino()
 fh = filehelpers.new()
@@ -27,6 +26,7 @@ lang = neutrino_conf:getString("language", "english")
 if locale[lang] == nil then
 	lang = "english"
 end
+timing_menu = neutrino_conf:getString("timing.menu", "0")
 
 chooser_dx = n:scale2Res(500) 
 chooser_dy = n:scale2Res(120)
@@ -40,7 +40,7 @@ chooser = cwindow.new {
 	dy = chooser_dy,
 	title = caption .. " v" .. version,
 	icon = "settings",
-	has_shadow = "true",
+	has_shadow = true,
 	btnRed = "Partition 1",
 	btnGreen = "Partition 2",
 	btnYellow = "Partition 3",
@@ -58,9 +58,17 @@ chooser_text = ctext.new {
 }
 chooser:paint()
 
+i = 0
+d = 500 -- ms
+t = (timing_menu * 1000) / d
+if t == 0 then
+	t = -1 -- no timeout
+end
+
 colorkey = nil
 repeat
-	msg, data = n:GetInput(500)
+	i = i + 1
+	msg, data = n:GetInput(d)
 	if (msg == RC['red']) then
 		fh:cp("/boot/STARTUP_1", "/boot/STARTUP", "f")
 		colorkey = true
@@ -74,7 +82,7 @@ repeat
 		fh:cp("/boot/STARTUP_4", "/boot/STARTUP", "f")
 		colorkey = true
 	end
-until msg == RC['home'] or colorkey
+until msg == RC['home'] or colorkey or i == t
 
 chooser:hide()
 
