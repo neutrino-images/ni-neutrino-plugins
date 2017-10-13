@@ -17,7 +17,7 @@ locale["deutsch"] = {
 }
 locale["english"] = {
 	choose_partition = "Choose start partition",
-	start_partition = "Start the choosen partition?"
+	start_partition = "Start the chosen partition?"
 }
 
 neutrino_conf = configfile.new()
