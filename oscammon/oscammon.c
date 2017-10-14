@@ -1486,7 +1486,6 @@ static int csmon_init()
 
 	//show versioninfo
 	csmon_log("NI-Edition OSCAM-Monitor version %s\n", monver);
-	csmon_log("hardware coolstream\n");
 
 	//get params
 	fb = rc = lcd = sx = ex = sy = ey = -1;

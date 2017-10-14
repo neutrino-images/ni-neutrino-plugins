@@ -1,7 +1,7 @@
 /******************************************************************************
  * <<< MPCSMon - Monitor for MPCS >>>                        (w) by dukat 2006
  *
- * DEZ 2010 - FlatTV - MPCSMON goes to OSCAMMON on Coolstream
+ * DEZ 2010 - FlatTV - MPCSMON goes to OSCAMMON
  ******************************************************************************/
 #define MPCSMON_DREAM_7025
 #define MPCSMON_FB_32BPP
