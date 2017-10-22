@@ -9,7 +9,7 @@ function getVersionInfo()
 	local msg = string.format("Plugin v%s\n \n" ..
 			"Datenbank\n" ..
 			"Version: %s (Update %s)\n \n" ..
-			"Konverter MediathekView => Coolithek\n" ..
+			"Konverter MediathekView => Neutrino Mediathek\n" ..
 			"%s (%s)\n \n" ..
 			"Datenbank MediathekView:\n" ..
 			"%s\n" ..

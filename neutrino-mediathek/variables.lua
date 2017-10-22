@@ -13,8 +13,8 @@ function initLocale()
 end
 
 function initVars()
-	pluginVersion		= "0.2beta-12"
-	pluginName		= "Coolithek"
+	pluginVersion		= "0.3beta-1"
+	pluginName		= "Neutrino Mediathek"
 
 	noCacheFiles		= false
 	dlDebug			= false

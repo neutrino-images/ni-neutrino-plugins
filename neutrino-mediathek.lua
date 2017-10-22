@@ -24,7 +24,6 @@ M   = misc.new()
 J   = loadLuaLib("json")
 G   = loadLuaLib("n_gui")
 H   = loadLuaLib("n_helpers")
-ZMQ = loadLuaLib("lzmq", true)
 
 -- define global paths
 pluginScriptPath = H.scriptPath() .. "/" .. H.scriptBase();
