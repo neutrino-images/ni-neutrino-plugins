@@ -1,4 +1,38 @@
 
+function getJsonData2(url, file, post, mode)
+	local box = nil
+	local data = nil
+	local dataExist = false
+
+	if ((not file) or (file == nil)) then
+		data = jsonData
+	else
+		data = file
+		if (H.fileExist(data) == true) then dataExist = true end
+	end
+	if ((dataExist == false) or (noCacheFiles == true)) then
+		if ((mode > queryMode_None) and (mode < queryMode_beginPOSTmode)) then
+--			function curlDownload(Url, file, postData, hideBox, _ua, uriDecode)
+			box = curlDownload(   url, data, nil,      false,  false, true)
+		end
+		if (mode > queryMode_beginPOSTmode) then
+--			function curlDownload(Url, file, postData, hideBox, _ua, uriDecode)
+			box = curlDownload(   url, data, post,     false,  false, false)
+		end
+	end
+
+	local fp, s;
+	fp = io.open(data, "r");
+	if fp == nil then
+		G.hideInfoBox(box)
+		error("Error connecting to database server.")
+	end;
+	s = fp:read("*a");
+	fp:close();
+	G.hideInfoBox(box)
+	return s;
+end
+
 function getJsonData(url, file)
 	local box = nil
 	local data = nil
@@ -27,9 +61,11 @@ end
 
 function checkJsonError(tab)
 	if tab.error > 0 then
-		local box = G.paintInfoBox(tab.entry .. "\nAbort...");
-		P.sleep(4);
-		G.hideInfoBox(box)
+--		local box = G.paintInfoBox(tab.entry .. "\nAbort...");
+--		P.sleep(4);
+--		G.hideInfoBox(box)
+		H.printf("Error: %s", tab.entry)
+		messagebox.exec{title="Error", text=tab.entry, buttons={ "ok" } };
 		return false
 	end
 	return true

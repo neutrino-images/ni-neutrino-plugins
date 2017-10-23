@@ -26,32 +26,24 @@ function addKillKey(menu)
 	menu:addKey{directkey=RC.standby, id="standby", action="killPlugin"}
 end
 
-function sendPostData(Url, file, postData, hideBox, _ua)
-	local box_, ret_, data_ = downloadFileInternal(Url, file, hideBox, _ua, postData)
-	if Curl == nil then
-		Curl = curl.new()
-	end
-	data_ = Curl:decodeUri(data_)
-	return box_, ret_, data_
+function curlDownload(Url, file, postData, hideBox, _ua, uriDecode)
+	return downloadFileInternal(Url, file, hideBox, _ua, postData, uriDecode)
 end
 
 function downloadFile(Url, file, hideBox, _ua)
-	return downloadFileInternal(Url, file, hideBox, _ua)
+	return downloadFileInternal(Url, file, hideBox, _ua, nil, nil)
 end
 
-function downloadFileInternal(Url, file, hideBox, _ua, postData_)
+function downloadFileInternal(Url, file, hideBox, _ua, postData_, uriDecode)
 	local ua = user_agent
 	if _ua ~= nil then ua = _ua end
 	box = paintMiniInfoBox(l.read_data)
 	if file ~= "" then os.remove(file) end
-	if postData_ == nil then
-		postData = ""
-	else
+	local postData
+	if postData_ ~= nil then
 		postData = postData_
-	end
-
-	if Curl == nil then
-		Curl = curl.new()
+	else
+		postData = ""
 	end
 
 	local v4 = false
@@ -69,21 +61,36 @@ function downloadFileInternal(Url, file, hideBox, _ua, postData_)
 	
 	if (dlDebug == true) then
 		H.printf( "\n" ..
-				"remote    url: %s\n" ..
+				"   remote url: %s\n" ..
 				"         file: %s\n" ..
 				"     postData: %s\n" ..
 				"     ipv4only: %s\n" ..
 				"   user_agent: %s\n" ..
 				"       silent: %s\n" ..
 				"      verbose: %s" ..
-				"", Url, tostring(file), tostring(postData), tostring(v4), ua, tostring(s), tostring(v))
+				"", Url, tostring(file), C:decodeUri(tostring(postData)), tostring(v4), ua, tostring(s), tostring(v))
 	end
 
 	local ret, data;
-	if file ~= "" then
-		ret, data = Curl:download{ url=Url, o=file, A=ua, ipv4=v4, s=s, v=v, postfields=postData }
+	if uriDecode == nil then
+		if file ~= "" then
+			ret, data = C:download{ url=Url, o=file, A=ua, ipv4=v4, s=s, v=v, postfields=postData }
+		else
+			ret, data = C:download{ url=Url, A=ua, ipv4=v4, s=s, v=v, postfields=postData }
+		end
 	else
-		ret, data = Curl:download{ url=Url, A=user_agent2, ipv4=v4, s=s, v=v, postfields=postData }
+		ret, data = C:download{ url=Url, A=ua, ipv4=v4, s=s, v=v, postfields=postData }
+		if (ret == 0) then
+			data = C:decodeUri(data)
+			if ((file ~= "") and (data ~= nil)) then
+				local f = io.open(file, "w+")
+				if f ~= nil then
+					f:write(data)
+					f:close()
+					data = ""
+				end
+			end
+		end
 	end
 
 	if (hideBox == true) then
@@ -341,3 +348,18 @@ end
 function dummy()
 end
 
+function getSendDataHead(mode)
+	local ret = {}
+	ret['software']	= softwareSig
+	if (pluginVersionBeta == 0) then
+		ret['isBeta'] = false
+	else
+		ret['isBeta'] = true
+	end
+	ret['vBeta']	= pluginVersionBeta
+	ret['vMajor']	= pluginVersionMajor
+	ret['vMinor']	= pluginVersionMinor
+	ret['mode']	= mode
+
+	return ret
+end

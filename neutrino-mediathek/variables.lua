@@ -13,29 +13,46 @@ function initLocale()
 end
 
 function initVars()
-	pluginVersion		= "0.3beta-1"
+
+	pluginVersionMajor	= 0
+	pluginVersionMinor	= 3
+	pluginVersionBeta	= 1
+	if (pluginVersionBeta == 0) then
+		pvbTmp = ""
+	else
+		pvbTmp = "beta-" .. tostring(pluginVersionBeta)
+	end
+	pluginVersion		= tostring(pluginVersionMajor) .. "." .. tostring(pluginVersionMinor) .. pvbTmp
+
 	pluginName		= "Neutrino Mediathek"
 
 	noCacheFiles		= false
 	dlDebug			= false
 
 	forcePluginExit		= false
-	Curl			= nil
+--	Curl			= nil
 
 	url_base_b		= "http://mediathek.slknet.de"
 	url_base_4		= "http://mediathek4.slknet.de"
 	url_base		= url_base_b
+	url_new			= "https://api.coolithek.slknet.de"
 
 	conf			= {}
 	conf.livestream		= {}
 	config			= configfile.new()
-	user_agent		= "\"Mozilla/5.0 (compatible; " .. pluginName .. " plugin v" .. pluginVersion .. " for NeutrinoHD)\"";
-	user_agent2		= "\"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0\""
+--	user_agent		= "\"Mozilla/5.0 (compatible; " .. pluginName .. " plugin v" .. pluginVersion .. " for NeutrinoHD)\"";
+	user_agent		= "\"Mozilla/5.0 (compatible; " .. pluginName .. " plugin v" .. pluginVersion .. ")\"";
+	user_agent2		= "\"Mozilla/5.0 (Windows NT 10.0; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0\""
+	user_agent3		= "\"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Mobile Safari/537.36\""
+	user_agent4		= "\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36\""
+	user_agent5		= "\"Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1\""
+	user_agent6		= "\"Mozilla/5.0 (iPad; CPU OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1\""
 
-	actionCmd_versionInfo	= "action=getVersionInfo&pVersion="	.. pluginVersion
-	actionCmd_livestream	= "action=listLivestream&pVersion="	.. pluginVersion
-	actionCmd_listChannels	= "action=listChannels&pVersion="	.. pluginVersion
-	actionCmd_listVideos	= "action=listVideos&pVersion="		.. pluginVersion
+	actionCmd_API		= "/api"
+	actionCmd_versionInfo	= actionCmd_API .. "/info"
+	actionCmd_livestream	= actionCmd_API .. "/listLivestream"
+	actionCmd_listChannels	= actionCmd_API .. "/listChannels"
+	actionCmd_sendPostData	= "/api.html"
 
 	jsonData		= pluginTmpPath .. "/mediathek_data.txt";
 	m3u8Data		= pluginTmpPath .. "/mediathek_data.m3u8";
@@ -59,6 +76,25 @@ function initVars()
 	HOUR			= 3600
 	DAY			= HOUR*24
 	WEEK			= DAY*7
+
+	queryMode_None			= 0
+	queryMode_Info			= 1
+	queryMode_listChannels		= 2
+	queryMode_listLivestreams	= 3
+	queryMode_beginPOSTmode		= 4
+	queryMode_listVideos		= 5
+
+	timeMode_normal			= 1
+	timeMode_future			= 2
+
+	softwareSig			= 'Neutrino Mediathek'
+	local rev
+	rev, hardware = M:GetRevision()
+	if (hardware ~= nil) then
+		if (hardware == "Coolstream") then
+			softwareSig	= softwareSig .. ' - CST'
+		end
+	end
 
 -- ################################################
 

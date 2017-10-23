@@ -45,9 +45,11 @@ function channelMenu()
 --	mi:addKey{directkey=RC["home"], id="home", action="key_home"}
 --	mi:addKey{directkey=RC["setup"], id="setup", action="key_setup"}
 
-	local query_url = url_base .. "/?" .. actionCmd_listChannels
+	local query_url = url_new .. actionCmd_listChannels
 	local dataFile = createCacheFileName(query_url, "json")
-	local s = getJsonData(query_url, dataFile);
+	local s = getJsonData2(query_url, dataFile, nil, queryMode_listChannels);
+--	H.printf("\nretData:\n%s\n", tostring(s))
+
 	local j_table = {}
 	j_table = decodeJson(s)
 	if (j_table == nil) then
@@ -59,7 +61,8 @@ function channelMenu()
 		return false
 	end
 	for i=1, #j_table.entry do
-		mi:addItem{type="forwarder", action="changeChannel", id=j_table.entry[i].channel, name=j_table.entry[i].channel};
+		local channelCount = "(" .. tostring(j_table.entry[i].count) .. ")"
+		mi:addItem{type="forwarder", action="changeChannel", id=j_table.entry[i].channel, name=j_table.entry[i].channel, value=channelCount};
 	end
 
 	mi:exec()

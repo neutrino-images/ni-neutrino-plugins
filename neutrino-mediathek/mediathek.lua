@@ -165,39 +165,48 @@ function paintMtRightMenu()
 	mtRightMenu_count = i-1
 
 -- json query
-	local channel   = url_encode(conf.playerSelectChannel)
-	local theme     = url_encode("")
+	local channel   = conf.playerSelectChannel
+	local theme     = ""
 
-	local timeFrom  = ""
+	local timeMode  = timeMode_normal
 	if (conf.playerSeeFuturePrograms == "on") then
-		timeFrom = "future"
-	else
-		timeFrom = "now"
+		timeMode = timeMode_future
 	end
 	local period = 0
 	if (conf.playerSeePeriod == "all") then
-		period = 365 * DAY
+		period = -1
 	else
-		local p = tonumber(conf.playerSeePeriod)
-		if (p == nil) then
-			p = 7
-			conf.playerSeePeriod = p
+		period = tonumber(conf.playerSeePeriod)
+		if (period == nil) then
+			period = 7
+			conf.playerSeePeriod = period
 		end
-		period = p * DAY
 	end
 
 	local minDuration = conf.playerSeeMinimumDuration * 60
-	local start     = mtRightMenu_list_start
-	local limit     = mtRightMenu_count
-	local query_url = url_base .. "/?" .. actionCmd_listVideos .. "&channel=" .. channel ..
-					"&theme=" .. theme .. 
-					"&timeFrom=" .. timeFrom .. 
-					"&period=" .. period .. 
-					"&minDuration=" .. minDuration .. 
-					"&start=" .. start .. 
-					"&limit=" .. limit
-	local dataFile = createCacheFileName(query_url, "json")
-	local s = getJsonData(query_url, dataFile);
+	local start       = mtRightMenu_list_start
+	local limit       = mtRightMenu_count
+	local refTime     = 0
+
+	-- make json for post request
+	local sendData = getSendDataHead(queryMode_listVideos)
+	local el = {}
+	el['channel']		= channel
+	el['duration']		= minDuration
+	el['epoch']		= period
+	el['limit']		= limit
+	el['refTime']		= refTime
+	el['start']		= start
+	el['timeMode']		= timeMode
+	sendData['data']	= {}
+	sendData['data']	= el
+	local post = J:encode(sendData)
+
+	local dataFile = createCacheFileName(post, "json")
+	post = C:setUriData("data1", post)
+	local s = getJsonData2(url_new .. actionCmd_sendPostData, dataFile, post, queryMode_listVideos);
+--	H.printf("\nretData:\n%s\n", tostring(s))
+
 	local j_table = {}
 	j_table = decodeJson(s)
 	if (j_table == nil) then
@@ -466,12 +475,18 @@ function startMediathek()
 
 		if (msg == RC.info) then
 			paintMovieInfo()
-		elseif (msg == RC.green) then
+--		elseif ((msg == RC.red) or (msg == RC['4'])) then
+--			serach
+		elseif ((msg == RC.green) or (msg == RC['5'])) then
 			channelMenu()
-		elseif (msg == RC.blue) then
+--		elseif ((msg == RC.yellow) or (msg == RC['6'])) then
+--			theme
+		elseif ((msg == RC.blue) or (msg == RC['7'])) then
 			periodOfTime()
 		elseif (msg == RC['1']) then
 			minDurationMenu()
+--		elseif (msg == RC['2']) then
+--			sort
 		elseif (msg == RC.ok) then
 			playVideo()
 		end

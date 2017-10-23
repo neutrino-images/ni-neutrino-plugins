@@ -1,46 +1,4 @@
 
-function getOklivetv_chan(chan)
-	if (chan == "ORF-1") then
-		return "orf-eins-live"
-	elseif (chan == "ORF-2") then
-		return "orf-2-live"
-	elseif (chan == "SRF-1") then
-		return "srf-1-tv-live"
-	elseif (chan == "SRF-2") then
-		return "srf-zwei-live"
-	elseif (chan == "SRF-Info") then
-		return "srf-info-live"
-	elseif (chan == "Music VIVA-CH") then
-		return "viva-germany-live"
-	elseif (chan == "Music MTV-CH") then
-		return "mtv-schweiz-live"
-	else
-		return nil
-	end
-end
-
--- THX Jacek ;)
-function getOklivetv_m3u8(chan)
-
-	local url = getOklivetv_chan(chan)
-	if url == nil then return nil end
-
-	local box, ret, feed_data = downloadFile('http://oklivetv.com/' ..  url, "", true, user_agent2)
-	if feed_data then
-		local urlvid = feed_data:match("<div%s+class=\"screen fluid%-width%-video%-wrapper\">.-src='(.-)'.-</div>")
-		box, ret, feed_data = downloadFile(urlvid, "", true, user_agent2)
-		local url_m3u8 = feed_data:match('|URL|%d+|%d+|%d+|%d+|m3u8|(.-)|bottom')
-		if url_m3u8 then
---			return "http://46.101.171.43/live/" .. url_m3u8 .. ".m3u8"
-			return "http://46.101.231.222/live/" .. url_m3u8 .. ".m3u8"
-			
-		else
-			return nil
-		end
-	end
-	return nil
-end
-
 -- THX Jacek ;)
 function getTecTimeTv_m3u8(url)
 	local box, ret, feed_data = downloadFile(url, "", true, user_agent2)
@@ -60,9 +18,9 @@ function playLivestream(_id)
 	local parse_m3u8 = tonumber(videoTable[i][3]);
 
 	-- for backward compatibility
-	if ((videoTable[i][1] == "ORF-1") or (videoTable[i][1] == "ORF-2")) then
-		parse_m3u8 = 3
-	end
+--	if ((videoTable[i][1] == "ORF-1") or (videoTable[i][1] == "ORF-2")) then
+--		parse_m3u8 = 3
+--	end
 
 	local bw;
 	local res;
@@ -76,14 +34,6 @@ function playLivestream(_id)
 	end
 	if ((parse_m3u8 == 1) or (parse_m3u8 == 2) or (parse_m3u8 == 3)) then
 		local mode = parse_m3u8
-		if (parse_m3u8 == 3) then
-			-- oklivetv for orf/srf
-			url = getOklivetv_m3u8(videoTable[i][1])
-			mode = 1
-			if url == nil then
-				return MENU_RETURN.REPAINT
-			end
-		end
 		m3u8Ret = get_m3u8url(url, mode);
 		url     = m3u8Ret['url'];
 		bw      = tonumber(m3u8Ret['bandwidth']);
@@ -173,13 +123,14 @@ function playLivestream2(_id)
 end
 
 function getLivestreams()
-	local s = getJsonData(url_base .. "/?" .. actionCmd_livestream);
+	local s = getJsonData2(url_new .. actionCmd_livestream, nil, nil, queryMode_listLivestreams);
+--	H.printf("\nretData:\n%s\n", tostring(s))
 	local j_table = decodeJson(s);
 	if checkJsonError(j_table) == false then return false end
 
 	for i = 1, #j_table.entry do
 		local name = j_table.entry[i].title;
-		name = string.gsub(name, " Livestream", "");
+--		name = string.gsub(name, " Livestream", "");
 		local configName = "livestream_" .. name
 		configName = string.gsub(configName, "[. -]", "_");
 		videoTable[i] = {};
@@ -212,7 +163,7 @@ function livestreamMenu()
 		end
 	end
 
-	m_live:addItem{type="forwarder", action="playLivestream2", id=100, name="TecTime TV"};
+--	m_live:addItem{type="forwarder", action="playLivestream2", id=100, name="TecTime TV"};
 
 	m_live:exec()
 	restoreFullScreen(mainScreen, false)

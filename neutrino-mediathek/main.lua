@@ -1,6 +1,7 @@
 
 function getVersionInfo()
-	local s = getJsonData(url_base .. "/?" .. actionCmd_versionInfo);
+	local s = getJsonData2(url_new .. actionCmd_versionInfo, nil, nil, queryMode_Info);
+--	H.printf("\nretData:\n%s\n", tostring(s))
 	local j_table = decodeJson(s);
 	if checkJsonError(j_table) == false then return false end
 
@@ -9,7 +10,9 @@ function getVersionInfo()
 	local msg = string.format("Plugin v%s\n \n" ..
 			"Datenbank\n" ..
 			"Version: %s (Update %s)\n \n" ..
-			"Konverter MediathekView => Neutrino Mediathek\n" ..
+			"Datenbank MediathekView => Neutrino Mediathek\n" ..
+			"%s (%s)\n \n" ..
+			"Server API\n" ..
 			"%s (%s)\n \n" ..
 			"Datenbank MediathekView:\n" ..
 			"%s\n" ..
@@ -17,6 +20,7 @@ function getVersionInfo()
 			pluginVersion,
 			j_table.entry[1].version, vdate,
 			j_table.entry[1].progname, j_table.entry[1].progversion,
+			j_table.entry[1].api, j_table.entry[1].apiversion,
 			j_table.entry[1].mvversion,
 			j_table.entry[1].mventrys, mvdate);
 
@@ -138,9 +142,10 @@ function mainWindow()
 		if (msg == RC.rewind) then
 		end
 		if (msg == RC.www) then
-			if timerThread ~= nil then
-				timerThread:cancel()
-			end
+			testFunc()
+--			if timerThread ~= nil then
+--				timerThread:cancel()
+--			end
 		end
 		-- exit plugin
 		checkKillKey(msg)

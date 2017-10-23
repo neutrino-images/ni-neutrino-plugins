@@ -2,9 +2,10 @@
 N = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES);
 -- check lua api version
 local req_major = 1
-local req_minor = 69
+local req_minor = 78
 if ((APIVERSION.MAJOR < req_major) or (APIVERSION.MAJOR == req_major and APIVERSION.MINOR < req_minor)) then
 	N:checkVersion(req_major, req_minor);
+	do return end
 end
 
 function loadLuaLib(lib, noerror)
@@ -21,6 +22,8 @@ end
 
 V   = video.new()
 M   = misc.new()
+FH  = filehelpers.new()
+C   = curl.new()
 J   = loadLuaLib("json")
 G   = loadLuaLib("n_gui")
 H   = loadLuaLib("n_helpers")
@@ -29,8 +32,10 @@ H   = loadLuaLib("n_helpers")
 pluginScriptPath = H.scriptPath() .. "/" .. H.scriptBase();
 pluginTmpPath    = "/tmp/" .. H.scriptBase();
 confFile         = "/var/tuxbox/config/" .. H.scriptBase() .. ".conf";
-os.execute("rm -fr " .. pluginTmpPath);
-os.execute("mkdir -p " .. pluginTmpPath);
+--os.execute("rm -fr " .. pluginTmpPath);
+--os.execute("mkdir -p " .. pluginTmpPath);
+FH:rmdir(pluginTmpPath);
+FH:mkdir(pluginTmpPath);
 
 -- include lua files
 dofile(pluginScriptPath .. "/variables.lua");
@@ -43,4 +48,5 @@ dofile(pluginScriptPath .. "/livestream.lua");
 dofile(pluginScriptPath .. "/mediathek.lua");
 dofile(pluginScriptPath .. "/main.lua");
 
-os.execute("rm -fr " .. pluginTmpPath);
+--os.execute("rm -fr " .. pluginTmpPath);
+FH:rmdir(pluginTmpPath);
