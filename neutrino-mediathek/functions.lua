@@ -26,11 +26,29 @@ function addKillKey(menu)
 	menu:addKey{directkey=RC.standby, id="standby", action="killPlugin"}
 end
 
+function sendPostData(Url, file, postData, hideBox, _ua)
+	local box_, ret_, data_ = downloadFileInternal(Url, file, hideBox, _ua, postData)
+	if Curl == nil then
+		Curl = curl.new()
+	end
+	data_ = Curl:decodeUri(data_)
+	return box_, ret_, data_
+end
+
 function downloadFile(Url, file, hideBox, _ua)
+	return downloadFileInternal(Url, file, hideBox, _ua)
+end
+
+function downloadFileInternal(Url, file, hideBox, _ua, postData_)
 	local ua = user_agent
 	if _ua ~= nil then ua = _ua end
 	box = paintMiniInfoBox(l.read_data)
 	if file ~= "" then os.remove(file) end
+	if postData_ == nil then
+		postData = ""
+	else
+		postData = postData_
+	end
 
 	if Curl == nil then
 		Curl = curl.new()
@@ -51,20 +69,21 @@ function downloadFile(Url, file, hideBox, _ua)
 	
 	if (dlDebug == true) then
 		H.printf( "\n" ..
-				"download  url: %s\n" ..
+				"remote    url: %s\n" ..
 				"         file: %s\n" ..
+				"     postData: %s\n" ..
 				"     ipv4only: %s\n" ..
 				"   user_agent: %s\n" ..
 				"       silent: %s\n" ..
 				"      verbose: %s" ..
-				"", Url, file, tostring(v4), ua, tostring(s), tostring(v))
+				"", Url, tostring(file), tostring(postData), tostring(v4), ua, tostring(s), tostring(v))
 	end
 
 	local ret, data;
 	if file ~= "" then
-		ret, data = Curl:download{ url=Url, o=file, A=user_agent, ipv4=v4, s=s, v=v }
+		ret, data = Curl:download{ url=Url, o=file, A=ua, ipv4=v4, s=s, v=v, postfields=postData }
 	else
-		ret, data = Curl:download{ url=Url, A=user_agent2, ipv4=v4, s=s, v=v }
+		ret, data = Curl:download{ url=Url, A=user_agent2, ipv4=v4, s=s, v=v, postfields=postData }
 	end
 
 	if (hideBox == true) then
