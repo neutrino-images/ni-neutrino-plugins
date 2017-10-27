@@ -3,8 +3,7 @@ locale = \
 	english.lua
 
 sort-locale:
-	cd coolithek/locale && \
+	cd plugins/neutrino-mediathek/locale && \
 	for language in $(locale); do \
 		LC_ALL=C sort -u -o $${language} $${language} ; \
 	done
-	
