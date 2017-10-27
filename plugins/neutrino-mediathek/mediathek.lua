@@ -89,7 +89,7 @@ function paint_mtItemLine(viewChannel, count)
 	local function paintItem(vH, txt, center)
 		local _x = 0
 		if (center == 0) then _x=6 end
-		local w = ((rightItem_w / 100) * vH)
+		local w = math.floor(((rightItem_w / 100) * vH))
 		if (vH > 20) then txt = adjustStringLen(txt, w-_x*2, fontLeftMenu1) end
 		N:RenderString(useDynFont, fontLeftMenu1, txt, _item_x+_x, _itemLine_y+subMenuHight, txtCol, w, subMenuHight, center)
 		_item_x = _item_x + w
