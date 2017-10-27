@@ -125,7 +125,7 @@ function mainWindow()
 			restoreFullScreen(mainScreen, false)
 		end
 		-- livestreams
-		if (msg == RC.sat) then
+		if ((msg == RC.sat) or (msg == RC.red)) then
 			if (conf.enableLivestreams == "on") then
 				livestreamMenu()
 			end
