@@ -1,2 +1,1 @@
-# mediathek
-Plugin: Neutrino Mediathek
+## Plugin: Neutrino Mediathek
