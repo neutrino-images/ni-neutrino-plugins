@@ -1,23 +1,23 @@
 -- Plugin to change the startup partition
--- (c) Markus Volk, Sven Hoefer
+-- (c) Markus Volk, Sven Hoefer, Don de Deckelwech
 -- distributed under BSD-2-Clause License
 
--- TODO: find current startup partition
-
 caption = "STB-StartUp"
-version = 0.03
+version = 0.04
 
 n = neutrino()
 fh = filehelpers.new()
 
 locale = {}
 locale["deutsch"] = {
-	choose_partition = "Startpartition auswählen",
-	start_partition = "Die gewählte Partition starten?"
+	current_boot_partition = "Die aktuelle Startpartition ist: ",
+	choose_partition = "\n\nBitte wählen Sie die neue Startpartition aus",
+	start_partition = "Rebooten und die gewählte Partition starten?"
 }
 locale["english"] = {
-	choose_partition = "Choose start partition",
-	start_partition = "Start the chosen partition?"
+	current_boot_partition = "The current start partition is: ",
+	choose_partition = "\n\nPlease choose the new start partition",
+	start_partition = "Reboot and start the chosen partition?"
 }
 
 neutrino_conf = configfile.new()
@@ -28,8 +28,13 @@ if locale[lang] == nil then
 end
 timing_menu = neutrino_conf:getString("timing.menu", "0")
 
-chooser_dx = n:scale2Res(500) 
-chooser_dy = n:scale2Res(120)
+for line in io.lines("/boot/STARTUP") do
+	akt_boot_partition = string.sub(line,23,24)
+	print(akt_boot_partition)
+end
+
+chooser_dx = n:scale2Res(600)
+chooser_dy = n:scale2Res(200)
 chooser_x = SCREEN.OFF_X + (((SCREEN.END_X - SCREEN.OFF_X) - chooser_dx) / 2)
 chooser_y = SCREEN.OFF_Y + (((SCREEN.END_Y - SCREEN.OFF_Y) - chooser_dy) / 2)
 
@@ -52,7 +57,7 @@ chooser_text = ctext.new {
 	y = OFFSET.INNER_SMALL,
 	dx = chooser_dx - 2*OFFSET.INNER_MID,
 	dy = chooser_dy - chooser:headerHeight() - chooser:footerHeight() - 2*OFFSET.INNER_SMALL,
-	text = locale[lang].choose_partition,
+	text = locale[lang].current_boot_partition .. akt_boot_partition .. locale[lang].choose_partition,
 	font_text = FONT.MENU,
 	mode = "ALIGN_CENTER"
 }
