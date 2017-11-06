@@ -6,5 +6,6 @@
 int InitRC(void);
 int CloseRC(void);
 int RCKeyPressed(void);
+int GetRCCode(void);
 
 #endif

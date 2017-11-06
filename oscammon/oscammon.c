@@ -1619,7 +1619,7 @@ int main()
 
 	csmon_read_config();
 
-	if (csmon_init()) return;
+	if (csmon_init()) return 0;
 
 	csmon_disconnect();
 
@@ -1663,5 +1663,5 @@ int main()
 	FT_Done_FreeType(library);
 	free(lbb);
 	munmap(lfb, fix_screeninfo.smem_len);
-	return;
+	return 0;
 }
