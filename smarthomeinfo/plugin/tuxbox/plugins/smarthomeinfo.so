@@ -639,7 +639,13 @@ done
 
 datenauslesen() {
 wget -O /tmp/dectdatendraft.xml "http://$FRITZIP/webservices/homeautoswitch.lua?switchcmd=getdevicelistinfos&sid=$SID"
-xmllint --format /tmp/dectdatendraft.xml >> /tmp/dectdaten.xml
+#xmllint --format /tmp/dectdatendraft.xml >> /tmp/dectdaten.xml
+
+sed -i -e 's|>|>\n|g' /tmp/dectdatendraft.xml
+sed -i -e ':a;N;$!ba;s|\n\([^<]\)|\1|g' /tmp/dectdatendraft.xml
+#sed -i 's/<\/[^>]*>/&\n/g' /tmp/dectdatendraft.xml
+
+cp -f /tmp/dectdatendraft.xml /tmp/dectdaten.xml
 
 
 produkt=`cat /tmp/dectdaten.xml | grep "$getrennt" | grep "productname" | sed 's/.*productname="\(.*\)$/\1/' | sed 's/">\(.*\)$/\1/'`
