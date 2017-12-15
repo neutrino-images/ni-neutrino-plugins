@@ -144,7 +144,24 @@ function getVideoData(yurl)
 				end
 			end
 			local newname = data:match('<title>(.-)</title>')
-			if m3u_url then
+			M = misc.new()
+			local revision = M:GetRevision()
+			if revision == 1 and m3u_url then -- for gstreamer
+				m3u_url = m3u_url:gsub("\\", "")
+				entry = {}
+				entry['url']  = m3u_url
+				entry['band'] = "1" --dummy
+				entry['res1'] = 1280
+				entry['res2'] = 720
+				entry['name'] = ""
+				if newname then
+					entry['name'] = newname
+				end
+				count = count + 1
+				ret[count] = {}
+				ret[count] = entry
+				return count
+			elseif m3u_url then
 				m3u_url = m3u_url:gsub("\\", "")
 				local videodata = getdata(m3u_url)
 				for band, res1, res2, url in videodata:gmatch('#EXT.X.STREAM.INF.BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-(http.-)\n') do
