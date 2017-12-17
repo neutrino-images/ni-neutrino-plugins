@@ -1,0 +1,125 @@
+Changelog 
+
+V3.61
+- deleting icons.zip after installing
+
+V3.60
+- Änderung am Code: xmllint wird nicht mehr benötigt ! (Danke an vanhofen)
+- Erweiterung für neues AVM FritzDect Thermostat: Fritz!Dect 301
+
+
+V3.53
+- Erweiterung auf bis zu 17 Geräte. Für diese Erweiterung ist die msgbox ab Version 2.03 erforderlich
+- alte scaleres der msgbox entfernt da nicht mehr nötig. msgbox ab Version 2.04 erforderlich
+- msgbox Fenster auf Fontgröße 20 eingestellt.
+
+
+V3.52
+- ACHTUNG: Umstellung auf eigene Config-Datei (smarthomeinfo.conf) unter /var/tuxbox/config 
+  => Werte fritzbox-ip, passwort und PluginVerzeichnis anpassen !
+- Umbenennung der Plugin-Dateien von fritzdect_info.* in smarthomeinfo.*
+- Icons werden nicht mehr im /tmp, sondern im Pluginverzeichnis/smarthomeinfopics angelegt.
+- Codeanpassungen
+
+
+V3.51
+- Änderung Plugin-Logo
+- Anzeige passende Geräteicons auf den Detailseiten je Gerät
+- Codeanpassungen
+- Unterstützung für Fritz!Dect 210 Aussensteckdose
+- Unterstützung für Fritz!Dect 300 Heizungsthermostat
+
+
+V3.00
+- Anpassung an msgbox V2
+- Anzeige von Icon im Fenster Header (neue fritzdect_info_header.png Datei sollte beim Plugin im Verzeichnis liegen.)
+- Anpassung an HD/FullHD OSD (Danke an vanhofen)
+- Codeanpassungen
+- Anzeige Batterie-Status bei Heizungsreglern
+
+V2.05
+- Bugfix - Fehler bei der Statusanzeige (ein/aus) von Comet DECT Thermostaten behoben
+
+V2.04
+- Bugfix - Änderung beim Auslesen der IP/Password aus der Fritzcallmonitor.cfg (thx an FlatTV)
+
+
+V2.03
+- Bugfix - Fehlerbehebung für neue BusyBox im nächsten NI Image
+
+V2.02
+- Bugfix
+
+
+V2.01
+- Trennung Detailseite für FritzDect 200, FritzPowerline 546E und FritzDect Repeater von der Seite für die Comet Dect Heizungsregler
+- Korrekturen
+
+
+V2.00
+- weitere Bereinigungen
+- erste Vorbereitungen für Comet Dect Heizungsthermostat Integration
+- Übersichtsseite mit Comet Dect Anzeige
+
+
+V1.06
+- Code Cleaning
+- Erweiterung auf dynamische Anzeige der Geräte (3 Geräte, nur 3 Zeilen in der Anzeige)
+- das funktioniert im Moment bis 13 Geräte!
+
+
+V1.05
+- Erweiterung auf max. 10 mögliche Einträge auf der Übersichtsseite
+
+
+
+
+V1.04
+- Anzeigefehler auf Detailseite bei Powerline 546E behoben
+
+
+V1.03
+- Anpassung Darstellung für alle Typen (Dect-Repeater, Dect200, Powerline 546E sowie den möglichen Gruppen)
+- Fehlerbehebungen
+
+
+V1.01
+- Darstellungsfehler wenn "Stromverbrauch Gesamt" unter 1 Kw/h behoben.
+- Darstellungsfehler bei Powerline 546E GruppenIDs behoben
+
+V1.00
+- Name geändert von "NG-Fritz!Dect Info" auf "NG-Fritz!Smarthome Info", da nun nicht 
+  mehr nur die Fritz!Dect Geräte unterstützt werden, sondern auch bspw. die Fritz!Powerline 546E Steckdose.
+- Integration von Typ Powerline
+- ANzahl Steckdosen in der Übersicht auf 9 erweitert
+- verbesserte Anzeige bei nicht verbundenen Steckdosen
+- und ein paar kleinere Korrekturen
+
+V0.56
+- Spalte mit ID nach hinten verschoben wegen Anzeigeproblemen
+- ein paar Codeänderungen
+
+V0.55
+- in der Übersicht werden nun auch die IDs angezeigt
+- auf der Detailseite wird nun zu einer Gruppe auch deren Gruppenmitglieder (IDs) angezeigt.
+- Mehr Platz für die Namen
+- Fehler beim Temperatur-Anzeige (6 statt 0,6 Grad) behoben
+- Fehler bei Stromverbrauch-Anzeige (1,200,000 Watt statt 1200,000 Watt) behoben
+
+V0.51
+- Connectstatus der Steckdosen/Geräte (ist das Gerät mit der FritzBox verbunden ja/nein)
+- Anzeige auf Übersicht und Detailseite 
+
+V0.50
+- Übersichtsseite mit Statusinfos aller verbundenen Steckdosen, DectRepeater und Gruppen
+- Auswahl des Geräts für Anzeige auf Detailsseite. Hier kann auch geschaltet werden.
+
+V0.34
+- es sind keine Steckdosen-Ids mehr in der fritzcallmonitor.cfg nötig (aus der Datei wird nur 
+  die Fritzbox-IP und das Passwort geholt). Die Steckdosen werden direkt aus der Fritzbox geholt 
+  und dynamisch zur Auswahl angezeigt. Somit hat man schnell einen guten Überblick.
+- Detailsverbesserungen
+
+.
+.
+.
