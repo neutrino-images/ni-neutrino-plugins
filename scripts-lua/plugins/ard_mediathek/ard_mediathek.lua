@@ -1,6 +1,7 @@
 --[[
 	ARD Mediathek Plugin
 	Copyright (C) 2014, Michael Liebmann 'micha-bbg'
+	With Help from: SatBaby, Don de Deckelwech
 
 	License: GPL
 
@@ -19,6 +20,7 @@
 	Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
 	Boston, MA  02110-1301, USA.
 ]]
+debugmode = 0 -- 0->no debug output, 1->debug output enabled, 2->debug output plus json-printout
 
 local json = require "json"
 local posix = require "posix"
@@ -108,8 +110,11 @@ function init()
 	os.execute("sync")
 	os.execute("mkdir -p " .. tmpPath)
 	user_agent 			= "\"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:31.0) Gecko/20100101 Firefox/31.0\""
-	wget_cmd 			= "wget -q -U " .. user_agent .. " -O "
---	wget_cmd 			= "wget -U " .. user_agent .. " -O "
+	if debugmode >= 1 then
+		wget_cmd = "wget -U " .. user_agent .. " -O "
+	else
+		wget_cmd = "wget -q -U " .. user_agent .. " -O "
+	end
 	pluginIcon			= decodeImage("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA8dJREFUeNrsV21IU1EYPufc25y6qegsCCTDUMzEjNA+tMylRIUlFmYlUUIfv4ISIgm3O6WghPoXBRFlJX1QlM5+SdqXLZKCvjaxMq0fFWbprW1u957OXTq3u4977yz608su527n7H2e857347xQV9kEZIjB590osdZ3npFSTMsENwL5Il7LRErAEEKhEgtIWoOWuWtFZh0XGEQPI4dAMHBGwRF41yIEIc/jetEm/HRRMfNKQ4ELY6dCcD/B2PN/QHjcwwAsJ69F41NdXpJhwJmmGr0pUvCrB8tnTOyYx7geTm7E6BtVKJSCusqlsPZMB1YCam6oStpftrBMp41urjjYctpsqkrwWsPzCe2EfrtflpViOnz5gSxwy4kaeLPbVtj20FqiP3A+nx11ZNFqFYyPUTmiaModxDeMvv5Ai8FpgE13Xw5Kgh+tKS5st/Tp5+85XfzDbs+iaApp1GqUrIsDLo7DFPE+QUI4qJdEQBS4AQwJfm5fWebFOy+2PH41kLej6VbaNJpK1cSqQZJa6/E47HE8LDw8iUIXhNIWlMyEV+o2zGzttq40W/rWl9W3ZGMKzomOmgaSErTEuydB/bxfgd/QYs/3naxeka1fU3t2px1RCzUxUbqkRK1GUM9xwgYFcKgQLvAYULiVn0Z/TLdTKFcXH63ieA58GR4FrH2MJBiCT7AxxGCqEvYIEE9c4rud+4aotzmpusHVizI6Rn4640/dfno8NoomJFAkFvDHCDeZHBc7uLs839DeuHnb+yF260lzz9nMlGSrg1jBY33wly3Q3Pn8ERkeXet54/1tjONVAjgEf0YQ+MfynwAS5QGDdI0dv2pgsRNC7zdIYlTITTwJVIn7hpFWztmT9vjfHKCXC/TUfeKkbh6MjDh4NYV75RhYMQEIsYsMLE+UIyQUWQhcbg6MOkhoOt39ukTNUMWS9PuVxdnXSususHIIBC2TYSi4IYKskAVZ1gnsTjfQxqisJTlpT0pzZ3UdufqwvfP1ByA8UuafKMdBy+Ta/AxTm8UWkGmcLk6Fh1k8RtO2rNTpfRsL5rbpF8x+sOrQpa89fR/lXu+9dSfkIQng1cXzYGB2jB7YvrGg1txYtan/8/ddx653twrgkUYBFHVGYpawfHF6w43uXi5iAAiN4+XaEKzqim/FE7fVoonH+mEIJ6hV9w3VRajj2TteUYxDyBBwg89t2Ch1LReT8IwON4cJ+DLhfe+6vC6LLfxZk3NbIazFgT0lI3UEf7o1A1KRRcvpcMK0aXIaVWaqiYiZggUku6pfAgwAu5p23B5ofWAAAAAASUVORK5CYII=", tmpPath)
 
 	selectedChannel			= ""
@@ -120,17 +125,19 @@ function init()
 	streamWindow			= nil
 
 	n = neutrino()
+	nMisc = misc.new()
 	setChannels()
 	setTimeArea()
 
 	local searchData_1_0 = "<div class=\"entry\" data-ctrl-"
 	local searchData_1_1 = "collapse-entry=\"{"
 	searchData_1 = {}
-	searchData_1[1] = searchData_1_0 .. "MORGEN" .. searchData_1_1
-	searchData_1[2] = searchData_1_0 .. "NACHMITTAG" .. searchData_1_1
-	searchData_1[3] = searchData_1_0 .. "VORABEND" .. searchData_1_1
-	searchData_1[4] = searchData_1_0 .. "ABEND" .. searchData_1_1
+	searchData_1[1] = searchData_1_0 .. "MORGENS" .. searchData_1_1
+	searchData_1[2] = searchData_1_0 .. "NACHMITTAGS" .. searchData_1_1
+	searchData_1[3] = searchData_1_0 .. "VORABENDS" .. searchData_1_1
+	searchData_1[4] = searchData_1_0 .. "ABENDS" .. searchData_1_1
 
+	BGP = video.new()
 	showBGPicture(false)
 end
 
@@ -158,11 +165,14 @@ end
 function showBGPicture(sleep)
 	os.execute("pzapit -mute")
 	if sleep == true then posix.sleep(1) end
-	n:ShowPicture(script_path().."ard_mediathek.jpg")
+	if fileExist(script_path().."ard_mediathek.jpg") then
+		BGP:ShowPicture(script_path().."ard_mediathek.jpg")
+		--n:ShowPicture(script_path().."ard_mediathek.jpg")
+	end
 end
 
 function hideBGPicture(rezap)
-	n:StopPicture()
+	BGP:StopPicture()
 	if rezap == true then os.execute("pzapit -rz") end
 	os.execute("{ sleep 1; pzapit -unmute; } &")
 --	os.execute("pzapit -unmute")
@@ -170,31 +180,33 @@ end
 
 function setChannels()
 	channels = {}
-	channels[1]  = {channel = "Das Erste",				id = 208,	enabled = true}
-	channels[2]  = {channel = "tagesschau24",			id = 5878,	enabled = true}
-	channels[3]  = {channel = "EinsPlus",				id = 4178842,	enabled = true}
-	channels[4]  = {channel = "Einsfestival",			id = 673348,	enabled = true}
-	channels[5]  = {channel = "DW-TV",				id = 5876,	enabled = false}
-	channels[6]  = {channel = "BR",					id = 2224,	enabled = true}
-	channels[7]  = {channel = "HR",					id = 5884,	enabled = true}
-	channels[8]  = {channel = "MDR",				id = 5882,	enabled = true}
-	channels[9]  = {channel = "MDR Thüringen",			id = 1386988,	enabled = false}
-	channels[10] = {channel = "MDR Sachsen-Anhalt",			id = 1386898,	enabled = true}
-	channels[11] = {channel = "MDR Sachsen",			id = 1386804,	enabled = false}
-	channels[12] = {channel = "NDR",				id = 5906,	enabled = true}
-	channels[13] = {channel = "NDR Hamburg",			id = 21518348,	enabled = false}
-	channels[14] = {channel = "NDR Mecklenburg-Vorpommern",		id = 21518350,	enabled = false}
-	channels[15] = {channel = "NDR Niedersachsen",			id = 21518352,	enabled = false}
-	channels[16] = {channel = "NDR Schleswig-Holstein",		id = 21518354,	enabled = false}
-	channels[17] = {channel = "RB",					id = 5898,	enabled = true}
-	channels[18] = {channel = "RBB",				id = 5874,	enabled = true}
-	channels[19] = {channel = "RBB Brandenburg",			id = 21518356,	enabled = false}
-	channels[20] = {channel = "RBB Berlin",				id = 21518358,	enabled = false}
-	channels[21] = {channel = "SR",					id = 5870,	enabled = true}
-	channels[22] = {channel = "SWR",				id = 5310,	enabled = true}
-	channels[23] = {channel = "SWR Rheinland-Pfalz",		id = 5872,	enabled = false}
-	channels[24] = {channel = "SWR Baden-Württemberg",		id = 5904,	enabled = false}
-	channels[25] = {channel = "WDR",				id = 5902,	enabled = true}
+	channels[1]  = {channel = "Das Erste",                   id = 208,       enabled = true}
+	channels[2]  = {channel = "tagesschau24",                id = 5878,      enabled = true}
+	channels[3]  = {channel = "EinsPlus",                    id = 4178842,   enabled = false}
+	channels[4]  = {channel = "ONE",                         id = 673348,    enabled = true}
+	channels[5]  = {channel = "DW-TV",                       id = 5876,      enabled = false}
+	channels[6]  = {channel = "BR",                          id = 2224,      enabled = true}
+	channels[7]  = {channel = "HR",                          id = 5884,      enabled = true}
+	channels[8]  = {channel = "MDR",                         id = 5882,      enabled = true}
+	channels[9]  = {channel = "MDR Thüringen",               id = 1386988,   enabled = false}
+	channels[10] = {channel = "MDR Sachsen-Anhalt",          id = 1386898,   enabled = true}
+	channels[11] = {channel = "MDR Sachsen",                 id = 1386804,   enabled = false}
+	channels[12] = {channel = "NDR",                         id = 5906,      enabled = true}
+	channels[13] = {channel = "NDR Hamburg",                 id = 21518348,  enabled = false}
+	channels[14] = {channel = "NDR Mecklenburg-Vorpommern",  id = 21518350,  enabled = false}
+	channels[15] = {channel = "NDR Niedersachsen",           id = 21518352,  enabled = false}
+	channels[16] = {channel = "NDR Schleswig-Holstein",      id = 21518354,  enabled = false}
+	channels[17] = {channel = "RB",                          id = 5898,      enabled = true}
+	channels[18] = {channel = "RBB",                         id = 5874,      enabled = true}
+	channels[19] = {channel = "RBB Brandenburg",             id = 21518356,  enabled = false}
+	channels[20] = {channel = "RBB Berlin",                  id = 21518358,  enabled = false}
+	channels[21] = {channel = "SR",                          id = 5870,      enabled = true}
+	channels[22] = {channel = "SWR",                         id = 5310,      enabled = true}
+	channels[23] = {channel = "SWR Rheinland-Pfalz",         id = 5872,      enabled = false}
+	channels[24] = {channel = "SWR Baden-Württemberg",       id = 5904,      enabled = false}
+	channels[25] = {channel = "WDR",                         id = 5902,      enabled = true}
+	channels[26] = {channel = "ARD-alpha",                   id = 5868,      enabled = true}
+	channels[27] = {channel = "KiKa",                        id = 5886,      enabled = true}
 end
 
 function setTimeArea()
@@ -276,7 +288,9 @@ function getTmpData1(selectedChannelId, tagId)
 		else
 			tmp1 = selectedChannelId .. "&tag=" .. tagId
 		end
---		print("[getTmpData1] " .. wget_cmd .. tmpData .. " '" .. baseUrl .. "/tv/sendungVerpasst?kanal=" .. tmp1 .. "'");
+		if debugmode >= 1 then
+			print("[getTmpData1] " .. wget_cmd .. tmpData .. " '" .. baseUrl .. "/tv/sendungVerpasst?kanal=" .. tmp1 .. "'");
+		end
 		os.execute(wget_cmd .. tmpData .. " '" .. baseUrl .. "/tv/sendungVerpasst?kanal=" .. tmp1 .. "'");
 		
 		local fp, s
@@ -289,7 +303,7 @@ function getTmpData1(selectedChannelId, tagId)
 		local sLen = #s
 		local tmpPos = {}
 		for i = 1, 4 do
-			tmpPos[i] = n:strFind(s, searchData_1[i])
+			tmpPos[i] = nMisc:strFind(s, searchData_1[i])
 		end
 		local p1, p2
 		local area
@@ -309,7 +323,7 @@ function getTmpData1(selectedChannelId, tagId)
 				p2 = sLen
 			end
 			p2 = p2-p1-1;
-			area = n:strSub(s, p1, p2)
+			area = nMisc:strSub(s, p1, p2)
 			saveData(tmpDataArea1, area);
 		end
 
@@ -325,7 +339,7 @@ function getTmpData1(selectedChannelId, tagId)
 				p2 = sLen
 			end
 			p2 = p2-p1-1;
-			area = n:strSub(s, p1, p2)
+			area = nMisc:strSub(s, p1, p2)
 			saveData(tmpDataArea2, area);
 		end
 
@@ -339,7 +353,7 @@ function getTmpData1(selectedChannelId, tagId)
 				p2 = sLen
 			end
 			p2 = p2-p1-1;
-			area = n:strSub(s, p1, p2)
+			area = nMisc:strSub(s, p1, p2)
 			saveData(tmpDataArea3, area);
 		end
 
@@ -349,13 +363,13 @@ function getTmpData1(selectedChannelId, tagId)
 			if rest == 0 then rest = p1 end
 			p2 = sLen
 			p2 = p2-p1-1;
-			area = n:strSub(s, p1, p2)
+			area = nMisc:strSub(s, p1, p2)
 			saveData(tmpDataArea4, area);
 		end
 
 		if rest > 0 then
 			-- reducing file size
-			area = n:strSub(s, 0, rest)
+			area = nMisc:strSub(s, 0, rest)
 			fp = io.open(tmpData, "w")
 			fp:seek("set")
 			fp:write(area)
@@ -381,12 +395,12 @@ function checkAreaIsActiv(selectedChannelId, tagId)
 end
 
 function miniMatch(s, s1, s2, p)
-	local p1 = n:strFind(s, s1, p)
+	local p1 = nMisc:strFind(s, s1, p)
 	if p1 == nil then return nil end
 	p1 = p1 + #s1
-	local p2 = n:strFind(s, s2, p1)
+	local p2 = nMisc:strFind(s, s2, p1)
 	if p2 == nil then return nil end
-	local ret = n:strSub(s, p1, p2-p1)
+	local ret = nMisc:strSub(s, p1, p2-p1)
 	local endpos = p2 + #s2
 	return ret, endpos
 end
@@ -397,12 +411,12 @@ function miniGMatch(s, s1, s2, p)
 	local m = ""
 	local p1 = p-1, p2
 	repeat
-		p1 = n:strFind(s, s1, p1+1)
+		p1 = nMisc:strFind(s, s1, p1+1)
 		if p1 == nil then break end
 		p1 = p1 + #s1
-		p2 = n:strFind(s, s2, p1)
+		p2 = nMisc:strFind(s, s2, p1)
 		if p2 == nil then break end
-		m = n:strSub(s, p1, p2-p1)
+		m = nMisc:strSub(s, p1, p2-p1)
 		if m ~= nil then
 			lRet[i] = m
 			i = i + 1
@@ -428,7 +442,7 @@ function listMissingContent(selectedChannelId, tagId, areaId)
 	local count = 1
 	-- Anzahl StreamGruppen
 	repeat
-		p = n:strFind(s, searchData_1[areaId], p+1)
+		p = nMisc:strFind(s, searchData_1[areaId], p+1)
 		if p ~= nil then
 			lRet[count] = {pos=p}
 			count = count + 1
@@ -446,7 +460,6 @@ function listMissingContent(selectedChannelId, tagId, areaId)
 			else
 				nextP = #s
 			end
-
 			local d, p = miniMatch(s, "<span class=\"date\">", "</span>", p)
 			local t, p = miniMatch(s, "<span class=\"titel\">", "</span>", p)
 			if t == nil then t = "" end
@@ -644,11 +657,11 @@ end
 
 function paintFrame(x, y, w, h, f, c)
 	-- top
-	n:PaintBox(x-f, y-f, w+f*2, f, c, CORNER.RADIUS_LARGE, bit32.bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
+	n:PaintBox(x-f, y-f, w+(f*3), f, c, CORNER.RADIUS_LARGE, bit32.bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
 	-- right
-	n:PaintBox(x+w-1, y, f, h, c)
+	n:PaintBox(x+w+f, y, f, h, c)
 	-- bottom
-	n:PaintBox(x-f, y+h, w+f*2, f, c, CORNER.RADIUS_LARGE, bit32.bor(CORNER.BOTTOM_LEFT, CORNER.BOTTOM_RIGHT))
+	n:PaintBox(x-f, y+h, w+(f*3), f, c, CORNER.RADIUS_LARGE, bit32.bor(CORNER.BOTTOM_LEFT, CORNER.BOTTOM_RIGHT))
 	-- left
 	n:PaintBox(x-f, y, f, h, c)
 end
@@ -703,7 +716,9 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 			local frameY = boxY - SCREEN.OFF_Y
 
 			if fileExist(picName) == false then
---				printf("#####[ard_mediathek] %s%s '%s'", wget_cmd, picName, picUrl);
+				if debugmode >= 1 then
+					printf("#####[ard_mediathek] %s%s '%s'", wget_cmd, picName, picUrl);
+				end
 				os.execute(wget_cmd .. picName .. " '" .. picUrl .. "'");
 			end
 
@@ -857,7 +872,7 @@ function listStreams(_id)
 			local tmp = dId
 			dId = changePage(msg, dId)
 			if tmp ~= dId then
-				if streamWindow ~= nil then streamWindow:hide{no_restore=true} end
+				if streamWindow ~= nil then streamWindow:hide{} end
 				streamWindow = newWinListContent(x, y, w, h, dId)
 				activStream = 1
 				paintListContent(x, y, w, h, dId, activStream, -1)
@@ -870,7 +885,7 @@ function listStreams(_id)
 		ret = msg
 	until msg == RC.home or msg == RC.setup or i == t;
 
-	if streamWindow ~= nil then streamWindow:hide{no_restore=true} end
+	if streamWindow ~= nil then streamWindow:hide{} end
 	if ret == RC.setup then
 		return MENU_RETURN.EXIT_ALL
 	end
@@ -879,7 +894,7 @@ end
 
 function getStream(_id)
 	local tmpId = tonumber(_id);
-	if streamWindow ~= nil then streamWindow:hide{no_restore=true} end
+	if streamWindow ~= nil then streamWindow:hide{} end
 
 	local id1 = 0
 	local id2 = 0
@@ -896,7 +911,9 @@ function getStream(_id)
 			if break2 == true then break end
 		end
 	end
---	printf("#####[ard_mediathek] tmpId: %d, id1: %d, id2: %d", tmpId, id1, id2)
+	if debugmode >= 1 then
+		printf("#####[ard_mediathek] tmpId: %d, id1: %d, id2: %d", tmpId, id1, id2)
+	end
 	local title    = listContent[id1].title
 	local headline = listContent[id1].streams[id2].headline
 	local infoline = listContent[id1].prev_wd.." "..listContent[id1].prev_date..", "..listContent[id1].date.." ("..selectedChannel..")"
@@ -905,7 +922,9 @@ function getStream(_id)
 	local tmpData = tmpPath .. "/json1_" .. dId .. ".txt"
 	if fileExist(tmpData) ~= true then
 		paintInfoBox(langStr_contentLoad)
---		print("[getStream] " .. wget_cmd .. tmpData .. " '" .. baseUrl .. "/play/media/" .. dId .. "?devicetype=pc&features=flash'");
+		if debugmode >= 1 then
+			print("[getStream] " .. wget_cmd .. tmpData .. " '" .. baseUrl .. "/play/media/" .. dId .. "?devicetype=pc&features=flash'");
+		end
 		os.execute(wget_cmd .. tmpData .. " '" .. baseUrl .. "/play/media/" .. dId .. "?devicetype=pc&features=flash'");
 	end
 
@@ -920,6 +939,11 @@ function getStream(_id)
 	fp:close()
 
 	local j_table = json:decode(s)
+	if debugmode == 2 then
+		print("#####[ard_mediathek] Inhalt von j_table:")
+		tprint(j_table,0)
+		print("#####[ard_mediathek] Ende von j_table")
+	end
 	local j_type = j_table._type
 	if j_type == "video" then
 
@@ -1000,6 +1024,11 @@ function getStream(_id)
 
 		local streamBreak = false
 		if j_mediaArray ~= nil then
+			if debugmode == 2 then
+				print("#####[ard_mediathek] Inhalt von j_mediaArray:")
+				tprint(j_mediaArray,0)
+				print("#####[ard_mediathek] Ende von j_mediaArray")
+			end
 			for i1 = 1, #j_mediaArray do
 				j_mediaStreamArray = j_mediaArray[i1]._mediaStreamArray
 				if j_mediaStreamArray ~= nil then
@@ -1019,11 +1048,12 @@ function getStream(_id)
 							streamUrl = _server .. _stream;
 							streamQuality = j_mediaStreamArray[i2]._quality
 							if tostring(streamQuality) == "auto" then
-								if n:strSub(streamUrl, #streamUrl-4) == ".f4m" then
+								if nMisc:strSub(streamUrl, #streamUrl-4) == ".f4m" then
 									streamUrl = streamUrl .. "?hdcore"
 								end
 							end
 							if _server ~= "" then goto array_next end
+							if nMisc:strSub(streamUrl, 0, 2) == "//" then streamUrl = "http:" .. streamUrl end
 							printf("#####[ard_mediathek] q: %s, stream: %s", tostring(playQuality), streamUrl)
 							streamBreak = true
 							break
@@ -1045,7 +1075,8 @@ function getStream(_id)
 		if info1 == nil then info1 = "" end
 		if info2 == nil then info2 = "" end
 		hideBGPicture(false)
-		n:PlayFile(title, streamUrl, conv_str(info1), conv_str(info2));
+--		n:PlayFile(title, streamUrl, conv_str(info1), conv_str(info2));
+		video = video.new(); video:PlayFile(title, streamUrl, conv_str(info1), conv_str(info2))
 		collectgarbage();
 		showBGPicture(true)
 	end
@@ -1122,7 +1153,7 @@ function setLangStrings(lang)
 		langStr_language		= "Language"
 		langStr_save			= "Save settings now"
 		langStr_discardChanges1		= "Discard changes? "
-		langStr_discardChanges2		= "If the changes are discarded?"
+		langStr_discardChanges2		= "Should the changes be discarded?"
 		langStr_auto			= "'auto' quality (HDS)"
 		langStr_quality			= "Stream quality"
 
@@ -1155,7 +1186,7 @@ end
 
 function hideInfoBox()
 	if infoBox_h ~= nil then
-		infoBox_h:hide{no_restore=true}
+		infoBox_h:hide{}
 		infoBox_h = nil
 	end
 end
