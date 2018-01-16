@@ -115,7 +115,7 @@ function getVideoData(yurl)
 	if yurl:find("www.youtube.com/user/") then --check user link
 		local youtube_user = getdata(yurl)
 		if youtube_user == nil then return 0 end
-		local youtube_live_url = youtube_user:match('feature=c4.-href="(/watch.-)">')
+		local youtube_live_url = youtube_user:match('feature=c4.-href="(/watch.-)"')
 		if youtube_live_url == nil then return 0 end
 		yurl = 'https://www.youtube.com' .. youtube_live_url
 	end
