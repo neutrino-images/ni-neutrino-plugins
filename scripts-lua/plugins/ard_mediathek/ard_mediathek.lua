@@ -1283,7 +1283,7 @@ function loadConfig()
 	conf.language = config:getString("language", "DE")
 	setLangStrings(conf.language)
 	conf.streamQuality = config:getInt32("streamQuality", 3)
-	local tmp = config:getBool( "auto", true)
+	local tmp = config:getBool( "auto", false)
 	if hdsAvailable ~= true then
 		if tmp == true then tmp = false end
 	end
