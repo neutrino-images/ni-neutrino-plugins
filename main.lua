@@ -27,29 +27,31 @@ function getVersionInfo()
 	messagebox.exec{title="Versionsinfo " .. pluginName, text=msg, buttons={ "ok" } };
 end
 
-function paintMainMenu(frame, frameColor, textColor, info, count)
+function paintMainMenu(space, frameColor, textColor, info, count)
 	local fontText = fontMainMenu
 	local i
 	local w1 = 0
+	local w2 = 0
 	local w = 0
 	for i = 1, count do
 		local wText1 = N:getRenderWidth(useDynFont, fontText, info[i][1])
 		if wText1 > w1 then w1 = wText1 end
 		local wText2 = N:getRenderWidth(useDynFont, fontText, info[i][2])
-		if wText2 > w then w = wText2 end
+		if wText2 > w2 then w2 = wText2 end
 	end
-	local h = N:getRenderWidth(useDynFont, fontText, "222")
-	w1 = w1+10
-	w  = w+w1*2
+	local h = N:FontHeight(useDynFont, fontText) + 2*OFFSET.INNER_SMALL
+	w = w1 + 2*OFFSET.INNER_MID + w2 + 2*OFFSET.INNER_MID
 
-	local x = (SCREEN.END_X - w) / 2
-	local h_tmp = (h + 3*frame)
+	local x = (SCREEN.OFF_X + SCREEN.END_X - w) / 2
+	local h_tmp = (h + space)
 	local h_ges = count * h_tmp
 	local y_start = (SCREEN.END_Y - h_ges) / 2
 	if (bgTransp == true) then
 		y_start = (SCREEN.END_Y - h_ges) / 6
 	end
 	x = math.floor(x)
+	x1 = x + OFFSET.INNER_MID
+	x2 = x + OFFSET.INNER_MID + w1 + 2*OFFSET.INNER_MID
 	h_tmp = math.floor(h_tmp)
 	y_start = math.floor(y_start)
 
@@ -68,9 +70,9 @@ function paintMainMenu(frame, frameColor, textColor, info, count)
 		end
 
 		G.paintSimpleFrame(x, y, w, h, frameColor, bg)
-		N:paintVLine(x+w1, y, h, frameColor)
-		N:RenderString(useDynFont, fontText, info[i][1], x, y+h, txtC, w1, h, 1)
-		N:RenderString(useDynFont, fontText, info[i][2], math.floor(x+w1+w1/4), y+h, txtC, w-w1, h, 0)
+		N:paintVLine(x + w1 + 2*OFFSET.INNER_MID, y, h, frameColor)
+		N:RenderString(useDynFont, fontText, info[i][1], x1, y + h, txtC, w1, h, 1)
+		N:RenderString(useDynFont, fontText, info[i][2], x2, y + h, txtC, w2, h, 0)
 
 		::continue::
 	end
@@ -81,7 +83,7 @@ function paintMainWindow(menuOnly, win)
 	if (menuOnly == false) then
 		win:paint{do_save_bg=true}
 	end
-	paintMainMenu(1, COL.FRAME, COL.MENUCONTENT_TEXT, mainMenuEntry, #mainMenuEntry)
+	paintMainMenu(OFFSET.INNER_SMALL, COL.FRAME, COL.MENUCONTENT_TEXT, mainMenuEntry, #mainMenuEntry)
 end
 
 function hideMainWindow()
