@@ -81,7 +81,7 @@ function paintMainWindow(menuOnly, win)
 	if (menuOnly == false) then
 		win:paint{do_save_bg=true}
 	end
-	paintMainMenu(1, COL.MENUCONTENT_TEXT, COL.MENUCONTENT_TEXT, mainMenuEntry, #mainMenuEntry)
+	paintMainMenu(1, COL.FRAME, COL.MENUCONTENT_TEXT, mainMenuEntry, #mainMenuEntry)
 end
 
 function hideMainWindow()
@@ -103,7 +103,7 @@ function newMainWindow()
 		showHeader = false
 --		bgCol = bit32.band(0x00FFFFFF, bgCol)
 --		bgCol = bit32.bor(0x60000000, bgCol)
-		bgCol = (0x6000253E)
+		bgCol = (0x60000000)
 	end
 
 	local ret = cwindow.new{x=x, y=y, dx=w, dy=h, color_body=bgCol, show_header=showHeader, show_footer=false, name=pluginName .. " - v" .. pluginVersion, icon=pluginIcon};

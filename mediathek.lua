@@ -78,11 +78,11 @@ function paint_mtItemLine(viewChannel, count)
 		txtCol = COL.MENUCONTENTSELECTED_TEXT
 		bgCol  = COL.MENUCONTENTSELECTED_PLUS_0
 	elseif ((count % 2) == 0) then
-		txtCol = COL.MENUCONTENT_TEXT
-		bgCol  = COL.MENUCONTENT_PLUS_0
+		txtCol = COL.MENUCONTENTDARK_TEXT
+		bgCol  = COL.MENUCONTENTDARK_PLUS_0
 	else
 		txtCol = COL.MENUCONTENT_TEXT
-		bgCol  = COL.MENUCONTENT_PLUS_1
+		bgCol  = COL.MENUCONTENT_PLUS_0
 	end
 	N:PaintBox(rightItem_x, _itemLine_y, rightItem_w, subMenuHight, bgCol)
 
@@ -114,7 +114,7 @@ end
 
 function paintMtRightMenu()
 	local bg_col		= COL.MENUCONTENT_PLUS_0
-	local frameColor	= COL.MENUCONTENT_TEXT
+	local frameColor	= COL.FRAME
 	local textColor		= COL.MENUCONTENT_TEXT
 
 	G.paintSimpleFrame(mtRightMenu_x, mtMenu_y, mtRightMenu_w, mtMenu_h, frameColor, 0)
@@ -274,7 +274,7 @@ end
 
 function paintLeftInfoBox(txt)
 	G.paintSimpleFrame(leftInfoBox_x, leftInfoBox_y, leftInfoBox_w, leftInfoBox_h,
-			COL.MENUCONTENT_TEXT, COL.MENUCONTENT_PLUS_1)
+			COL.FRAME, COL.MENUCONTENT_PLUS_1)
 	N:RenderString(useDynFont, fontLeftMenu2, txt,
 			leftInfoBox_x, leftInfoBox_y+subMenuHight,
 			COL.MENUCONTENT_TEXT, leftInfoBox_w, subMenuHight, 1)
@@ -283,7 +283,7 @@ end
 function paintMtLeftMenu(entry)
 
 --	local bg_col		= COL.MENUCONTENT_PLUS_0
-	local frameColor	= COL.MENUCONTENT_TEXT
+	local frameColor	= COL.FRAME
 	local textColor		= COL.MENUCONTENT_TEXT
 
 	local txtCol = COL.MENUCONTENT_TEXT
