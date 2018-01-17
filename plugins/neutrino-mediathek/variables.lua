@@ -16,11 +16,11 @@ function initVars()
 
 	pluginVersionMajor	= 0
 	pluginVersionMinor	= 3
-	pluginVersionBeta	= 1
+	pluginVersionBeta	= 2
 	if (pluginVersionBeta == 0) then
 		pvbTmp = ""
 	else
-		pvbTmp = "beta-" .. tostring(pluginVersionBeta)
+		pvbTmp = " beta " .. tostring(pluginVersionBeta)
 	end
 	pluginVersion		= tostring(pluginVersionMajor) .. "." .. tostring(pluginVersionMinor) .. pvbTmp
 
