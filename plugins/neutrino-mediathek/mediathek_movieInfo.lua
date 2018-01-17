@@ -22,7 +22,7 @@ function paintMovieInfo(isMP, res, ratio, rate)
 	local frame_w = box_w - 2*space_x
 	local frame_h = real_h - 2*space_y
 	G.paintSimpleFrame(frame_x, frame_y, frame_w, frame_h,
-			COL.MENUCONTENT_TEXT, 0)
+			COL.FRAME, 0)
 
 	local function paintInfoItem(_x, _y, info1, info2, frame)
 		local tmp1_h = math.floor(fontLeftMenu1_h+N:scale2Res(4))
@@ -50,7 +50,7 @@ function paintMovieInfo(isMP, res, ratio, rate)
 			_y = _y - tmp2_h
 		end
 		if (frame == true) then
-			G.paintSimpleFrame(math.floor(_x+N:scale2Res(8)), math.floor(_y1+N:scale2Res(6)), math.floor(frame_w-N:scale2Res(16)), _y-_y1, COL.MENUCONTENT_TEXT, 0)
+			G.paintSimpleFrame(math.floor(_x+N:scale2Res(8)), math.floor(_y1+N:scale2Res(6)), math.floor(frame_w-N:scale2Res(16)), _y-_y1, COL.FRAME, 0)
 		end
 		return _y
 	end
