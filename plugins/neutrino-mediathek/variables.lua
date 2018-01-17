@@ -107,7 +107,7 @@ function initVars()
 
 	mainMenuEntry = {}
 	fillMainMenuEntry(l.key.ok,	l.start_mediathek)
-	fillMainMenuEntry(l.key.sat,	l.start_livestreams)
+	fillMainMenuEntry(l.key.red,	l.start_livestreams)
 	fillMainMenuEntry(l.key.menu,	l.settings)
 	fillMainMenuEntry(l.key.info,	l.versioninfo)
 	fillMainMenuEntry(l.empty,	l.empty)
