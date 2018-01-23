@@ -11,7 +11,9 @@ extern int FSIZE_SMALL;
 
 #define NCF_FILE "/var/tuxbox/config/neutrino.conf"
 #define CFG_FILE "/var/tuxbox/config/logomask.conf"
-unsigned char FONT[64]= "/share/fonts/pakenham.ttf";
+
+//freetype stuff
+unsigned char FONT[128]="/share/fonts/neutrino.ttf";
 
 #define CL_VERSION  "1.01"
 #define MAX_MASK 16

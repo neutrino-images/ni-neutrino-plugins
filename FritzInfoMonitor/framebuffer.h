@@ -10,7 +10,7 @@
 #include <linux/fb.h>
 
 /* freetype stuff */
-#define FONT "/share/fonts/pakenham.ttf"
+#define FONT "/share/fonts/neutrino.ttf"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H

@@ -108,7 +108,6 @@ struct input_event ev;
 #define RC_PLAY		0xCF
 
 //freetype stuff
-
 #define FONT "/share/fonts/pakenham.ttf"
 
 enum {LEFT, CENTER, RIGHT};

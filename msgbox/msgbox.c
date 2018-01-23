@@ -22,9 +22,10 @@
 #define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
 #define HDF_FILE	"/tmp/.msgbox_hidden"
 
-#define FONT2 "/share/fonts/pakenham.ttf"
-// if font is not in usual place, we look here:
+//freetype stuff
 char FONT[128]="/share/fonts/neutrino.ttf";
+// if font is not in usual place, we look here:
+#define FONT2 "/share/fonts/pakenham.ttf"
 
 //						CMCST,   CMCS,  CMCT,    CMC,    CMCIT,  CMCI,   CMHT,   CMH
 //						WHITE,   BLUE0, TRANSP,  CMS,    ORANGE, GREEN,  YELLOW, RED

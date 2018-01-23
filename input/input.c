@@ -15,6 +15,7 @@
 #define I_VERSION	2.12
 
 
+//freetype stuff
 char FONT[128]="/share/fonts/neutrino.ttf";
 // if font is not in usual place, we look here:
 #define FONT2 "/share/fonts/pakenham.ttf"

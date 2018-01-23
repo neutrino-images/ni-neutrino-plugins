@@ -85,10 +85,10 @@ void TrimString(char *strg);
 static const char menucoltxt[][25]={"Content_Selected_Text","Content_Selected","Content_Text","Content","Content_inactive_Text","Content_inactive","Head_Text","Head"};
 
 
-//#define FONT "/usr/share/fonts/md_khmurabi_10.ttf"
-#define FONT2 "/share/fonts/pakenham.ttf"
-// if font is not in usual place, we look here:
+//freetype stuff
 char FONT[128]="/share/fonts/neutrino.ttf";
+// if font is not in usual place, we look here:
+#define FONT2 "/share/fonts/pakenham.ttf"
 
 //					    CMCST,  CMCS,   CMCT,   CMC,    CMCIT,  CMCI,   CMHT,   CMH
 //					    WHITE,  BLUE0,  TRANSP, CMS,    ORANGE, GREEN,  YELLOW, RED

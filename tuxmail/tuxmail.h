@@ -244,9 +244,9 @@ void SaveAndReloadDB (int iSave);
 void PaintMessageBox (int width, int height, int button);
 
 // freetype stuff
-#define FONT "/share/fonts/micron_bold.ttf"
+#define FONT "/share/fonts/neutrino.ttf"
 // if font is not in usual place, we look here:
-#define FONT2 "share/fonts/pakenham.ttf"
+#define FONT2 "/share/fonts/pakenham.ttf"
 
 enum {BUT_EXIT = 1, BUT_OK, BUT_OKEXIT};
 enum {LEFT, CENTER, RIGHT};
