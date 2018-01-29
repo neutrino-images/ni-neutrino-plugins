@@ -81,7 +81,7 @@
 
 //freetype stuff
 
-extern unsigned char FONT[64];
+extern unsigned char FONT[128];
 
 enum {LEFT, CENTER, RIGHT};
 enum {SMALL, MED, BIG};
