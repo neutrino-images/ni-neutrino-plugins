@@ -121,7 +121,7 @@ function init()
 	selectedChannelId		= 0
 	selectedTagId			= 0
 
-	infoBox_h			= nil
+	infoBox_h				= nil
 	streamWindow			= nil
 
 	n = neutrino()
