@@ -1,5 +1,5 @@
 --[[
-	mtv.de
+	mtv.ch
 	Copyright (C) 2015,  Jacek Jendrzej 'satbaby'
 
 	License: GPL
@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.de Version 0.17" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.ch Version 0.18" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -82,7 +82,7 @@ function loadConfig()
 	conf.flvflag = config:getBool("flvflag", false)
 	conf.playflvflag = config:getBool("playflvflag", false)
 	conf.shuffleflag = config:getBool("shuffleflag", false)
-	conf.search = config:getString("search", "Jessie J")
+	conf.search = config:getString("search", "Imagine Dragons")
 	conf.changed = false
 end
 
@@ -113,31 +113,47 @@ function init()
 	glob.fav_changed = false
 	glob.have_rtmpdump=false
 	local r= pop("which rtmpdump")
-	if #r>0 then 
+	if #r>0 then
 		glob.have_rtmpdump=true
 	end
 	glob.mtv_artist={}
 	glob.mtv={
-		{name = "Brandneu",url="http://www.mtv.de/musik",fav=false},
-		{name = "SINGLE TOP 20",url="http://www.mtv.de/charts/302-single-top-20",fav=false},
-		{name = "SINGLE TOP 100",url="http://www.mtv.de/charts/288-single-top-100",fav=false},
-		{name = "MTV.de Videocharts",url="http://www.mtv.de/charts/8-mtv-de-videocharts",fav=false},
-		{name = "MTV.ch Videocharts",url="http://www.mtv.ch/charts/206-mtv-ch-videocharts",fav=false},
-		{name = "MTV unplugged DE",url="http://www.mtv.de/mtv-unplugged",fav=false},
-		{name = "Top 100 Jahrescharts 2016",url="http://www.mtv.de/charts/274-top-100-jahrescharts-2016",fav=false},
-		{name = "Top 100 Jahrescharts 2015",url="http://www.mtv.de/charts/275-top-100-jahrescharts-2015",fav=false},
-		{name = "Top 100 Jahrescharts 2014",url="http://www.mtv.de/charts/241-top-100-single-jahrescharts-2014",fav=false},
-		{name = "Viva Top 100 Jahrescharts 2016",url="http://www.viva.tv/charts/277-eure-viva-jahrescharts-2016",fav=false},
-		{name = "Dance Charts",url="http://www.mtv.de/charts/293-dance-charts",fav=false},
+		{name = "MTV unplugged",url="http://www.mtv.ch/mtv-unplugged",fav=false},
+		{name = "Brandneu",url="http://www.mtv.ch/musik",fav=false},
+		{name = "Hitlist Germany - Top 100",url="http://www.mtv.ch/charts/288-hitlist-germany-top-100",fav=false},
+		{name = "Hitlist Schweiz - Top 50",url="http://www.mtv.ch/charts/206-mtv-ch-videocharts",fav=false},
+		{name = "SINGLE TOP 20",url="http://www.mtv.ch/charts/302-single-top-20",fav=false},
+		{name = "SINGLE TOP 100",url="http://www.mtv.ch/charts/288-single-top-100",fav=false},
+		{name = "Top 100 Jahrescharts 2017",url="http://www.mtv.ch/charts/307-top-100-jahrescharts-2017",fav=false},
+		{name = "Top 100 Jahrescharts 2016",url="http://www.mtv.ch/charts/274-top-100-jahrescharts-2016",fav=false},
+		{name = "Top 100 Jahrescharts 2015",url="http://www.mtv.ch/charts/275-top-100-jahrescharts-2015",fav=false},
+		{name = "Top 100 Jahrescharts 2014",url="http://www.mtv.ch/charts/241-top-100-single-jahrescharts-2014",fav=false},
+		{name = "Dance Charts",url="http://www.mtv.ch/charts/293-dance-charts",fav=false},
+--		{name = "Deutsche Hip Hop Charts",url="http://www.mtv.ch/charts/292-hip-hop-charts",fav=false},
+		{name = "Midweek Charts",url="http://www.mtv.ch/charts/287-midweek-single-top-100",fav=false},
+		{name = "Videocharts DE (via viva.tv)",url="http://www.viva.tv/charts/8-mtv-de-videocharts",fav=false},
+		{name = "Videocharts CH",url="http://www.mtv.ch/charts/206-mtv-ch-videocharts",fav=false},
+--		{name = "Throwback Charts CH",url="http://www.mtv.ch/charts/278-throwback-charts-ch",fav=false},
+--		{name = "Midweek Charts CH",url="http://www.mtv.ch/charts/283-single-midweek-charts",fav=false},
+--		{name = "SINGLE TOP 20 CH",url="http://www.mtv.ch/charts/280-single-top-20",fav=false},
+--		{name = "SINGLE TOP 100 CH",url="http://www.mtv.ch/charts/279-single-top-100",fav=false},
+		{name = "VIVA Top 100",url="http://www.viva.tv/charts/288-top-100-single-charts",fav=false},
+		{name = "Viva Top 100 Jahrescharts 2017 OFFIZIELLEN SINGLE-CHARTS ermittelt von GFK Entertaiment",url="http://www.viva.tv/charts/307-top-100-jahrescharts-2017",fav=false},
+		{name = "Viva Top 100 Jahrescharts 2016 OFFIZIELLEN SINGLE-CHARTS ermittelt von GFK Entertaiment",url="http://www.viva.tv/charts/274-top-100-jahrescharts-2016",fav=false},
+		{name = "Viva Top 100 Jahrescharts 2015 OFFIZIELLEN SINGLE-CHARTS ermittelt von GFK Entertaiment",url="http://www.viva.tv/charts/275-top-100-jahrescharts-2015",fav=false},
+		{name = "Viva Top 100 Jahrescharts 2014 OFFIZIELLEN SINGLE-CHARTS ermittelt von GFK Entertaiment",url="http://www.viva.tv/charts/241-top-100-jahrescharts-2014",fav=false},
+		{name = "Viva SINGLE TOP 20",url="http://www.viva.tv/charts/302-top-20-single-charts",fav=false},
+		{name = "Viva SINGLE TOP 100",url="http://www.viva.tv/charts/288-single-top-100",fav=false},
+		{name = "Viva Dance Charts",url="http://www.viva.tv/charts/293-dance-charts",fav=false},
 		{name = "Viva Brandneu",url="http://www.viva.tv/news/19363-viva-neu",fav=false},
-		{name = "HIP HOP CHARTS",url="http://www.mtv.de/charts/292-hip-hop-charts",fav=false},
-		{name = "SINGLE TRENDING",url="http://www.mtv.de/charts/301-single-trending",fav=false},
-		{name = "TOP 100 MUSIC STREAMING",url="http://www.mtv.de/charts/286-top-100-music-streaming",fav=false},
-		{name = "TOP 15 DEUTSCHSPRACHIGE SINGLES",url="http://www.mtv.de/charts/304-top-15-deutschsprachige-singles",fav=false},
-		{name = "DOWNLOAD CHARTS SINGLE",url="http://www.mtv.de/charts/289-download-charts-single",fav=false},
-		{name = "MOST WANTED 90'S",url="http://www.mtv.de/charts/295-most-wanted-90-s",fav=false},
-		{name = "MOST WANTED 2000'S",url="http://www.mtv.de/charts/296-most-wanted-2000-s",fav=false},
-		{name = "MTV unplugged AT",url="http://at.mtv.de/mtv-unplugged",fav=false},
+--		{name = "Viva Hop Hop Charts",url="http://www.viva.tv/charts/292-hip-hop-charts",fav=false},
+		{name = "Viva Jahrescharts 2016 - Ihr habt eure 50 liebsten Videos gewählt",url="http://www.viva.tv/charts/277-eure-viva-jahrescharts-2016",fav=false},
+		{name = "SINGLE TRENDING",url="http://www.mtv.ch/charts/301-single-trending",fav=false},
+		{name = "TOP 100 MUSIC STREAMING",url="http://www.mtv.ch/charts/286-top-100-music-streaming",fav=false},
+		{name = "TOP 15 DEUTSCHSPRACHIGE SINGLES",url="http://www.mtv.ch/charts/304-top-15-deutschsprachige-singles",fav=false},
+		{name = "DOWNLOAD CHARTS SINGLE",url="http://www.mtv.ch/charts/289-download-charts-single",fav=false},
+		{name = "MOST WANTED 90'S",url="http://www.mtv.ch/charts/295-most-wanted-90-s",fav=false},
+		{name = "MOST WANTED 2000'S",url="http://www.mtv.ch/charts/296-most-wanted-2000-s",fav=false}
 	}
 	local mtvconf = get_conf_mtvfavFile()
 	local havefile = file_exists(mtvconf)
@@ -243,7 +259,7 @@ function getvideourl(url,vidname,tok,typ,h)
 	if url == nil then return nil end
 	local video_url = nil
 	if (typ ~= "arc" and typ ~="local_playlist") and tok  ~= nil then
-		url = 'http://intl.esperanto.mtvi.com/www/xml/media/mediaGen.jhtml?uri=mgid:uma:video:mtv.de:' .. tok
+		url = 'http://intl.esperanto.mtvi.com/www/xml/media/mediaGen.jhtml?uri=mgid:uma:video:mtv.ch:' .. tok
 	end
 	local clip_page = getdata(url)
 	if clip_page == nil then return nil end
@@ -255,7 +271,7 @@ function getvideourl(url,vidname,tok,typ,h)
 
 		url  = clip_page:match("url='(.-)'")
 		if url == nil then return nil end
-		url=url:gsub(":mtvni.com:",":mtv.de:")
+		url=url:gsub(":mtvni.com:",":mtv.ch:")
 		clip_page = getdata(url)
 		local max_width = -1
 		for  width,url in string.gmatch(clip_page, '<rendition.-width="(%d+).-<src>(.-)</src>') do
@@ -716,14 +732,15 @@ function setings()
 end
 
 function gen_search_list(search)
-	local url = "http://www.mtv.de/searches?q=+"..search .. "+&ajax=1"
+	search=search:gsub(" ",'+')
+	local url = "http://www.mtv.ch/searches?q=+"..search .. "+&ajax=1"
 	local clip_page = getdata(url)
 	if clip_page == nil then return nil end
 	glob.mtv_artist={}
 	for _url ,title in clip_page:gmatch('/artists/(.-)"><div class="title">(.-)</div>') do
 		title=title:gsub("&quot;",'"')
 		title=title:gsub("&amp;",'&')
-		_url="http://www.mtv.de/artists/" .. _url
+		_url="http://www.mtv.ch/artists/" .. _url
 		if exist(_url) == false then
 			table.insert(glob.mtv_artist,{name=title, url=_url, enabled=false,disabled=false})
 		end
