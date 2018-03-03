@@ -1953,7 +1953,7 @@ void DoEditFTP(char* szFile,char* szTitle)
 				continue;
 			*p=0;
 			p++;
-			p1=strchr(p,'\r'); // für Windows-Nutzer: '\r' überlesen
+			p1=strchr(p,'\r'); // fuer Windows-Nutzer: '\r' ueberlesen
 			if (p1 != NULL) *p1 = 0x00;
 			if      ( !strcmp(line,"host") ) strcpy(entries[0], p);
 			else if ( !strcmp(line,"port") ) strcpy(entries[1], p);
@@ -4036,7 +4036,16 @@ void DoEditFile(char* szFile, char* szTitle,  int writable)
 
 void DoTaskManager()
 {
-	FILE* pFile = OpenPipe("ps -aux");
+	const char ps[] = "/bin/ps";
+	struct stat stat_buf;
+	int have_nonbb_ps = !lstat(ps, &stat_buf) && !S_ISLNK(stat_buf.st_mode);
+	char command[20];
+	if (have_nonbb_ps)
+		strcpy(command,"ps aux");
+	else
+		strcpy(command,"ps -l");
+
+	FILE* pFile = OpenPipe(command);
 	char* szFileBuffer = (char*)malloc(FILEBUFFER_SIZE);
 	szFileBuffer [0]= 0x00;
 	char *p = szFileBuffer, *p1, *p2, *pcur = szFileBuffer;
@@ -4050,17 +4059,17 @@ void DoTaskManager()
 	memset(szFileBuffer,0,FILEBUFFER_SIZE);
 	while( fgets( p, FILEBUFFER_SIZE - offset, pFile ) )
 	{
-	  if (offset == 0) // ignore first line
-	  {
-		  offset+=strlen(p);
-		  continue;
-	  }
-
-
-	  count++;
-	  offset+=strlen(p);
-	  if (offset >= FILEBUFFER_SIZE ) break;
-	  p = (char*)(p+strlen(p));
+		size_t l = strlen(p);
+		if (offset == 0) // ignore first line
+		{
+			offset += l;
+			continue;
+		}
+		count++;
+		offset += l;
+		if (offset >= FILEBUFFER_SIZE - 1)
+			break;
+		p += l;
 	}
 	fclose(pFile);
 
@@ -4116,10 +4125,15 @@ void DoTaskManager()
 					RenderBox(BORDERSIZE, 2*BORDERSIZE+FONTHEIGHT_BIG+2*FONTHEIGHT_SMALL+i*FONTHEIGHT_SMALL , viewx- BORDERSIZE , 2*BORDERSIZE+FONTHEIGHT_BIG+2*FONTHEIGHT_SMALL+(i+1)*FONTHEIGHT_SMALL, FILL, BLUE2);
 				}
 				if (*p == 0x00) break;
-				sscanf(p,"%s%s",prid,uid);
-
 				memset(procname,0,256);
-				strncpy(procname,(char*)(p+26),255);
+				if (have_nonbb_ps) {
+					sscanf(p,"%s%s",uid,prid);
+					strncpy(procname,(char*)(p+26),255);
+				}
+				else {
+					sscanf(p+1,"%s%s",uid,prid);
+					strncpy(procname,(char*)(p+20),255);
+				}
           		p2=strchr(procname,'\n');
           		if (p2 != NULL) *p2 = 0x00;
           		RenderString(    prid,2*BORDERSIZE           , 2*BORDERSIZE+FONTHEIGHT_BIG+2*FONTHEIGHT_SMALL+(i+1)*FONTHEIGHT_SMALL -FONT_OFFSET,   viewx/6 , RIGHT, SMALL, WHITE);
@@ -4167,9 +4181,15 @@ void DoTaskManager()
 					sel = count;
 					break;
 				case RC_RED:
-					sscanf(pcur,"%s%s",prid,uid);
 					memset(procname,0,256);
-					strncpy(procname,(char*)(pcur+26),255);
+					if (have_nonbb_ps) {
+						sscanf(pcur,"%s%s",uid,prid);
+						strncpy(procname,(char*)(pcur+26),255);
+					}
+					else {
+						sscanf(pcur+1,"%s%s",uid,prid);
+						strncpy(procname,(char*)(pcur+20),255);
+					}
 	          		p2=strchr(procname,'\n');
 	          		if (p2 != NULL) *p2 = 0x00;
 					sprintf(szMsg,msg[MSG_KILLPROC*NUM_LANG+language],procname);
@@ -4178,7 +4198,7 @@ void DoTaskManager()
 						char szCmd[2000];
 						sprintf(szCmd,"kill -9 %s", prid);
 						system(szCmd);
-						FILE* pFile = OpenPipe("ps -aux");
+						FILE* pFile = OpenPipe(command);
 						if (pFile == NULL)
 						{
 							MessageBox(MSG_VERSION,MSG_COPYRIGHT,OK);
@@ -4187,19 +4207,21 @@ void DoTaskManager()
 						sel = 0;
 						p = szFileBuffer;
 						count = 0;
+						offset = 0;
 						memset(szFileBuffer,0,FILEBUFFER_SIZE);
 						while( fgets( p, FILEBUFFER_SIZE - offset, pFile ) )
 						{
-						  count++;
-						  if (offset == 0) // ignore first line
-						  {
-							  offset+=strlen(p);
-							  continue;
-						  }
-						  offset+=strlen(p);
-						  count++;
-						  if (offset >= FILEBUFFER_SIZE ) break;
-						  p = (char*)(p+strlen(p));
+							size_t l = strlen(p);
+							if (offset == 0) // ignore first line
+							{
+								offset += l;
+								continue;
+							}
+							offset += l;
+							count++;
+							if (offset >= FILEBUFFER_SIZE - 1)
+								break;
+							p += l;
 						}
 						fclose(pFile);
 					}
@@ -4383,7 +4405,7 @@ void OpenFTP()
 				continue;
 			*p=0;
 			p++;
-			p1=strchr(p,'\r'); // für Windows-Nutzer: '\r' überlesen
+			p1=strchr(p,'\r'); // fuer Windows-Nutzer: '\r' ueberlesen
 			if (p1 != NULL) *p1 = 0x00;
 			if      ( !strcmp(line,"host") ) strcpy(finfo[curframe].ftphost, p);
 			else if ( !strcmp(line,"port") ) finfo[curframe].ftpport = atoi(p);
