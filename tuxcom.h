@@ -25,7 +25,6 @@
 //#include <config.h>
 #define _FILE_OFFSET_BITS 64
 #define _GNU_SOURCE
-#include <stdio.h>
 #include <errno.h>
 #include <locale.h>
 #include <fcntl.h>
@@ -41,9 +40,9 @@
 #include <sys/dir.h>
 #include <sys/stat.h>
 //#include <plugin.h>
-
-//#include <dbox/avs_core.h>
-//#include <dbox/saa7126_core.h>
+#if defined(HAVE_SPARK_HARDWARE) || defined(HAVE_DUCKBOX_HARDWARE)
+#include <linux/stmfb.h>
+#endif
 
 #include <netinet/in.h>
 #include <netdb.h>
@@ -58,27 +57,37 @@
 
 #include <linux/input.h>
 
-//#define AVS "/dev/dbox/avs0"
-//#define SAA "/dev/dbox/saa0"
-
 #define MENUROWS      10
 #define MENUITEMS     10
-#define MENUSIZE       59
-#define MINBOX        380
-#define BUTTONWIDTH   114
-#define BUTTONHEIGHT  30
+#define _MENUSIZE       59
+#define _MINBOX        380
+#define _BUTTONWIDTH   114
+#define _BUTTONHEIGHT  30
+int MENUSIZE, MINBOX, BUTTONWIDTH, BUTTONHEIGHT;
 #define COLORBUTTONS  4
 
 #define LEFTFRAME    0
 #define RIGHTFRAME   1
 
+#ifndef FB_DEVICE
+#define FB_DEVICE	"/dev/fb/0"
+#endif
+#ifndef FB_DEVICE_FALLBACK
+#define FB_DEVICE_FALLBACK	"/dev/fb0"
+#endif
+#ifndef CONFIGDIR
+#define CONFIGDIR "/var/tuxbox/config/"
+#endif
+#ifndef FONTDIR
+#define FONTDIR	"/share/fonts/"
+#endif
 #define DEFAULT_PATH "/"
-#define charset " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#!$%&?*()@\\/=<>+-_,.;:"
+static const char *charset = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#!$%&?*()@\\/=<>+-_,.;:";
 
 #define FILEBUFFER_SIZE (100 * 1024) // Edit files up to 100k
 #define FTPBUFFER_SIZE  (200 * 1024) // FTP Download Buffer size
 
-#define MSG_VERSION    "Tuxbox Commander Version 1.18\n"
+#define MSG_VERSION    "Tuxbox Commander Version 1.20"
 #define MSG_COPYRIGHT  "© dbluelle 2004-2007"
 
 // rc codes
@@ -189,16 +198,15 @@ int rcaltgrtable[] =
 #define KBC_PAGEUP	0x0B
 #define KBC_PAGEDOWN	0x0C
 #define KBC_RETURN	0x0D
-#define KBLCKFILE "/tmp/keyboard.lck"										//! file to lock keyboard-conversion
 
+#define KBLCKFILE "/tmp/keyboard.lck"										//! file to lock keyboard-conversion
 
 
 //freetype stuff
 
-//#define FONT "/usr/share/fonts/md_khmurabi_10.ttf"
-#define FONT "/share/fonts/neutrino.ttf"
+#define FONT FONTDIR "neutrino.ttf"
 // if font is not in usual place, we look here:
-#define FONT2 "/share/fonts/pakenham.ttf"
+#define FONT2 FONTDIR "pakenham.ttf"
 
 enum {LANG_INT,LANG_DE, LANG_IT, LANG_SV, LANG_PT};
 enum {RC_NORMAL,RC_EDIT};
@@ -220,41 +228,34 @@ enum {OK, OKCANCEL, OKHIDDENCANCEL,YESNOCANCEL,NOBUTTON,OVERWRITECANCEL,OVERWRIT
 enum {YES, NO, HIDDEN,CANCEL, OVERWRITE, SKIP, OVERWRITEALL,SKIPALL,EDIT, RENAME, SEARCHRESULT, EDITOR};
 enum {GZIP,BZIP2,COMPRESS,TAR,FTP};
 
-#define FONTHEIGHT_VERY_SMALL 20
-#define FONTHEIGHT_SMALL      24
-#define FONTHEIGHT_BIG        32
-#define FONT_OFFSET           5
-#define FONT_OFFSET_BIG       6
+#define _FONTHEIGHT_VERY_SMALL 20
+#define _FONTHEIGHT_SMALL      24
+#define _FONTHEIGHT_BIG        32
+#define _FONT_OFFSET           5
+#define _FONT_OFFSET_BIG       6
 #define BORDERSIZE            5
+int FONTHEIGHT_VERY_SMALL, FONTHEIGHT_SMALL, FONTHEIGHT_BIG, FONT_OFFSET, FONT_OFFSET_BIG;
 //framebuffer stuff
 
 enum {FILL, GRID};
 enum {TRANSP, WHITE, BLACK, BLUE1, BLUE2, ORANGE, GREEN, YELLOW, RED, GRAY,GREEN2,GRAY2, BLUE_TRANSP, GRAY_TRANSP, BLUE3};
 
-unsigned char *lfb = 0, *lbb = 0;
+uint32_t *lfb = NULL, *lbb = NULL;
 
 struct fb_fix_screeninfo fix_screeninfo;
 struct fb_var_screeninfo var_screeninfo;
 
-unsigned char bgra[][4] = { 
-"\x00\x00\x00\x00", "\xFF\xFF\xFF\xFF", "\x00\x00\x00\xFF", "\x80\x00\x00\xFF",
-"\xFF\x80\x00\xFF", "\x00\xC0\xFF\xFF", "\x00\xD0\x00\xFF", "\x00\xE8\xE8\xFF",
-"\x00\x00\xFF\xFF", "\xB0\xB0\xB0\xFF", "\x00\xFF\x00\xFF", "\x50\x50\x50\xFF",
-"\x80\x00\x00\xC0", "\x50\x50\x50\xC0", "\xFF\x40\x00\xFf" };
+static uint32_t bgra[] = {
+	0x00000000, 0xffffffff, 0xff000000, 0xff000080,
+	0xff0080ff, 0xffffc000, 0xff00d000, 0xffe8e800,
+	0xffff0000, 0xffb0b0b0, 0xff00ff00, 0xff505050,
+	0xc0000080, 0xc0505050, 0xff0040ff };
 
 #define CONFIG_FILE "/var/tuxbox/config/tuxcom.conf"
-
-unsigned short rd[] = {0xFF<<8, 0x00<<8, 0x00<<8, 0x00<<8, 0xFF<<8, 0x00<<8, 0xE8<<8, 0xFF<<8, 0xb0<<8, 0x00<<8, 0x50<<8, 0x00<<8, 0x50<<8, 0x00<<8};
-unsigned short gn[] = {0xFF<<8, 0x00<<8, 0x00<<8, 0x80<<8, 0xC0<<8, 0xd0<<8, 0xE8<<8, 0x00<<8, 0xb0<<8, 0xff<<8, 0x50<<8, 0x00<<8, 0x50<<8, 0x40<<8};
-unsigned short bl[] = {0xFF<<8, 0x00<<8, 0x80<<8, 0xFF<<8, 0x00<<8, 0x00<<8, 0x00<<8, 0x00<<8, 0xb0<<8, 0x00<<8, 0x50<<8, 0x80<<8, 0x50<<8, 0xff<<8};
-unsigned short tr[] = {0x0000,  0x0000,  0x0000,  0x0000,  0x0000,  0x0000,  0x0000,  0x0000,  0x0000 , 0x0000 , 0x0000 , 0x80ff , 0x80ff , 0x0000 };
-struct fb_cmap colormap = {1, 14, rd, gn, bl, tr};
 
 
 int trans_map     [] = {BLUE1,BLUE_TRANSP,TRANSP};
 int trans_map_mark[] = {GRAY2,GRAY_TRANSP,GRAY_TRANSP};
-
-struct input_event ev;
 
 unsigned short rccode;
 char kbcode;
@@ -265,7 +266,7 @@ int avs, saa, fnc_old, saa_old, screenmode;
 int rc, fb, kb;
 int sx, ex, sy, ey;
 int PosX, PosY, StartX, StartY, FrameWidth, NameWidth, SizeWidth;
-int curframe, cursort, curvisibility, singleview;
+int curframe, cursort, curvisibility, singleview, lastnoncur;
 int tool[MENUITEMS*2];
 int colortool[COLORBUTTONS];
 int overwriteall, skipall;
@@ -284,8 +285,6 @@ char szTextSearchstring[FILENAME_MAX];
 char szPass[20];
 long commandsize;
 
-//int fncmodes[] = {AVS_FNCOUT_EXT43, AVS_FNCOUT_EXT169};
-//int saamodes[] = {SAA_WSS_43F, SAA_WSS_169F};
 
 FILE *conf;
 int language, langselect, autosave, filesize_in_byte;
@@ -433,7 +432,7 @@ char *info[]   = { "(select 'hidden' to copy in background)"               ,"('v
 				   "search result"									       ,"Suchergebnis"                                                  ,"Risultato della ricerca"                                       ,"Sökresultat"                                       ,"Resultado da pesquisa"                                ,
 				   "settings saved"                                        ,"Einstellungen gespeichert"                                     ,"Impostazioni salvate"                                          ,"Inställningar sparade"                             ,"Gravar configuracoes"                                 ,
 				   "last access"                                           ,"letzter Zugriff"                                               ,"last access"                                                   ,"Senast öppnad"                                     ,"Ultimo acesso"                                        ,
-				   "last modified"                                         ,"letze Änderung"                                                ,"last modified"                                                 ,"Senast modifierad"                                 ,"Modificado a ultima vez"                              ,
+				   "last modified"                                         ,"letzte Änderung"                                               ,"last modified"                                                 ,"Senast modifierad"                                 ,"Modificado a ultima vez"                              ,
 				   "created"                                               ,"Erstellung"                                                    ,"created"                                                       ,"skapad"                                            ,"Criado"                                               ,
 				   "%m/%d/%Y %H:%M:%S"                                     ,"%d.%m.%Y %H:%M:%S"                                             ,"%m/%d/%Y %H:%M:%S"                                             ,"%Y-%m-%d %H:%M:%S"                                 ,"%m/%d/%Y %H:%M:%S"                                    };
 
@@ -575,7 +574,7 @@ struct frameinfo
 	unsigned long long  	marksize;
 	long          			first;
 	long		  			selected;
-	unsigned long  			count;
+	long			count;
 	unsigned long long  	size;
 	struct fileentry*		flist;
 	struct marker * 		mlist;
@@ -624,7 +623,7 @@ int 				DoMove(struct fileentry* pfe, int typ, int checktype);
 void	          	DoViewFile();
 void	          	DoEditFile(char* szFile, char* szTitle, int writable);
 void	          	DoTaskManager();
-int               	DoEditString(int x, int y, int width, int maxchars, char* str, int vsize, int back, int pass);
+int			DoEditString(int x, int y, int width, unsigned int maxchars, char* str, int vsize, int back, int pass);
 int 	          	ShowProperties();
 void 		 	  	RenderButtons(int he, int mode);
 int 			  	flistcmp(struct fileentry * p1, struct fileentry * p2);
