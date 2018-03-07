@@ -76,10 +76,10 @@ int MENUSIZE, MINBOX, BUTTONWIDTH, BUTTONHEIGHT;
 #define FB_DEVICE_FALLBACK	"/dev/fb0"
 #endif
 #ifndef CONFIGDIR
-#define CONFIGDIR "/var/tuxbox/config/"
+#define CONFIGDIR "/var/tuxbox/config"
 #endif
 #ifndef FONTDIR
-#define FONTDIR	"/share/fonts/"
+#define FONTDIR	"/share/fonts"
 #endif
 #define DEFAULT_PATH "/"
 static const char *charset = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#!$%&?*()@\\/=<>+-_,.;:";
@@ -204,9 +204,9 @@ int rcaltgrtable[] =
 
 //freetype stuff
 
-#define FONT FONTDIR "neutrino.ttf"
+#define FONT FONTDIR "/neutrino.ttf"
 // if font is not in usual place, we look here:
-#define FONT2 FONTDIR "pakenham.ttf"
+#define FONT2 FONTDIR "/pakenham.ttf"
 
 enum {LANG_INT,LANG_DE, LANG_IT, LANG_SV, LANG_PT};
 enum {RC_NORMAL,RC_EDIT};
@@ -251,7 +251,7 @@ static uint32_t bgra[] = {
 	0xffff0000, 0xffb0b0b0, 0xff00ff00, 0xff505050,
 	0xc0000080, 0xc0505050, 0xff0040ff };
 
-#define CONFIG_FILE "/var/tuxbox/config/tuxcom.conf"
+#define CONFIG_FILE CONFIGDIR "/tuxcom.conf"
 
 
 int trans_map     [] = {BLUE1,BLUE_TRANSP,TRANSP};
