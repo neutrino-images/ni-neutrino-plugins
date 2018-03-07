@@ -60,7 +60,7 @@ typedef struct {int fnum; FILE *fh[16];} FSTRUCT, *PFSTRUCT;
 
 static int direct[32];
 int MAX_FUNCS=10;
-static int STYP=1;
+
 
 typedef struct {char *entry; char *message; int headerpos; int type; int underline; int stay; int showalways;} LISTENTRY;
 typedef LISTENTRY *PLISTENTRY;
@@ -1584,7 +1584,7 @@ int llev=m->headerlevels[m->act_header], lmen=m->act_header, lentr=m->lastheader
 
 int main (int argc, char **argv)
 {
-	int index=0,cindex=0,mainloop=1,dloop=1,tv, spr, resolution;
+	int index=0,cindex=0,mainloop=1,tv, spr, resolution;
 	char tstr[BUFSIZE]={0}, *rptr;
 	PLISTENTRY pl;
 
@@ -1848,7 +1848,7 @@ int main (int argc, char **argv)
 	while(mainloop)
 	{
 		cindex=Get_Selection(&menu);
-		dloop=1;
+
 		switch(cindex)
 		{
 			case -1:
