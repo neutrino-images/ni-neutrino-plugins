@@ -1374,7 +1374,7 @@ static void ShowInfo(MENU *m, int knew )
 		RenderBox(ixw-sbw + sbo, moffs + scrollbar_ofs + sbo, ixw - sbo, moffs + scrollbar_ofs + scrollbar_cor - sbo, radius, COL_MENUCONTENT_PLUS_3);
 	}
 	int iw,ih;
-	int offset, hoffs = (m->headermed[m->act_header]==1)?0:scale2res(48);
+	int offset = 0, hoffs = (m->headermed[m->act_header]==1)?0:scale2res(48);
 	int ioffs = xoffs+8; // + half standard icon
 	if(m->icon[m->act_header])
 	{
