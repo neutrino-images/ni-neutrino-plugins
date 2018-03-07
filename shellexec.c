@@ -1779,7 +1779,7 @@ int main (int argc, char **argv)
 	}
 	else
 		desc.face_id = FONT;
-	printf("%s <FTC_Manager_LookupFace Font \"%s\" loaded>\n", __plugin__, desc.face_id);
+	printf("%s <FTC_Manager_LookupFace Font \"%p\" loaded>\n", __plugin__, desc.face_id);
 
 	use_kerning = FT_HAS_KERNING(face);
 	desc.flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT;
