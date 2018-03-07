@@ -774,12 +774,12 @@ void SetLanguage()
 	}
 }
 
-void read_neutrino_osd_conf(int *ex,int *sx,int *ey, int *sy)
+void read_neutrino_osd_conf(int *Ex,int *Sx,int *Ey, int *Sy)
 {
 	const char *filename="/var/tuxbox/config/neutrino.conf";
 	const char spres[][4]={"","crt","lcd"};
 	char sstr[4][32];
-	int pres=-1, resolution=-1, loop, *sptr[4]={ex, sx, ey, sy};
+	int pres=-1, resolution=-1, loop, *sptr[4]={Ex, Sx, Ey, Sy};
 	char *buffer;
 	size_t len;
 	ssize_t read;
