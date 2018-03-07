@@ -334,7 +334,7 @@ const char kalp[12][6]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrsß","tuvü","w
 	*rstr=0;
 
 	j=0;
-	for(i=0; i<strlen(format); i++)
+	for(i=0; i<(int)strlen(format); i++)
 	{
 		tch=format[i];
 		if(IsInput(tch))
@@ -343,7 +343,7 @@ const char kalp[12][6]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrsß","tuvü","w
 			{
 				epos=i;
 			}
-			if(defstr && j<strlen(defstr))
+			if(defstr && j<(int)strlen(defstr))
 			{
 				estr[i]=defstr[j++];
 			}
@@ -603,7 +603,7 @@ const char kalp[12][6]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrsß","tuvü","w
 			
 			case KEY_YELLOW:
 				epos=-1;
-				for(i=0; i<strlen(format); i++)
+				for(i=0; i<(int)strlen(format); i++)
 				{
 					if(IsInput(format[i]))
 					{
@@ -635,7 +635,7 @@ const char kalp[12][6]={"+-*/","abcä","def","ghi","jkl","mnoö","pqrsß","tuvü","w
 	if(estr)
 	{
 		j=0;
-		for(i=0; i<strlen(format); i++)
+		for(i=0; i<(int)strlen(format); i++)
 		{
 			if(IsInput(format[i]))
 			{
