@@ -1182,13 +1182,13 @@ int main()
 								switch (MessageBox(szMessage,info[INFO_EXEC*NUM_LANG+language],OKHIDDENCANCEL))
 								{
 									case YES:
-										sprintf(action,"\"%s%s\"",finfo[curframe].path, pfe->name);
+										snprintf(action, sizeof(action), "\"%s%s\"", finfo[curframe].path, pfe->name);
 										DoExecute(action, SHOW_OUTPUT);
 										FillDir(1-curframe,SELECT_NOCHANGE);
 										FillDir(  curframe,SELECT_NOCHANGE);
 										break;
 									case HIDDEN:
-										sprintf(action,"\"%s%s\" &",finfo[curframe].path, pfe->name);
+										snprintf(action, sizeof(action), "\"%s%s\"", finfo[curframe].path, pfe->name);
 										DoExecute(action, SHOW_NO_OUTPUT);
 										break;
 									default:
@@ -1238,13 +1238,13 @@ int main()
 						switch (MessageBox(szMessage,info[INFO_EXEC*NUM_LANG+language],OKHIDDENCANCEL))
 						{
 							case YES:
-								sprintf(action,"\"%s%s\"",finfo[curframe].path, pfe->name);
+								snprintf(action, sizeof(action), "\"%s%s\"", finfo[curframe].path, pfe->name);
 								DoExecute(action, SHOW_OUTPUT);
 								FillDir(1-curframe,SELECT_NOCHANGE);
 								FillDir(  curframe,SELECT_NOCHANGE);
 								break;
 							case HIDDEN:
-								sprintf(action,"\"%s%s\" &",finfo[curframe].path, pfe->name);
+								snprintf(action, sizeof(action), "\"%s%s\"", finfo[curframe].path, pfe->name);
 								DoExecute(action, SHOW_NO_OUTPUT);
 								break;
 							default:
@@ -1557,7 +1557,7 @@ int main()
 										pfe = getfileentry(curframe, pos);
 										sprintf(szMessage,msg[MSG_DELETE_PROGRESS*NUM_LANG+language], pfe->name);
 										MessageBox(szMessage,"",NOBUTTON);
-										sprintf(action,"rm -f -r \"%s%s\"",finfo[curframe].path,pfe->name);
+										snprintf(action, sizeof(action), "rm -f -r \"%s%s\"", finfo[curframe].path, pfe->name);
 										DoExecute(action, SHOW_NO_OUTPUT);
 									}
 								}
@@ -1573,7 +1573,7 @@ int main()
 							{
 								sprintf(szMessage,msg[MSG_DELETE_PROGRESS*NUM_LANG+language], pfe->name);
 								MessageBox(szMessage,"",NOBUTTON);
-								sprintf(action,"rm -f -r \"%s%s\"",finfo[curframe].path,pfe->name);
+								snprintf(action, sizeof(action), "rm -f -r \"%s%s\"", finfo[curframe].path, pfe->name);
 								DoExecute(action, SHOW_NO_OUTPUT);
 								FillDir(1-curframe,SELECT_NOCHANGE);
 								FillDir(  curframe,SELECT_NOCHANGE);
@@ -1625,7 +1625,7 @@ int main()
 							{
 								if (*szDir != 0x00)
 								{
-									sprintf(action,"ln -s \"%s%s\" \"%s%s\"",finfo[curframe].path, pfe->name,finfo[1-curframe].path, szDir);
+									snprintf(action, sizeof(action), "ln -s \"%s%s\" \"%s%s\"", finfo[curframe].path, pfe->name,finfo[1-curframe].path, szDir);
 									DoExecute(action, SHOW_NO_OUTPUT);
 									FillDir(1-curframe,SELECT_NOCHANGE);
 									FillDir(  curframe,SELECT_NOCHANGE);
