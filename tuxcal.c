@@ -16,47 +16,19 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- *-----------------------------------------------------------------------------
- * $Log: tuxcal.c,v $
- * Revision 1.08  2007/05/17 16:19:47  dbluelle
- * Make plugins compile with freeetype 2.1.x on dreambox (as needed for Neutrino on Dreambox)
- *
- * Revision 1.07  2006/03/05 15:59:37  robspr1
- * - use /tmp/keyboard.lck to signal decoding of the keyboard
- *
- * Revision 1.06  2006/02/24 08:13:29  robspr1
- * - bugfix Editor background
- *
- * Revision 1.05  2006/02/23 23:07:25  robspr1
- * - change SKIN2, signal up to 5 days, toggle clock-display file
- *
- * Revision 1.04  2006/02/18 14:57:13  robspr1
- * add signaling at fixed times, some small fixes
- *
- * Revision 1.03  2006/02/17 21:29:36  robspr1
- * -add command to switch/hide the clock
- *
- * Revision 1.02  2006/02/15 19:11:33  robspr1
- * first version in CVS
- *
- * Revision 1.01  2006/02/12 23:10:00  robspr1
- * - bugfix reading params POS_X and POS_Y (needed by the daemon)
- *
- * Revision 1.00  2006/02/06 20:00:00  robspr1
- * - first version
  ******************************************************************************/
 // lots of code is from the tuxmail-project
 
 #include "tuxcal.h"
-#define _GNU_SOURCE
-#include <stdio.h>
+#include "rc_device.h"
+//#include <stdio.h>
 
-void read_neutrino_osd_conf(int *ex,int *sx,int *ey, int *sy)
+void read_neutrino_osd_conf(int *Ex,int *Sx,int *Ey, int *Sy)
 {
-	const char *filename="/var/tuxbox/config/neutrino.conf";
+	const char *filename= CONFIGDIR "/neutrino.conf";
 	const char spres[][4]={"","crt","lcd"};
 	char sstr[4][32];
-	int pres=-1, resolution=-1, loop, *sptr[4]={ex, sx, ey, sy};
+	int pres=-1, resolution=-1, loop, *sptr[4]={Ex, Sx, Ey, Sy};
 	char *buffer;
 	size_t len;
 	ssize_t read;
@@ -105,12 +77,7 @@ void read_neutrino_osd_conf(int *ex,int *sx,int *ey, int *sy)
 /******************************************************************************
  * ReadConf
  ******************************************************************************/
-/*!
- * read configuration-file 
 
- \param			: none
- \return 		: none
-*/
 void ReadConf()
 {
 	FILE *fd_conf;
@@ -118,7 +85,7 @@ void ReadConf()
 	char line_buffer[256];
 
 	// open config-file
-	if (!(fd_conf = fopen(CFGPATH CFGFILE, "r")))
+	if (!(fd_conf = fopen(CONFIGDIR CFGFILE, "r")))
 	{
 		printf("TuxCal <Config not found, using defaults>\n");
 		return;
@@ -267,18 +234,13 @@ void ReadConf()
 /******************************************************************************
  * WriteConf
  ******************************************************************************/
-/*!
- * write the configuration back to the file
- 
- \param			: none
- \return 		: 1:OK    0:FAILED    
-*/
+
 int WriteConf()
 {
 	FILE *fd_conf;
 
 	// open config-file
-	if (!(fd_conf = fopen(CFGPATH CFGFILE , "w")))
+	if (!(fd_conf = fopen(CONFIGDIR CFGFILE , "w")))
 	{
 		return 0;
 	}
@@ -315,12 +277,7 @@ int WriteConf()
 /******************************************************************************
  * ControlDaemon 
  ******************************************************************************/
-/*
- * we do have a connection to a daemon, this daemon will signal an alarm
- 
- \param	command	: different command-codes, e.g. GET_VERSION
- \return 				: 1:OK   0:FAILED
-*/
+
 int ControlDaemon(int command)
 {
 	int fd_sock;																													// socket to daemon
@@ -388,14 +345,8 @@ int ControlDaemon(int command)
 /******************************************************************************
  * GetRCCode
  ******************************************************************************/
-/*!
- * this is the remote-control function, similar one is used in TuxMail
- * very different for dBox and Dreambox
- 
- \param			: none
- \return 		: remote-control or keyboard-code
-*/
-#define REPEAT_TIMER 3
+
+#if defined HAVE_COOL_HARDWARE || HAVE_TRIPLEDRAGON || HAVE_SPARK_HARDWARE || defined(HAVE_DUCKBOX_HARDWARE) || HAVE_ARM_HARDWARE
 int GetRCCode()
 {
 	static int count = 0;
@@ -430,91 +381,11 @@ int GetRCCode()
 				case KEY_GREEN:		rccode = RC_GREEN;		break;
 				case KEY_YELLOW:	rccode = RC_YELLOW;		break;
 				case KEY_BLUE:		rccode = RC_BLUE;		break;
+				case KEY_HELP:		rccode = RC_HELP;		break;
 				case KEY_INFO:		rccode = RC_HELP;		break;
+				case KEY_SETUP:		rccode = RC_DBOX;		break;
 				case KEY_MENU:		rccode = RC_DBOX;		break;
-				case KEY_EXIT:		rccode = RC_HOME;		break;
-				case KEY_POWER:		rccode = RC_STANDBY;	break;
-				default:
-					if ( ev.code > 0x7F )
-					{
-						rccode = 0;
-						if ( ev.code == 0x110 )
-						{
-							rccode = RC_ON;
-						}
-					}
-					else
-					{
-						rccode = rctable[ev.code & 0x7F];
-					}
-					if ( rc_last_code == RC_LSHIFT )
-					{
-						if ( ev.code <= 0x56 ) //(sizeof(rcshifttable)/sizeof(int)-1)
-						{
-							rccode = rcshifttable[ev.code];
-						}
-					}
-					else if ( rc_last_code == RC_ALTGR )
-					{
-						if ( ev.code <= 0x56 ) //(sizeof(rcaltgrtable)/sizeof(int)-1)
-						{
-							rccode = rcaltgrtable[ev.code];
-						}
-					}
-					else if ( rc_last_code == RC_ALT )
-					{
-						if ( ( ev.code >=2 ) && ( ev.code <= 11 ) )
-						{
-							rccode = ( ev.code-1 ) | 0x0200;
-						}
-					}
-//					if( !rccode )
-					{
-//						rccode = -1;
-					}
-
-			}
-			rc_last_code = rccode;
-			return 1;
-		}
-		else
-		{
-			rccode = -1;
-			rc_last_key = KEY_RESERVED;
-			rc_last_code = KEY_RESERVED;
-		}
-	}
-
-	count=0;
-	if ( read ( kb, &ev, sizeof ( ev ) ) == sizeof ( ev ) )
-	{
-		if ( ev.value )
-		{
-			if ( ev.code == rc_last_key )
-			{
-				if ( count < REPEAT_TIMER )
-				{
-					count++;
-					rccode = -1;
-					return 1;
-				}
-			}
-			else
-				count = 0;
-			rc_last_key = ev.code;
-			switch ( ev.code )
-			{
-				case KEY_UP:		rccode = RC_UP;			break;
-				case KEY_DOWN:		rccode = RC_DOWN;		break;
-				case KEY_LEFT:		rccode = RC_LEFT;		break;
-				case KEY_RIGHT:		rccode = RC_RIGHT;		break;
-				case KEY_OK:		rccode = RC_OK;			break;
-				case KEY_RED:		rccode = RC_RED;		break;
-				case KEY_GREEN:		rccode = RC_GREEN;		break;
-				case KEY_YELLOW:	rccode = RC_YELLOW;		break;
-				case KEY_BLUE:		rccode = RC_BLUE;		break;
-				case KEY_INFO:		rccode = RC_HELP;		break;
-				case KEY_MENU:		rccode = RC_DBOX;		break;
+				case KEY_HOME:		rccode = RC_HOME;		break;
 				case KEY_EXIT:		rccode = RC_HOME;		break;
 				case KEY_POWER:		rccode = RC_STANDBY;	break;
 				default:
@@ -574,27 +445,191 @@ int GetRCCode()
 	usleep ( 1000000/100 );
 	return 0;
 }
+#endif
+
+#if defined HAVE_DREAMBOX_HARDWARE || defined HAVE_IPBOX_HARDWARE
+int GetRCCode(/*int mode*/)
+{
+	static int count = 0;
+	//get code
+	static unsigned short LastKey = -1;
+	static char LastKBCode = 0x00;
+	rccode = -1;
+	int bytesavail = 0;
+	int bytesread = read(rc, &rccode, 2);
+	unsigned short tmprc;
+	kbcode = 0;
+
+	if (bytesread == 2)
+	{
+		if (read(rc, &tmprc, 2) == 2)
+		{
+			if (rccode == tmprc && count >= 0)
+				count++;
+		}
+	}
+
+
+	// Tastaturabfrage
+	ioctl(kb, FIONREAD, &bytesavail);
+	if (bytesavail>0)
+	{
+		char tch[100];
+		if (bytesavail > 99) bytesavail = 99;
+		read(kb,tch,bytesavail);
+		tch[bytesavail] = 0x00;
+		kbcode = tch[0];
+		LastKBCode = kbcode;
+		if (bytesavail == 1 && kbcode == 0x1b) { LastKey = RC_HOME ; rccode = -1  ; count = -1; return 1;} // ESC-Taste
+		if (bytesavail == 1 && kbcode == '\n') { LastKey = RC_OK   ; rccode = -1  ; count = -1; return 1;} // Enter-Taste
+		if (bytesavail == 1 && kbcode == '+' ) { LastKey = RC_PLUS ; rccode = -1  ; count = -1; return 1;}
+		if (bytesavail == 1 && kbcode == '-' ) { LastKey = RC_MINUS; rccode = -1  ; count = -1; return 1;}
+		if (bytesavail >= 3 && tch[0] == 0x1b && tch[1] == 0x5b)
+		{
+			if (tch[2] == 0x41 )                                    { kbcode = LastKBCode = 0x00; rccode = RC_UP        ; LastKey = rccode; count = -1; return 1; }// Cursortasten
+			if (tch[2] == 0x42 )                                    { kbcode = LastKBCode = 0x00; rccode = RC_DOWN      ; LastKey = rccode; count = -1; return 1; }// Cursortasten
+			if (tch[2] == 0x43 )                                    { kbcode = LastKBCode = 0x00; rccode = RC_RIGHT     ; LastKey = rccode; count = -1; return 1; }// Cursortasten
+			if (tch[2] == 0x44 )                                    { kbcode = LastKBCode = 0x00; rccode = RC_LEFT      ; LastKey = rccode; count = -1; return 1; }// Cursortasten
+			if (tch[2] == 0x33 && tch[3] == 0x7e)                   { kbcode = LastKBCode = 0x00; rccode = RC_MINUS     ; LastKey = rccode; count = -1; return 1; }// entf-Taste
+			if (tch[2] == 0x32 && tch[3] == 0x7e)                   { kbcode = LastKBCode = 0x00; rccode = RC_PLUS      ; LastKey = rccode; count = -1; return 1; }// einf-Taste
+			if (tch[2] == 0x35 && tch[3] == 0x7e)                   { kbcode = LastKBCode = 0x00; rccode = RC_PLUS      ; LastKey = rccode; count = -1; return 1; }// PgUp-Taste
+			if (tch[2] == 0x36 && tch[3] == 0x7e)                   { kbcode = LastKBCode = 0x00; rccode = RC_MINUS     ; LastKey = rccode; count = -1; return 1; }// PgDn-Taste
+			if (tch[2] == 0x5b && tch[3] == 0x45)                   { kbcode = LastKBCode = 0x00; rccode = RC_RED       ; LastKey = rccode; count = -1; return 1; }// F5-Taste
+			if (tch[2] == 0x31 && tch[3] == 0x37 && tch[4] == 0x7e) { kbcode = LastKBCode = 0x00; rccode = RC_GREEN     ; LastKey = rccode; count = -1; return 1; }// F6-Taste
+			if (tch[2] == 0x31 && tch[3] == 0x38 && tch[4] == 0x7e) { kbcode = LastKBCode = 0x00; rccode = RC_YELLOW    ; LastKey = rccode; count = -1; return 1; }// F7-Taste
+			if (tch[2] == 0x31 && tch[3] == 0x39 && tch[4] == 0x7e) { kbcode = LastKBCode = 0x00; rccode = RC_BLUE      ; LastKey = rccode; count = -1; return 1; }// F8-Taste
+			if (tch[2] == 0x32 && tch[3] == 0x30 && tch[4] == 0x7e) { kbcode = LastKBCode = 0x00; rccode = RC_DBOX      ; LastKey = rccode; count = -1; return 1; }// F9-Taste
+			if (tch[2] == 0x32 && tch[3] == 0x31 && tch[4] == 0x7e) { kbcode = LastKBCode = 0x00; rccode = RC_HELP      ; LastKey = rccode; count = -1; return 1; }// F10-Taste
+			if (tch[2] == 0x32 && tch[3] == 0x33 && tch[4] == 0x7e) { kbcode = LastKBCode = 0x00; rccode = RC_MUTE      ; LastKey = rccode; count = -1; return 1; }// F11-Taste
+		}
+#if 0
+		if (mode == RC_EDIT)
+		{
+/*
+			char tmsg[100];
+			int i;
+			sprintf(tmsg,"KeyboardCode:avail:%d, char:%c, rccode:%x ",bytesavail,(kbcode == 0x00 ? '*' : kbcode ),rccode);
+			for (i = 0; i < bytesavail; i++) sprintf(tmsg,"%s%x",tmsg,tch[i]);
+			MessageBox(tmsg,"",NOBUTTON);
+*/
+			LastKey = rccode;
+			count = -1;
+			switch (rccode)
+			{
+				case KEY_0:
+				case KEY_1:
+				case KEY_2:
+				case KEY_3:
+				case KEY_4:
+				case KEY_5:
+				case KEY_6:
+				case KEY_7:
+				case KEY_8:
+				case KEY_9:
+					// SMS-Style verhindern
+					rccode = -1;
+					break;
+			}
+			return 1;
+		}
+		else
+#endif
+		if (bytesread <= 0)
+		{
+			if (kbcode == '0') { kbcode = 0x00;rccode = RC_0  ; LastKey = rccode; return 1;}
+			if (kbcode == '1') { kbcode = 0x00;rccode = RC_1  ; LastKey = rccode; return 1;}
+			if (kbcode == '2') { kbcode = 0x00;rccode = RC_2  ; LastKey = rccode; return 1;}
+			if (kbcode == '3') { kbcode = 0x00;rccode = RC_3  ; LastKey = rccode; return 1;}
+			if (kbcode == '4') { kbcode = 0x00;rccode = RC_4  ; LastKey = rccode; return 1;}
+			if (kbcode == '5') { kbcode = 0x00;rccode = RC_5  ; LastKey = rccode; return 1;}
+			if (kbcode == '6') { kbcode = 0x00;rccode = RC_6  ; LastKey = rccode; return 1;}
+			if (kbcode == '7') { kbcode = 0x00;rccode = RC_7  ; LastKey = rccode; return 1;}
+			if (kbcode == '8') { kbcode = 0x00;rccode = RC_8  ; LastKey = rccode; return 1;}
+			if (kbcode == '9') { kbcode = 0x00;rccode = RC_9  ; LastKey = rccode; return 1;}
+		}
+	}
+	if (bytesread == 2)
+	{
+		if (rccode == LastKey && LastKBCode != 0x00 && LastKBCode == kbcode)
+		{
+				return 1;
+		}
+		LastKBCode = 0x00;
+		if (rccode == LastKey)
+		{
+			if (count < REPEAT_TIMER)
+			{
+				if (count >= 0)
+					count++;
+				rccode = -1;
+				return 1;
+			}
+		}
+		else
+			count = 0;
+		LastKey = rccode;
+		if ((rccode & 0xFF00) == 0x5C00)
+		{
+			kbcode = 0;
+			switch(rccode)
+			{
+				case KEY_UP:		rccode = RC_UP;			break;
+				case KEY_DOWN:		rccode = RC_DOWN;		break;
+				case KEY_LEFT:		rccode = RC_LEFT;		break;
+				case KEY_RIGHT:		rccode = RC_RIGHT;		break;
+				case KEY_OK:		rccode = RC_OK;			break;
+				case KEY_0:			rccode = RC_0;			break;
+				case KEY_1:			rccode = RC_1;			break;
+				case KEY_2:			rccode = RC_2;			break;
+				case KEY_3:			rccode = RC_3;			break;
+				case KEY_4:			rccode = RC_4;			break;
+				case KEY_5:			rccode = RC_5;			break;
+				case KEY_6:			rccode = RC_6;			break;
+				case KEY_7:			rccode = RC_7;			break;
+				case KEY_8:			rccode = RC_8;			break;
+				case KEY_9:			rccode = RC_9;			break;
+				case KEY_RED:		rccode = RC_RED;		break;
+				case KEY_GREEN:		rccode = RC_GREEN;		break;
+				case KEY_YELLOW:	rccode = RC_YELLOW;		break;
+				case KEY_BLUE:		rccode = RC_BLUE;		break;
+				case KEY_VOLUMEUP:	rccode = RC_PLUS;		break;
+				case KEY_VOLUMEDOWN:rccode = RC_MINUS;		break;
+				case KEY_MUTE:		rccode = RC_MUTE;		break;
+				case KEY_HELP:		rccode = RC_HELP;		break;
+				case KEY_SETUP:		rccode = RC_DBOX;		break;
+				case KEY_HOME:		rccode = RC_HOME;		break;
+				case KEY_POWER:		rccode = RC_STANDBY;	break;
+			}
+			return 1;
+		}
+		else
+		{
+			rccode &= 0x003F;
+		}
+		return 0;
+	}
+	time(&tt);																	// read the actual time	
+	at = localtime(&tt);
+
+	rccode = -1;
+	usleep(1000000/100);
+	return 0;
+}
+#endif
 
 /******************************************************************************
  * MyFaceRequester
  ******************************************************************************/
-/*!
- * load font
- 
- \param	face_id				: FTC_FaceID
- \param library				: FT_Library
- \param request_data	: FT_Pointer
- \param afacs					: FT_Face*
- \return 							: FT_Error
-*/
-FT_Error MyFaceRequester(FTC_FaceID face_id, FT_Library library, FT_Pointer request_data, FT_Face *aface)
+
+FT_Error MyFaceRequester(FTC_FaceID face_id, FT_Library _library, FT_Pointer request_data, FT_Face *aface)
 {
 	FT_Error result;
+	(void)request_data; /* avoid compiler warning about unused argument */
 
-	result = FT_New_Face(library, face_id, 0, aface);
+	result = FT_New_Face(_library, face_id, 0, aface);
 
 	if (!result) printf("TuxCal <Font \"%s\" loaded>\n", (char*)face_id);
-	else printf("TuxCal <Font \"%s\" failed>\n", (char*)face_id);
+	else         printf("TuxCal <Font \"%s\" failed>\n", (char*)face_id);
 	
 	return result;
 }
@@ -603,17 +638,8 @@ FT_Error MyFaceRequester(FTC_FaceID face_id, FT_Library library, FT_Pointer requ
 /******************************************************************************
  * RenderChar
  ******************************************************************************/
-/*!
- * render a character to the screen
- 
- \param currentchar	: FT_ULong
- \param sx					: startposition x
- \param sy					: startposition y
- \param ex					: endposition x
- \param color				: color
- \return 						: charwidth
-*/
-int RenderChar(FT_ULong currentchar, int sx, int sy, int ex, int color)
+
+int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 {
 	int row, pitch, bit, x = 0, y = 0;
 	FT_Error error;
@@ -648,7 +674,7 @@ int RenderChar(FT_ULong currentchar, int sx, int sy, int ex, int color)
 	// render char
 	if (color != -1) 																			// don't render char, return charwidth only 
 	{
-		if (sx + sbit->xadvance >= ex) return -1; 					// limit to maxwidth 
+		if (_sx + sbit->xadvance >= _ex) return -1; 					// limit to maxwidth 
 
 		for (row = 0; row < sbit->height; row++)
 		{
@@ -663,7 +689,7 @@ int RenderChar(FT_ULong currentchar, int sx, int sy, int ex, int color)
 
 					if ((sbit->buffer[row * sbit->pitch + pitch]) & 1<<bit)
 					{
-						memcpy ( lbb + startx*4 + sx*4 + ( sbit->left + kerning.x + x ) *4 + fix_screeninfo.line_length* ( starty + sy - sbit->top + y ),bgra[color+skin_offset],4 );
+						memcpy ( lbb + startx*4 + _sx*4 + ( sbit->left + kerning.x + x ) *4 + fix_screeninfo.line_length* ( starty + _sy - sbit->top + y ),bgra[color+skin_offset],4 );
 					}
 
 					x++;
@@ -709,9 +735,9 @@ int GetStringLen( char *string)
  * render a string to the screen
  
 */
-void RenderString( char *string, int sx, int sy, int maxwidth, int layout, int size, int color)
+void RenderString(const char *string, int _sx, int _sy, int maxwidth, int layout, int size, int color)
 {
-	int stringlen, ex, charwidth;
+	int stringlen, _ex, charwidth;
 
 	// set size
 	if(size == SMALL)
@@ -740,7 +766,7 @@ void RenderString( char *string, int sx, int sy, int maxwidth, int layout, int s
 			{
 				if(stringlen < maxwidth)
 				{
-					sx += (maxwidth - stringlen)/2;
+					_sx += (maxwidth - stringlen)/2;
 				} 
 			} break;
 
@@ -750,7 +776,7 @@ void RenderString( char *string, int sx, int sy, int maxwidth, int layout, int s
 			{
 				if(stringlen < maxwidth)
 				{
-					sx += maxwidth - stringlen;
+					_sx += maxwidth - stringlen;
 				}
 			} break;		
 		}
@@ -760,16 +786,16 @@ void RenderString( char *string, int sx, int sy, int maxwidth, int layout, int s
 	prev_glyphindex = 0;
 
 	// render string
-	ex = sx + maxwidth;
+	_ex = _sx + maxwidth;
 
 	while (*string != '\0')
 	{
-		if ((charwidth = RenderChar(*string, sx, sy, ex, color)) == -1)  return; // string > maxwidth 
+		if ((charwidth = RenderChar(*string, _sx, _sy, _ex, color)) == -1)  return; // string > maxwidth 
 
 		if ((layout == FIXEDLEFT) || (layout == FIXEDCENTER) || (layout == FIXEDRIGHT))
-			sx += (desc.width/2);
+			_sx += (desc.width/2);
 		else 
-			sx += charwidth;
+			_sx += charwidth;
 		string++;
 	}
 }
@@ -788,19 +814,19 @@ void RenderString( char *string, int sx, int sy, int maxwidth, int layout, int s
  \param color	: color to paint with
  \return      : none
 */
-void RenderBox ( int sx, int sy, int ex, int ey, int mode, int color )
+void RenderBox ( int _sx, int _sy, int _ex, int _ey, int mode, int color )
 {
 	int loop;
 	int tx;
 
 	if ( mode == FILL )
 	{
-		for ( ; sy < ey; sy++ )
+		for ( ; _sy < _ey; _sy++ )
 		{
 //			memset(lbb + startx + sx + var_screeninfo.xres*(starty + sy), color, ex-sx + 1);
-			for ( tx=0; tx < ( ex-sx ); tx++ )
+			for ( tx=0; tx < ( _ex-_sx ); tx++ )
 			{
-				memcpy ( lbb + startx*4 + sx*4 + ( tx*4 ) + fix_screeninfo.line_length* ( starty + sy ),bgra[color+skin_offset],4 );
+				memcpy ( lbb + startx*4 + _sx*4 + ( tx*4 ) + fix_screeninfo.line_length* ( starty + _sy ),bgra[color+skin_offset],4 );
 			}
 		}
 	}
@@ -808,22 +834,22 @@ void RenderBox ( int sx, int sy, int ex, int ey, int mode, int color )
 	{
 		// hor lines
 
-		for ( loop = sx; loop <= ex; loop++ )
+		for ( loop = _sx; loop <= _ex; loop++ )
 		{
-			memcpy ( lbb + startx*4+loop*4 + fix_screeninfo.line_length* ( sy+starty ), bgra[color+skin_offset], 4 );
-			memcpy ( lbb + startx*4+loop*4 + fix_screeninfo.line_length* ( sy+1+starty ), bgra[color+skin_offset], 4 );
-			memcpy ( lbb + startx*4+loop*4 + fix_screeninfo.line_length* ( ey-1+starty ), bgra[color+skin_offset], 4 );
-			memcpy ( lbb + startx*4+loop*4 + fix_screeninfo.line_length* ( ey+starty ), bgra[color+skin_offset], 4 );
+			memcpy ( lbb + startx*4+loop*4 + fix_screeninfo.line_length* ( _sy+starty ), bgra[color+skin_offset], 4 );
+			memcpy ( lbb + startx*4+loop*4 + fix_screeninfo.line_length* ( _sy+1+starty ), bgra[color+skin_offset], 4 );
+			memcpy ( lbb + startx*4+loop*4 + fix_screeninfo.line_length* ( _ey-1+starty ), bgra[color+skin_offset], 4 );
+			memcpy ( lbb + startx*4+loop*4 + fix_screeninfo.line_length* ( _ey+starty ), bgra[color+skin_offset], 4 );
 		}
 
 		// columns
 
-		for ( loop = sy; loop <= ey; loop++ )
+		for ( loop = _sy; loop <= _ey; loop++ )
 		{
-			memcpy ( lbb + startx*4+sx*4 + fix_screeninfo.line_length* ( loop+starty ), bgra[color+skin_offset], 4 );
-			memcpy ( lbb + startx*4+ ( sx+1 ) *4 + fix_screeninfo.line_length* ( loop+starty ), bgra[color+skin_offset], 4 );
-			memcpy ( lbb + startx*4+ ( ex-1 ) *4 + fix_screeninfo.line_length* ( loop+starty ), bgra[color+skin_offset], 4 );
-			memcpy ( lbb + startx*4+ex*4 + fix_screeninfo.line_length* ( loop+starty ), bgra[color+skin_offset], 4 );
+			memcpy ( lbb + startx*4+_sx*4 + fix_screeninfo.line_length* ( loop+starty ), bgra[color+skin_offset], 4 );
+			memcpy ( lbb + startx*4+ ( _sx+1 ) *4 + fix_screeninfo.line_length* ( loop+starty ), bgra[color+skin_offset], 4 );
+			memcpy ( lbb + startx*4+ ( _ex-1 ) *4 + fix_screeninfo.line_length* ( loop+starty ), bgra[color+skin_offset], 4 );
+			memcpy ( lbb + startx*4+_ex*4 + fix_screeninfo.line_length* ( loop+starty ), bgra[color+skin_offset], 4 );
 		}
 	}
 }
@@ -835,7 +861,7 @@ void RenderBox ( int sx, int sy, int ex, int ey, int mode, int color )
  * render a integer to the screen
  
 */
-void RenderInt(unsigned char *string, int sx, int sy, int maxwidth, int layout, int size, int color, int colorgrid, int colorfill)
+void RenderInt(const char *string, int _sx, int _sy, int maxwidth, int layout, int size, int color, int colorgrid, int colorfill)
 {
 	int x,y,cx,cy;
 	int sizey=FONTSIZE_NORMAL;
@@ -843,14 +869,14 @@ void RenderInt(unsigned char *string, int sx, int sy, int maxwidth, int layout, 
 	if (size==SMALL) sizey=FONTSIZE_SMALL;
 	else if (size==BIG) sizey=FONTSIZE_BIG;
 	
-	x=sx-5;
-	y=sy-sizey+8;
+	x=_sx-5;
+	y=_sy-sizey+8;
 	cx=x+maxwidth+3;
 	cy=y+sizey;	
 	if (colorfill!=-1) RenderBox(x,y,cx,cy,FILL,colorfill);
 	if (colorgrid!=-1) RenderBox(x,y,cx,cy,GRID,colorgrid);
 
-	RenderString(string,sx,sy,maxwidth,layout,size,color);
+	RenderString(string,_sx,_sy,maxwidth,layout,size,color);
 }
 
 /******************************************************************************
@@ -865,10 +891,10 @@ void RenderInt(unsigned char *string, int sx, int sy, int maxwidth, int layout, 
  \param iType	: index for the object to paint
  \return      : none
 */
-void RenderSObject(int sx, int sy, int color, int iType)
+void RenderSObject(int _sx, int _sy, int color, int iType)
 {
 	int x, y;
-  char* pObj=circle;
+	char* pObj=circle;
 
 	// choose the object
 	if (iType == OBJ_CIRCLE) pObj=circle;
@@ -884,7 +910,7 @@ void RenderSObject(int sx, int sy, int color, int iType)
 		for (x = 0; x < OBJ_SX; x++)				// for all lines
 		{
 			if (*pObj++)	// only paint if mask-value set
-				memcpy(lbb + startx*4 + sx*4 + x*4 + fix_screeninfo.line_length*(starty + sy + y), bgra[color+skin_offset], 4);
+				memcpy(lbb + startx*4 + _sx*4 + x*4 + fix_screeninfo.line_length*(starty + _sy + y), bgra[color+skin_offset], 4);
 
 		}
 	}
@@ -1023,8 +1049,8 @@ int* PaintEdit(EVT_DB* pEvt, int iEditLine, int iEditCol)
 	RenderBox(0, 0, MAXSCREEN_X,GRIDLINE, FILL, SKIN3);
 	RenderBox(0, 0, MAXSCREEN_X,GRIDLINE, GRID, SKIN2);
 	RenderBox(MAXSCREEN_X/2, 0, MAXSCREEN_X/2,GRIDLINE, GRID, SKIN2);
-	if (osdidx == 0) sprintf(info,"%u. %s %u",tShow_day,monthmsg[tShow_mon-1][osdidx],tShow_year);
-	else sprintf(info,"%s %u, %u",monthmsg[tShow_mon-1][osdidx],tShow_day,tShow_year);
+	if (osdidx == 0) sprintf(info,"%i. %s %i",tShow_day,monthmsg[tShow_mon-1][osdidx],tShow_year);
+	else sprintf(info,"%s %i, %i",monthmsg[tShow_mon-1][osdidx],tShow_day,tShow_year);
 	RenderString(info,0+4,GRIDLINE-4,MAXSCREEN_X-4, LEFT, NORMAL, BLACK);
 
 	int iY=2*GRIDLINE;
@@ -1664,7 +1690,7 @@ void PaintGrid(int last, int start, int end, int akt, int sel, int infolines, in
 	RenderBox(MAXSCREEN_X/2, 0, MAXSCREEN_X/2,GRIDLINE, GRID, SKIN2);
 	strftime(info,80,infomsg[DATE][osdidx],at);
 	RenderString(info,0,GRIDLINE-4,MAXSCREEN_X-4, FIXEDRIGHT, SMALL, GREY);
-	sprintf(info,"%s %u",monthmsg[tShow_mon-1][osdidx],tShow_year);
+	sprintf(info,"%s %i",monthmsg[tShow_mon-1][osdidx],tShow_year);
 	RenderString(info,0+4, GRIDLINE-4,MAXSCREEN_X/2, CENTER, NORMAL, BLACK);
 	
 	// only paint if a key has been pressed
@@ -1732,7 +1758,7 @@ void PaintGrid(int last, int start, int end, int akt, int sel, int infolines, in
 			iEvt=IsEvent(iDate,iTmpMonth,iTmpYear);
 
 			// paint date in the left-top corner of the box
-			sprintf(info,"%u",iDate);
+			sprintf(info,"%i",iDate);
 			RenderString(info,0+x*GRIDBOX_X+4, GRIDCAL+y*cy+FONTSIZE_SMALL, GRIDBOX_X, LEFT, SMALL, BLACK);
 			
 			// if we have found some events, we will paint markers and/or lines
@@ -1790,9 +1816,9 @@ void PaintGrid(int last, int start, int end, int akt, int sel, int infolines, in
 		iW=WeekNumber(tShow_year, tShow_mon, tShow_day);
 		
 		if (osdidx == 0)
-			sprintf(info,"W %d    %u. %s %u     %u %s",iW,tShow_day,monthmsg[tShow_mon-1][osdidx],tShow_year,iEvt,infotype[1][osdidx]);
+			sprintf(info,"%s %d    %i. %s %i     %i %s",infoweek[0][osdidx],iW,tShow_day,monthmsg[tShow_mon-1][osdidx],tShow_year,iEvt,infotype[1][osdidx]);
 		else 
-			sprintf(info,"W %d    %s %u, %u     %u %s",iW,monthmsg[tShow_mon-1][osdidx],tShow_day,tShow_year,iEvt,infotype[1][osdidx]);
+			sprintf(info,"%s %d    %s %i, %i     %i %s",infoweek[0][osdidx],iW,monthmsg[tShow_mon-1][osdidx],tShow_day,tShow_year,iEvt,infotype[1][osdidx]);
 		RenderString(info,0+4, GRIDCAL+GRIDBOX_CY2+GRIDLINE_INFO-4,MAXSCREEN_X, CENTER, NORMAL, BLACK);
 
 		int iMarkline=*iSelInfo;
@@ -1821,7 +1847,7 @@ void PaintGrid(int last, int start, int end, int akt, int sel, int infolines, in
 				// write info for birthday
 				if (iType == BIRTHDAY)
 				{
-					sprintf(info,"%s: %s (%u)",infotype[0][osdidx],pEvt->info,tShow_year-pEvt->year);
+					sprintf(info,"%s: %s (%i)",infotype[0][osdidx],pEvt->info,tShow_year-pEvt->year);
 					RenderSObject(2,GRIDCAL+GRIDBOX_CY2+(y)*GRIDLINE_INFO+8,RED,OBJ_HEART);
 					RenderString(info,20,GRIDCAL+GRIDBOX_CY2+(y+1)*GRIDLINE_INFO-4,MAXSCREEN_X-4,LEFT,SMALL,BLACK);
 				}
@@ -1829,7 +1855,7 @@ void PaintGrid(int last, int start, int end, int akt, int sel, int infolines, in
 				else if (iType == EVENT)
 				{
 					if (pEvt->hour!=-1)
-						sprintf(info,"%02u:%02u %s",pEvt->hour,pEvt->min,pEvt->info);
+						sprintf(info,"%02i:%02i %s",pEvt->hour,pEvt->min,pEvt->info);
 					else 
 						sprintf(info,"%s",pEvt->info);				
 					RenderSObject(2,GRIDCAL+GRIDBOX_CY2+(y)*GRIDLINE_INFO+8,BLUE,OBJ_CLOCK);
@@ -1849,10 +1875,10 @@ void PaintGrid(int last, int start, int end, int akt, int sel, int infolines, in
 						char info1[8];
 						char info2[8];
 						if ((pEvt->year==tShow_year) && (pEvt->month==tShow_mon) && (pEvt->day==tShow_day))
-							sprintf(info1,"%02u:%02u >",pEvt->hour,pEvt->min);
+							sprintf(info1,"%02i:%02i >",pEvt->hour,pEvt->min);
 						else info1[0]=0;
 						if ((pEvt->eyear==tShow_year) && (pEvt->emonth==tShow_mon) && (pEvt->eday==tShow_day))
-							sprintf(info2,"> %02u:%02u",pEvt->ehour,pEvt->emin);
+							sprintf(info2,"> %02i:%02i",pEvt->ehour,pEvt->emin);
 						else info2[0]=0;
 						
 						sprintf(info,"%s: %s %s%s",infotype[2][osdidx],pEvt->info,info1,info2);
@@ -2059,26 +2085,26 @@ void AddDays(int* pday, int* pmonth, int* pyear, int adddays)
 */
 int WeekNumber( int y, int m, int d )
 {
-	int days;
+	int _days;
 	int dow0401;
 	int offset;
 	int week;
 	
   dow0401 = DayOfWeek( 4, 1, y );										// weekday for 4th january, this day is in the first week
   
-  days = __mon_yday[LeapYear(y)?1:0][m-1] + d;			// days in this year
+  _days = __mon_yday[LeapYear(y)?1:0][m-1] + d;			// days in this year
 
 	offset = dow0401 - 4;															// offset for 1.1 for monday of week 1
-	days = days + offset -1;
-	if (days<0)
+	_days = _days + offset -1;
+	if (_days<0)
 	{
 		int iWD=DayOfWeek( 1, 1, y-1);
 		if ((iWD==4) || ((LeapYear(y-1)) && (iWD==3))) week = 53;
 		else week = 52; 
 	}
-	else week = (days / 7) +1;
+	else week = (_days / 7) +1;
 
-	if ((days > 360) && (week > 52)) 
+	if ((_days > 360) && (week > 52)) 
 	{
 		int iWD=DayOfWeek( 1, 1, y);
 		if ((iWD==4) || ((LeapYear(y)) && (iWD==3))) week = 53;
@@ -2150,9 +2176,9 @@ int WeekNumber( int y, int m, int d )
  - Fronleichnam (+60), 
 
 Der Muttertag ist der zweite Sonntag im Mai, 
-das Erntedankfest der erste Sonntag im Oktober (jedoch nicht überall!). 
+das Erntedankfest der erste Sonntag im Oktober (jedoch nicht ueberall!). 
 Der 1. Advent ist der Sonntag nach dem 26. November; 
-der Buß- und Bettag liegt 11 Tage vor dem 1. Advent. 
+der B. - und Bettag liegt 11 Tage vor dem 1. Advent. 
 
  
 */
@@ -2200,9 +2226,9 @@ void CalcEastern(int year, int* month, int* day)
  - Fronleichnam (+60), 
 
 Der Muttertag ist der zweite Sonntag im Mai, 
-das Erntedankfest der erste Sonntag im Oktober (jedoch nicht überall!). 
+das Erntedankfest der erste Sonntag im Oktober (jedoch nicht ueberall!). 
 Der 1. Advent ist der Sonntag nach dem 26. November; 
-der Buß- und Bettag liegt 11 Tage vor dem 1. Advent. 
+der B. - und Bettag liegt 11 Tage vor dem 1. Advent. 
 
  
 */
@@ -2306,7 +2332,7 @@ int IsEvent(int day, int month, int year)
 	int iEntry=0;
 	int iCnt=0;
 	int iFound;
-	int days = __mon_yday[LeapYear(year) ? 1 : 0][month-1]+day;
+	int _days = __mon_yday[LeapYear(year) ? 1 : 0][month-1]+day;
 	
 	// first check for any of the holidays: eastern, etc.
 	int i;
@@ -2346,19 +2372,19 @@ int IsEvent(int day, int month, int year)
 					
 					if (iTmpDays1 >= __mon_yday[0][2]) iTmpDays1++;
 					if (iTmpDays2 >= __mon_yday[0][2]) iTmpDays2++;
-					if ((iTmpDays1 <= days) && (iTmpDays2 >= days))
+					if ((iTmpDays1 <= _days) && (iTmpDays2 >= _days))
 						iFound=1;
 				}
 				else
 				{
-					if ((eventdb[iEntry].days <= days) && (eventdb[iEntry].edays >= days))
+					if ((eventdb[iEntry].days <= _days) && (eventdb[iEntry].edays >= _days))
 						iFound=1;
 				}
 			}
 			else
 			{
-					if (((eventdb[iEntry].year < year) || ((eventdb[iEntry].year == year) && (eventdb[iEntry].days <= days))) && 
-						  ((eventdb[iEntry].eyear > year) || ((eventdb[iEntry].eyear == year) && (eventdb[iEntry].edays >= days))))
+					if (((eventdb[iEntry].year < year) || ((eventdb[iEntry].year == year) && (eventdb[iEntry].days <= _days))) && 
+						  ((eventdb[iEntry].eyear > year) || ((eventdb[iEntry].eyear == year) && (eventdb[iEntry].edays >= _days))))
 						iFound=1;					 
 			}
 		}
@@ -2396,7 +2422,7 @@ void LoadDatabase(void)
 	char* p2;
 	
 	// read the tuxcal-event-file
-	if ((fd_evt = fopen(CFGPATH EVTFILE, "r"))!=NULL)
+	if ((fd_evt = fopen(CONFIGDIR EVTFILE, "r"))!=NULL)
 	{
 		// read line by line
 		while (fgets(linebuffer, sizeof(linebuffer), fd_evt))
@@ -2449,7 +2475,7 @@ void LoadDatabase(void)
 			{
 				// dd.mm.   all day event/holiday
 				case 6: 
-					sscanf(p1," %02u.%02u.",&eventdb[iEntry].day,&eventdb[iEntry].month); 
+					sscanf(p1," %02i.%02i.",&eventdb[iEntry].day,&eventdb[iEntry].month); 
 					eventdb[iEntry].days=__mon_yday[0][eventdb[iEntry].month-1]+eventdb[iEntry].day;
 					eventdb[iEntry].hour=-1; 
 					eventdb[iEntry].ehour=-1; 
@@ -2457,7 +2483,7 @@ void LoadDatabase(void)
 				
 				// dd.mm.yyyy   all day event
 				case 10:
-					sscanf(p1," %02u.%02u.%04u",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].year); 
+					sscanf(p1," %02i.%02i.%04i",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].year); 
 					eventdb[iEntry].days=__mon_yday[LeapYear(eventdb[iEntry].year) ? 1 : 0][eventdb[iEntry].month-1]+eventdb[iEntry].day;
 					eventdb[iEntry].hour=-1; 
 					eventdb[iEntry].ehour=-1; 
@@ -2465,7 +2491,7 @@ void LoadDatabase(void)
 				
 				// dd.mm.-dd.mm.   all day event-period
 				case 13:
-					sscanf(p1," %02u.%02u.-%02u.%02u.",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].eday,&eventdb[iEntry].emonth); 
+					sscanf(p1," %02i.%02i.-%02i.%02i.",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].eday,&eventdb[iEntry].emonth); 
 					eventdb[iEntry].days=__mon_yday[0][eventdb[iEntry].month-1]+eventdb[iEntry].day;
 					eventdb[iEntry].edays=__mon_yday[0][eventdb[iEntry].emonth-1]+eventdb[iEntry].eday;
 					eventdb[iEntry].hour=-1; 
@@ -2474,13 +2500,13 @@ void LoadDatabase(void)
 
 				// dd.mm.yyyy hh:mm   event at certain time
 				case 16:
-					sscanf(p1," %02u.%02u.%04u %02u:%02u",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].year,&eventdb[iEntry].hour,&eventdb[iEntry].min); 
+					sscanf(p1," %02i.%02i.%04i %02i:%02i",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].year,&eventdb[iEntry].hour,&eventdb[iEntry].min); 
 					eventdb[iEntry].days=__mon_yday[LeapYear(eventdb[iEntry].year) ? 1 : 0][eventdb[iEntry].month-1]+eventdb[iEntry].day;
 				break;
 
 				// dd.mm.yyyy-dd.mm.yyyy   all day event period
 				case 21:
-					sscanf(p1," %02u.%02u.%04u-%02u.%02u.%04u",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].year,&eventdb[iEntry].eday,&eventdb[iEntry].emonth,&eventdb[iEntry].eyear); 
+					sscanf(p1," %02i.%02i.%04i-%02i.%02i.%04i",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].year,&eventdb[iEntry].eday,&eventdb[iEntry].emonth,&eventdb[iEntry].eyear); 
 					eventdb[iEntry].days=__mon_yday[LeapYear(eventdb[iEntry].year) ? 1 : 0][eventdb[iEntry].month-1]+eventdb[iEntry].day;
 					eventdb[iEntry].edays=__mon_yday[LeapYear(eventdb[iEntry].year) ? 1 : 0][eventdb[iEntry].emonth-1]+eventdb[iEntry].eday;
 					eventdb[iEntry].hour=-1; 
@@ -2489,7 +2515,7 @@ void LoadDatabase(void)
 
 				// dd.mm.yyyy hh:mm-dd.mm.yyyy hh:mm   event-period
 				case 33:
-					sscanf(p1," %02u.%02u.%04u %02u:%02u-%02u.%02u.%04u %02u:%02u",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].year,&eventdb[iEntry].hour,&eventdb[iEntry].min,&eventdb[iEntry].eday,&eventdb[iEntry].emonth,&eventdb[iEntry].eyear,&eventdb[iEntry].ehour,&eventdb[iEntry].emin); 
+					sscanf(p1," %02i.%02i.%04i %02i:%02i-%02i.%02i.%04i %02i:%02i",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].year,&eventdb[iEntry].hour,&eventdb[iEntry].min,&eventdb[iEntry].eday,&eventdb[iEntry].emonth,&eventdb[iEntry].eyear,&eventdb[iEntry].ehour,&eventdb[iEntry].emin); 
 					eventdb[iEntry].days=__mon_yday[LeapYear(eventdb[iEntry].year) ? 1 : 0][eventdb[iEntry].month-1]+eventdb[iEntry].day;
 					eventdb[iEntry].edays=__mon_yday[LeapYear(eventdb[iEntry].year) ? 1 : 0][eventdb[iEntry].emonth-1]+eventdb[iEntry].eday;
 				break;
@@ -2532,7 +2558,7 @@ void SaveDatabase(void)
 	char info_yr2[5];
 		
 	// open the tuxcal-event-file
-	if ((fd_evt = fopen(CFGPATH EVTFILE, "w"))!=NULL)
+	if ((fd_evt = fopen(CONFIGDIR EVTFILE, "w"))!=NULL)
 	{
 		while (iEntry<MAXENTRYS)
 		{
@@ -2541,35 +2567,35 @@ void SaveDatabase(void)
 			
 			info_tm1[0]=0;
 			info_tm2[0]=0;
-			if (eventdb[iEntry].hour!=-1) sprintf(info_tm1," %02u:%02u",eventdb[iEntry].hour,eventdb[iEntry].min);
-			if (eventdb[iEntry].ehour!=-1) sprintf(info_tm2," %02u:%02u",eventdb[iEntry].ehour,eventdb[iEntry].emin);
+			if (eventdb[iEntry].hour!=-1) sprintf(info_tm1," %02i:%02i",eventdb[iEntry].hour,eventdb[iEntry].min);
+			if (eventdb[iEntry].ehour!=-1) sprintf(info_tm2," %02i:%02i",eventdb[iEntry].ehour,eventdb[iEntry].emin);
 			info_yr1[0]=0;
 			info_yr2[0]=0;
-			if (eventdb[iEntry].year!=0)	sprintf(info_yr1,"%04u",eventdb[iEntry].year);
-			if (eventdb[iEntry].eyear!=0) sprintf(info_yr2,"%04u",eventdb[iEntry].eyear);
+			if (eventdb[iEntry].year!=0)	sprintf(info_yr1,"%04i",eventdb[iEntry].year);
+			if (eventdb[iEntry].eyear!=0) sprintf(info_yr2,"%04i",eventdb[iEntry].eyear);
 			
 			// check for holiday
 			if (eventdb[iEntry].type == HOLIDAY)
 			{
-				fprintf(fd_evt,"f;%02u.%02u.%s;%s;\n", eventdb[iEntry].day,eventdb[iEntry].month,info_yr1,eventdb[iEntry].info);
+				fprintf(fd_evt,"f;%02i.%02i.%s;%s;\n", eventdb[iEntry].day,eventdb[iEntry].month,info_yr1,eventdb[iEntry].info);
 			}
 			
 			// check for event
  			if (eventdb[iEntry].type == EVENT)
 			{
-				fprintf(fd_evt,"t;%02u.%02u.%s%s;%s;\n", eventdb[iEntry].day,eventdb[iEntry].month,info_yr1,info_tm1,eventdb[iEntry].info);
+				fprintf(fd_evt,"t;%02i.%02i.%s%s;%s;\n", eventdb[iEntry].day,eventdb[iEntry].month,info_yr1,info_tm1,eventdb[iEntry].info);
 			}
  
 			// check for birthday
 			if (eventdb[iEntry].type == BIRTHDAY)
 			{
-				fprintf(fd_evt,"g;%02u.%02u.%s;%s;\n", eventdb[iEntry].day,eventdb[iEntry].month,info_yr1,eventdb[iEntry].info);
+				fprintf(fd_evt,"g;%02i.%02i.%s;%s;\n", eventdb[iEntry].day,eventdb[iEntry].month,info_yr1,eventdb[iEntry].info);
 			}
 
 			// check for period
 			else if (eventdb[iEntry].type == PERIOD)
 			{
-					fprintf(fd_evt,"z;%02u.%02u.%s%s-%02u.%02u.%s%s;%s;\n", eventdb[iEntry].day,eventdb[iEntry].month,info_yr1,info_tm1,eventdb[iEntry].eday,eventdb[iEntry].emonth,info_yr2,info_tm2,eventdb[iEntry].info);
+					fprintf(fd_evt,"z;%02i.%02i.%s%s-%02i.%02i.%s%s;%s;\n", eventdb[iEntry].day,eventdb[iEntry].month,info_yr1,info_tm1,eventdb[iEntry].eday,eventdb[iEntry].emonth,info_yr2,info_tm2,eventdb[iEntry].info);
 			}				
 			
 			// check if comment
@@ -2601,7 +2627,7 @@ void SaveDatabase(void)
 */
 int main ( void )
 {
-	char cvs_revision[] = "$Revision: 1.08 $";
+	char cvs_revision[] = "$Revision: 1.09 $";
 	FILE *fd_run;
 	FT_Error error;
 
@@ -2650,10 +2676,19 @@ int main ( void )
 		return;
 	}
 #endif
-	fb=open ( "/dev/fb/0", O_RDWR );
+	/* open framebuffer */
+	fb=open(FB_DEVICE, O_RDWR);
+	if (fb < 0)
+		fb=open(FB_DEVICE_FALLBACK, O_RDWR);
+	if (fb < 0) {
+		perror("TuxCal <open framebuffer>");
+		exit(1);
+	}
 
 	/* open Remote Control */
-	rc = open ( "/dev/input/nevis_ir", O_RDONLY );
+	rc = open(RC_DEVICE, O_RDONLY);
+	if(rc == -1)
+		rc = open(RC_DEVICE_FALLBACK, O_RDONLY);
 	if ( rc == -1 )
 	{
 		perror ( "TuxCal <open remote control>" );
@@ -2661,7 +2696,7 @@ int main ( void )
 	}
 
 	// keyboard
-	kb = open("/dev/vc/0", O_RDONLY);
+	//kb = open("/dev/vc/0", O_RDONLY);
 
 	// read config
 	ReadConf();
@@ -2717,26 +2752,27 @@ int main ( void )
 		return 2;
 	}
 
-	if ((error = FTC_Manager_Lookup_Face(manager, FONT, &face)))
+	if ((error = FTC_Manager_LookupFace(manager, FONT, &face)))
 	{
-		printf("TuxCal <FTC_Manager_Lookup_Face failed with Errorcode 0x%.2X>\n", error);
-		FTC_Manager_Done(manager);
-		FT_Done_FreeType(library);
-		munmap(lfb, fix_screeninfo.smem_len);
-		return 2;
+		if ((error = FTC_Manager_LookupFace(manager, FONT2, &face)))
+		{
+			printf("TuxCal <FTC_Manager_LookupFace failed with Errorcode 0x%.2X>\n", error);
+			FTC_Manager_Done(manager);
+			FT_Done_FreeType(library);
+			munmap(lfb, fix_screeninfo.smem_len);
+			return 2;
+		}
+		else
+			desc.face_id = FONT2;
 	}
-
+	else
+		desc.face_id = FONT;
 	use_kerning = FT_HAS_KERNING(face);
 
-	desc.face_id = FONT;
-
-#if FREETYPE_MAJOR  == 2 && FREETYPE_MINOR == 0
-		desc.type = ftc_image_mono;
-#else
-		desc.flags = FT_LOAD_MONOCHROME;
-#endif
+	desc.flags = FT_LOAD_MONOCHROME;
 
 	// init backbuffer
+
 	if ( ! ( lbb = malloc ( fix_screeninfo.line_length*var_screeninfo.yres ) ) )
 	{
 		printf("TuxCal <allocating of Backbuffer failed>\n");
@@ -2806,7 +2842,7 @@ int main ( void )
 	int iActDayPos=0;
 	int year,mon;	
 	int oldyear=0;
-	int iChanged=0;	
+	//int iChanged=0;	
 	rccode = 0;
 	
 	
@@ -2919,7 +2955,7 @@ int main ( void )
 							{
 								memcpy(&eventdb[iEventType[iSelInfo-1]],&evt,sizeof(evt));
 								SaveDatabase();
-								iChanged=1;
+								//iChanged=1;
 							}
 						}
 					}
@@ -2945,7 +2981,7 @@ int main ( void )
 						{
 							eventdb[iEventType[iSelInfo-1]].type=UNUSED;
 							SaveDatabase();
-							iChanged=1;
+							//iChanged=1;
 						}
 					}
 				}
@@ -2975,7 +3011,7 @@ int main ( void )
 							eventdb[iCntEntries].hour=-1;
 							strcpy(eventdb[iCntEntries].info,infomsg1[0][osdidx]);
 							SaveDatabase();
-							iChanged=1;
+							//iChanged=1;
 							iSelInfo=255;		
 						}
 				}
@@ -2998,7 +3034,7 @@ int main ( void )
 							{
 								memcpy(&eventdb[iEventType[iSelInfo-1]],&evt,sizeof(evt));
 								SaveDatabase();
-								iChanged=1;
+								//iChanged=1;
 							}
 						}
 					}
