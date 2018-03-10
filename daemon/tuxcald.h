@@ -1,51 +1,10 @@
 /******************************************************************************
  *                        <<< TuxCal - Calendar daemon >>>
  *                (c) Robert "robspr1" Spreitzer 2006 (robert.spreitzer@inode.at)
- *-----------------------------------------------------------------------------
- * $Log: tuxcald.h,v $
- * Revision 1.10  2009/03/11 20:42:23  rhabarber1848
- * remove SuSv3 legacy functions: http://tuxbox-forum.dreambox-fan.de/forum/viewtopic.php?p=364177#p364177
- *
- * Revision 1.09  2007/05/17 16:19:46  dbluelle
- * Make plugins compile with freeetype 2.1.x on dreambox (as needed for Neutrino on Dreambox)
- *
- * Revision 1.08  2007/01/07 11:51:22  robspr1
- * - execute tuxcal.notify on new events
- *
- * Revision 1.07  2007/01/06 16:38:59  robspr1
- * - accept unknown chunks in wave header
- *
- * Revision 1.06  2006/02/24 08:14:49  robspr1
- * - hide clock if file-controlled
- *
- * Revision 1.05  2006/02/23 23:08:41  robspr1
- * - signal up to 5 days, toggle clock-display file
- *
- * Revision 1.04  2006/02/18 14:57:46  robspr1
- * add signaling at fixed times, some small fixes
- *
- * Revision 1.03  2006/02/17 21:30:22  robspr1
- * -add command to switch/hide the clock, move the startdelay-command
- *
- * Revision 1.02  2006/02/15 19:17:50  robspr1
- * first version in CVS
- *
- * Revision 1.01  2006/02/12 23:10:00  robspr1
- * - bugfix reading params POS_X and POS_Y (needed by the daemon)
- *
- * Revision 1.00  2006/02/06 20:00:00  robspr1
- * - first version
- *
  ******************************************************************************/
-// lots of code is from the tuxmail-project
 
 //#include "config.h"
-/*
-#if !defined(HAVE_DVB_API_VERSION) && defined(HAVE_OST_DMX_H)
-#define HAVE_DVB_API_VERSION 1
-#endif*/
-#define HAVE_DVB_API_VERSION 3		
-
+#define _GNU_SOURCE
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -58,6 +17,12 @@
 #include <pthread.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+//#include <plugin.h>
+#if defined(HAVE_SPARK_HARDWARE) || defined(HAVE_DUCKBOX_HARDWARE)
+#include <linux/stmfb.h>
+#endif
+
+#include <linux/input.h>
 #include <sys/socket.h>
 #include <sys/soundcard.h>
 #include <sys/stat.h>
@@ -70,22 +35,11 @@
 #include <linux/fb.h>
 #include <zlib.h>
 #include <malloc.h>
-#if HAVE_DVB_API_VERSION == 3
-#include <linux/input.h>
-#endif
-
 #include <ft2build.h>
 
 #include FT_FREETYPE_H
 #include FT_CACHE_H
 #include FT_CACHE_SMALL_BITMAPS_H
-
-#if ((defined(FREETYPE_MAJOR)) && (((FREETYPE_MAJOR == 2) && (((FREETYPE_MINOR == 1) && (FREETYPE_PATCH >= 9)) || (FREETYPE_MINOR > 1))) || (FREETYPE_MAJOR > 2)))
-#define FTC_Manager_Lookup_Face FTC_Manager_LookupFace
-#define _FTC_SBit_Cache_Lookup(a,b,c,d)	FTC_SBitCache_Lookup(a,b,c,d,NULL)
-#else
-#define _FTC_SBit_Cache_Lookup(a,b,c,d)	FTC_SBit_Cache_Lookup(a,b,c,d)
-#endif
 
 #define DSP "/dev/sound/dsp"
 
@@ -95,12 +49,24 @@
 #define DATA	0x61746164
 #define PCM	1
 
+#ifndef FB_DEVICE
+#define FB_DEVICE	"/dev/fb/0"
+#endif
+#ifndef FB_DEVICE_FALLBACK
+#define FB_DEVICE_FALLBACK	"/dev/fb0"
+#endif
+#ifndef CONFIGDIR
+#define CONFIGDIR "/var/tuxbox/config"
+#endif
+#ifndef FONTDIR
+#define FONTDIR	"/share/fonts"
+#endif
+
 #define SCKFILE "/tmp/tuxcald.socket"			//! socket-file, connection to daemon
 #define RUNFILE "/var/etc/.tuxcald"			//! autostart-file for daemon
-#define CFGPATH "/var/tuxbox/config/tuxcal/"		//! config-path
 #define TMPPATH "/tmp/"					//! temp-path
-#define CFGFILE "tuxcal.conf"				//! config-file
-#define EVTFILE "tuxcal.list"				//! database-file
+#define CFGFILE "/tuxcal/tuxcal.conf"				//! config-file
+#define EVTFILE "/tuxcal/tuxcal.list"				//! database-file
 #define PIDFILE "/tmp/tuxcald.pid"			//! PID file
 #define CLKFILE "/tmp/tuxcal.clk"			//! clock file
 #define NOTIFILE "/tmp/tuxmail.new"			//! notify from tuxmail
@@ -238,8 +204,9 @@ int LeapYear(int year);
 //----------------------------------------------------
 // freetype stuff
 
-//#define FONT FONTDIR "/pakenham.ttf"
-#define FONT "/share/fonts/neutrino.ttf"
+#define FONT FONTDIR "/neutrino.ttf"
+// if font is not in usual place, we look here:
+#define FONT2 FONTDIR "/pakenham.ttf"
 
 // definitions for string-rendering and size
 enum {LEFT, CENTER, RIGHT, FIXEDLEFT, FIXEDCENTER, FIXEDRIGHT};
@@ -249,18 +216,10 @@ FT_Library		library;
 FTC_Manager		manager;
 FTC_SBitCache		cache;
 FTC_SBit		sbit;
-#if FREETYPE_MAJOR  == 2 && FREETYPE_MINOR == 0
-FTC_ImageDesc		desc;
-#else
 FTC_ImageTypeRec	desc;
-#endif
 FT_Face			face;
 FT_UInt			prev_glyphindex;
 FT_Bool			use_kerning;
-
-#if (FREETYPE_MAJOR > 2 || (FREETYPE_MAJOR == 2 && (FREETYPE_MINOR > 1 || (FREETYPE_MINOR == 1 && FREETYPE_PATCH >= 8))))
-#  define FT_NEW_CACHE_API
-#endif
 
 //----------------------------------------------------
 // config
@@ -294,7 +253,6 @@ int sock;																	//! socket
 int intervall;														//! check every x seconds
 char show_clock = 'Y';										//! show the clock
 char show_clockatstart = 'Y';
-int nodelay=0;														//! startup-delay
 char encodedstring[512], decodedstring[512];	//! for web-authentification
 
 char *szFmtStr[] = {
@@ -450,7 +408,7 @@ struct fb_var_screeninfo var_screeninfo;
 //struct fb_cmap *colormap = NULL;
 char bps;
 
-int startx, starty, sx, ex, sy, ey;
+int Startx, Starty, Sx, Ex, Sy, Ey;
 
 //----------------------------------------------------
 // object to render
