@@ -23,7 +23,13 @@
 #include FT_CACHE_H
 #include FT_CACHE_SMALL_BITMAPS_H
 
-#define NCF_FILE "/var/tuxbox/config/neutrino.conf"
+#ifndef FB_DEVICE
+#define FB_DEVICE	"/dev/fb/0"
+#endif
+#ifndef FB_DEVICE_FALLBACK
+#define FB_DEVICE_FALLBACK	"/dev/fb0"
+#endif
+
 
 //rc codes
 
@@ -184,10 +190,6 @@ extern int MAX_FUNCS;
 extern int instance;
 int get_instance(void);
 void put_instance(int pval);
-
-#ifndef FB_DEVICE
-#define FB_DEVICE	"/dev/fb/0"
-#endif
 
 int key_count;
 unsigned short lastkey;

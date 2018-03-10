@@ -11,14 +11,22 @@
 #include "gfx.h"
 #include "pngw.h"
 
+#define SH_VERSION 2.15
 
-#define SH_VERSION 2.14
+#ifndef CONFIGDIR
+#define CONFIGDIR "/var/tuxbox/config"
+#endif
+#ifndef FONTDIR
+#define FONTDIR	"/share/fonts"
+#endif
 
-static char CFG_FILE[128]="/var/tuxbox/config/shellexec.conf";
+#define NCF_FILE CONFIGDIR "/neutrino.conf"
 
-#define FONT2 "/share/fonts/pakenham.ttf"
+char FONT[128]= FONTDIR "/neutrino.ttf";
 // if font is not in usual place, we look here:
-char FONT[128]="/share/fonts/neutrino.ttf";
+#define FONT2 FONTDIR "/pakenham.ttf"
+
+static char CFG_FILE[128]= CONFIGDIR "/shellexec.conf";
 
 //						CMCST,	CMCS,	CMCT,	CMC,	CMCIT,	CMCI,	CMHT,	CMH
 //						WHITE,	BLUE0,	TRANSP,	CMS,	ORANGE,	GREEN,	YELLOW,	RED
@@ -1598,7 +1606,9 @@ int main (int argc, char **argv)
 	}
 
 	//init framebuffer before 1st scale2res
-	fb = open(FB_DEVICE, O_RDWR);
+	fb=open(FB_DEVICE, O_RDWR);
+	if (fb < 0)
+		fb=open(FB_DEVICE_FALLBACK, O_RDWR);
 	if(fb == -1)
 	{
 		perror(__plugin__ " <open framebuffer device>");
@@ -1779,7 +1789,7 @@ int main (int argc, char **argv)
 	}
 	else
 		desc.face_id = FONT;
-	printf("%s <FTC_Manager_LookupFace Font \"%p\" loaded>\n", __plugin__, desc.face_id);
+	printf("%s <FTC_Manager_LookupFace Font \"%s\" loaded>\n", __plugin__, (char*)desc.face_id);
 
 	use_kerning = FT_HAS_KERNING(face);
 	desc.flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT;
