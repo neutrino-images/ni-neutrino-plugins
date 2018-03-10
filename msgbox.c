@@ -17,14 +17,22 @@
 	typeof (b) __b = (b); \
 	__a > __b ? __a : __b; })
 
-#define M_VERSION 2.12
+#define M_VERSION 2.13
 
-#define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
-#define HDF_FILE	"/tmp/.msgbox_hidden"
+#ifndef CONFIGDIR
+#define CONFIGDIR "/var/tuxbox/config"
+#endif
+#ifndef FONTDIR
+#define FONTDIR	"/share/fonts"
+#endif
 
-#define FONT2 "/share/fonts/pakenham.ttf"
+#define NCF_FILE CONFIGDIR "/neutrino.conf"
+#define HDF_FILE "/tmp/.msgbox_hidden"
+
+char FONT[128] = FONTDIR "/neutrino.ttf";
 // if font is not in usual place, we look here:
-char FONT[128]="/share/fonts/neutrino.ttf";
+#define FONT2 CONFIGDIR"/pakenham.ttf"
+
 
 //						CMCST,   CMCS,  CMCT,    CMC,    CMCIT,  CMCI,   CMHT,   CMH
 //						WHITE,   BLUE0, TRANSP,  CMS,    ORANGE, GREEN,  YELLOW, RED
