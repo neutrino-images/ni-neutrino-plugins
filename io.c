@@ -19,6 +19,7 @@
 
 #include "io.h"
 #include "tuxwetter.h"
+#include "rc_device.h"
 
 extern int instance;
 struct input_event ev;
@@ -28,6 +29,8 @@ static int rc;
 int InitRC(void)
 {
 	rc = open(RC_DEVICE, O_RDONLY | O_CLOEXEC);
+	if(rc == -1)
+		rc = open(RC_DEVICE_FALLBACK, O_RDONLY | O_CLOEXEC);
 	if(rc == -1)
 	{
 		perror("tuxwetter <open remote control>");
