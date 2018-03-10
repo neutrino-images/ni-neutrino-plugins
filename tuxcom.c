@@ -38,6 +38,7 @@ static int sync_blitter = 0;
  * GetRCCode  (Code from Tuxmail)
  ******************************************************************************/
 
+#if defined HAVE_COOL_HARDWARE || HAVE_TRIPLEDRAGON || HAVE_SPARK_HARDWARE || defined(HAVE_DUCKBOX_HARDWARE) || HAVE_ARM_HARDWARE
 int GetRCCode()
 {
 	static int count = 0;
@@ -134,6 +135,7 @@ int GetRCCode()
 		usleep(1000000/100);
 		return 0;
 }
+#endif
 
 #if defined HAVE_DREAMBOX_HARDWARE || defined HAVE_IPBOX_HARDWARE
 int GetRCCode(int mode)
