@@ -527,7 +527,7 @@ struct tm *tltime;
 					fcnt++;
 					tptr++;
 				}
-				sprintf(fstr,"%%0%dd",fcnt);
+				snprintf(fstr, sizeof(fstr), "%%0%dd", fcnt);
 				switch(*cptr)
 				{
 					case 'Y':
