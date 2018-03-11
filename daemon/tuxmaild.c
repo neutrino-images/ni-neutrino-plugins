@@ -588,6 +588,7 @@ void ReadSpamList()
 
 void *InterfaceThread(void *arg)
 {
+	(void)arg;
 	int fd_sock, fd_conn;
 	struct sockaddr_un srvaddr;
 	socklen_t addrlen;
@@ -949,7 +950,7 @@ void AddChar2Mail( char c)
 void doOneChar( char c )
 {
 	char  sHack[4];
-	bool  fDo;
+	//bool  fDo;
 
 //	printf("N: (%c:%u) word:%u line:%u bytes:%lu\r\n",c,c,nCharInWord,nCharInLine,nRead);
 	switch(state) 
@@ -976,7 +977,7 @@ void doOneChar( char c )
               					}
               					// if not in HTML mode fall-through to default handling
               					
-              			default  : 	fDo = 0;
+						default  : 	//fDo = 0;
 
                          			if( !fPre ) 
                          			{
@@ -997,10 +998,11 @@ void doOneChar( char c )
 									{
 										c = ' ';
 									}
+/*
 									else
 									{
 										fDo = 0;
-									}
+									}*/
                         					}
                         				}
 
@@ -2580,7 +2582,7 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 		}
 		if (c->sslContext)
 			SSL_CTX_free (c->sslContext);
-			free (c);
+		free (c);
 	}
 
 	return 0;
@@ -4286,7 +4288,7 @@ void SwapEndian(unsigned char *header)
  * SwapEndianChunk
  ******************************************************************************/
 
-void SwapEndianChunk(unsigned char *chunk)
+void SwapEndianChunk(char *chunk)
 {
 	/* wrote the PlaySound() on my pc not in mind that dbox is big endian. so this was the lazy way to make it work, sorry... */
 
@@ -4300,7 +4302,7 @@ void SwapEndianChunk(unsigned char *chunk)
  * PlaySound
  ******************************************************************************/
 
-void PlaySound(unsigned char *file)
+void PlaySound(const char *file)
 {
 	FILE *fd_wav;
 	unsigned char header[sizeof(struct WAVEHEADER)];
@@ -4752,30 +4754,21 @@ void SigHandler(int signal)
 	switch(signal)
 	{
 		case SIGTERM:
-
 			slog ? syslog(LOG_DAEMON | LOG_INFO, "shutdown") : printf("TuxMailD <shutdown>\n");
-
 			intervall = 0;
-
 			break;
 
 		case SIGHUP:
-
 			slog ? syslog(LOG_DAEMON | LOG_INFO, "update") : printf("TuxMailD <update>\n");
-
 			if(!ReadConf())
 			{
 				intervall = 0;
 			}
-
 			ReadSpamList();
-
 			break;
 
 		case SIGUSR1:
-
 			online = 1;
-
 			if(slog)
 			{
 				syslog(LOG_DAEMON | LOG_INFO, "wakeup");
@@ -4784,13 +4777,10 @@ void SigHandler(int signal)
 			{
 				printf("TuxMailD <wakeup>\n");
 			}
-			
 			break;
 			
 		case SIGUSR2:
-
 			online = 0;
-			
 			if(slog)
 			{
 				syslog(LOG_DAEMON | LOG_INFO, "sleep");
@@ -4799,6 +4789,11 @@ void SigHandler(int signal)
 			{
 				printf("TuxMailD <sleep>\n");
 			}
+		default:
+			fprintf(stderr, "TuxMailD <error> - killed with signal %i\n", signal);
+			unlink(PIDFILE);
+			unlink(SCKFILE);
+			exit(1);
 	}
 }
 
@@ -4808,7 +4803,7 @@ void SigHandler(int signal)
 
 int main(int argc, char **argv)
 {
-	char cvs_revision[] = "$Revision: 1.54 $";
+	char cvs_revision[] = "$Revision: 1.55 $";
 	int param, nodelay = 0, account, mailstatus, unread_mailstatus;
 	pthread_t thread_id;
 	void *thread_result = 0;
@@ -5012,6 +5007,12 @@ int main(int argc, char **argv)
 		{
 			slog ? syslog(LOG_DAEMON | LOG_INFO, "Installation of Signalhandler for USR2 failed") : printf("TuxMailD <Installation of Signalhandler for USR2 failed>\n");
 
+			return -1;
+		}
+
+		if (signal(SIGSEGV, SigHandler) == SIG_ERR)
+		{
+			slog ? syslog(LOG_DAEMON | LOG_INFO, "Installation of Signalhandler for SIGSEGV failed") : printf("TuxMailD <Installation of Signalhandler for SIGSEGV failed>\n");
 			return -1;
 		}
 

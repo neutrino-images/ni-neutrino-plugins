@@ -3,12 +3,6 @@
 #define __TUXMAIL_H__
 
 //#include "config.h"
-/*
-#if !defined(HAVE_DVB_API_VERSION) && defined(HAVE_OST_DMX_H)
-#define HAVE_DVB_API_VERSION 1
-#endif
-#define HAVE_DVB_API_VERSION 3*/
-
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -29,25 +23,32 @@
 #include FT_CACHE_H
 #include FT_CACHE_SMALL_BITMAPS_H
 
-#if ((defined(FREETYPE_MAJOR)) && (((FREETYPE_MAJOR == 2) && (((FREETYPE_MINOR == 1) && (FREETYPE_PATCH >= 9)) || (FREETYPE_MINOR > 1))) || (FREETYPE_MAJOR > 2)))
-#define FTC_Manager_Lookup_Face FTC_Manager_LookupFace
-#define _FTC_SBit_Cache_Lookup(a,b,c,d)	FTC_SBitCache_Lookup(a,b,c,d,NULL)
-#else
-#define _FTC_SBit_Cache_Lookup(a,b,c,d)	FTC_SBit_Cache_Lookup(a,b,c,d)
+#ifndef FB_DEVICE
+#define FB_DEVICE	"/dev/fb/0"
 #endif
+#ifndef FB_DEVICE_FALLBACK
+#define FB_DEVICE_FALLBACK	"/dev/fb0"
+#endif
+#ifndef CONFIGDIR
+#define CONFIGDIR "/var/tuxbox/config"
+#endif
+#ifndef FONTDIR
+#define FONTDIR	"/share/fonts"
+#endif
+
 
 #define SCKFILE "/tmp/tuxmaild.socket"
 #define LCKFILE "/tmp/lcd.locked"
 #define RUNFILE "/var/etc/.tuxmaild"
-#define CFGPATH "/var/tuxbox/config/tuxmail/"
-#define CFGFILE "tuxmail.conf"
-#define SPMFILE "spamlist"
+#define CFGPATH CONFIGDIR "/tuxmail"
+#define CFGFILE "/tuxmail.conf"
+#define SPMFILE "/spamlist"
 #define POP3FILE "/tmp/tuxmail.pop3"
 #define SMTPFILE "/tmp/tuxmail.smtp"
 #define NOTIFILE "/tmp/tuxmail.new"
-#define TEXTFILE "/var/tuxbox/config/tuxmail/mailtext"
-#define ADDRFILE "/var/tuxbox/config/tuxmail/tuxmail.addr"
-#define T9FILE   "/var/tuxbox/config/tuxmail/tuxmail.t9"
+#define TEXTFILE CFGPATH "/mailtext"
+#define ADDRFILE CFGPATH "/tuxmail.addr"
+#define T9FILE   CFGPATH" /tuxmail.t9"
 #define KBLCKFILE "/tmp/keyboard.lck"										//! file to lock keyboard-conversion
 
 #define OE_START "/etc/rc2.d/S99tuxmail"
@@ -55,6 +56,11 @@
 #define OE_KILL6 "/etc/rc6.d/K00tuxmail"
 
 #define MAXMAIL 100
+
+// freetype stuff
+#define FONT FONTDIR "/neutrino.ttf"
+// if font is not in usual place, we look here:
+#define FONT2 FONTDIR "/pakenham.ttf"
 
 // rc codes
 
@@ -242,11 +248,6 @@ void ShowMessage (int message);
 int CheckPIN (int Account);
 void SaveAndReloadDB (int iSave);
 void PaintMessageBox (int width, int height, int button);
-
-// freetype stuff
-#define FONT "/share/fonts/micron_bold.ttf"
-// if font is not in usual place, we look here:
-#define FONT2 "share/fonts/pakenham.ttf"
 
 enum {BUT_EXIT = 1, BUT_OK, BUT_OKEXIT};
 enum {LEFT, CENTER, RIGHT};
@@ -664,4 +665,5 @@ char lcd_digits[] =
 	1,1,0,0,0,0,0,0,1,1,
 	0,1,1,1,1,1,1,1,1,0,
 };
-#endif
+
+#endif
