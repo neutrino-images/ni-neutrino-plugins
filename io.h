@@ -2,8 +2,6 @@
 
 #define __IO_H__
 
-#define RC_DEVICE	"/dev/input/nevis_ir"
-
 // rc codes
 
 #undef KEY_0

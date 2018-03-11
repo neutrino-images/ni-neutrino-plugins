@@ -17,8 +17,7 @@
 #include <linux/input.h>
 
 #include "io.h"
-
-#define RC_DEVICE	"/dev/input/nevis_ir"
+#include "rc_device.h"
 
 struct input_event ev;
 static unsigned short rccode=-1;
@@ -27,6 +26,8 @@ static int rc;
 int InitRC(void)
 {
 	rc = open(RC_DEVICE, O_RDONLY);
+	if(rc == -1)
+		rc = open(RC_DEVICE_FALLBACK, O_RDONLY);
 	if(rc == -1) 
 	{
 		perror("getrc <open remote control>");
@@ -49,6 +50,7 @@ int RCKeyPressed(void)
 		if(ev.code)
 		{
 			rccode=ev.code;
+//printf("getrc: rccode raw: %04X\n",ev.code);
 			return 1;
 		}
 	}
