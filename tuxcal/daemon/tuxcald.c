@@ -16,49 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- *-----------------------------------------------------------------------------
- * $Log: tuxcald.c,v $
- * Revision 1.12  2007/05/17 16:19:46  dbluelle
- * Make plugins compile with freeetype 2.1.x on dreambox (as needed for Neutrino on Dreambox)
- *
- * Revision 1.11  2007/02/11 11:01:37  robspr1
- * - bugfix for showing/hiding the clock
- *
- * Revision 1.10  2007/01/07 11:51:22  robspr1
- * - execute tuxcal.notify on new events
- *
- * Revision 1.09  2007/01/06 16:38:59  robspr1
- * - accept unknown chunks in wave header
- *
- * Revision 1.08  2007/01/01 19:28:06  robspr1
- * -bugfix showing actual event, hiding mail-clock
- *
- * Revision 1.07  2006/02/24 08:14:49  robspr1
- * - hide clock if file-controlled
- *
- * Revision 1.06  2006/02/23 23:08:41  robspr1
- * - signal up to 5 days, toggle clock-display file
- *
- * Revision 1.05  2006/02/18 14:57:46  robspr1
- * add signaling at fixed times, some small fixes
- *
- * Revision 1.04  2006/02/17 21:30:22  robspr1
- * -add command to switch/hide the clock, move the startdelay-command
- *
- * Revision 1.03  2006/02/15 22:05:26  robspr1
- * bugfix: showed today for all days
- *
- * Revision 1.02  2006/02/15 19:17:28  robspr1
- * first version in CVS
- *
- * Revision 1.01  2006/02/12 23:10:00  robspr1
- * - bugfix reading params POS_X and POS_Y
- *
- * Revision 1.00  2006/02/06 20:00:00  robspr1
- * - first version
- *
  ******************************************************************************/
-// lots of code is from the tuxmail-project
 
 #include "tuxcald.h"
 
@@ -78,7 +36,7 @@ void ReadConf()
 	char line_buffer[256];
 
 	// open config-file
-	if (!(fd_conf = fopen(CFGPATH CFGFILE, "r")))
+	if (!(fd_conf = fopen(CONFIGDIR CFGFILE, "r")))
 	{
 		printf("TuxCal <Config not found, using defaults>\n");
 		return;
@@ -141,11 +99,11 @@ void ReadConf()
 		}
 		else if((ptr = strstr(line_buffer, "POS_X=")))
 		{
-			sscanf(ptr + 6, "%d", &startx);
+			sscanf(ptr + 6, "%d", &Startx);
 		}
 		else if((ptr = strstr(line_buffer, "POS_Y=")))
 		{
-			sscanf(ptr + 6, "%d", &starty);
+			sscanf(ptr + 6, "%d", &Starty);
 		}
 		else if((ptr = strstr(line_buffer, "SHOW=")))
 		{
@@ -238,7 +196,7 @@ int WriteConf()
 	FILE *fd_conf;
 
 	// open config-file
-	if (!(fd_conf = fopen(CFGPATH CFGFILE , "w")))
+	if (!(fd_conf = fopen(CONFIGDIR CFGFILE , "w")))
 	{
 		return 0;
 	}
@@ -256,8 +214,8 @@ int WriteConf()
 	fprintf(fd_conf, "WEBPORT=%d\n", webport);
 	fprintf(fd_conf, "WEBUSER=%s\n", webuser);
 	fprintf(fd_conf, "WEBPASS=%s\n\n", webpass);
-	fprintf(fd_conf, "POS_X=%d\n", startx);
-	fprintf(fd_conf, "POS_Y=%d\n", starty);
+	fprintf(fd_conf, "POS_X=%d\n", Startx);
+	fprintf(fd_conf, "POS_Y=%d\n", Starty);
 	fprintf(fd_conf, "SHOW=%c\n", show_clockatstart);
 	fprintf(fd_conf, "DATE=%c\n", disp_date);
 	fprintf(fd_conf, "CLOCK=%c\n", disp_clock);
@@ -284,11 +242,12 @@ int WriteConf()
  \param afacs					: FT_Face*
  \return 							: FT_Error
 */
-FT_Error MyFaceRequester(FTC_FaceID face_id, FT_Library library, FT_Pointer request_data, FT_Face *aface)
+FT_Error MyFaceRequester(FTC_FaceID face_id, FT_Library _library, FT_Pointer request_data, FT_Face *aface)
 {
 	FT_Error result;
+	(void)request_data; /* avoid compiler warning about unused argument */
 
-	result = FT_New_Face(library, face_id, 0, aface);
+	result = FT_New_Face(_library, face_id, 0, aface);
 
 	if (!result) printf("TuxCal <Font \"%s\" loaded>\n", (char*)face_id);
 	else printf("TuxCal <Font \"%s\" failed>\n", (char*)face_id);
@@ -367,8 +326,11 @@ int OpenFB(void)
 //	colormap=NULL;
 
 	// framebuffer stuff
-	if ((fbdev = open("/dev/fb/0", O_RDWR))<0)
-	{
+	/* open framebuffer */
+	fbdev = open(FB_DEVICE, O_RDWR);
+	if (fbdev < 0)
+		fbdev = open(FB_DEVICE_FALLBACK, O_RDWR);
+	if (fbdev < 0) {
 		slog ? syslog(LOG_DAEMON | LOG_INFO, "open fb failed"): printf("TuxCalD <open fb failed>");
 		return 0;
 	}
@@ -423,29 +385,25 @@ int OpenFB(void)
 		return 0;
 	}
 
-	if ((error = FTC_Manager_Lookup_Face(manager, FONT, &face)))
+	if ((error = FTC_Manager_LookupFace(manager, FONT, &face)))
 	{
-		slog ? syslog(LOG_DAEMON | LOG_INFO, "FTC_Manager_Lookup_Face failed with Errorcode 0x%.2X", error): printf("TuxCalD <FTC_Manager_Lookup_Face failed with Errorcode 0x%.2X>\n", error);
-		FTC_Manager_Done(manager);
-		FT_Done_FreeType(library);
-		munmap(lfb, fix_screeninfo.smem_len);
-		close(fbdev);
-		return 0;
+		if ((error = FTC_Manager_LookupFace(manager, FONT2, &face)))
+		{
+			slog ? syslog(LOG_DAEMON | LOG_INFO, "FTC_Manager_LookupFace failed with Errorcode 0x%.2X", error): printf("TuxCalD <FTC_Manager_LookupFace failed with Errorcode 0x%.2X>\n", error);
+			FTC_Manager_Done(manager);
+			FT_Done_FreeType(library);
+			munmap(lfb, fix_screeninfo.smem_len);
+			close(fbdev);
+			return 0;
+		}
+		else
+			desc.face_id = FONT2;
 	}
-
+	else
+		desc.face_id = FONT;
 	use_kerning = FT_HAS_KERNING(face);
 
-#ifdef FT_NEW_CACHE_API
-	desc.face_id = FONT;
-#else
-	desc.font.face_id = FONT;
-#endif
-
-#if FREETYPE_MAJOR  == 2 && FREETYPE_MINOR == 0
-		desc.type = ftc_image_mono;
-#else
-		desc.flags = FT_LOAD_MONOCHROME;
-#endif
+	desc.flags = FT_LOAD_MONOCHROME;
 
 	// init backbuffer
 	if (!( lbb = malloc ( fix_screeninfo.line_length*var_screeninfo.yres )))
@@ -461,10 +419,10 @@ int OpenFB(void)
 	memset ( lbb, 0, fix_screeninfo.line_length*var_screeninfo.yres );
 
 	// i'm not sure if this is ok
-	sx=var_screeninfo.xoffset;
-	sy=var_screeninfo.yoffset;
-	ex=sx+var_screeninfo.xres;
-	ey=sy+var_screeninfo.yres;
+	Sx=var_screeninfo.xoffset;
+	Sy=var_screeninfo.yoffset;
+	Ex=Sx+var_screeninfo.xres;
+	Ey=Sy+var_screeninfo.yres;
 #if 0
 	// find blach or white in the colormap
 	if (disp_detect) 
@@ -606,7 +564,7 @@ int RenderChar(FT_ULong currentchar, int sx, int sy, int ex, int color)
 
 					if ((sbit->buffer[row * sbit->pitch + pitch]) & 1<<bit)
 					{
-						memcpy ( lbb + startx*4 + sx*4 + ( sbit->left + kerning.x + x ) *4 + fix_screeninfo.line_length* ( starty + sy - sbit->top + y ), "\xf2\xff\xff\xc0", 4 );
+						memcpy ( lbb + Startx*4 + sx*4 + ( sbit->left + kerning.x + x ) *4 + fix_screeninfo.line_length* ( Starty + sy - sbit->top + y ), "\xf2\xff\xff\xc0", 4 );
 
 					}
 
@@ -660,27 +618,15 @@ void RenderString(char *string, int sx, int sy, int maxwidth, int layout, int si
 	// set size
 	if(size == SMALL)
 	{
-#ifdef FT_NEW_CACHE_API
 		desc.width = desc.height = FONTSIZE_SMALL;
-#else
-		desc.font.pix_width = desc.font.pix_height = FONTSIZE_SMALL;
-#endif
 	}
 	else if (size == NORMAL)
 	{
-#ifdef FT_NEW_CACHE_API
 		desc.width = desc.height = FONTSIZE_NORMAL;
-#else
-		desc.font.pix_width = desc.font.pix_height = FONTSIZE_NORMAL;
-#endif
 	}
 	else
 	{
-#ifdef FT_NEW_CACHE_API
 		desc.width = desc.height = FONTSIZE_BIG;
-#else
-		desc.font.pix_width = desc.font.pix_height = FONTSIZE_BIG;
-#endif
 	}
 
 	// set alignment
@@ -691,11 +637,7 @@ void RenderString(char *string, int sx, int sy, int maxwidth, int layout, int si
 		switch(layout)
 		{
 			case FIXEDCENTER:
-#ifdef FT_NEW_CACHE_API
 				stringlen = (desc.width/2) * strlen(string);
-#else
-				stringlen = (desc.font.pix_width/2) * strlen(string);
-#endif
 
 			case CENTER:
 			{
@@ -706,11 +648,8 @@ void RenderString(char *string, int sx, int sy, int maxwidth, int layout, int si
 			} break;
 
 			case FIXEDRIGHT:
-#ifdef FT_NEW_CACHE_API
 				stringlen = (desc.width/2) * strlen(string);
-#else
-				stringlen = (desc.font.pix_width/2) * strlen(string);
-#endif
+
 			case RIGHT:
 			{
 				if(stringlen < maxwidth)
@@ -732,11 +671,7 @@ void RenderString(char *string, int sx, int sy, int maxwidth, int layout, int si
 		if ((charwidth = RenderChar(*string, sx, sy, ex, color)) == -1)  return; // string > maxwidth 
 
 		if ((layout == FIXEDLEFT) || (layout == FIXEDCENTER) || (layout == FIXEDRIGHT))
-#ifdef FT_NEW_CACHE_API
 			sx += (desc.width/2);
-#else
-			sx += (desc.font.pix_width/2);
-#endif
 		else 
 			sx += charwidth;
 		string++;
@@ -761,13 +696,15 @@ void RenderBox ( int sx, int sy, int ex, int ey, int mode, int color )
 {
 	int loop;
 	int tx;
+	(void)color;
+
 	if ( mode == FILL )
 	{
 		for ( ; sy < ey; sy++ )
 		{
 			for ( tx=0; tx < ( ex-sx ); tx++ )
 			{
-				memcpy ( lbb + startx*4 + sx*4 + ( tx*4 ) + fix_screeninfo.line_length* ( starty + sy ),"\x13\x13\xef\xff", 4 );
+				memcpy ( lbb + Startx*4 + sx*4 + ( tx*4 ) + fix_screeninfo.line_length* ( Starty + sy ),"\x13\x13\xef\xff", 4 );
 			}
 		}
 	}
@@ -777,20 +714,20 @@ void RenderBox ( int sx, int sy, int ex, int ey, int mode, int color )
 
 		for ( loop = sx; loop <= ex; loop++ )
 		{
-			memcpy ( lbb + startx*4+loop*4 + fix_screeninfo.line_length* ( sy+starty ), "\x4d\x3a\x25\xc0", 4 );
-			memcpy ( lbb + startx*4+loop*4 + fix_screeninfo.line_length* ( sy+1+starty ), "\x4d\x3a\x25\xc0", 4 );
-			memcpy ( lbb + startx*4+loop*4 + fix_screeninfo.line_length* ( ey-1+starty ), "\x4d\x3a\x25\xc0", 4 );
-			memcpy ( lbb + startx*4+loop*4 + fix_screeninfo.line_length* ( ey+starty ), "\x4d\x3a\x25\xc0", 4 );
+			memcpy ( lbb + Startx*4+loop*4 + fix_screeninfo.line_length* ( sy+Starty ), "\x4d\x3a\x25\xc0", 4 );
+			memcpy ( lbb + Startx*4+loop*4 + fix_screeninfo.line_length* ( sy+1+Starty ), "\x4d\x3a\x25\xc0", 4 );
+			memcpy ( lbb + Startx*4+loop*4 + fix_screeninfo.line_length* ( ey-1+Starty ), "\x4d\x3a\x25\xc0", 4 );
+			memcpy ( lbb + Startx*4+loop*4 + fix_screeninfo.line_length* ( ey+Starty ), "\x4d\x3a\x25\xc0", 4 );
 		}
 
 		// columns
 
 		for ( loop = sy; loop <= ey; loop++ )
 		{
-			memcpy ( lbb + startx*4+sx*4 + fix_screeninfo.line_length* ( loop+starty ), "\xB0\xB0\xB0\xFF", 4 );
-			memcpy ( lbb + startx*4+ ( sx+1 ) *4 + fix_screeninfo.line_length* ( loop+starty ), "\xB0\xB0\xB0\xFF", 4 );
-			memcpy ( lbb + startx*4+ ( ex-1 ) *4 + fix_screeninfo.line_length* ( loop+starty ), "\xB0\xB0\xB0\xFF", 4 );
-			memcpy ( lbb + startx*4+ex*4 + fix_screeninfo.line_length* ( loop+starty ), "\xB0\xB0\xB0\xFF", 4 );
+			memcpy ( lbb + Startx*4+sx*4 + fix_screeninfo.line_length* ( loop+Starty ), "\xB0\xB0\xB0\xFF", 4 );
+			memcpy ( lbb + Startx*4+ ( sx+1 ) *4 + fix_screeninfo.line_length* ( loop+Starty ), "\xB0\xB0\xB0\xFF", 4 );
+			memcpy ( lbb + Startx*4+ ( ex-1 ) *4 + fix_screeninfo.line_length* ( loop+Starty ), "\xB0\xB0\xB0\xFF", 4 );
+			memcpy ( lbb + Startx*4+ex*4 + fix_screeninfo.line_length* ( loop+Starty ), "\xB0\xB0\xB0\xFF", 4 );
 		}
 	}
 }
@@ -804,6 +741,10 @@ void RenderBox ( int sx, int sy, int ex, int ey, int mode, int color )
 */
 void RenderInt( char *string, int sx, int sy, int maxwidth, int layout, int size, int color, int colorgrid, int colorfill)
 {
+/*
+	printf("[%s] %s sx=%i, sy=%i, maxwidth=%i, layout=%i, size=%i, color=%i, grid=%i, fill=%i\n",
+			__FUNCTION__, string, sx, sy, maxwidth, layout, size, color, colorgrid, colorfill);
+*/
 	int x,y,cx,cy;
 	int sizey=FONTSIZE_NORMAL;
 	
@@ -835,7 +776,8 @@ void RenderInt( char *string, int sx, int sy, int maxwidth, int layout, int size
 void RenderSObject(int sx, int sy, int color, int iType)
 {
 	int x, y;
-  char* pObj=sym_letter;
+	char* pObj=sym_letter;
+	(void)color;
 
 	// choose the object
 /*	
@@ -854,7 +796,7 @@ void RenderSObject(int sx, int sy, int color, int iType)
 		for (x = 0; x < OBJ_SX; x++)				// for all lines
 		{
 			if (*pObj++)											// only paint if mask-value set
-				memcpy(lbb + startx*4 + sx*4 + x*4 + fix_screeninfo.line_length*(starty + sy + y), "\xff\x54\x00\xff", 4);
+				memcpy(lbb + Startx*4 + sx*4 + x*4 + fix_screeninfo.line_length*(Starty + sy + y), "\xff\x54\x00\xff", 4);
 		}
 	}
 }
@@ -1078,9 +1020,9 @@ void AddDays(int* pday, int* pmonth, int* pyear, int adddays)
  - Fronleichnam (+60), 
 
 Der Muttertag ist der zweite Sonntag im Mai, 
-das Erntedankfest der erste Sonntag im Oktober (jedoch nicht überall!). 
+das Erntedankfest der erste Sonntag im Oktober (jedoch nicht ueberall!). 
 Der 1. Advent ist der Sonntag nach dem 26. November; 
-der Buß- und Bettag liegt 11 Tage vor dem 1. Advent. 
+der Bu. - und Bettag liegt 11 Tage vor dem 1. Advent. 
 
  
 */
@@ -1128,9 +1070,9 @@ void CalcEastern(int year, int* month, int* day)
  - Fronleichnam (+60), 
 
 Der Muttertag ist der zweite Sonntag im Mai, 
-das Erntedankfest der erste Sonntag im Oktober (jedoch nicht überall!). 
+das Erntedankfest der erste Sonntag im Oktober (jedoch nicht ueberall!). 
 Der 1. Advent ist der Sonntag nach dem 26. November; 
-der Buß- und Bettag liegt 11 Tage vor dem 1. Advent. 
+der Bu. - und Bettag liegt 11 Tage vor dem 1. Advent. 
 
  
 */
@@ -1378,7 +1320,7 @@ void LoadDatabase(void)
 	char* p2;
 	
 	// read the tuxcal-event-file
-	if ((fd_evt = fopen(CFGPATH EVTFILE, "r"))!=NULL)
+	if ((fd_evt = fopen(CONFIGDIR EVTFILE, "r"))!=NULL)
 	{
 		// read line by line
 		while (fgets(linebuffer, sizeof(linebuffer), fd_evt))
@@ -1516,7 +1458,7 @@ void SaveDatabase(void)
 	char info_yr2[5];
 		
 	// open the tuxcal-event-file
-	if ((fd_evt = fopen(CFGPATH EVTFILE, "w"))!=NULL)
+	if ((fd_evt = fopen(CONFIGDIR EVTFILE, "w"))!=NULL)
 	{
 		while (iEntry<MAXENTRYS)
 		{
@@ -1618,6 +1560,7 @@ void ReadSTimer()
 */
 void *InterfaceThread(void *arg)
 {
+	(void)arg;
 	int fd_sock, fd_conn;																					// file for socket and connection
 	struct sockaddr_un srvaddr;
 	socklen_t addrlen;
@@ -1897,7 +1840,7 @@ void PlaySound(unsigned char *file)
  * EncodeBase64
  ******************************************************************************/
 // from tuxmaild
-void EncodeBase64(char *decodedstring, int decodedlen)
+void EncodeBase64(char *DecodedString, int decodedlen)
 {
 	char encodingtable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 	int src_index, dst_index;
@@ -1905,10 +1848,10 @@ void EncodeBase64(char *decodedstring, int decodedlen)
 	memset(encodedstring, 0, sizeof(encodedstring));
 	for(src_index = dst_index = 0; src_index < decodedlen; src_index += 3, dst_index += 4)
 	{
-		encodedstring[0 + dst_index] = encodingtable[decodedstring[src_index] >> 2];
-		encodedstring[1 + dst_index] = encodingtable[(decodedstring[src_index] & 3) << 4 | decodedstring[1 + src_index] >> 4];
-		encodedstring[2 + dst_index] = encodingtable[(decodedstring[1 + src_index] & 15) << 2 | decodedstring[2 + src_index] >> 6];
-		encodedstring[3 + dst_index] = encodingtable[decodedstring[2 + src_index] & 63];
+		encodedstring[0 + dst_index] = encodingtable[DecodedString[src_index] >> 2];
+		encodedstring[1 + dst_index] = encodingtable[(DecodedString[src_index] & 3) << 4 | DecodedString[1 + src_index] >> 4];
+		encodedstring[2 + dst_index] = encodingtable[(DecodedString[1 + src_index] & 15) << 2 | DecodedString[2 + src_index] >> 6];
+		encodedstring[3 + dst_index] = encodingtable[DecodedString[2 + src_index] & 63];
 	}
 
 	if(decodedlen % 3)
@@ -2118,12 +2061,12 @@ void NotifyUser()
 	// audio notify
 	if (audio == 'Y')
 	{
-		if (iCntTmEvents) PlaySound(CFGPATH SNDFILE3);
-		else if (iBirthday) PlaySound(CFGPATH SNDFILE1);
-		else PlaySound(CFGPATH SNDFILE2);
+		if (iCntTmEvents) PlaySound(CONFIGDIR SNDFILE3);
+		else if (iBirthday) PlaySound(CONFIGDIR SNDFILE1);
+		else PlaySound(CONFIGDIR SNDFILE2);
 	}
 #endif			
-	sprintf(tmp_buffer,"%s %d %d",CFGPATH SHELLFILE,iCntTmEvents,iBirthday);
+	sprintf(tmp_buffer,"%s %d %d",CONFIGDIR SHELLFILE,iCntTmEvents,iBirthday);
 	system(tmp_buffer);
 }		
 
@@ -2173,7 +2116,12 @@ void SigHandler(int signal)
 			else fclose(fopen(CLKFILE, "w"));
 			if (slog) syslog(LOG_DAEMON | LOG_INFO, "show/hide the clock");
 			else printf("TuxCalD <show/hide the clock>\n");
-			break;	
+			break;
+		default:
+			fprintf(stderr, "TuxcalD <error> - killed with signal %i\n", signal);
+			unlink(PIDFILE);
+			unlink(SCKFILE);
+			exit(1);
 	}
 }
 
@@ -2182,7 +2130,7 @@ void SigHandler(int signal)
  ******************************************************************************/
 int main(int argc, char **argv)
 {
-	char cvs_revision[] = "$Revision: 1.12 $";
+	char cvs_revision[] = "$Revision: 1.13 $";
 	int param, nodelay = 0;
 	pthread_t thread_id;
 	void *thread_result = 0;
@@ -2296,6 +2244,13 @@ int main(int argc, char **argv)
 		slog ? syslog(LOG_DAEMON | LOG_INFO, "Installation of Signalhandler for ALRM failed") : printf("TuxCalD <Installation of Signalhandler for ALRM failed>\n");
 		return -1;
 	}
+
+	if (signal(SIGSEGV, SigHandler) == SIG_ERR)
+	{
+		slog ? syslog(LOG_DAEMON | LOG_INFO, "Installation of Signalhandler for SIGSEGV failed") : printf("TuxCalD <Installation of Signalhandler for SIGSEGV failed>\n");
+		return -1;
+	}
+
 
 	// install communication interface
 	if (pthread_create(&thread_id, NULL, InterfaceThread, NULL))
@@ -2435,7 +2390,7 @@ int main(int argc, char **argv)
 					}
 					else RenderSObject((iFontSize*2-OBJ_SX)/2,(iFontSize-OBJ_SY)/2+8,iFG,OBJ_LETTER);
 				}
-				RenderInt(info,iNewMails?(iFontSize*2+5):0,iFontSize,iLen1, (startx>(ex/2))?FIXEDRIGHT:FIXEDLEFT, iFont, iFG,-1,iBG);
+				RenderInt(info,iNewMails?(iFontSize*2+5):0,iFontSize,iLen1, (Startx>(Ex/2))?FIXEDRIGHT:FIXEDLEFT, iFont, iFG,-1,iBG);
 				if (iNewMails) iLen1+=(iFontSize*2+5);
 				
 				iLen2=0;
@@ -2443,15 +2398,15 @@ int main(int argc, char **argv)
 				{
 					strftime(info,MAXCLOCKINFOLEN,infomsg[0][osdidx],at);
 					iLen2=(strlen(info)*iFontSize)/2;
-					RenderInt(info,0,2*iFontSize,iLen2, (startx>(ex/2))?FIXEDRIGHT:FIXEDLEFT, iFont, iFG,-1,iBG);
+					RenderInt(info,0,2*iFontSize,iLen2, (Startx>(Ex/2))?FIXEDRIGHT:FIXEDLEFT, iFont, iFG,-1,iBG);
 				}
 				
 				int iLen;
 				iLen=(iLen1>iLen2)?iLen1:iLen2;
 				
 				// output to framebuffer	
-				pmem1=lfb+starty*fix_screeninfo.line_length+startx*4;
-				pmem2=lbb+(starty+3)*fix_screeninfo.line_length+startx*4;
+				pmem1=lfb+Starty*fix_screeninfo.line_length+Startx*4;
+				pmem2=lbb+(Starty+3)*fix_screeninfo.line_length+Startx*4;
 				if (iNewMails) pmem1-=(OBJ_SX+15);
 				for (y=0;y<(iFontSize);y++)
 				{			

@@ -1,43 +1,11 @@
 /******************************************************************************
  *                        <<< TuxCal - Calendar Plugin >>>
  *                (c) Robert "robspr1" Spreitzer 2006 (robert.spreitzer@inode.at)
- *-----------------------------------------------------------------------------
- * $Log: tuxcal.h,v $
- * Revision 1.08  2009/03/11 20:42:21  rhabarber1848
- * remove SuSv3 legacy functions: http://tuxbox-forum.dreambox-fan.de/forum/viewtopic.php?p=364177#p364177
  *
- * Revision 1.07  2007/05/17 16:19:47  dbluelle
- * Make plugins compile with freeetype 2.1.x on dreambox (as needed for Neutrino on Dreambox)
- *
- * Revision 1.06  2006/03/05 15:59:37  robspr1
- * - use /tmp/keyboard.lck to signal decoding of the keyboard
- *
- * Revision 1.05  2006/02/23 23:07:25  robspr1
- * - change SKIN2, signal up to 5 days, toggle clock-display file
- *
- * Revision 1.04  2006/02/18 14:57:13  robspr1
- * add signaling at fixed times, some small fixes
- *
- * Revision 1.03  2006/02/17 21:29:36  robspr1
- * -add command to switch/hide the clock
- *
- * Revision 1.02  2006/02/15 19:12:30  robspr1
- * first version in CVS
- *
- * Revision 1.01  2006/02/12 23:10:00  robspr1
- * - bugfix reading params POS_X and POS_Y (needed by the daemon)
- *
- * Revision 1.00  2006/01/31 14:37:48  robspr1
- * - first version
  ******************************************************************************/
-// lots of code is from the tuxmail-project
 
 //#include "config.h"
-
-#if !defined(HAVE_DVB_API_VERSION) && defined(HAVE_OST_DMX_H)
-#define HAVE_DVB_API_VERSION 1
-#endif
-#define HAVE_DVB_API_VERSION 3		
+#define _GNU_SOURCE
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -46,11 +14,14 @@
 #include <string.h>
 #include <unistd.h>
 #include <linux/fb.h>
-#if HAVE_DVB_API_VERSION == 3
-#include <linux/input.h>
-#endif
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+//#include <plugin.h>
+#if defined(HAVE_SPARK_HARDWARE) || defined(HAVE_DUCKBOX_HARDWARE)
+#include <linux/stmfb.h>
+#endif
+
+#include <linux/input.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/time.h>
@@ -61,20 +32,24 @@
 #include FT_CACHE_H
 #include FT_CACHE_SMALL_BITMAPS_H
 
-#if ((defined(FREETYPE_MAJOR)) && (((FREETYPE_MAJOR == 2) && (((FREETYPE_MINOR == 1) && (FREETYPE_PATCH >= 9)) || (FREETYPE_MINOR > 1))) || (FREETYPE_MAJOR > 2)))
-#define FTC_Manager_Lookup_Face FTC_Manager_LookupFace
-#define _FTC_SBit_Cache_Lookup(a,b,c,d)	FTC_SBitCache_Lookup(a,b,c,d,NULL)
-#else
-#define _FTC_SBit_Cache_Lookup(a,b,c,d)	FTC_SBit_Cache_Lookup(a,b,c,d)
+#ifndef FB_DEVICE
+#define FB_DEVICE	"/dev/fb/0"
+#endif
+#ifndef FB_DEVICE_FALLBACK
+#define FB_DEVICE_FALLBACK	"/dev/fb0"
+#endif
+#ifndef CONFIGDIR
+#define CONFIGDIR "/var/tuxbox/config"
+#endif
+#ifndef FONTDIR
+#define FONTDIR	"/share/fonts"
 #endif
 
-//#include <plugin.h>
 
 #define SCKFILE "/tmp/tuxcald.socket"			//! socket-file, connection to daemon
 #define RUNFILE "/var/etc/.tuxcald"			//! autostart-file for daemon
-#define CFGPATH "/var/tuxbox/config/tuxcal/"		//! config-path
-#define CFGFILE "tuxcal.conf"				//! config-file
-#define EVTFILE "tuxcal.list"				//! database-file
+#define CFGFILE "/tuxcal/tuxcal.conf"				//! config-file
+#define EVTFILE "/tuxcal/tuxcal.list"				//! database-file
 #define KBLCKFILE "/tmp/keyboard.lck"			//! file to lock keyboard-conversion
 
 //----------------------------------------------------
@@ -83,6 +58,10 @@
 int osdidx = 0;						// actual used language
 
 #define MAXOSD	2
+
+char *infoweek[1][MAXOSD] = {
+	{ "Woche", "Week" }
+};
  
 char *days[7][MAXOSD] = {
 	{ "Mo", "Mo" },
@@ -129,7 +108,7 @@ char *infohelp[][MAXOSD] = {
 	{ "markieren"     , "select" },
 	{ "einfügen"      , "insert" },
 	{ "bearbeiten"    , "edit" },
-	{ "[OK]Einträge anzeigen [cool/Menü]Uhrzeit ein/ausblenden [0]heute" , "[OK]show entrys [cool/menu]show/hide clock [0]today" }
+	{ "[OK]Einträge anzeigen [Menü]Uhrzeit ein/ausblenden [0]heute" , "[OK]show entrys [menu]show/hide clock [0]today" }
 };
 
 char *szEditBoxInfo[][MAXOSD] ={
@@ -177,7 +156,7 @@ char *infomsg[][MAXOSD] = {
 	{ "Abfrage wurde gestartet."  , "Polling started." },
 	{ "Start ist fehlgeschlagen!" , "Start failed!" },
 	{ "Abfrage wurde gestoppt."   , "Polling stopped." },
-	{ "Stop ist fehlgeschlagen!"  , "Stop failed!" },
+	{ "Stopp ist fehlgeschlagen!" , "Stop failed!" },
 	{ "Autostart aktiviert."      , "Autostart enabled." },
 	{ "Autostart deaktiviert."    , "Autostart disabled." },
 	{ "%d.%m.%Y %H:%M:%S"         , "%m/%d/%Y %H:%M:%S" },
@@ -189,77 +168,12 @@ char *infomsg[][MAXOSD] = {
 //----------------------------------------------------
 // remote-control and keyboard
 
-#if HAVE_DVB_API_VERSION == 3
-struct input_event ev;				//! input event for dBox
-#else
-unsigned char kbcode;				//! keyboard-input for Dreambox
-char tch[100];					//! variable for keyboard-reading
-#endif
-
 unsigned short rccode;				//! remote-control code
+char kbcode;				//! keyboard-input for Dreambox
 
 // rc codes
 
-#if HAVE_DVB_API_VERSION == 1			// Dreambox-codes
-
-#define	RC1_0		0x5C00
-#define	RC1_1		0x5C01
-#define	RC1_2		0x5C02
-#define	RC1_3		0x5C03
-#define	RC1_4		0x5C04
-#define	RC1_5		0x5C05
-#define	RC1_6		0x5C06
-#define	RC1_7		0x5C07
-#define	RC1_8		0x5C08
-#define	RC1_9		0x5C09
-#define	RC1_STANDBY	0x5C0C
-#define	RC1_UP		0x5C0E
-#define	RC1_DOWN	0x5C0F
-#define	RC1_PLUS	0x5C16
-#define	RC1_MINUS	0x5C17
-#define	RC1_HOME	0x5C20
-#define	RC1_DBOX	0x5C27
-#define	RC1_MUTE	0x5C28
-#define	RC1_RED		0x5C2D
-#define	RC1_RIGHT	0x5C2E
-#define	RC1_LEFT	0x5C2F
-#define	RC1_OK		0x5C30
-#define	RC1_BLUE	0x5C3B
-#define	RC1_YELLOW	0x5C52
-#define	RC1_GREEN	0x5C55
-#define	RC1_HELP	0x5C82
-
-// kb codes
-
-#define KEY_0		0x5C00
-#define KEY_1		0x5C01
-#define KEY_2		0x5C02
-#define KEY_3		0x5C03
-#define KEY_4		0x5C04
-#define KEY_5		0x5C05
-#define KEY_6		0x5C06
-#define KEY_7		0x5C07
-#define KEY_8		0x5C08
-#define KEY_9		0x5C09
-#define KEY_POWER	0x5C0C
-#define KEY_UP		0x5C0E
-#define KEY_DOWN	0x5C0F
-#define KEY_VOLUMEUP	0x5C16
-#define KEY_VOLUMEDOWN	0x5C17
-#define KEY_HOME	0x5C20
-#define KEY_SETUP	0x5C27
-#define KEY_MUTE	0x5C28
-#define KEY_RED		0x5C2D
-#define KEY_RIGHT	0x5C2E
-#define KEY_LEFT	0x5C2F
-#define KEY_OK		0x5C30
-#define KEY_BLUE	0x5C3B
-#define KEY_YELLOW	0x5C52
-#define KEY_GREEN	0x5C55
-#define KEY_HELP	0x5C82
-
-#endif
-
+#define REPEAT_TIMER 3
 // defines for pressing 0 - 9 on remote-control
 #define	RC_0		'0'
 #define	RC_1		'1'
@@ -296,7 +210,7 @@ unsigned short rccode;				//! remote-control code
 
 #define RC_PAUSE	RC_HELP
 #define RC_ALTGR	0x12
-#define RC_BS		0x08
+#define RC_BS		0x7F
 #define RC_POS1		RC_HOME
 #define RC_END		0x13
 #define RC_INS		0x10
@@ -307,9 +221,9 @@ unsigned short rccode;				//! remote-control code
 #define RC_ALT		0x0F
 #define RC_NUM		RC_DBOX
 #define RC_ROLLEN	0x00
-#define RC_F5		0x01C5
-#define RC_F6		0x01C6
-#define RC_F7		0x01C7
+#define RC_F5		RC_DBOX
+#define RC_F6		RC_HELP
+#define RC_F7		RC_MUTE
 #define RC_F8		0x01C8
 #define RC_F9		0x01C9
 #define RC_F10		0x01CA
@@ -325,11 +239,23 @@ unsigned short rccode;				//! remote-control code
 #define RC_PAGEUP	RC_PLUS
 #define RC_PAGEDOWN	RC_MINUS
 
+// kb codes
+
+#define KBC_UP		0x01
+#define KBC_DOWN	0x02
+#define KBC_RIGHT	0x03
+#define KBC_LEFT	0x04
+#define KBC_INS		0x05
+#define KBC_DEL		0x06
+#define KBC_POS1	0x07
+#define KBC_BACKSPACE	0x7F
+#define KBC_END		0x0A
+#define KBC_PAGEUP	0x0B
+#define KBC_PAGEDOWN	0x0C
+#define KBC_RETURN	0x0D
+
 #define REPKEYDELAY	4
 
-#if HAVE_DVB_API_VERSION == 3	// only for dBox
-// conversion-tables for infrared-keyboard 
-// normal key
 const int rctable[] = 
 {
    0x00, RC_ESC, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'ß', '´', RC_BS, 0x09,
@@ -361,7 +287,6 @@ const int rcaltgrtable[] =
    RC_F6,RC_F7,RC_F8,RC_F9,RC_F10,RC_NUM,RC_ROLLEN,0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
    0x00, RC_STANDBY, 0x00, 0x00, 0x00, 0x00, '|'
 };
-#endif
 
 // displaying function-keys
 #define KEYBOX_KEYS 12
@@ -385,22 +310,15 @@ char *szKeyBBoxInfo[KEYBOX_KEYS][MAXOSD] = {
   { "blue"  , "BLAU" } , { "Ende", "end" }  , { "minus" , "minus"}
 } ;
 
-#if HAVE_DVB_API_VERSION == 1
-char *szKeyBBoxKey[KEYBOX_KEYS] = {
-  "F1" , "" , "" ,
-  "F2" , "" , "" ,
-  "M1" , "" , "P+",
-  "M2" , "" , "P-" } ;
-#else
 char *szKeyBBoxKey[KEYBOX_KEYS] = {
   "F1" , "F5" , "F9" ,
   "F2" , "F6" , "F10" ,
   "F3" , "F7" , "Pg+",
   "F4" , "F8" , "Pg-" } ;
-#endif
 
-const char *szDirectStyle[4] = {
-"ABC", "Abc", "abc", "keyboard" };
+
+//const char *szDirectStyle[4] = {
+//"ABC", "Abc", "abc", "keyboard" };
 
 
 
@@ -436,7 +354,9 @@ int LeapYear(int year);
 //----------------------------------------------------
 
 // freetype stuff
-#define FONT "/share/fonts/neutrino.ttf"
+#define FONT FONTDIR "/neutrino.ttf"
+// if font is not in usual place, we look here:
+#define FONT2 FONTDIR "/pakenham.ttf"
 
 // definitions for string-rendering and size
 enum {LEFT, CENTER, RIGHT, FIXEDLEFT, FIXEDCENTER, FIXEDRIGHT};
@@ -446,11 +366,7 @@ FT_Library		library;
 FTC_Manager		manager;
 FTC_SBitCache		cache;
 FTC_SBit		sbit;
-#if FREETYPE_MAJOR  == 2 && FREETYPE_MINOR == 0
-FTC_ImageDesc		desc;
-#else
 FTC_ImageTypeRec	desc;
-#endif
 FT_Face			face;
 FT_UInt			prev_glyphindex;
 FT_Bool			use_kerning;
