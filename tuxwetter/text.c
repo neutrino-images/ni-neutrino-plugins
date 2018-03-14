@@ -146,6 +146,7 @@ void TranslateString(char *src, size_t size)
 FT_Error MyFaceRequester(FTC_FaceID face_id, FT_Library lib, FT_Pointer request_data, FT_Face *aface)
 {
 	FT_Error result;
+	(void)request_data;
 
 	result = FT_New_Face(lib, face_id, 0, aface);
 

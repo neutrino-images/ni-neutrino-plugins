@@ -24,11 +24,23 @@
 #include FT_CACHE_H
 #include FT_CACHE_SMALL_BITMAPS_H
 
-#include <config.h>
-//#define CONFIGDIR	"/var/tuxbox/config"
-#define TUXWETTERDIR	CONFIGDIR "/tuxwetter"
+#ifndef FB_DEVICE
+#define FB_DEVICE	"/dev/fb/0"
+#endif
+#ifndef FB_DEVICE_FALLBACK
+#define FB_DEVICE_FALLBACK	"/dev/fb0"
+#endif
 
-#define MISS_FILE	TUXWETTERDIR "/missing_translations.txt"
+#ifndef CONFIGDIR
+#define CONFIGDIR "/var/tuxbox/config"
+#endif
+#ifndef FONTDIR
+#define FONTDIR	"/share/fonts"
+#endif
+#ifndef CFG_TUXWET
+#define CFG_TUXWET  CONFIGDIR "/tuxwetter"
+#endif
+#define MISS_FILE   CFG_TUXWET "/missing_translations.txt"
 
 //#define WWEATHER
 #define BUFSIZE 	4095
@@ -166,8 +178,6 @@ extern int instance;
 int get_instance(void);
 void put_instance(int pval);
 int PaintWideString(int dy, const char *string, int sx, int sy, int maxwidth, int layout, int size, int color);
-
-#define FB_DEVICE	"/dev/fb/0"
 
 #endif
 
