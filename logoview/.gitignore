@@ -1,4 +1,22 @@
-*.d
-*.o
-*.bak
-logoview
+# automake stuff
+Makefile
+autom4te.cache
+*.in
+aclocal.m4
+compile
+config.*
+configure
+depcomp
+install-sh
+*.pc
+libtool
+ltmain.sh
+missing
+stamp-h1
+README
+COPYING
+INSTALL
+
+# system
+*~
+.directory
