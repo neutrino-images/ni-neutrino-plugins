@@ -36,10 +36,17 @@
 #define DATA	0x61746164
 #define PCM	1
 
-#define CFGPATH "/var/tuxbox/config/tuxmail/"
-#define CFGFILE "tuxmail.conf"
-#define SPMFILE "spamlist"
-#define SNDFILE "tuxmail.wav"
+#ifndef CONFIGDIR
+#define CONFIGDIR "/var/tuxbox/config"
+#endif
+#ifndef FONTDIR
+#define FONTDIR	"/share/fonts"
+#endif
+
+#define CFGPATH CONFIGDIR "/tuxmail"
+#define CFGFILE "/tuxmail.conf"
+#define SPMFILE "/spamlist"
+#define SNDFILE "/tuxmail.wav"
 #define SCKFILE "/tmp/tuxmaild.socket"
 #define LOGFILE "/tmp/tuxmaild.log"
 #define PIDFILE "/tmp/tuxmaild.pid"
@@ -47,7 +54,7 @@
 #define POP3FILE "/tmp/tuxmail.pop3"
 #define SMTPFILE "/tmp/tuxmail.smtp"
 #define NOTIFILE "/tmp/tuxmail.new"
-#define WAKEFILE "tuxmail.onreadmail"
+#define WAKEFILE "/tuxmail.onreadmail"
 
 #define bool char
 #define true 1

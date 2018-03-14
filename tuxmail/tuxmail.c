@@ -6,7 +6,7 @@
 
 void read_neutrino_osd_conf ( int *ex,int *sx,int *ey, int *sy, int *preset)
 {
-	const char *filename="/var/tuxbox/config/neutrino.conf";
+	const char *filename = CONFIGDIR "/neutrino.conf";
 	const char spres[][4]={"","crt","lcd"};
 	char sstr[4][32];
 	int pres=-1, resolution=-1, loop, *sptr[5]={ex, sx, ey, sy, preset};
@@ -648,6 +648,7 @@ int GetRCCode()
 FT_Error MyFaceRequester(FTC_FaceID face_id, FT_Library library, FT_Pointer request_data, FT_Face *aface)
 {
 	FT_Error result;
+	(void)request_data;
 
 	result = FT_New_Face ( library, (char *) face_id, 0, aface );
 
@@ -2316,11 +2317,11 @@ void EditMailFile ( char* filename, int account, int mailindex )
 							// now we do some SMS style calculation
 							int j;
 							char bFound = 0;
-							char bLowerCase = 0;
+							//char bLowerCase = 0;
 
 							if ( ( cAkt >= 'a' ) && ( cAkt <= 'z' ) )
 							{
-								bLowerCase = 1;
+								//bLowerCase = 1;
 								cAkt -= ( 'a'-'A' );
 							}
 
@@ -3636,7 +3637,7 @@ void SaveAndReloadDB ( int iSave )
 //void plugin_exec(PluginParam *par)
 int main ( void )
 {
-	char cvs_revision[] = "$Revision: 1.02A $";
+	char cvs_revision[] = "$Revision: 1.03 $";
 	int loop, account, mailindex;
 	FILE *fd_run;
 	FT_Error error;
@@ -3717,14 +3718,17 @@ int main ( void )
 	bw = MBOX_WIDTH_NORMAL / 2;
 	bh 	= MBOX_HEIGHT_NORMAL / 2;
 
-	fb=open ( "/dev/fb/0", O_RDWR );
+	fb=open(FB_DEVICE, O_RDWR);
+	if (fb < 0)
+		fb=open(FB_DEVICE_FALLBACK, O_RDWR);
 
 	/* open Remote Control */
 	rc = open(RC_DEVICE, O_RDONLY | O_CLOEXEC);
-	if ( rc == -1 )
-	{
-		perror ( "TuxMail <open remote control>" );
-		exit ( 1 );
+	if(rc == -1)
+		rc = open(RC_DEVICE_FALLBACK, O_RDONLY | O_CLOEXEC);
+	if(rc == -1) {
+		perror("TuxMail <open remote control>");
+		exit(1);
 	}
 
 	// keyboard
@@ -3799,11 +3803,11 @@ int main ( void )
 		return 2;
 	}
 
-	if((error = FTC_Manager_Lookup_Face(manager, FONT, &face)))
+	if((error = FTC_Manager_LookupFace(manager, FONT, &face)))
 	{
-		if((error = FTC_Manager_Lookup_Face(manager, FONT2, &face)))
+		if((error = FTC_Manager_LookupFace(manager, FONT2, &face)))
 		{
-			printf("TuxMail <FTC_Manager_Lookup_Face failed with Errorcode 0x%.2X>\n", error);
+			printf("TuxMail <FTC_Manager_LookupFace failed with Errorcode 0x%.2X>\n", error);
 			FTC_Manager_Done(manager);
 			FT_Done_FreeType(library);
 			munmap(lfb, fix_screeninfo.smem_len);
