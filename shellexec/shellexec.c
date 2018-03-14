@@ -11,15 +11,23 @@
 #include "gfx.h"
 #include "pngw.h"
 
+#define SH_VERSION 2.15
 
-#define SH_VERSION 2.14
+#ifndef CONFIGDIR
+#define CONFIGDIR "/var/tuxbox/config"
+#endif
+#ifndef FONTDIR
+#define FONTDIR	"/share/fonts"
+#endif
 
-static char CFG_FILE[128]="/var/tuxbox/config/shellexec.conf";
+#define NCF_FILE CONFIGDIR "/neutrino.conf"
 
 //freetype stuff
-char FONT[128]="/share/fonts/neutrino.ttf";
+char FONT[128]= FONTDIR "/neutrino.ttf";
 // if font is not in usual place, we look here:
-#define FONT2 "/share/fonts/pakenham.ttf"
+#define FONT2 FONTDIR "/pakenham.ttf"
+
+static char CFG_FILE[128]= CONFIGDIR "/shellexec.conf";
 
 //						CMCST,	CMCS,	CMCT,	CMC,	CMCIT,	CMCI,	CMHT,	CMH
 //						WHITE,	BLUE0,	TRANSP,	CMS,	ORANGE,	GREEN,	YELLOW,	RED
@@ -61,7 +69,7 @@ typedef struct {int fnum; FILE *fh[16];} FSTRUCT, *PFSTRUCT;
 
 static int direct[32];
 int MAX_FUNCS=10;
-static int STYP=1;
+
 
 typedef struct {char *entry; char *message; int headerpos; int type; int underline; int stay; int showalways;} LISTENTRY;
 typedef LISTENTRY *PLISTENTRY;
@@ -1375,7 +1383,7 @@ static void ShowInfo(MENU *m, int knew )
 		RenderBox(ixw-sbw + sbo, moffs + scrollbar_ofs + sbo, ixw - sbo, moffs + scrollbar_ofs + scrollbar_cor - sbo, radius, COL_MENUCONTENT_PLUS_3);
 	}
 	int iw,ih;
-	int offset, hoffs = (m->headermed[m->act_header]==1)?0:scale2res(48);
+	int offset = 0, hoffs = (m->headermed[m->act_header]==1)?0:scale2res(48);
 	int ioffs = xoffs+8; // + half standard icon
 	if(m->icon[m->act_header])
 	{
@@ -1585,7 +1593,7 @@ int llev=m->headerlevels[m->act_header], lmen=m->act_header, lentr=m->lastheader
 
 int main (int argc, char **argv)
 {
-	int index=0,cindex=0,mainloop=1,dloop=1,tv, spr, resolution;
+	int index=0,cindex=0,mainloop=1,tv, spr, resolution;
 	char tstr[BUFSIZE]={0}, *rptr;
 	PLISTENTRY pl;
 
@@ -1599,7 +1607,9 @@ int main (int argc, char **argv)
 	}
 
 	//init framebuffer before 1st scale2res
-	fb = open(FB_DEVICE, O_RDWR);
+	fb=open(FB_DEVICE, O_RDWR);
+	if (fb < 0)
+		fb=open(FB_DEVICE_FALLBACK, O_RDWR);
 	if(fb == -1)
 	{
 		perror(__plugin__ " <open framebuffer device>");
@@ -1780,7 +1790,7 @@ int main (int argc, char **argv)
 	}
 	else
 		desc.face_id = FONT;
-	printf("%s <FTC_Manager_LookupFace Font \"%s\" loaded>\n", __plugin__, desc.face_id);
+	printf("%s <FTC_Manager_LookupFace Font \"%s\" loaded>\n", __plugin__, (char*)desc.face_id);
 
 	use_kerning = FT_HAS_KERNING(face);
 	desc.flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT;
@@ -1849,7 +1859,7 @@ int main (int argc, char **argv)
 	while(mainloop)
 	{
 		cindex=Get_Selection(&menu);
-		dloop=1;
+
 		switch(cindex)
 		{
 			case -1:
