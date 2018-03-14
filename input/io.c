@@ -19,6 +19,7 @@
 
 #include "current.h"
 #include "io.h"
+#include <rc_device.h>
 
 extern int instance;
 extern int get_instance(void);
@@ -31,6 +32,8 @@ static int rc;
 int InitRC(void)
 {
 	rc = open(RC_DEVICE, O_RDONLY | O_CLOEXEC);
+	if(rc == -1)
+		rc = open(RC_DEVICE_FALLBACK, O_RDONLY | O_CLOEXEC);
 	if(rc == -1)
 	{
 		perror(__plugin__ " <open remote control>");

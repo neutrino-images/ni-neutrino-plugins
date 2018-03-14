@@ -10,15 +10,23 @@
 #include "gfx.h"
 #include "inputd.h"
 
-#define NCF_FILE 	"/var/tuxbox/config/neutrino.conf"
-#define BUFSIZE 	1024
-#define I_VERSION	2.12
+#define I_VERSION	2.13
 
+#ifndef CONFIGDIR
+#define CONFIGDIR "/var/tuxbox/config"
+#endif
+#ifndef FONTDIR
+#define FONTDIR	"/share/fonts"
+#endif
+
+#define NCF_FILE CONFIGDIR "/neutrino.conf"
 
 //freetype stuff
-char FONT[128]="/share/fonts/neutrino.ttf";
+char FONT[128] = FONTDIR "/neutrino.ttf";
 // if font is not in usual place, we look here:
-#define FONT2 "/share/fonts/pakenham.ttf"
+#define FONT2 FONTDIR "/pakenham.ttf"
+
+#define BUFSIZE 	1024
 
 //					   CMCST,   CMCS,  CMCT,    CMC,    CMCIT,  CMCI,   CMHT,   CMH
 //					   WHITE,   BLUE0, TRANSP,  CMS,    ORANGE, GREEN,  YELLOW, RED
@@ -242,7 +250,9 @@ char rstr[512]={0}, *title=NULL, *format=NULL, *defstr=NULL, *aptr=NULL, *rptr=N
 		}
 
 		//init framebuffer before 1st scale2res
-		fb = open(FB_DEVICE, O_RDWR);
+		fb=open(FB_DEVICE, O_RDWR);
+		if (fb < 0)
+			fb=open(FB_DEVICE_FALLBACK, O_RDWR);
 		if(fb == -1)
 		{
 			perror(__plugin__ " <open framebuffer device>");
