@@ -5,6 +5,8 @@
 //#include "getrc.h"
 #include "io.h"
 
+#define VERSION 0.03
+
 int main (int argc, char **argv)
 {
 int rv='X',i;

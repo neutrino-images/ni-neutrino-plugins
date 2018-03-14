@@ -1,8 +1,6 @@
 #ifndef __IO_H__
 #define __IO_H__
 
-#include <rc_device.h>
-
 // rc codes
 
 #undef KEY_0
