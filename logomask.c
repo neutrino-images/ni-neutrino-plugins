@@ -7,10 +7,8 @@ extern int FSIZE_BIG;
 extern int FSIZE_MED;
 extern int FSIZE_SMALL;
 
-#define NCF_FILE "/var/tuxbox/config/neutrino.conf"
-#define CFG_FILE "/var/tuxbox/config/logomask.conf"
 
-#define CL_VERSION  "1.2"
+#define CL_VERSION  "1.3"
 #define MAX_MASK 16
 
 //					TRANSP,	BLACK,	RED, 	GREEN, 	YELLOW,	BLUE, 	MAGENTA, TURQUOISE,
@@ -170,7 +168,15 @@ int main (int argc, char **argv)
 			tv=3;
 		--tv;
 
-		fb = open(FB_DEVICE, O_RDWR);
+		/* open Framebuffer */
+		fb=open(FB_DEVICE, O_RDWR);
+		if (fb < 0)
+			fb=open(FB_DEVICE_FALLBACK, O_RDWR);
+
+		if (fb < 0) {
+			perror("logomask <open framebuffer>");
+			exit(1);
+		}
 
 		if(ioctl(fb, FBIOGET_FSCREENINFO, &fix_screeninfo) == -1)
 		{

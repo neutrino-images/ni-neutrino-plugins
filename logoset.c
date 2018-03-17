@@ -11,13 +11,13 @@ extern int FSIZE_BIG;
 extern int FSIZE_MED;
 extern int FSIZE_SMALL;
 
-static unsigned char NCF_FILE[]="/var/tuxbox/config/neutrino.conf";
-static unsigned char CFG_FILE[]="/var/tuxbox/config/logomask.conf";
-static unsigned char AST_FILE[]="/var/etc/init.d/S9L_logomask";
-static unsigned char AST_TEXT[]="#!/bin/sh\n(sleep 20; logomask) &\n";
-unsigned char FONT[64]= "/share/fonts/pakenham.ttf";
+static unsigned char NCF_FILE[] = CONFIGDIR "/neutrino.conf";
+static unsigned char CFG_FILE[] = CONFIGDIR "/logomask.conf";
+static unsigned char AST_FILE[] = "/var/etc/init.d/S9L_logomask";
+static unsigned char AST_TEXT[] = "#!/bin/sh\n(sleep 20; logomask) &\n";
+unsigned char FONT[64] = FONTDIR "/pakenham.ttf";
 
-#define CL_VERSION  "1.2a"
+#define CL_VERSION  "1.3a"
 #define MAX_MASK 16
 
 //					TRANSP,	BLACK,	RED, 	GREEN, 	YELLOW,	BLUE, 	MAGENTA, TURQUOISE,

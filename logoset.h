@@ -20,6 +20,21 @@
 #include FT_CACHE_H
 #include FT_CACHE_SMALL_BITMAPS_H
 
+#ifndef FB_DEVICE
+#define FB_DEVICE	"/dev/fb/0"
+#endif
+#ifndef FB_DEVICE_FALLBACK
+#define FB_DEVICE_FALLBACK	"/dev/fb0"
+#endif
+#ifndef CONFIGDIR
+#define CONFIGDIR "/var/tuxbox/config"
+#endif
+#ifndef FONTDIR
+#define FONTDIR	"/share/fonts"
+#endif
+
+#define BUFSIZE 4096
+
 // rc codes
 
 #undef KEY_EPG
@@ -112,9 +127,5 @@ extern int TABULATOR;
 
 struct fb_fix_screeninfo fix_screeninfo;
 struct fb_var_screeninfo var_screeninfo;
-
-#define FB_DEVICE	"/dev/fb/0"
-
-#define BUFSIZE 4096
 
 #endif

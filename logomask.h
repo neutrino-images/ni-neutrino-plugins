@@ -18,6 +18,21 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+#ifndef FB_DEVICE
+#define FB_DEVICE	"/dev/fb/0"
+#endif
+#ifndef FB_DEVICE_FALLBACK
+#define FB_DEVICE_FALLBACK	"/dev/fb0"
+#endif
+#ifndef CONFIGDIR
+#define CONFIGDIR "/var/tuxbox/config"
+#endif
+
+#define NCF_FILE CONFIGDIR "/neutrino.conf"
+#define CFG_FILE CONFIGDIR "/logomask.conf"
+
+#define BUFSIZE 4096
+
 // rc codes
 
 #undef KEY_EPG
@@ -88,9 +103,5 @@ extern unsigned char *lfb, *lbb;
 
 struct fb_fix_screeninfo fix_screeninfo;
 struct fb_var_screeninfo var_screeninfo;
-
-#define FB_DEVICE	"/dev/fb/0"
-
-#define BUFSIZE 4096
 
 #endif

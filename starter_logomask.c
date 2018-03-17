@@ -26,7 +26,7 @@
 #include <plugin.h>
 #define SCRIPT "logomask"
 
-int main(void)
+void main(void)
 {
         int ret, pid, status;
         pid=fork();
@@ -38,7 +38,7 @@ int main(void)
                 fprintf(stderr, "[%s.so] forked, executing %s\n", SCRIPT, SCRIPT);
                 for (ret=3 ; ret < 255; ret++)
                        close (ret);
-                        ret = system("/bin/logomask.sh");
+                        ret = system("logomask.sh");
                         if (ret)
                                 fprintf(stderr, "[%s.so] script return code: %d (%m)\n", SCRIPT, ret);
                         else
@@ -50,5 +50,4 @@ int main(void)
         fprintf(stderr, "[%s.so] parent, waitpid() returned..\n", SCRIPT);
         if (WIFEXITED(status))
                 fprintf(stderr, "[%s.so] child returned with status %d\n", SCRIPT, WEXITSTATUS(status));
-        return 0;
 } 
