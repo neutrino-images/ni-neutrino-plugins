@@ -19,26 +19,38 @@ void RenderBox(int sx, int sy, int ex, int ey, int mode, gpixel *pix)
 		
 	if (sx<0)
 	{
-		printf("[gfx.c] RenderBox called with sx < 0 (%d)\n", dxx);
+//		printf("[gfx.c] RenderBox called with sx < 0 (%d)\n", dxx);
 		sx=0;
 	}
 
 	if (sy<0)
 	{
-		printf("[gfx.c] RenderBox called with sy < 0 (%d)\n", dxx);
+//		printf("[gfx.c] RenderBox called with sy < 0 (%d)\n", dxx);
 		sy=0;
 	}
 
 	if (dxx<0) 
 	{
-		printf("[gfx.c] RenderBox called with dx < 0 (%d)\n", dxx);
+//		printf("[gfx.c] RenderBox called with dx < 0 (%d)\n", dxx);
 		dxx=0;
 	}
 
 	if (dyy<0)
 	{
-		printf("[gfx.c] RenderBox called with dyy < 0 (%d)\n", dxx);
+//		printf("[gfx.c] RenderBox called with dyy < 0 (%d)\n", dyy);
 		dyy=0;
+	}
+
+	if ((sx+dxx)>var_screeninfo.xres)
+	{
+//		printf("[gfx.c] RenderBox called with (sx+dx) > xres (%d)\n", sx+dxx);
+		dxx=var_screeninfo.xres-sx;
+	}
+
+	if ((sy+dyy)>var_screeninfo.yres)
+	{
+//		printf("[gfx.c] RenderBox called with (sy+dy) > yres (%d)\n", sy+dyy);
+		dyy=var_screeninfo.yres-sy;
 	}
 
 	if(mode==FILL)

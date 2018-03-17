@@ -10,7 +10,7 @@ extern int FSIZE_SMALL;
 #define NCF_FILE "/var/tuxbox/config/neutrino.conf"
 #define CFG_FILE "/var/tuxbox/config/logomask.conf"
 
-#define CL_VERSION  "1.01"
+#define CL_VERSION  "1.2"
 #define MAX_MASK 16
 
 //					TRANSP,	BLACK,	RED, 	GREEN, 	YELLOW,	BLUE, 	MAGENTA, TURQUOISE,
@@ -32,6 +32,7 @@ unsigned char
 unsigned char *lfb = 0, *lbb = 0;
 char tstr[BUFSIZE];
 int xpos=0,ypos=0,sdat=0,big=0,secs=1;
+int wxh, wyh;
 gpixel lpix;
 
 void TrimString(char *strg)
@@ -58,6 +59,7 @@ char *pt1=strg, *pt2=strg;
 		strg[strlen(strg)-1]=0;
 	}
 }
+
 int Read_Neutrino_Cfg(char *entry)
 {
 FILE *nfh;
@@ -86,16 +88,74 @@ int rv=-1;
 	return rv;
 }
 
+void xscal(int *xp, int *xw, int sxp, int sxw, double scal)
+{
+	int xe=sxp+sxw,lxp,lxw;
+
+	lxp=sxp;
+	if(sxp<wxh)
+		lxp=wxh-(wxh-sxp)*scal;
+	else
+		lxp=wxh+(sxp-wxh)*scal;
+	if(lxp<0)
+		lxp=0;
+	if(lxp>=var_screeninfo.xres)
+		lxp=var_screeninfo.xres-1;
+	if(xe<wxh)
+		xe=wxh-(wxh-xe)*scal;
+	else
+		xe=wxh+(xe-wxh)*scal;
+	if(xe<0)
+		xe=0;
+	if(xe>=var_screeninfo.xres)
+		xe=var_screeninfo.xres-1;
+	lxw=xe-lxp;
+	if((lxp+lxw)>=var_screeninfo.xres)
+		lxw=var_screeninfo.xres-lxw-1;
+	*xp=lxp;
+	*xw=lxw;
+}
+
+void yscal(int *yp, int *yw, int syp, int syw, double scal)
+{
+	int ye=syp+syw,lyp,lyw;
+
+	lyp=syp;
+	if(syp<wyh)
+		lyp=wyh-(wyh-syp)*scal;
+	else
+		lyp=wyh+(syp-wyh)*scal;
+	if(lyp<0)
+		lyp=0;
+	if(lyp>=var_screeninfo.yres)
+		lyp=var_screeninfo.yres-1;
+	if(ye<wyh)
+		ye=wyh-(wyh-ye)*scal;
+	else
+		ye=wyh+(ye-wyh)*scal;
+	if(ye<0)
+		ye=0;
+	if(ye>=var_screeninfo.yres)
+		ye=var_screeninfo.yres-1;
+	lyw=ye-lyp;
+	if((lyp+lyw)>=var_screeninfo.yres)
+		lyw=var_screeninfo.yres-lyw-1;
+	*yp=lyp;
+	*yw=lyw;
+}
+
 /******************************************************************************
  * logomask Main
  ******************************************************************************/
 
+
 int main (int argc, char **argv)
 {
-	int i,j,m,found,loop=1,mask=0,test=0,pmode=0,lmode=0,mchanged=1,cchanged=2,mwait;
+	int i,j,m,found,loop=1,mask=0,test=0,pmode=0,lmode=0,pmode43=1,lmode43=1,mchanged=1,mchanged43=1,cchanged=2,mwait,tv;
 	unsigned char lastchan[20]="", actchan[20]=""/*,channel[128]=""*/;
-	int xp[MAX_MASK][8],yp[MAX_MASK][8],xw[MAX_MASK][8],yw[MAX_MASK][8],valid[MAX_MASK],xxp,xxw,yyp,yyw,nmsk=0;
+	int xp[4][MAX_MASK][8],yp[4][MAX_MASK][8],xw[4][MAX_MASK][8],yw[4][MAX_MASK][8],valid[MAX_MASK],xxp,xxw,yyp,yyw,nmsk=0;
 	gpixel tp, cmc, mc[MAX_MASK];
+	double sc131=1.16666666667, sc132=1.193, sc23=1.33333333333;
 	FILE *fh;
 	char *cpt1,*cpt2;
 	
@@ -106,8 +166,9 @@ int main (int argc, char **argv)
 		printf("logomask Version %s\n",CL_VERSION);
 		if((mwait=Read_Neutrino_Cfg("timing.infobar"))<0)
 			mwait=6;
-		
-//		mwait-=1;
+		if((tv=Read_Neutrino_Cfg("video_Format"))<0)
+			tv=3;
+		--tv;
 
 		fb = open(FB_DEVICE, O_RDWR);
 
@@ -140,11 +201,31 @@ int main (int argc, char **argv)
 		memset(lbb, 0, fix_screeninfo.line_length*var_screeninfo.yres);
 
 	// if problem with config file return from plugin
+		wxh=var_screeninfo.xres>>1;
+		wyh=var_screeninfo.yres>>1;
 
 		while(loop)
 		{
 			sleep(1);
 			mchanged=0;
+			if(access("/tmp/.logomask_pause",0)!=-1)
+				continue;
+			i=0;
+			system("wget -Y off -q -O /tmp/logomask.stat http://localhost/control/zapto?statussectionsd");
+			if((fh=fopen("/tmp/logomask.stat","r"))!=NULL)
+			{
+				if(fgets(tstr,500,fh))
+				{
+					TrimString(tstr);
+					if(strlen(tstr))
+					{
+						sscanf(tstr,"%d",&i);
+					}
+				}
+				fclose(fh);
+			}
+			if(i!=1)
+				continue;
 			system("pzapit -var > /tmp/logomaskset.stat");
 			if((fh=fopen("/tmp/logomaskset.stat","r"))!=NULL)
 			{
@@ -168,6 +249,32 @@ int main (int argc, char **argv)
 				fclose(fh);
 			}
 
+			if(tv>1)
+			{
+				system("pzapit -vm43 > /tmp/logomaskset.stat");
+				if((fh=fopen("/tmp/logomaskset.stat","r"))!=NULL)
+				{
+					if(fgets(tstr,500,fh))
+					{
+						TrimString(tstr);
+						if(strlen(tstr))
+						{
+							lmode43=pmode43;
+							if(sscanf(tstr+strlen(tstr)-1,"%d",&i)!=1)
+							{
+								pmode43=0;
+							}
+							else
+							{
+								mchanged43=(pmode43!=i);
+								pmode43=i;
+							}
+						}
+					}
+					fclose(fh);
+				}
+			}
+
 			system("pzapit -gi > /tmp/logomask.chan");
 			if((fh=fopen("/tmp/logomask.chan","r"))!=NULL)
 			{
@@ -181,7 +288,7 @@ int main (int argc, char **argv)
 				if(strlen(tstr))
 				{
 					strcpy(actchan,tstr);
-					cchanged=(cchanged==2)?3:((strcmp(actchan,lastchan)?1:0));
+					cchanged=(cchanged==2)?3:((mchanged43 || (strcmp(actchan,lastchan))?1:0));
 					if(mchanged || cchanged)
 					{
 						found=0;
@@ -189,7 +296,7 @@ int main (int argc, char **argv)
 						{
 							if(cchanged==1)
 							{
-								sleep(mwait);
+								sleep((mchanged43)?3:mwait);
 							}
 							cchanged=1;
 						}
@@ -199,16 +306,16 @@ int main (int argc, char **argv)
 							{
 								if(valid[m])
 								{
-									xxp=xp[m][lmode];
-									xxw=xw[m][lmode];				
-									yyp=yp[m][lmode];
-									yyw=yw[m][lmode];
+									xxp=xp[lmode43][m][lmode];
+									xxw=xw[lmode43][m][lmode];
+									yyp=yp[lmode43][m][lmode];
+									yyw=yw[lmode43][m][lmode];
 									make_color(TRANSP, &cmc);
-									RenderBox(xxp, yyp, xxp+xxw, yyp+yyw, FILL,&cmc);
+									RenderBox(xxp, yyp, xxp+abs(xxw), yyp+yyw, FILL,&cmc);
 									for(i=0;i<=yyw;i++)
 									{
 										j=(yyp+i)*fix_screeninfo.line_length+(xxp<<2);
-										if((j+(xxw<<2))<fix_screeninfo.line_length*var_screeninfo.yres)
+										if((j+(xxw<<2))<=fix_screeninfo.line_length*var_screeninfo.yres)
 										{
 											memcpy(lfb+j, lbb+j, xxw<<2);
 										}
@@ -251,10 +358,23 @@ int main (int argc, char **argv)
 												cpt1++;
 												if(sscanf(cpt1,"%d,%d,%d,%d",&xxp,&xxw,&yyp,&yyw)==4)
 												{
-													xp[nmsk][i]=xxp;
-													xw[nmsk][i]=xxw;
-													yp[nmsk][i]=yyp;
-													yw[nmsk][i]=yyw;
+													xp[1][nmsk][i]=xxp;
+													xw[1][nmsk][i]=xxw;
+													yp[1][nmsk][i]=yyp;
+													yw[1][nmsk][i]=yyw;
+													if(tv>1)
+													{ // todo 14:9-Fernseher beruecksichtigen
+														// Pan & Scan
+														xscal(&(xp[0][nmsk][i]),&(xw[0][nmsk][i]),xxp,xxw,sc23);
+														yscal(&(yp[0][nmsk][i]),&(yw[0][nmsk][i]),yyp,yyw,sc23);
+														// Vollbild
+														xscal(&(xp[2][nmsk][i]),&(xw[2][nmsk][i]),xxp,xxw,sc23);
+														yp[2][nmsk][i]=yyp;
+														yw[2][nmsk][i]=yyw;
+														// Pan & Scan 14:9
+														xscal(&(xp[3][nmsk][i]),&(xw[3][nmsk][i]),xxp,xxw,sc131);
+														yscal(&(yp[3][nmsk][i]),&(yw[3][nmsk][i]),yyp,yyw,sc132);
+													}
 													mc[nmsk].lpixel=cmc.lpixel;
 													found=1;
 													valid[nmsk]=1;
@@ -279,24 +399,29 @@ int main (int argc, char **argv)
 			}
 			if(mask)
 			{
+//printf("[logomask] pmode=%d,pmode43=%d\n",pmode,pmode43);
 				for(m=0; m<nmsk; m++)
 				{
 					if(valid[m])
 					{
-						xxp=xp[m][pmode];
-						xxw=xw[m][pmode];				
-						yyp=yp[m][pmode];
-						yyw=yw[m][pmode];
-						cmc.lpixel=mc[m].lpixel;
-						RenderBox(xxp, yyp, xxp+xxw, yyp+yyw, (test)?GRID:FILL, &cmc);
-						for(i=0;i<=yyw;i++)
+						xxw=xw[pmode43][m][pmode];
+						if(xxw>0)
 						{
-							j=(yyp+i)*fix_screeninfo.line_length+(xxp<<2);
-							if((j+(xxw<<2))<fix_screeninfo.line_length*var_screeninfo.yres)
+							xxp=xp[pmode43][m][pmode];
+							yyp=yp[pmode43][m][pmode];
+							yyw=yw[pmode43][m][pmode];
+							cmc.lpixel=mc[m].lpixel;
+							RenderBox(xxp, yyp, xxp+xxw, yyp+yyw, (test)?GRID:FILL, &cmc);
+							for(i=0;i<=yyw;i++)
 							{
-								memcpy(lfb+j, lbb+j, xxw<<2);
+								j=(yyp+i)*fix_screeninfo.line_length+(xxp<<2);
+								if((j+(xxw<<2))<=fix_screeninfo.line_length*var_screeninfo.yres)
+								{
+									memcpy(lfb+j, lbb+j, xxw<<2);
+								}
 							}
 						}
+//printf("[logomask]mask%d: xxp=%d, xxw=%d, yyp=%d, yyw=%d\n",m+1,xxp,xxw,yyp,yyw);
 					}
 				}
 			}
@@ -315,15 +440,15 @@ int main (int argc, char **argv)
 	{
 		if(valid[m])
 		{
-			xxp=xp[m][pmode];
-			xxw=xw[m][pmode];				
-			yyp=yp[m][pmode];
-			yyw=yw[m][pmode];
-			RenderBox(xxp, yyp, xxp+xxw, yyp+yyw, FILL, &cmc);
+			xxp=xp[pmode43][m][pmode];
+			xxw=xw[pmode43][m][pmode];
+			yyp=yp[pmode43][m][pmode];
+			yyw=yw[pmode43][m][pmode];
+			RenderBox(xxp, yyp, xxp+abs(xxw), yyp+yyw, FILL, &cmc);
 			for(i=0;i<=yyw;i++)
 			{
 				j=(yyp+i)*fix_screeninfo.line_length+(xxp<<2);
-				if((j+(xxw<<2))<fix_screeninfo.line_length*var_screeninfo.yres)
+				if((j+(xxw<<2))<=fix_screeninfo.line_length*var_screeninfo.yres)
 				{
 					memcpy(lfb+j, lbb+j, xxw<<2);
 				}
