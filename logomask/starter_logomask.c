@@ -32,7 +32,7 @@ void main(void)
         pid=fork();
         if (pid == -1) {
                 fprintf(stderr, "[%s.so] fork\n", SCRIPT);
-                return 0;
+                return;
         } else
         if (pid == 0) {
                 fprintf(stderr, "[%s.so] forked, executing %s\n", SCRIPT, SCRIPT);
