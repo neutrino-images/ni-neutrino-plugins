@@ -1,5 +1,7 @@
 #include <string.h>
 #include <time.h>
+#include <linux/input.h>
+#include <sys/stat.h>
 #include "logoset.h"
 #include "io.h"
 #include "gfx.h"
@@ -9,13 +11,15 @@ extern int FSIZE_BIG;
 extern int FSIZE_MED;
 extern int FSIZE_SMALL;
 
-#define NCF_FILE "/var/tuxbox/config/neutrino.conf"
-#define CFG_FILE "/var/tuxbox/config/logomask.conf"
+static unsigned char NCF_FILE[] = CONFIGDIR "/neutrino.conf";
+static unsigned char CFG_FILE[] = CONFIGDIR "/logomask.conf";
+static unsigned char AST_FILE[] = "/var/etc/init.d/S9L_logomask";
+static unsigned char AST_TEXT[] = "#!/bin/sh\n(sleep 20; logomask) &\n";
 
 //freetype stuff
-unsigned char FONT[128]="/share/fonts/neutrino.ttf";
+unsigned char FONT[128] = FONTDIR "/neutrino.ttf";
 
-#define CL_VERSION  "1.01"
+#define CL_VERSION  "1.3a"
 #define MAX_MASK 16
 
 //					TRANSP,	BLACK,	RED, 	GREEN, 	YELLOW,	BLUE, 	MAGENTA, TURQUOISE,
@@ -65,18 +69,46 @@ char *pt1=strg, *pt2=strg;
 	}
 }
 
+int Read_Neutrino_Cfg(char *entry)
+{
+FILE *nfh;
+char *cfptr=NULL;
+int rv=-1;
+
+	if((nfh=fopen(NCF_FILE,"r"))!=NULL)
+	{
+		tstr[0]=0;
+
+		while((!feof(nfh)) && ((strstr(tstr,entry)==NULL) || ((cfptr=strchr(tstr,'='))==NULL)))
+		{
+			fgets(tstr,500,nfh);
+		}
+		if(!feof(nfh) && cfptr)
+		{
+			++cfptr;
+			if(sscanf(cfptr,"%d",&rv)!=1)
+			{
+				rv=-1;
+			}
+//			printf("%s\n%s=%s -> %d\n",tstr,entry,cfptr,rv);
+		}
+		fclose(nfh);
+	}
+	return rv;
+}
+
 /******************************************************************************
  * logoset Main
  ******************************************************************************/
 
 int main (int argc, char **argv)
 {
-	int i,j,found=0,m,mask=1,kmode=1,pmode=0, lc=-1, changed=0, todo=1, help=1, help_changed=0, move=0;
+	int i,j,found=0,m,mask=1,kmode=1,pmode=0, lc=-1, changed=0, todo=1, help=1, help_changed=0, move=0, autost,tv,pmode43,scr=1;
 	unsigned char actchan[20]=""/*,channel[128]=""*/;
 	FILE *fh,*fh2;
 	char *cpt1,*cpt2;
 	gpixel mp, mc[MAX_MASK], tp;
-	int tsx=430, tsy=120, tdy=24, tsz=28, txw=500, tcol=TURQUOISE;
+	int tsx=430, tsy=120, tdy=24, tsz=28, txw=500, tcol=LGREEN;
 	int xp[MAX_MASK][8],yp[MAX_MASK][8],xw[MAX_MASK][8],yw[MAX_MASK][8],valid[MAX_MASK],cmc[MAX_MASK],xxp,xxw,yyp,yyw,nmsk=0,amsk=0;
 	double xs=1.0, ys=1.0;
 	time_t t1,t2;
@@ -94,6 +126,17 @@ int main (int argc, char **argv)
 				yw[j][i]=20;
 			}	
 		}
+		if((tv=Read_Neutrino_Cfg("video_Format"))<0)
+			tv=3;
+		--tv;
+		if((i=Read_Neutrino_Cfg("screen_preset"))>=0)
+			scr=i;
+		if(!scr)
+		{
+			tsy=65;
+			tdy=20;
+		}
+
 		system("pzapit -var > /tmp/logomaskset.stat");
 		if((fh=fopen("/tmp/logomaskset.stat","r"))!=NULL)
 		{
@@ -111,6 +154,28 @@ int main (int argc, char **argv)
 			fclose(fh);
 		}
 	
+		if(tv>1)
+		{
+			system("pzapit -vm43 > /tmp/logomaskset.stat");
+			if((fh=fopen("/tmp/logomaskset.stat","r"))!=NULL)
+			{
+				if(fgets(tstr,500,fh))
+				{
+					TrimString(tstr);
+					if(strlen(tstr))
+					{
+						if(sscanf(tstr+strlen(tstr)-1,"%d",&pmode43)!=1)
+						{
+							pmode43=0;
+						}
+					}
+				}
+				fclose(fh);
+			}
+			if(pmode43!=1)
+				system("pzapit -vm43 1");
+		}
+
 		system("touch /tmp/.logomask_kill");
 
 		fb = open(FB_DEVICE, O_RDWR);
@@ -185,7 +250,6 @@ int main (int argc, char **argv)
 		}
 
 		memset(lbb, 0, fix_screeninfo.line_length*var_screeninfo.yres);
-
 		system("pzapit -gi > /tmp/logomask.chan");
 		if((fh=fopen("/tmp/logomask.chan","r"))!=NULL)
 		{
@@ -273,20 +337,21 @@ int main (int argc, char **argv)
 				yyp=yp[m][pmode];
 				yyw=yw[m][pmode];
 				tp.lpixel=mc[m].lpixel;
-				RenderBox(xxp, yyp, xxp+xxw, yyp+yyw, FILL, &tp);
+				RenderBox(xxp, yyp, xxp+abs(xxw), yyp+yyw, FILL, (xxw>0)?&tp:make_color(LRED,&tp));
 				if(m==amsk)
-					RenderBox(xxp, yyp, xxp+xxw, yyp+yyw, GRID, make_color(LBLUE,&tp));
+					RenderBox(xxp, yyp, xxp+abs(xxw), yyp+yyw, GRID, make_color((xxw>0)?LBLUE:LRED,&tp));
 				for(i=0;i<=yyw;i++)
 				{
 					j=(yyp+i)*fix_screeninfo.line_length+(xxp<<2);
-					if((j+(xxw<<2))<fix_screeninfo.line_length*var_screeninfo.yres)
+					if((j+(abs(xxw)<<2))<=fix_screeninfo.line_length*var_screeninfo.yres)
 					{
-						memcpy(lfb+j, lbb+j, xxw<<2);
+						memcpy(lfb+j, lbb+j, abs(xxw)<<2);
 					}
 				}
 			}
 		}
 		time(&t1);
+		autost=access(AST_FILE, 1)!=-1;
 		while((rc!=KEY_EXIT) && (rc!=KEY_OK))
 		{
 			rc=GetRCCode();
@@ -299,41 +364,12 @@ int main (int argc, char **argv)
 				yyp=yp[amsk][pmode];
 				yyw=yw[amsk][pmode];
 				lpix.lpixel=mc[amsk].lpixel;
-				switch(rc)
+				if(xxw>0)
 				{
+					switch(rc)
+					{
 					case KEY_LEFT:
-					if(lc==KEY_LEFT)
-					{
-						xs+=0.3;
-					}
-					else
-					{
-						xs=1.0;
-					}
-					if(kmode)
-					{
-						if(xxp>0)
-						{
-							changed=1;
-							xxp-=xs;
-						}
-					}
-					else
-					{
-						if(xxw>6)
-						{
-							changed=1;
-							xxw-=xs;
-						}
-					}
-					move=1;
-					break;
-				
-					case KEY_RIGHT:
-					if((xxp+xxw)<(fix_screeninfo.line_length-1))
-					{
-						changed=1;
-						if(lc==KEY_RIGHT)
+						if(lc==KEY_LEFT)
 						{
 							xs+=0.3;
 						}
@@ -343,49 +379,57 @@ int main (int argc, char **argv)
 						}
 						if(kmode)
 						{
-							xxp+=xs;
+							if(xxp>0)
+							{
+								changed=1;
+								xxp-=xs;
+								if(xxp<0)
+									xxp=0;
+							}
 						}
 						else
 						{
-							xxw+=xs;
+							if(xxw>4)
+							{
+								changed=1;
+								xxw-=xs;
+								if(xxw<2)
+									xxw=2;
+							}
 						}
-					}
-					move=1;
+						move=1;
+					break;
+
+					case KEY_RIGHT:
+						if((xxp+xxw)<var_screeninfo.xres)
+						{
+							changed=1;
+							if(lc==KEY_RIGHT)
+							{
+								xs+=0.3;
+							}
+							else
+							{
+								xs=1.0;
+							}
+							if(kmode)
+							{
+								xxp+=xs;
+								if((xxp+xxw)>var_screeninfo.xres)
+									xxp=var_screeninfo.xres-xxw;
+							}
+							else
+							{
+								xxw+=xs;
+								if((xxp+xxw)>var_screeninfo.xres)
+									xxw=var_screeninfo.xres-xxp;
+							}
+						}
+						move=1;
 					break;
 				
 					case KEY_UP:
-					if(lc==KEY_UP)
-					{
-						ys+=0.2;
-					}
-					else
-					{
-						ys=1.0;
-					}
-					if(kmode)
-					{
-						if(yyp>0)
-						{
-							changed=1;
-							yyp-=ys;
-						}
-					}
-					else
-					{
-						if(yyw>6)
-						{
-							changed=1;
-							yyw-=ys;
-						}
-					}
-					move=1;
-					break;
-				
-					case KEY_DOWN:
-					if((yyp+yyw)<(var_screeninfo.yres-1))
-					{
-						changed=1;
-						if(lc==KEY_DOWN)
+						if(lc==KEY_UP)
 						{
 							ys+=0.2;
 						}
@@ -395,134 +439,53 @@ int main (int argc, char **argv)
 						}
 						if(kmode)
 						{
-							yyp+=ys;
-						}
-						else
-						{
-							yyw+=ys;
-						}
-					}
-					move=1;
-					break;
-				
-					case KEY_RED:
-						changed=1;
-						RenderBox(xxp, yyp, xxp+xxw, yyp+yyw, FILL, make_color(TRANSP,&tp));
-						for(i=0;i<=yyw;i++)
-						{
-							j=(yyp+i)*fix_screeninfo.line_length+(xxp<<2);
-							if(((j+(xxw<<2)))<fix_screeninfo.line_length*var_screeninfo.yres)
+							if(yyp>0)
 							{
-								memcpy(lfb+j, lbb+j, xxw<<2);
+								changed=1;
+								yyp-=ys;
 							}
-						}
-						valid[amsk]=0;
-						nmsk--;
-						kmode=1;
-						if(nmsk)
-						{
-							todo=2;
-							amsk=-1;
-							for(m=0; m<MAX_MASK && amsk<0; m++)
-							{
-								if(valid[m])
-								{
-									amsk=m;
-									xxp=xp[amsk][pmode];
-									xxw=xw[amsk][pmode];
-									yyp=yp[amsk][pmode];
-									yyw=yw[amsk][pmode];
-									lpix.lpixel=mc[amsk].lpixel;
-								}
-							}	
+							if(yyp<0)
+								yyp=0;
 						}
 						else
 						{
-							todo=mask=0;
+							if(yyw>4)
+							{
+								changed=1;
+								yyw-=ys;
+							}
+							if(yyw<2)
+								yyw=2;
 						}
+						move=1;
 					break;
-				
-					case KEY_GREEN:
-						if(nmsk<MAX_MASK)
+
+					case KEY_DOWN:
+						if((yyp+yyw)<var_screeninfo.yres)
 						{
-							todo=2;
 							changed=1;
-							kmode=1;
-							amsk=-1;
-							for(m=0; amsk<0 && m<MAX_MASK; m++)
+							if(lc==KEY_DOWN)
 							{
-								if(!valid[m])
-								{
-									amsk=m;
-									valid[amsk]=1;
-									nmsk++;
-									cmc[amsk]=BLACK;
-									make_color(BLACK, &mc[amsk]);
-									for(i=0; i<8; i++)
-									{
-										xp[amsk][i]=(1280-40)/2;
-										xw[amsk][i]=40;
-										yp[amsk][i]=(720-20)/2;
-										yw[amsk][i]=20;
-									}
-									xxp=xp[amsk][pmode];
-									xxw=xw[amsk][pmode];
-									yyp=yp[amsk][pmode];
-									yyw=yw[amsk][pmode];
-									lpix.lpixel=mc[amsk].lpixel;
-								}
+								ys+=0.2;
 							}
-						}	
-					break;
-					
-					case KEY_PAGEUP:
-						if(nmsk>1)
-						{
-							m=amsk+1;
-							if(m>=MAX_MASK)
+							else
 							{
-								m=0;
+								ys=1.0;
 							}
-							while(!valid[m])
+							if(kmode)
 							{
-								if(++m>=MAX_MASK)
-								{
-									m=0;
-								}
+								yyp+=ys;
+								if((yyp+yyw)>var_screeninfo.yres)
+									yyp=var_screeninfo.yres-yyw;
 							}
-							RenderBox(xxp, yyp, xxp+xxw, yyp+yyw, FILL, &lpix);
-							amsk=m;
-							xxp=xp[amsk][pmode];
-							xxw=xw[amsk][pmode];
-							yyp=yp[amsk][pmode];
-							yyw=yw[amsk][pmode];
-							lpix.lpixel=mc[amsk].lpixel;
+							else
+							{
+								yyw+=ys;
+								if((yyp+yyw)>var_screeninfo.yres)
+									yyw=var_screeninfo.yres-yyp;
+							}
 						}
-					break;
-				
-					case KEY_PAGEDOWN:
-						if(nmsk>1)
-						{
-							m=amsk-1;
-							if(m<0)
-							{
-								m=MAX_MASK-1;
-							}
-							while(!valid[m])
-							{
-								if(--m<0)
-								{
-									m=MAX_MASK;
-								}
-							}
-							RenderBox(xxp, yyp, xxp+xxw, yyp+yyw, FILL, &lpix);
-							amsk=m;
-							xxp=xp[amsk][pmode];
-							xxw=xw[amsk][pmode];
-							yyp=yp[amsk][pmode];
-							yyw=yw[amsk][pmode];
-							lpix.lpixel=mc[amsk].lpixel;
-						}
+						move=1;
 					break;
 
 					case KEY_YELLOW:
@@ -532,7 +495,7 @@ int main (int argc, char **argv)
 					case KEY_BLUE:
 						kmode=1;
 					break;
-					
+
 					case KEY_1:
 						if(nmsk)
 						{
@@ -654,6 +617,175 @@ int main (int argc, char **argv)
 							changed=1;
 						}
 					break;
+					}
+				}
+				switch(rc)
+				{
+
+					case KEY_RED:
+						changed=1;
+						RenderBox(xxp, yyp, xxp+abs(xxw), yyp+yyw, FILL, make_color(TRANSP,&tp));
+						for(i=0;i<=yyw;i++)
+						{
+							j=(yyp+i)*fix_screeninfo.line_length+(xxp<<2);
+							if(((j+(abs(xxw)<<2)))<=fix_screeninfo.line_length*var_screeninfo.yres)
+							{
+								memcpy(lfb+j, lbb+j, abs(xxw)<<2);
+							}
+						}
+						valid[amsk]=0;
+						nmsk--;
+						kmode=1;
+						if(nmsk)
+						{
+							todo=2;
+							amsk=-1;
+							for(m=0; m<MAX_MASK && amsk<0; m++)
+							{
+								if(valid[m])
+								{
+									amsk=m;
+									xxp=xp[amsk][pmode];
+									xxw=xw[amsk][pmode];
+									yyp=yp[amsk][pmode];
+									yyw=yw[amsk][pmode];
+									lpix.lpixel=mc[amsk].lpixel;
+								}
+							}
+						}
+						else
+						{
+							todo=mask=0;
+						}
+					break;
+
+					case KEY_GREEN:
+						if(nmsk<MAX_MASK)
+						{
+							todo=2;
+							changed=1;
+							kmode=1;
+							amsk=-1;
+							for(m=0; amsk<0 && m<MAX_MASK; m++)
+							{
+								if(!valid[m])
+								{
+									amsk=m;
+									valid[amsk]=1;
+									nmsk++;
+									cmc[amsk]=BLACK;
+									make_color(BLACK, &mc[amsk]);
+									for(i=0; i<8; i++)
+									{
+										xp[amsk][i]=(1280-40)/2;
+										xw[amsk][i]=40;
+										yp[amsk][i]=(720-20)/2;
+										yw[amsk][i]=20;
+									}
+									xxp=xp[amsk][pmode];
+									xxw=xw[amsk][pmode];
+									yyp=yp[amsk][pmode];
+									yyw=yw[amsk][pmode];
+									lpix.lpixel=mc[amsk].lpixel;
+								}
+							}
+						}	
+					break;
+					
+					case KEY_PAGEUP:
+						if(nmsk>1)
+						{
+							m=amsk+1;
+							if(m>=MAX_MASK)
+							{
+								m=0;
+							}
+							while(!valid[m])
+							{
+								if(++m>=MAX_MASK)
+								{
+									m=0;
+								}
+							}
+							RenderBox(xxp, yyp, xxp+abs(xxw), yyp+yyw, FILL, (xxw>0)?&lpix:make_color(LRED,&tp));
+							amsk=m;
+							xxp=xp[amsk][pmode];
+							xxw=xw[amsk][pmode];
+							yyp=yp[amsk][pmode];
+							yyw=yw[amsk][pmode];
+							lpix.lpixel=mc[amsk].lpixel;
+						}
+					break;
+				
+					case KEY_PAGEDOWN:
+						if(nmsk>1)
+						{
+							m=amsk-1;
+							if(m<0)
+							{
+								m=MAX_MASK-1;
+							}
+							while(!valid[m])
+							{
+								if(--m<0)
+								{
+									m=MAX_MASK;
+								}
+							}
+							RenderBox(xxp, yyp, xxp+abs(xxw), yyp+yyw, FILL, (xxw>0)?&lpix:make_color(LRED,&tp));
+							amsk=m;
+							xxp=xp[amsk][pmode];
+							xxw=xw[amsk][pmode];
+							yyp=yp[amsk][pmode];
+							yyw=yw[amsk][pmode];
+							lpix.lpixel=mc[amsk].lpixel;
+						}
+					break;
+
+					case KEY_FAV:
+						if(amsk>=0)
+						{
+							changed=1;
+							xw[amsk][pmode]=-xw[amsk][pmode];
+							xxw=xw[amsk][pmode];
+							printf("logoset: xxp=%d, xxw=%d, yyp=%d, yyw=%d\n",xxp,xxw,yyp,yyw);
+							RenderBox(xxp, yyp, xxp+abs(xxw), yyp+yyw, FILL, (xxw>0)?&lpix:make_color(LRED, &tp));
+						}
+					break;
+
+					case KEY_COOL:
+						if(amsk>=0)
+						{
+							for(i=0; i<MAX_MASK; i++)
+								for(j=0; j<8; j++)
+								{
+									xp[i][j]=xp[i][pmode];
+									xw[i][j]=xw[i][pmode];
+									yp[i][j]=yp[i][pmode];
+									yw[i][j]=yw[i][pmode];
+								}
+							changed=1;
+						}
+					break;
+
+					case KEY_0:
+						if(autost)
+						{
+							remove(AST_FILE);
+							autost=!autost;
+						}
+						else
+						{
+							if((fh=fopen(AST_FILE,"w"))!=NULL)
+							{
+								fprintf(fh, AST_TEXT);
+								fclose(fh);
+								sleep(1);
+								chmod(AST_FILE, S_IRWXU | S_IRWXG | S_IRWXO);
+								autost=!autost;
+							}
+						}
+					break;
 
 					case KEY_HELP:
 						help_changed=1;
@@ -663,11 +795,11 @@ int main (int argc, char **argv)
 				lpix.lpixel=mc[amsk].lpixel;
 				if(mask || todo==2)
 				{
-					RenderBox(xp[amsk][pmode], yp[amsk][pmode], xp[amsk][pmode]+xw[amsk][pmode], yp[amsk][pmode]+yw[amsk][pmode], FILL, make_color(TRANSP, &tp));
+					RenderBox(xp[amsk][pmode], yp[amsk][pmode], xp[amsk][pmode]+abs(xw[amsk][pmode]), yp[amsk][pmode]+yw[amsk][pmode], FILL, make_color(TRANSP, &tp));
 					for(i=0;i<=yw[amsk][pmode];i++)
 					{
 						j=(yp[amsk][pmode]+i)*fix_screeninfo.line_length+(xp[amsk][pmode]<<2);
-						if((j+(xw[amsk][pmode]<<2))<fix_screeninfo.line_length*var_screeninfo.yres)
+						if((j+(xw[amsk][pmode]<<2))<=fix_screeninfo.line_length*var_screeninfo.yres)
 						{
 							memcpy(lfb+j, lbb+j, (xw[amsk][pmode]+1)<<2);
 						}
@@ -685,15 +817,15 @@ int main (int argc, char **argv)
 							yyp=yp[m][pmode];
 							yyw=yw[m][pmode];
 							tp.lpixel=mc[m].lpixel;
-							RenderBox(xxp, yyp, xxp+xxw, yyp+yyw, FILL, ((m==amsk) && move)?make_color(TRANSP, &tp):&tp);
+							RenderBox(xxp, yyp, xxp+abs(xxw), yyp+yyw, FILL, ((m==amsk) && move)?make_color(TRANSP, &tp):&tp);
 							if(m==amsk)
-								RenderBox(xxp, yyp, xxp+xxw, yyp+yyw, GRID, make_color((kmode)?LBLUE:LYELLOW,&tp));
+								RenderBox(xxp, yyp, xxp+abs(xxw), yyp+yyw, GRID, make_color((xxw>0)?((kmode)?LBLUE:LYELLOW):LRED,&tp));
 							for(i=0;i<=yyw;i++)
 							{
 								j=(yyp+i)*fix_screeninfo.line_length+(xxp<<2);
-								if((j+(xxw<<2))<fix_screeninfo.line_length*var_screeninfo.yres)
+								if((j+(abs(xxw)<<2))<=fix_screeninfo.line_length*var_screeninfo.yres)
 								{
-									memcpy(lfb+j, lbb+j, (xxw+1)<<2);
+									memcpy(lfb+j, lbb+j, (abs(xxw)+1)<<2);
 								}
 							}
 						}
@@ -705,11 +837,11 @@ int main (int argc, char **argv)
 			{
 				xs=1.0;
 				ys=1.0;
-				tsy=120;
+				tsy=80;
 				if(move)
 				{
-					RenderBox(xp[amsk][pmode], yp[amsk][pmode], xp[amsk][pmode]+xw[amsk][pmode], yp[amsk][pmode]+yw[amsk][pmode], FILL, &mc[amsk]);
-					RenderBox(xp[amsk][pmode], yp[amsk][pmode], xp[amsk][pmode]+xw[amsk][pmode], yp[amsk][pmode]+yw[amsk][pmode], GRID, make_color((kmode)?LBLUE:LYELLOW,&tp));
+					RenderBox(xp[amsk][pmode], yp[amsk][pmode], xp[amsk][pmode]+abs(xw[amsk][pmode]), yp[amsk][pmode]+yw[amsk][pmode], FILL, &mc[amsk]);
+					RenderBox(xp[amsk][pmode], yp[amsk][pmode], xp[amsk][pmode]+abs(xw[amsk][pmode]), yp[amsk][pmode]+yw[amsk][pmode], GRID, make_color((xw[amsk][pmode]>0)?((kmode)?LBLUE:LYELLOW):LRED,&tp));
 				}
 				move=0;
 				if(help_changed)
@@ -718,9 +850,9 @@ int main (int argc, char **argv)
 				}
 				if(help)
 				{
-					RenderBox(tsx,tsy,tsx+txw,tsy+21*tdy,FILL,make_color(TRANSP, &tp));
+					RenderBox(tsx,tsy,tsx+abs(txw),tsy+21*tdy,FILL,make_color(TRANSP, &tp));
 					if(nmsk)
-						RenderBox(xp[amsk][pmode], yp[amsk][pmode], xp[amsk][pmode]+xw[amsk][pmode], yp[amsk][pmode]+yw[amsk][pmode], GRID, make_color((kmode)?LBLUE:LYELLOW, &tp));
+						RenderBox(xp[amsk][pmode], yp[amsk][pmode], xp[amsk][pmode]+abs(xw[amsk][pmode]), yp[amsk][pmode]+yw[amsk][pmode], GRID, make_color((xw[amsk][pmode]>0)?((kmode)?LBLUE:LYELLOW):LRED, &tp));
 					RenderString("Maskensteuerung", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("Blau  :  Umschalten auf Positionseinstellung", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("Gelb  :  Umschalten auf Größeneinstellung", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
@@ -728,6 +860,7 @@ int main (int argc, char **argv)
 					RenderString("Rot    :  Maske löschen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("PgUp :  nächste Maske auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("PgDn :  vorherige Maske auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+					RenderString("Fav   :  Maske aktivieren/deaktivieren", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("Maskenfarbe", tsx, tsy+=(2*tdy), txw, LEFT, tsz, tcol);
 					RenderString("Mute  :  Maskenfarbe aus Vorgabe auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("1,4,7   :  Farbton Rot erhöhen, auf Mitte setzen, verringern", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
@@ -736,6 +869,10 @@ int main (int argc, char **argv)
 					RenderString("Vol +  :  Transparenz erhöhen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("Vol -  :  Transparenz verringern", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("Allgemein", tsx, tsy+=(2*tdy), txw, LEFT, tsz, tcol);
+					if(autost)
+						RenderString("0       :  Autostart von logomask ausschalten", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+					else
+						RenderString("0       :  Autostart von logomask einschalten", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("?        :  Hilfetext ein/ausschalten", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("Exit    :  Abbrechen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("OK     :  Speichern und Beenden", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
@@ -744,9 +881,9 @@ int main (int argc, char **argv)
 				{
 					if(help_changed)
 					{
-						RenderBox(tsx, tsy, tsx+txw, tsy+21*tdy, FILL, make_color(TRANSP, &tp));
+						RenderBox(tsx, tsy, tsx+abs(txw), tsy+21*tdy, FILL, make_color(TRANSP, &tp));
 						if(nmsk)
-							RenderBox(xp[amsk][pmode], yp[amsk][pmode], xp[amsk][pmode]+xw[amsk][pmode], yp[amsk][pmode]+yw[amsk][pmode], GRID, make_color((kmode)?LBLUE:LYELLOW, &tp));
+							RenderBox(xp[amsk][pmode], yp[amsk][pmode], xp[amsk][pmode]+abs(xw[amsk][pmode]), yp[amsk][pmode]+yw[amsk][pmode], GRID, make_color((xw>0)?((kmode)?LBLUE:LYELLOW):LRED, &tp));
 					}
 				}
 				help_changed=0;
