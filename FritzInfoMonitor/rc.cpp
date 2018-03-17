@@ -23,6 +23,8 @@ Crc::Crc()
 	/* open Remote Control */
 	rc = open(RC_DEVICE, O_RDONLY | O_CLOEXEC);
 	if ( rc == -1 )
+		rc = open(RC_DEVICE_FALLBACK, O_RDONLY | O_CLOEXEC);
+	if ( rc == -1 )
 	{
 		perror ( "<open remote control>" );
 		exit ( 1 );

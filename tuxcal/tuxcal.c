@@ -19,7 +19,6 @@
  ******************************************************************************/
 // lots of code is from the tuxmail-project
 
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <fcntl.h>
 
