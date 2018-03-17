@@ -1314,13 +1314,8 @@ time_t atime;
 struct tm *sltime;
 char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 
-	//recalculate wigth
+	//recalculate width
 	gicw += ((gicw%10) > OFFSET_SMALL ? OFFSET_MED-(gicw%10) : -(gicw%10)); //rounded table data width, needing for smoothed curves
-	gxw=gicw*nc;
-	gxs=(wxw-gxw)/2;
-
-	//recalculate wigth
-	gicw += ((gicw%10) > 5 ? 10-(gicw%10) : -(gicw%10)); //rounded table data width, needing for smoothed curves
 	gxw=gicw*nc;
 	gxs=(wxw-gxw)/2;
 
