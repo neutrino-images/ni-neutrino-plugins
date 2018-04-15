@@ -29,7 +29,7 @@ local n = neutrino()
 
 local u="ubouquets"
 local b="bouquets"
-local localtv_version="LocalTV 0.22"
+local localtv_version="LocalTV 0.23"
 function __LINE__() return debug.getinfo(2, 'l').currentline end
 
 locale = {}
@@ -63,7 +63,10 @@ locale["deutsch"] = {
 	select = "Auswahl vorbelegen mit",
 	saveonoff = " speichern ? Ein/Aus",
 	deflinkpath = "Symlinks im Var-Bereich",
-	deflinkpathhint="Sollen alle Logo links zu /var/tuxbox/icons/logo führen ?"
+	deflinkpathhint="Sollen alle Logo links zu /var/tuxbox/icons/logo führen ?",
+	name = "Name",
+	ip = "Box-Adresse (IP/Name)",
+	ub="Liste aus:"
 }
 locale["english"] = {
 	create_error = "List could not be created.",
@@ -95,7 +98,10 @@ locale["english"] = {
 	select = "Selection Preassign with",
 	saveonoff = " save ? on/off",
 	deflinkpath = "Symlinks in the VAR-area",
-	deflinkpathhint="If all logo links lead to /var/tuxbox/icons/logo logo ?"
+	deflinkpathhint="If all logo links lead to /var/tuxbox/icons/logo logo ?",
+	name = "Name",
+	ip = "Box-Adresse (IP/Name)",
+	ub="Liste from:"
 }
 locale["slovak"] = {
 	create_error = "Zoznam nemohol byť vytvorený.",
@@ -530,7 +536,7 @@ function loadConfig()
 	conf.changed = false
 	local Nconfig	= configfile.new()
 	Nconfig:loadConfig("/var/tuxbox/config/neutrino.conf")
-	if APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 5 ) then
+	if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 5 )) then
 		conf.logo_dir = Nconfig:getString("logo_hdd_dir", "#")
 	else
 		conf.logo_dir = "#"
@@ -582,15 +588,26 @@ function setabc(a,b)
 	g.main:setActive{item=g.item1, activ=aktiv}
 	return b
 end
+if APIVERSION ~=nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 24 )) then
+	function set_path(id,value)
+		conf.path=value
+		conf.changed = true
+	end
 
-function set_path(value)
-	conf.path=value
-	conf.changed = true
-end
+	function set_backup_path(id,value)
+		conf.backuppath=value
+		conf.changed = true
+	end
+else
+	function set_path(value)
+		conf.path=value
+		conf.changed = true
+	end
 
-function set_backup_path(value)
-	conf.backuppath=value
-	conf.changed = true
+	function set_backup_path(value)
+		conf.backuppath=value
+		conf.changed = true
+	end
 end
 
 function info(captxt,infotxt)
