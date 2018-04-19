@@ -45,7 +45,7 @@ end
 
 --- vlc youtube.lua code
 function js_descramble( sig, js )
-	local descrambler = js_extract( js, "%.set%(\"signature\",([^)]-)%(" )
+	local descrambler = js_extract( js, "%.set%([^,]-\"signature\",([^)]-)%(" )
 	if descrambler == nil then return sig end
 	local rules = js_extract( js, descrambler.."=function%([^)]*%){(.-)};" )
 	if rules == nil then return sig end
@@ -145,7 +145,8 @@ function getVideoData(yurl)
 			end
 			local newname = data:match('<title>(.-)</title>')
 			M = misc.new()
-			local revision = M:GetRevision()
+			local revision = 0
+			-- revision = M:GetRevision() -- enable if you use gstreamer
 			if revision == 1 and m3u_url then -- for gstreamer
 				m3u_url = m3u_url:gsub("\\", "")
 				entry = {}

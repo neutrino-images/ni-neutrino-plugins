@@ -541,7 +541,6 @@ function setvar(k, v)
 	if k == "boxport" then
 		v=v:gsub("^0+(.-)", "%1")
 	end
-	print(k,v)
 	conf[k]=v
 	conf.changed = true
 end
