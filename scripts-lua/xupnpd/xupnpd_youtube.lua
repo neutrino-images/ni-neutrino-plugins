@@ -289,7 +289,7 @@ function js_descramble( sig, js_url )
 
     -- Look for the descrambler function's name
     -- c&&a.set("signature",br(c));
-    local descrambler = js_extract( js, "%.set%(\"signature\",([^)]-)%(" )
+    local descrambler = js_extract( js, "%.set%([^,]-\"signature\",([^)]-)%(" )
 --print("Youtube.js_descramble descrambler = "..descrambler)
     if not descrambler then
         if cfg.debug>0 then print ( "Youtube.js_descramble. ("..js.."). Couldn't extract youtube video URL signature descrambling function name" ) end
