@@ -1,3 +1,25 @@
+/*
+ * logoset - d-box2 linux project
+ *
+ * (C) 2009 by SnowHead
+ * (C) 2018 by GetAway
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ */
+
 #include <string.h>
 #include <time.h>
 #include <linux/input.h>
@@ -17,7 +39,7 @@ static unsigned char AST_FILE[] = "/var/etc/init.d/S9L_logomask";
 static unsigned char AST_TEXT[] = "#!/bin/sh\n(sleep 20; logomask) &\n";
 unsigned char FONT[64] = FONTDIR "/pakenham.ttf";
 
-#define CL_VERSION  "1.3a"
+#define CL_VERSION  "1.4a"
 #define MAX_MASK 16
 
 //					TRANSP,	BLACK,	RED, 	GREEN, 	YELLOW,	BLUE, 	MAGENTA, TURQUOISE,
@@ -93,6 +115,18 @@ int rv=-1;
 		fclose(nfh);
 	}
 	return rv;
+}
+
+int read_pid (char *pidfile)
+{
+  FILE *fd;
+  int pid;
+
+  if (!(fd=fopen(pidfile,"r")))
+    return 0;
+  fscanf(fd,"%d", &pid);
+  fclose(fd);
+  return pid;
 }
 
 /******************************************************************************
@@ -174,7 +208,13 @@ int main (int argc, char **argv)
 				system("pzapit -vm43 1");
 		}
 
-		system("touch /tmp/.logomask_kill");
+		int pid;
+		if ((pid = read_pid(PID_FILE))) {
+			if (kill(pid, SIGTERM) == 0)
+				printf("[logoset] logomask stopped\n");
+			else
+				printf("[logoset] could not stop logomask PID %i\n", pid);
+		}
 
 		fb = open(FB_DEVICE, O_RDWR);
 
@@ -689,7 +729,8 @@ int main (int argc, char **argv)
 							}
 						}	
 					break;
-					
+
+					case KEY_SKIPP:
 					case KEY_PAGEUP:
 						if(nmsk>1)
 						{
@@ -714,7 +755,8 @@ int main (int argc, char **argv)
 							lpix.lpixel=mc[amsk].lpixel;
 						}
 					break;
-				
+
+					case KEY_SKIPM:
 					case KEY_PAGEDOWN:
 						if(nmsk>1)
 						{
@@ -740,7 +782,8 @@ int main (int argc, char **argv)
 						}
 					break;
 
-					case KEY_FAV:
+					case KEY_VIDEO:
+					case KEY_FAVORITES:
 						if(amsk>=0)
 						{
 							changed=1;
@@ -852,13 +895,25 @@ int main (int argc, char **argv)
 					if(nmsk)
 						RenderBox(xp[amsk][pmode], yp[amsk][pmode], xp[amsk][pmode]+abs(xw[amsk][pmode]), yp[amsk][pmode]+yw[amsk][pmode], GRID, make_color((xw[amsk][pmode]>0)?((kmode)?LBLUE:LYELLOW):LRED, &tp));
 					RenderString("Maskensteuerung", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
-					RenderString("Blau  :  Umschalten auf Positionseinstellung", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
-					RenderString("Gelb  :  Umschalten auf Größeneinstellung", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
-					RenderString("Grün  :  Maske hinzufügen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
-					RenderString("Rot    :  Maske löschen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
-					RenderString("PgUp :  nächste Maske auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
-					RenderString("PgDn :  vorherige Maske auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
-					RenderString("Fav   :  Maske aktivieren/deaktivieren", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+					RenderString("Blau     :  Umschalten auf Positionseinstellung", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+					RenderString("Gelb     :  Umschalten auf Größeneinstellung", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+					RenderString("Grün     :  Maske hinzufügen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+					RenderString("Rot       :  Maske löschen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+#if HAVE_COOL_HARDWARE
+					RenderString("PgUp    :  nächste Maske auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+					RenderString("PgDn    :  vorherige Maske auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+					RenderString("Fav      :  Maske aktivieren/deaktivieren", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+#elif HAVE_ARM_HARDWARE
+					RenderString(">          :  nächste Maske auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+					RenderString("<          :  vorherige Maske auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+					RenderString("List     :  Maske aktivieren/deaktivieren", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+#else
+//FIXME! maybe other HW other Keys
+					RenderString("PgUp    :  nächste Maske auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+					RenderString("PgDn    :  vorherige Maske auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+					RenderString("Fav      :  Maske aktivieren/deaktivieren", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+#endif
+
 					RenderString("Maskenfarbe", tsx, tsy+=(2*tdy), txw, LEFT, tsz, tcol);
 					RenderString("Mute  :  Maskenfarbe aus Vorgabe auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("1,4,7   :  Farbton Rot erhöhen, auf Mitte setzen, verringern", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
@@ -871,7 +926,11 @@ int main (int argc, char **argv)
 						RenderString("0       :  Autostart von logomask ausschalten", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					else
 						RenderString("0       :  Autostart von logomask einschalten", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+#if HAVE_COOL_HARDWARE
 					RenderString("?        :  Hilfetext ein/ausschalten", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+#elif HAVE_ARM_HARDWARE
+					RenderString("Help   :  Hilfetext ein/ausschalten", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
+#endif
 					RenderString("Exit    :  Abbrechen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("OK     :  Speichern und Beenden", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 				}
@@ -945,9 +1004,8 @@ int main (int argc, char **argv)
 
 		close(fb);
 		CloseRC();
-		remove("/tmp/.logomask_kill");
 		remove("/tmp/logomaskset.*");
-		system("logomask &");
+		system("logomask");
 		return 0;
 }
 

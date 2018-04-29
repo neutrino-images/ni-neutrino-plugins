@@ -1,8 +1,11 @@
 #!/bin/sh
 
-if pidof logomask > /dev/null; then
-	touch /tmp/.logomask_kill
+PIDFILE=/tmp/logomask.pid
+
+if [ -e $PIDFILE ]; then
+	echo "stopping logomask"
+	read PID < $PIDFILE && kill -TERM $PID
 else
-	logomask &
+	logomask
 fi
 exit 0

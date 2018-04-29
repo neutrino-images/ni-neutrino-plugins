@@ -30,6 +30,7 @@
 
 #define NCF_FILE CONFIGDIR "/neutrino.conf"
 #define CFG_FILE CONFIGDIR "/logomask.conf"
+#define PID_FILE "/tmp/logomask.pid"
 
 #define BUFSIZE 4096
 
@@ -60,7 +61,7 @@
 #define KEY_POWER               116
 #define KEY_HELP                138
 #define KEY_HOME                102
-#define KEY_EXIT				 174
+#define KEY_EXIT                174
 #define KEY_SETUP               141
 #define KEY_PAGEUP              104
 #define KEY_PAGEDOWN            109
@@ -72,25 +73,42 @@
 
 #define KEY_TVR					0x179
 #define KEY_TTX					0x184
-#define KEY_COOL				0x1A1
-#define KEY_FAV					0x16C
-#define KEY_EPG					0x16D
-#define KEY_VF					0x175
+#define KEY_FAVORITES			0x16c
+#define KEY_EPG					0x16d
 
-#define KEY_SAT					0x17D
 #define KEY_SKIPP				0x197
-#define KEY_SKIPM				0x19C
-#define KEY_TS					0x167
+#define KEY_SKIPM				0x19c
 #define KEY_AUDIO				0x188
-#define KEY_REW					0x0A8
-#define KEY_FWD					0x09F
+#define KEY_REW					0x0a8
 #define KEY_HOLD				0x077
-#define KEY_REC					0x0A7
-#define KEY_STOP				0x080
-#define KEY_PLAY				0x0CF
+#define KEY_REC					0x0a7
+#define KEY_STOP				128
+#define KEY_PLAY				207
+
+#ifdef HAVE_COOL_HARDWARE
+#define KEY_FWD					0x09f
+#endif
+#ifdef HAVE_ARM_HARDWARE
+#define KEY_FWD					0x0d0
+#endif
+
+// Coolstream
+#define KEY_COOL				0x1a1
+#define KEY_VF					0x175
+#define KEY_SAT					0x17d
+#define KEY_TS					0x167
+
+// AX/Mutant
+#define KEY_PROGRAM             0x16a   /* TIME */
+#define KEY_RADIO               0x181
+#define KEY_VIDEO               0x189   /* LIST */
+#define KEY_BOOKMARKS           156     /* CONTEXT */
+#define KEY_NEXTSONG            163
+#define KEY_PLAYPAUSE           164
+#define KEY_PREVIOUSSONG        165
 
 //devs
-int fb, rc;
+int fb, rc, pid;
 
 //framebuffer stuff
 

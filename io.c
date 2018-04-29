@@ -50,7 +50,11 @@ int RCKeyPressed(void)
 {
 	if(read(rc, &ev, sizeof(ev)) == sizeof(ev))
 	{
+#if HAVE_ARM_HARDWARE
+		if(ev.value && ev.code)
+#else
 		if(ev.value)
+#endif
 		{
 			rccode=ev.code;
 			return 1;
@@ -71,7 +75,6 @@ int GetRCCode(void)
 	}
 	rv=rccode;
 //	while(RCKeyPressed());
-	
 	return rv;
 }
 
