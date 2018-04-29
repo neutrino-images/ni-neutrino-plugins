@@ -1,5 +1,37 @@
+/*
+ * logomask - d-box2 linux project
+ *
+ * (C) 2009 by SnowHead
+ * (C) 2018 by GetAway
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ */
+
+/*
+ Options:
+ -d	Debugmode: Don't fork, additionally generate debugging messages
+
+ Signal handling:
+
+  SIGUSR1:         Toggles debug mode
+*/
+
 #include <string.h>
 #include <time.h>
+#include <signal.h>
 #include "logomask.h"
 #include "gfx.h"
 
@@ -8,7 +40,7 @@ extern int FSIZE_MED;
 extern int FSIZE_SMALL;
 
 
-#define CL_VERSION  "1.3"
+#define CL_VERSION  "1.4"
 #define MAX_MASK 16
 
 //					TRANSP,	BLACK,	RED, 	GREEN, 	YELLOW,	BLUE, 	MAGENTA, TURQUOISE,
@@ -32,6 +64,26 @@ char tstr[BUFSIZE];
 int xpos=0,ypos=0,sdat=0,big=0,secs=1;
 int wxh, wyh;
 gpixel lpix;
+int run=1, debug=0;
+
+void signal_handler(int signum)
+{
+	switch (signum) {
+	case SIGUSR1:
+		debug = !debug;
+		printf("\ndebug = %d\n", debug);
+		break;
+	case SIGTERM:
+		printf("[logomask] Received signal %d, quitting\n", signum);
+		run=0;
+		break;
+	default:
+		printf("[logomask] Received signal %d, quitting\n", signum);
+		unlink(PID_FILE);
+		exit(2);
+		break;
+	}
+}
 
 void TrimString(char *strg)
 {
@@ -79,7 +131,8 @@ int rv=-1;
 			{
 				rv=-1;
 			}
-//			printf("%s\n%s=%s -> %d\n",tstr,entry,cfptr,rv);
+			if (debug)
+				printf("%s\n%s=%s -> %d\n",tstr,entry,cfptr,rv);
 		}
 		fclose(nfh);
 	}
@@ -146,7 +199,6 @@ void yscal(int *yp, int *yw, int syp, int syw, double scal)
  * logomask Main
  ******************************************************************************/
 
-
 int main (int argc, char **argv)
 {
 	int i,j,m,found,loop=1,mask=0,test=0,pmode=0,lmode=0,pmode43=1,lmode43=1,mchanged=1,mchanged43=1,cchanged=2,mwait,tv;
@@ -154,16 +206,71 @@ int main (int argc, char **argv)
 	int xp[4][MAX_MASK][8],yp[4][MAX_MASK][8],xw[4][MAX_MASK][8],yw[4][MAX_MASK][8],valid[MAX_MASK],xxp,xxw,yyp,yyw,nmsk=0;
 	gpixel tp, cmc, mc[MAX_MASK];
 	double sc131=1.16666666667, sc132=1.193, sc23=1.33333333333;
-	FILE *fh;
+	FILE *fh, *f, *pidfp;
 	char *cpt1,*cpt2;
+	int opt;
 	
-		if(argc==2 && strstr(argv[1],"test")!=NULL)
-		{
-			test=1;
+		while ((opt = getopt(argc, argv, "dt")) > 0) {
+			switch (opt) {
+			case 'd':
+				debug = 1;
+				break;
+			case 't':
+				test = 1;
+				break;
+			default:
+				fprintf(stderr,
+					"Usage: %s [-d]\n"
+					"-d : debug mode\n"
+					"-t : test mode\n"
+					"\n", argv[0]);
+				return EXIT_FAILURE;
+			}
 		}
+		signal(SIGTERM, signal_handler);
+		signal(SIGUSR1, signal_handler);
+
+		f = fopen(PID_FILE, "r");
+		int existing_pid;
+		if (f != 0) {
+			fscanf(f, "%d", &existing_pid);
+			fprintf(stderr,
+				"Running instance with PID %d.\n"
+				"If not, delete %s.\n", existing_pid,  PID_FILE);
+			exit(EXIT_FAILURE);
+		}
+		if (!debug) {
+			pid_t pid = fork();
+			switch (pid) {
+			case -1: /* can't fork */
+				perror("fork");
+				return -1;
+			case 0: /* child, process becomes a daemon */
+				if (setsid() == -1) {
+					perror("setsid");
+					return -1;
+				}
+				chdir("/");
+				break;
+			default: /* parent returns to calling process */
+				f = fopen(PID_FILE, "w");
+				fprintf(f, "%d\n", pid);
+				fclose(f);
+				return 0;
+			}
+		}
+#if HAVE_COOL_HARDWARE
+		printf("logomask Version %s for Coolstream\n",CL_VERSION);
+#elif HAVE_ARM_HARDWARE
+		printf("logomask Version %s for Armbox\n",CL_VERSION);
+#else
 		printf("logomask Version %s\n",CL_VERSION);
-		if((mwait=Read_Neutrino_Cfg("timing.infobar"))<0)
-			mwait=6;
+#endif
+		if((mwait=Read_Neutrino_Cfg("timing.infobar_tv"))<0) {
+			/* for compatibility */
+			if((mwait=Read_Neutrino_Cfg("timing.infobar"))<0)
+				mwait=6;
+		}
 		if((tv=Read_Neutrino_Cfg("video_Format"))<0)
 			tv=3;
 		--tv;
@@ -279,6 +386,8 @@ int main (int argc, char **argv)
 					}
 					fclose(fh);
 				}
+				if (debug)
+					printf("[logomask] get pmode43 = %d\n", pmode43);
 			}
 
 			system("pzapit -gi > /tmp/logomask.chan");
@@ -405,7 +514,8 @@ int main (int argc, char **argv)
 			}
 			if(mask)
 			{
-//printf("[logomask] pmode=%d,pmode43=%d\n",pmode,pmode43);
+				if (debug)
+					printf("[logomask] aspectratio = %d, pmode43 = %d\n", pmode, pmode43);
 				for(m=0; m<nmsk; m++)
 				{
 					if(valid[m])
@@ -427,17 +537,15 @@ int main (int argc, char **argv)
 								}
 							}
 						}
-//printf("[logomask]mask%d: xxp=%d, xxw=%d, yyp=%d, yyw=%d\n",m+1,xxp,xxw,yyp,yyw);
+						if (debug)
+							printf("[logomask] mask%d: xxp=%d, xxw=%d, yyp=%d, yyw=%d\n",m+1,xxp,xxw,yyp,yyw);
 					}
 				}
 			}
-			if(++loop>5)
-			{
-				if(access("/tmp/.logomask_kill",0)!=-1)
-				{
-					loop=0;
-				}
-			}	
+//			if(++loop>5)
+//			{
+				loop=run;
+///			}
 		}
 	}
 
@@ -465,8 +573,8 @@ int main (int argc, char **argv)
 	free(lbb);
 	munmap(lfb, fix_screeninfo.smem_len);
 	close(fb);
-	remove("/tmp/.logomask_kill");
 	remove("/tmp/logomask.*");
-	return 0;
+	unlink(PID_FILE);
+	exit(0);
 }
 
