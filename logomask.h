@@ -17,6 +17,7 @@
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/stat.h>
 
 #ifndef FB_DEVICE
 #define FB_DEVICE	"/dev/fb/0"

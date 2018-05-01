@@ -40,7 +40,7 @@ extern int FSIZE_MED;
 extern int FSIZE_SMALL;
 
 
-#define CL_VERSION  "1.4"
+#define CL_VERSION  "1.5"
 #define MAX_MASK 16
 
 //					TRANSP,	BLACK,	RED, 	GREEN, 	YELLOW,	BLUE, 	MAGENTA, TURQUOISE,
@@ -209,6 +209,9 @@ int main (int argc, char **argv)
 	FILE *fh, *f, *pidfp;
 	char *cpt1,*cpt2;
 	int opt;
+	const char wget[] = "/bin/wget";
+	struct stat stat_buf;
+	int have_nonbb_wget = !lstat(wget, &stat_buf) && !S_ISLNK(stat_buf.st_mode);
 	
 		while ((opt = getopt(argc, argv, "dt")) > 0) {
 			switch (opt) {
@@ -324,7 +327,11 @@ int main (int argc, char **argv)
 			if(access("/tmp/.logomask_pause",0)!=-1)
 				continue;
 			i=0;
-			system("wget -Y off -q -O /tmp/logomask.stat http://localhost/control/zapto?statussectionsd");
+			if (have_nonbb_wget)
+				system("wget -q -o /dev/null -Y off -O /tmp/logomask.stat http://localhost/control/zapto?statussectionsd");
+			else
+				system("wget -Y off -q -O /tmp/logomask.stat http://localhost/control/zapto?statussectionsd");
+
 			if((fh=fopen("/tmp/logomask.stat","r"))!=NULL)
 			{
 				if(fgets(tstr,500,fh))
@@ -336,7 +343,10 @@ int main (int argc, char **argv)
 					}
 				}
 				fclose(fh);
+				if (debug)
+					printf("[logomask] (Sectionsd scanning is active: %i)\n", i);
 			}
+
 			if(i!=1)
 				continue;
 			system("pzapit -var > /tmp/logomaskset.stat");
@@ -573,8 +583,8 @@ int main (int argc, char **argv)
 	free(lbb);
 	munmap(lfb, fix_screeninfo.smem_len);
 	close(fb);
-	remove("/tmp/logomask.*");
 	unlink(PID_FILE);
+	remove("/tmp/logomask.*");
 	exit(0);
 }
 
