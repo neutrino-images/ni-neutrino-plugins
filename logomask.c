@@ -40,7 +40,7 @@ extern int FSIZE_MED;
 extern int FSIZE_SMALL;
 
 
-#define CL_VERSION  "1.5"
+#define CL_VERSION  "1.51"
 #define MAX_MASK 16
 
 //					TRANSP,	BLACK,	RED, 	GREEN, 	YELLOW,	BLUE, 	MAGENTA, TURQUOISE,
@@ -211,8 +211,17 @@ int main (int argc, char **argv)
 	int opt;
 	const char wget[] = "/bin/wget";
 	struct stat stat_buf;
-	int have_nonbb_wget = !lstat(wget, &stat_buf) && !S_ISLNK(stat_buf.st_mode);
-	
+	int have_bb_wget = 0;
+	int isLink_wget = !lstat(wget, &stat_buf) && S_ISLNK(stat_buf.st_mode);
+
+		if (isLink_wget) {
+			char buf[128];
+			realpath(wget, buf);
+			if (strstr(buf, "busybox") != NULL) {
+				have_bb_wget = 1;
+			}
+		}
+
 		while ((opt = getopt(argc, argv, "dt")) > 0) {
 			switch (opt) {
 			case 'd':
@@ -327,10 +336,10 @@ int main (int argc, char **argv)
 			if(access("/tmp/.logomask_pause",0)!=-1)
 				continue;
 			i=0;
-			if (have_nonbb_wget)
-				system("wget -q -o /dev/null -Y off -O /tmp/logomask.stat http://localhost/control/zapto?statussectionsd");
-			else
+			if (have_bb_wget)
 				system("wget -Y off -q -O /tmp/logomask.stat http://localhost/control/zapto?statussectionsd");
+			else
+				system("wget -q -o /dev/null -Y off -O /tmp/logomask.stat http://localhost/control/zapto?statussectionsd");
 
 			if((fh=fopen("/tmp/logomask.stat","r"))!=NULL)
 			{
