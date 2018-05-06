@@ -40,7 +40,7 @@ extern int FSIZE_MED;
 extern int FSIZE_SMALL;
 
 
-#define CL_VERSION  "1.51"
+#define CL_VERSION  "1.52"
 #define MAX_MASK 16
 
 //					TRANSP,	BLACK,	RED, 	GREEN, 	YELLOW,	BLUE, 	MAGENTA, TURQUOISE,
@@ -75,6 +75,7 @@ void signal_handler(int signum)
 		break;
 	case SIGTERM:
 		printf("[logomask] Received signal %d, quitting\n", signum);
+		unlink(PID_FILE);
 		run=0;
 		break;
 	default:
@@ -333,8 +334,6 @@ int main (int argc, char **argv)
 		{
 			sleep(1);
 			mchanged=0;
-			if(access("/tmp/.logomask_pause",0)!=-1)
-				continue;
 			i=0;
 			if (have_bb_wget)
 				system("wget -Y off -q -O /tmp/logomask.stat http://localhost/control/zapto?statussectionsd");
@@ -434,6 +433,8 @@ int main (int argc, char **argv)
 							}
 							cchanged=1;
 						}
+						if(access("/tmp/.logomask_pause",0)!=-1)
+							continue;
 						if(mask)
 						{
 							for(m=0; m<nmsk; m++)
@@ -535,6 +536,8 @@ int main (int argc, char **argv)
 			{
 				if (debug)
 					printf("[logomask] aspectratio = %d, pmode43 = %d\n", pmode, pmode43);
+				if(access("/tmp/.logomask_pause",0)!=-1)
+					continue;
 				for(m=0; m<nmsk; m++)
 				{
 					if(valid[m])
