@@ -35,7 +35,7 @@ extern int FSIZE_SMALL;
 
 static unsigned char NCF_FILE[] = CONFIGDIR "/neutrino.conf";
 static unsigned char CFG_FILE[] = CONFIGDIR "/logomask.conf";
-static unsigned char AST_FILE[] = "/var/etc/init.d/S9L_logomask";
+static unsigned char AST_FILE[] = "/var/etc/init.d/S99logomask-auto";
 static unsigned char AST_TEXT[] = "#!/bin/sh\n(sleep 20; logomask) &\n";
 
 //freetype stuff
