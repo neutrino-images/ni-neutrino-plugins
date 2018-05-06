@@ -41,7 +41,7 @@ static unsigned char AST_TEXT[] = "#!/bin/sh\n(sleep 20; logomask) &\n";
 //freetype stuff
 unsigned char FONT[128] = FONTDIR "/neutrino.ttf";
 
-#define CL_VERSION  "1.4a"
+#define CL_VERSION  "1.5"
 #define MAX_MASK 16
 
 //					TRANSP,	BLACK,	RED, 	GREEN, 	YELLOW,	BLUE, 	MAGENTA, TURQUOISE,
@@ -928,11 +928,7 @@ int main (int argc, char **argv)
 						RenderString("0       :  Autostart von logomask ausschalten", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					else
 						RenderString("0       :  Autostart von logomask einschalten", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
-#if HAVE_COOL_HARDWARE
-					RenderString("?        :  Hilfetext ein/ausschalten", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
-#elif HAVE_ARM_HARDWARE
 					RenderString("Help   :  Hilfetext ein/ausschalten", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
-#endif
 					RenderString("Exit    :  Abbrechen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("OK     :  Speichern und Beenden", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 				}

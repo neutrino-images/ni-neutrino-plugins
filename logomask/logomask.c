@@ -40,7 +40,7 @@ extern int FSIZE_MED;
 extern int FSIZE_SMALL;
 
 
-#define CL_VERSION  "1.51"
+#define CL_VERSION  "1.53"
 #define MAX_MASK 16
 
 //					TRANSP,	BLACK,	RED, 	GREEN, 	YELLOW,	BLUE, 	MAGENTA, TURQUOISE,
@@ -64,7 +64,7 @@ char tstr[BUFSIZE];
 int xpos=0,ypos=0,sdat=0,big=0,secs=1;
 int wxh, wyh;
 gpixel lpix;
-int run=1, debug=0;
+int loop=1, debug=0;
 
 void signal_handler(int signum)
 {
@@ -75,7 +75,8 @@ void signal_handler(int signum)
 		break;
 	case SIGTERM:
 		printf("[logomask] Received signal %d, quitting\n", signum);
-		run=0;
+		unlink(PID_FILE);
+		loop=0;
 		break;
 	default:
 		printf("[logomask] Received signal %d, quitting\n", signum);
@@ -201,7 +202,7 @@ void yscal(int *yp, int *yw, int syp, int syw, double scal)
 
 int main (int argc, char **argv)
 {
-	int i,j,m,found,loop=1,mask=0,test=0,pmode=0,lmode=0,pmode43=1,lmode43=1,mchanged=1,mchanged43=1,cchanged=2,mwait,tv;
+	int i,j,m,found,mask=0,test=0,pmode=0,lmode=0,pmode43=1,lmode43=1,mchanged=1,mchanged43=1,cchanged=2,mwait,tv;
 	unsigned char lastchan[20]="", actchan[20]=""/*,channel[128]=""*/;
 	int xp[4][MAX_MASK][8],yp[4][MAX_MASK][8],xw[4][MAX_MASK][8],yw[4][MAX_MASK][8],valid[MAX_MASK],xxp,xxw,yyp,yyw,nmsk=0;
 	gpixel tp, cmc, mc[MAX_MASK];
@@ -333,8 +334,6 @@ int main (int argc, char **argv)
 		{
 			sleep(1);
 			mchanged=0;
-			if(access("/tmp/.logomask_pause",0)!=-1)
-				continue;
 			i=0;
 			if (have_bb_wget)
 				system("wget -Y off -q -O /tmp/logomask.stat http://localhost/control/zapto?statussectionsd");
@@ -434,6 +433,8 @@ int main (int argc, char **argv)
 							}
 							cchanged=1;
 						}
+						if(access("/tmp/.logomask_pause",0)!=-1)
+							continue;
 						if(mask)
 						{
 							for(m=0; m<nmsk; m++)
@@ -535,6 +536,8 @@ int main (int argc, char **argv)
 			{
 				if (debug)
 					printf("[logomask] aspectratio = %d, pmode43 = %d\n", pmode, pmode43);
+				if(access("/tmp/.logomask_pause",0)!=-1)
+					continue;
 				for(m=0; m<nmsk; m++)
 				{
 					if(valid[m])
@@ -561,10 +564,6 @@ int main (int argc, char **argv)
 					}
 				}
 			}
-//			if(++loop>5)
-//			{
-				loop=run;
-///			}
 		}
 	}
 
