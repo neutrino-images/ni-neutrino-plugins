@@ -1,5 +1,4 @@
 #ifndef __logomask_H__
-
 #define __logomask_H__
 
 #include <config.h>
@@ -125,4 +124,4 @@ extern unsigned char *lfb, *lbb;
 struct fb_fix_screeninfo fix_screeninfo;
 struct fb_var_screeninfo var_screeninfo;
 
-#endif
+#endif //__logomask_H__

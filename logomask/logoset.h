@@ -1,6 +1,5 @@
-#ifndef __logomask_H__
-
-#define __logomask_H__
+#ifndef __logoset_H__
+#define __logoset_H__
 
 #include <config.h>
 
@@ -148,4 +147,4 @@ extern int TABULATOR;
 struct fb_fix_screeninfo fix_screeninfo;
 struct fb_var_screeninfo var_screeninfo;
 
-#endif
+#endif //__logoset_H__
