@@ -4567,13 +4567,22 @@ void DoEditFile(char* szFile, char* szTitle,  int writable)
 void DoTaskManager()
 {
 	const char ps[] = "/bin/ps";
-	struct stat stat_buf;
-	int have_nonbb_ps = !lstat(ps, &stat_buf) && !S_ISLNK(stat_buf.st_mode);
 	char command[20];
-	if (have_nonbb_ps)
-		strcpy(command,"ps aux");
-	else
+	struct stat stat_buf;
+	int have_bb_ps = 0;
+	int isLink_ps = !lstat(ps, &stat_buf) && S_ISLNK(stat_buf.st_mode);
+
+	if (isLink_ps) {
+		char buf[128];
+		realpath(ps, buf);
+		if (strstr(buf, "busybox") != NULL) {
+			have_bb_ps = 1;
+		}
+	}
+	if (have_bb_ps)
 		strcpy(command,"ps -l");
+	else
+		strcpy(command,"ps aux");
 
 	FILE* pFile = OpenPipe(command);
 	char* szFileBuffer = (char*)malloc(FILEBUFFER_SIZE);
@@ -4656,13 +4665,13 @@ void DoTaskManager()
 				}
 				if (*p == 0x00) break;
 				memset(procname,0,256);
-				if (have_nonbb_ps) {
-					sscanf(p,"%s%s",uid,prid);
-					strncpy(procname,(char*)(p+26),255);
-				}
-				else {
+				if (have_bb_ps) {
 					sscanf(p+1,"%s%s",uid,prid);
 					strncpy(procname,(char*)(p+20),255);
+				}
+				else {
+					sscanf(p,"%s%s",uid,prid);
+					strncpy(procname,(char*)(p+26),255);
 				}
           		p2=strchr(procname,'\n');
           		if (p2 != NULL) *p2 = 0x00;
@@ -4713,13 +4722,13 @@ void DoTaskManager()
 					break;
 				case RC_RED:
 					memset(procname,0,256);
-					if (have_nonbb_ps) {
-						sscanf(pcur,"%s%s",uid,prid);
-						strncpy(procname,(char*)(pcur+26),255);
-					}
-					else {
+					if (have_bb_ps) {
 						sscanf(pcur+1,"%s%s",uid,prid);
 						strncpy(procname,(char*)(pcur+20),255);
+					}
+					else {
+						sscanf(pcur,"%s%s",uid,prid);
+						strncpy(procname,(char*)(pcur+26),255);
 					}
 	          		p2=strchr(procname,'\n');
 	          		if (p2 != NULL) *p2 = 0x00;
