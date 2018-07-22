@@ -140,8 +140,14 @@ if colorkey then
         buttons={ "yes", "no" }
        	}
 	if res == "yes" then
-               	local file = assert(io.popen("systemctl start backup@" .. backup_partition, 'r'))
-               	local output = file:read('*all')
-               	file:close()
+               	if (backup_partition .. " " == act_boot_partition) then
+		        local file = assert(io.popen("backup_" .. backup_partition, 'r'))
+		        local output = file:read('*all')
+		        file:close()
+		else
+               		local file = assert(io.popen("systemctl start backup@" .. backup_partition, 'r'))
+	               	local output = file:read('*all')
+        	       	file:close()
+		end
 	end
 end
