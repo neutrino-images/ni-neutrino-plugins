@@ -152,9 +152,13 @@ if colorkey then
 		       	local file = assert(io.popen("etckeeper commit -a", 'r'))
 	       		local output = file:read('*all')
        			file:close()
+                        local file = assert(io.popen("flash_" .. flash_boot_partition, 'r'))
+                       	local output = file:read('*all')
+                       	file:close()
+		else
+			local file = assert(io.popen("systemctl start flash@" .. flash_boot_partition, 'r'))
+			local output = file:read('*all')
+			file:close()
 		end
-		local file = assert(io.popen("systemctl start flash@" .. flash_boot_partition, 'r'))
-		local output = file:read('*all')
-		file:close()
 	end
 end
