@@ -44,6 +44,7 @@ locale["deutsch"] = {
 	backup_is_saved = " wird gesichert \n\nBitte warten...",
 	backup_successful = "Sicherung erfolgreich",
 	backup_no_space = "Es wird mindestens 1G freier Speicherplatz auf der Festplatte benötigt",
+       	prepare_system = "System wird vorbereitet ... Bitte warten",
 }
 locale["english"] = {
 	current_boot_partition = "The current start partition is: ",
@@ -54,6 +55,7 @@ locale["english"] = {
        	backup_is_saved = " will be created \n\nPlease stand by...",
        	backup_successful = "Image backup succeeded",
        	backup_no_space = "You need at least 1G of free space on your HDD",
+       	prepare_system = "System is getting prepared ... please stand by",
 }
 
 neutrino_conf = configfile.new()
@@ -141,6 +143,8 @@ if colorkey then
        	}
 	if res == "yes" then
                	if (backup_partition .. " " == act_boot_partition) then
+                       	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].prepare_system };
+                       	ret:paint()
 		        local file = assert(io.popen("backup_" .. backup_partition, 'r'))
 		        local output = file:read('*all')
 		        file:close()

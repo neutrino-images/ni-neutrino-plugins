@@ -39,6 +39,7 @@ locale["deutsch"] = {
 	backup_image = "Image aus Partition ",
 	backup_is_saved = " wird wiederhergestellt \n\nBitte warten...",
 	backup_successful = "Wiederherstellung erfolgreich",
+	prepare_system = "System wird vorbereitet ... Bitte warten",
 }
 locale["english"] = {
 	current_boot_partition = "The current start partition is: ",
@@ -48,6 +49,7 @@ locale["english"] = {
        	backup_image = "Backup image of partition ",
        	backup_is_saved = " will be restored \n\nPlease stand by...",
        	backup_successful = "Image successfully restored",
+       	prepare_system = "System is getting prepared ... please stand by",
 }
 
 neutrino_conf = configfile.new()
@@ -132,9 +134,11 @@ if colorkey then
        	text = locale[lang].start_partition1 .. backup_partition .. locale[lang].start_partition2,
        	timeout = 0,
         buttons={ "yes", "no" }
-       	}
+       	};
 	if res == "yes" then
                	if (backup_partition .. " " == act_boot_partition) then
+			local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].prepare_system };
+			ret:paint()
                        	local file = assert(io.popen("restore_" .. backup_partition, 'r'))
                        	local output = file:read('*all')
                        	file:close()

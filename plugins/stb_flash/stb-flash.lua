@@ -46,7 +46,9 @@ locale["deutsch"] = {
 	flash_partition8 = "Entpacken des Images fehlgeschlagen",
 	flash_partition9 = "Flashen des Kernel fehlgeschlagen",
 	flash_partition10 = "Flashen des Rootfs fehlgeschlagen",
-	flash_partition11 = "Partitionsschema ungültig"
+	flash_partition11 = "Partitionsschema ungültig",
+       	prepare_system = "System wird vorbereitet ... Bitte warten",
+
 }
 locale["english"] = {
 	current_boot_partition = "The current start partition is: ",
@@ -63,7 +65,8 @@ locale["english"] = {
 	flash_partition8 = "Unpacking the image failed",
 	flash_partition9 = "Writing the kernel failed",
 	flash_partition10 = "Writing the rootfs failed",
-	flash_partition11 = "Partitionscheme invalid"
+	flash_partition11 = "Partitionscheme invalid",
+       	prepare_system = "System is getting prepared ... please stand by",
 }
 
 neutrino_conf = configfile.new()
@@ -152,6 +155,8 @@ if colorkey then
 		       	local file = assert(io.popen("etckeeper commit -a", 'r'))
 	       		local output = file:read('*all')
        			file:close()
+                       	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].prepare_system };
+                       	ret:paint()
                         local file = assert(io.popen("flash_" .. flash_boot_partition, 'r'))
                        	local output = file:read('*all')
                        	file:close()
