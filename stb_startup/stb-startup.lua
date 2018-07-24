@@ -29,8 +29,7 @@ end
 timing_menu = neutrino_conf:getString("timing.menu", "0")
 
 for line in io.lines("/boot/STARTUP") do
-	akt_boot_partition = string.sub(line,23,24)
-	print(akt_boot_partition)
+	akt_boot_partition = string.sub(line,23,23)
 end
 
 chooser_dx = n:scale2Res(600)
