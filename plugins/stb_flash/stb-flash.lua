@@ -175,7 +175,7 @@ if colorkey then
                		ret:paint()
                		sleep (3)
                		ret:hide()
-                	do return end
+                	return
        		end
 
 		if (flash_boot_partition == act_boot_partition) then
@@ -192,5 +192,6 @@ if colorkey then
 			local output = file:read('*all')
 			file:close()
 		end
+	return
 	end
 end

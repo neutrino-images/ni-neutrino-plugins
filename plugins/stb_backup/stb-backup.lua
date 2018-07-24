@@ -153,5 +153,6 @@ if colorkey then
 	               	local output = file:read('*all')
         	       	file:close()
 		end
+	return
 	end
 end
