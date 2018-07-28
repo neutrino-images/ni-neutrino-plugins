@@ -26,7 +26,18 @@
 
 caption = "STB-Shell"
 
-local file = assert(io.popen("getty-toggle", 'r'))
+local file = assert(io.popen("systemctl is-active getty@tty1", 'r'))
 local output = file:read('*all')
 file:close()
 
+for c in output:gmatch("inactive") do
+       	local file = assert(io.popen("systemctl start getty@tty1", 'r'))
+       	file:close()
+       	return
+end
+
+for c in output:gmatch("active") do
+       	local file = assert(io.popen("systemctl stop getty@tty1", 'r'))
+       	file:close()
+       	return
+end

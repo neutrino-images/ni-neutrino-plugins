@@ -67,8 +67,7 @@ end
 timing_menu = neutrino_conf:getString("timing.menu", "0")
 
 for line in io.lines("/boot/STARTUP") do
-	act_boot_partition = string.sub(line,23,24)
-	print(act_boot_partition)
+	act_boot_partition = string.sub(line,23,23)
 end
 
 chooser_dx = n:scale2Res(600)
@@ -142,7 +141,7 @@ if colorkey then
         buttons={ "yes", "no" }
        	}
 	if res == "yes" then
-               	if (backup_partition .. " " == act_boot_partition) then
+               	if (backup_partition == act_boot_partition) then
                        	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].prepare_system };
                        	ret:paint()
 		        local file = assert(io.popen("backup_" .. backup_partition, 'r'))
@@ -153,5 +152,6 @@ if colorkey then
 	               	local output = file:read('*all')
         	       	file:close()
 		end
+	return
 	end
 end

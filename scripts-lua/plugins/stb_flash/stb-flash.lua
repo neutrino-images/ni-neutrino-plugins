@@ -69,6 +69,12 @@ locale["english"] = {
        	prepare_system = "System is getting prepared ... please stand by",
 }
 
+function sleep (a) 
+    local sec = tonumber(os.clock() + a); 
+    while (os.clock() < sec) do 
+    end 
+end
+
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/etc/neutrino/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
@@ -78,8 +84,7 @@ end
 timing_menu = neutrino_conf:getString("timing.menu", "0")
 
 for line in io.lines("/boot/STARTUP") do
-	act_boot_partition = string.sub(line,23,24)
-	print(act_boot_partition)
+	act_boot_partition = string.sub(line,23,23)
 end
 
 chooser_dx = n:scale2Res(600)
@@ -151,7 +156,29 @@ if colorkey then
 	buttons={ "yes", "no" }
 	}
 	if res == "yes" then
-		if (flash_boot_partition .. " " == act_boot_partition) then
+	       	local a,b,c = os.execute("mountpoint -q /media/HDD")
+       		if (c == 0) then
+               		device = "HDD"
+       		else
+               		device = "USB"
+       		end
+       		local file = assert(io.popen("md5sum /media/" .. device .. "/service/image/imageversion_partition_" .. flash_boot_partition .. " " .. "| cut -d' ' -f1"))
+       		local md5_local = file:read('*all')
+       		file:close()
+
+       		local file = assert(io.popen("curl --silent https://tuxbox-images.de/images/hd51/imageversion | md5sum | cut -d' ' -f1"))
+       		local md5_online = file:read('*all')
+       		file:close()
+
+       		if (md5_online == md5_local) then
+               		local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].flash_partition4, timeout=3 };
+               		ret:paint()
+               		sleep (3)
+               		ret:hide()
+                	return
+       		end
+
+		if (flash_boot_partition == act_boot_partition) then
 		       	local file = assert(io.popen("etckeeper commit -a", 'r'))
 	       		local output = file:read('*all')
        			file:close()
@@ -165,5 +192,6 @@ if colorkey then
 			local output = file:read('*all')
 			file:close()
 		end
+	return
 	end
 end
