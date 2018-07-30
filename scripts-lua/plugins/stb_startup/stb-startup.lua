@@ -24,22 +24,45 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
-caption = "STB-StartUp"
+caption = "STB-Startup"
 
 n = neutrino()
 fh = filehelpers.new()
+
+devbase = "/dev/mmcblk0p"
+bootfile = "/boot/STARTUP"
+inode_empty = "51296"
 
 locale = {}
 locale["deutsch"] = {
 	current_boot_partition = "Die aktuelle Startpartition ist: ",
 	choose_partition = "\n\nBitte wählen Sie die neue Startpartition aus",
-	start_partition = "Rebooten und die gewählte Partition starten?"
+	start_partition = "Rebooten und die gewählte Partition starten?",
+	empty_partition = "Die gewählte Partition ist leer"
 }
 locale["english"] = {
 	current_boot_partition = "The current start partition is: ",
 	choose_partition = "\n\nPlease choose the new start partition",
-	start_partition = "Reboot and start the chosen partition?"
+	start_partition = "Reboot and start the chosen partition?",
+	empty_partition = "The selected partition is empty"
 }
+
+function sleep (a) 
+    local sec = tonumber(os.clock() + a); 
+    while (os.clock() < sec) do 
+    end 
+end
+
+function reboot()
+       	local file = assert(io.popen("which systemctl >> /dev/null"))
+       	running_init = file:read('*line')
+       	file:close()
+	if running_init == "/bin/systemctl" then
+		local file = assert(io.popen("systemctl reboot"))
+	else
+                local file = assert(io.popen("reboot"))
+ 	end
+end
 
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/var/tuxbox/config/neutrino.conf")
@@ -49,7 +72,7 @@ if locale[lang] == nil then
 end
 timing_menu = neutrino_conf:getString("timing.menu", "0")
 
-for line in io.lines("/boot/STARTUP") do
+for line in io.lines(bootfile) do
 	akt_boot_partition = string.sub(line,23,23)
 end
 
@@ -95,16 +118,20 @@ repeat
 	i = i + 1
 	msg, data = n:GetInput(d)
 	if (msg == RC['red']) then
-		fh:cp("/boot/STARTUP_1", "/boot/STARTUP", "f")
+		start = "1"
+		root = "3"
 		colorkey = true
 	elseif (msg == RC['green']) then
-		fh:cp("/boot/STARTUP_2", "/boot/STARTUP", "f")
+		start = "2"
+		root = "5"
 		colorkey = true
 	elseif (msg == RC['yellow']) then
-		fh:cp("/boot/STARTUP_3", "/boot/STARTUP", "f")
+		start = "3"
+		root = "7"
 		colorkey = true
 	elseif (msg == RC['blue']) then
-		fh:cp("/boot/STARTUP_4", "/boot/STARTUP", "f")
+		start = "4"
+		root = "9"
 		colorkey = true
 	end
 until msg == RC['home'] or colorkey or i == t
@@ -112,14 +139,29 @@ until msg == RC['home'] or colorkey or i == t
 chooser:hide()
 
 if colorkey then
-	res = messagebox.exec {
-		title = caption,
-		icon = "settings",
-		text = locale[lang].start_partition,
-		timeout = 0,
-		buttons={ "yes", "no" }
-	}
-	if res == "yes" then
-		os.execute("reboot")
+	local file = assert(io.popen("tune2fs -l " .. devbase .. root .. " | grep 'Inode count' | grep '" .. inode_empty .. "' | awk -F ' ' '{print $3}'"))
+	local dest_output = file:read('*line')
+	file:close()
+	if inode_empty == dest_output then
+		local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].empty_partition };
+		ret:paint();
+		sleep(3)
+		return
+	else
+		fh:cp(bootfile .. "_" .. start, bootfile, "f")
+		res = messagebox.exec {
+			title = caption,
+			icon = "settings",
+			text = locale[lang].start_partition,
+			timeout = 0,
+			buttons={ "yes", "no" }
+		}
+
 	end
 end
+
+if res == "yes" then
+	reboot()
+end
+
+return
