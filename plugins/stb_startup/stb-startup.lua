@@ -24,10 +24,15 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
-caption = "STB-StartUp"
+caption = "STB-Startup"
 
 n = neutrino()
 fh = filehelpers.new()
+
+devbase = "/dev/mmcblk0p"
+bootfile = "/boot/STARTUP"
+bootfile_select = "/boot/STARTUP_"
+inode_empty = "51296"
 
 locale = {}
 locale["deutsch"] = {
@@ -49,6 +54,17 @@ function sleep (a)
     end 
 end
 
+function reboot()
+       	local file = assert(io.popen("which systemctl >> /dev/null"))
+       	running_init = file:read('*line')
+       	file:close()
+	if running_init == "/bin/systemctl" then
+		local file = assert(io.popen("systemctl reboot"))
+	else
+                local file = assert(io.popen("reboot"))
+ 	end
+end
+
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/var/tuxbox/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
@@ -57,7 +73,7 @@ if locale[lang] == nil then
 end
 timing_menu = neutrino_conf:getString("timing.menu", "0")
 
-for line in io.lines("/boot/STARTUP") do
+for line in io.lines(bootfile) do
 	akt_boot_partition = string.sub(line,23,23)
 end
 
@@ -124,17 +140,16 @@ until msg == RC['home'] or colorkey or i == t
 chooser:hide()
 
 if colorkey then
-        local file = assert(io.popen("tune2fs -l /dev/mmcblk0p" .. root .. " | grep 'Inode count' | grep '51296' | awk -F ' ' '{print $3}'"))
+        local file = assert(io.popen("tune2fs -l " .. devbase .. root .. " | grep 'Inode count' | grep '" .. inode_empty .. "' | awk -F ' ' '{print $3}'"))
         local dest_output = file:read('*line')
         file:close()
-        local output_empty = "51296"
-        if output_empty == dest_output then
+        if inode_empty == dest_output then
                 local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].empty_partition };
                 ret:paint();
                 sleep(3)
                 return
         else
-               	fh:cp("/boot/STARTUP_" .. start, "/boot/STARTUP", "f")
+               	fh:cp(bootfile_select .. start, bootfile, "f")
 		res = messagebox.exec {
 			title = caption,
 			icon = "settings",
@@ -147,7 +162,7 @@ if colorkey then
 end
 
 if res == "yes" then
-       	local file = assert(io.popen("reboot"))
-       	dest_output = file:read('*line')
-        file:close()
+	reboot()
 end
+
+return
