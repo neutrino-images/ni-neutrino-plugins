@@ -33,13 +33,21 @@ locale = {}
 locale["deutsch"] = {
 	current_boot_partition = "Die aktuelle Startpartition ist: ",
 	choose_partition = "\n\nBitte wählen Sie die neue Startpartition aus",
-	start_partition = "Rebooten und die gewählte Partition starten?"
+	start_partition = "Rebooten und die gewählte Partition starten?",
+	empty_partition = "Die gewählte Partition ist leer"
 }
 locale["english"] = {
 	current_boot_partition = "The current start partition is: ",
 	choose_partition = "\n\nPlease choose the new start partition",
-	start_partition = "Reboot and start the chosen partition?"
+	start_partition = "Reboot and start the chosen partition?",
+	empty_partition = "The selected partition is empty"
 }
+
+function sleep (a) 
+    local sec = tonumber(os.clock() + a); 
+    while (os.clock() < sec) do 
+    end 
+end
 
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/var/tuxbox/config/neutrino.conf")
@@ -95,16 +103,20 @@ repeat
 	i = i + 1
 	msg, data = n:GetInput(d)
 	if (msg == RC['red']) then
-		fh:cp("/boot/STARTUP_1", "/boot/STARTUP", "f")
+		start = "1"
+		root = "3"
 		colorkey = true
 	elseif (msg == RC['green']) then
-		fh:cp("/boot/STARTUP_2", "/boot/STARTUP", "f")
+		start = "2"
+		root = "5"
 		colorkey = true
 	elseif (msg == RC['yellow']) then
-		fh:cp("/boot/STARTUP_3", "/boot/STARTUP", "f")
+		start = "3"
+		root = "7"
 		colorkey = true
 	elseif (msg == RC['blue']) then
-		fh:cp("/boot/STARTUP_4", "/boot/STARTUP", "f")
+		start = "4"
+		root = "9"
 		colorkey = true
 	end
 until msg == RC['home'] or colorkey or i == t
@@ -112,14 +124,30 @@ until msg == RC['home'] or colorkey or i == t
 chooser:hide()
 
 if colorkey then
-	res = messagebox.exec {
-		title = caption,
-		icon = "settings",
-		text = locale[lang].start_partition,
-		timeout = 0,
-		buttons={ "yes", "no" }
-	}
-	if res == "yes" then
-		os.execute("reboot")
+        local file = assert(io.popen("tune2fs -l /dev/mmcblk0p" .. root .. " | grep 'Inode count' | grep '51296' | awk -F ' ' '{print $3}'"))
+        local dest_output = file:read('*line')
+        file:close()
+        local output_empty = "51296"
+        if output_empty == dest_output then
+                local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].empty_partition };
+                ret:paint();
+                sleep(3)
+                return
+        else
+               	fh:cp("/boot/STARTUP_" .. start, "/boot/STARTUP", "f")
+		res = messagebox.exec {
+			title = caption,
+			icon = "settings",
+			text = locale[lang].start_partition,
+			timeout = 0,
+			buttons={ "yes", "no" }
+		}
+
 	end
+end
+
+if res == "yes" then
+       	local file = assert(io.popen("reboot"))
+       	dest_output = file:read('*line')
+        file:close()
 end
