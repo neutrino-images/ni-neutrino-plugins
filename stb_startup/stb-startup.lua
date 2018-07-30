@@ -31,7 +31,6 @@ fh = filehelpers.new()
 
 devbase = "/dev/mmcblk0p"
 bootfile = "/boot/STARTUP"
-bootfile_select = "/boot/STARTUP_"
 inode_empty = "51296"
 
 locale = {}
@@ -140,16 +139,16 @@ until msg == RC['home'] or colorkey or i == t
 chooser:hide()
 
 if colorkey then
-        local file = assert(io.popen("tune2fs -l " .. devbase .. root .. " | grep 'Inode count' | grep '" .. inode_empty .. "' | awk -F ' ' '{print $3}'"))
-        local dest_output = file:read('*line')
-        file:close()
-        if inode_empty == dest_output then
-                local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].empty_partition };
-                ret:paint();
-                sleep(3)
-                return
-        else
-               	fh:cp(bootfile_select .. start, bootfile, "f")
+	local file = assert(io.popen("tune2fs -l " .. devbase .. root .. " | grep 'Inode count' | grep '" .. inode_empty .. "' | awk -F ' ' '{print $3}'"))
+	local dest_output = file:read('*line')
+	file:close()
+	if inode_empty == dest_output then
+		local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].empty_partition };
+		ret:paint();
+		sleep(3)
+		return
+	else
+		fh:cp(bootfile .. "_" .. start, bootfile, "f")
 		res = messagebox.exec {
 			title = caption,
 			icon = "settings",
