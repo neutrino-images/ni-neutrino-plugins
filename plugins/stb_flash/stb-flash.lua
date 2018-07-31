@@ -34,6 +34,7 @@ bootfile = "/boot/STARTUP"
 imageversion_source = "https://tuxbox-images.de/images/hd51/imageversion"
 
 locale = {}
+
 locale["deutsch"] = {
 	current_boot_partition = "Die aktuelle Startpartition ist: ",
 	choose_partition = "\n\nBitte wählen Sie die Flash-Partition aus",
@@ -53,6 +54,7 @@ locale["deutsch"] = {
        	prepare_system = "System wird vorbereitet ... Bitte warten",
 
 }
+
 locale["english"] = {
 	current_boot_partition = "The current start partition is: ",
 	choose_partition = "\n\nPlease choose the new flash partition",
@@ -73,14 +75,15 @@ locale["english"] = {
 }
 
 function sleep (a) 
-    local sec = tonumber(os.clock() + a); 
-    while (os.clock() < sec) do 
-    end 
+	local sec = tonumber(os.clock() + a); 
+	while (os.clock() < sec) do 
+	end 
 end
 
 function create_flashfile()
 	file = io.open("/tmp/flash.sh", "w")
 	file:write("#!/bin/sh", "\n")
+	file:write("", "\n")
 	file:write("systemctl stop nmb", "\n")
 	file:write("systemctl stop udpxy", "\n")
 	file:write("systemctl stop nfs-server", "\n")
@@ -118,7 +121,6 @@ function create_flashfile()
 	file:write("rm -rf /tmp/tmproot/lib/systemd/system/multi-user.target.wants/mnt-partition*", "\n")
 	file:write("rm -rf /tmp/tmproot/lib/systemd/system/mount@.service", "\n")
 	file:write("rm -rf /tmp/tmproot/lib/systemd/system/local-fs.target.wants/mount@.service", "\n")
-	file:write("ln -sf /lib/systemd/system/media-HDD.mount /tmp/tmproot/lib/systemd/system/multi-user.target.wants/", "\n")
 	file:write("cp -rf /tmp/tmproot/lib/systemd/system/flash@.service /tmp/tmproot/lib/systemd/system/flash@" .. flash_boot_partition .. ".service", "\n")
 	file:write("ln -sf /lib/systemd/system/flash@" .. flash_boot_partition .. ".service /tmp/tmproot/lib/systemd/system/multi-user.target.wants/", "\n")
 	file:write("systemctl switch-root --force /tmp/tmproot", "\n")
@@ -129,9 +131,11 @@ end
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/etc/neutrino/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
+
 if locale[lang] == nil then
 	lang = "english"
 end
+
 timing_menu = neutrino_conf:getString("timing.menu", "0")
 
 for line in io.lines(bootfile) do
@@ -156,6 +160,7 @@ chooser = cwindow.new {
 	btnYellow = "Partition 3",
 	btnBlue = "Partition 4"
 }
+
 chooser_text = ctext.new {
 	parent = chooser,
 	x = OFFSET.INNER_MID,
@@ -166,11 +171,13 @@ chooser_text = ctext.new {
 	font_text = FONT.MENU,
 	mode = "ALIGN_CENTER"
 }
+
 chooser:paint()
 
 i = 0
 d = 500 -- ms
 t = (timing_menu * 1000) / d
+
 if t == 0 then
 	t = -1 -- no timeout
 end
@@ -200,7 +207,7 @@ chooser:hide()
 
 if colorkey then
 	res = messagebox.exec {
-	title = caption .. " v",
+	title = caption,
 	icon = "settings",
 	text = locale[lang].start_partition1 .. flash_boot_partition .. locale[lang].start_partition2,
 	timeout = 0,
