@@ -31,7 +31,6 @@ fh = filehelpers.new()
 
 devbase = "/dev/mmcblk0p"
 bootfile = "/boot/STARTUP"
-inode_empty = "51296"
 
 locale = {}
 locale["deutsch"] = {
@@ -139,10 +138,10 @@ until msg == RC['home'] or colorkey or i == t
 chooser:hide()
 
 if colorkey then
-	local file = assert(io.popen("tune2fs -l " .. devbase .. root .. " | grep 'Inode count' | grep '" .. inode_empty .. "' | awk -F ' ' '{print $3}'"))
-	local dest_output = file:read('*line')
-	file:close()
-	if inode_empty == dest_output then
+	local file = assert(io.popen("cat /proc/mounts | grep " .. devbase .. root .. " | awk -F ' ' '{print $2}'"))
+	local mounted_part = file:read('*line')
+	local a,b,c = os.execute("test -d " .. mounted_part .. "/usr")
+	if (c == 1) then
 		local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].empty_partition };
 		ret:paint();
 		sleep(3)
@@ -156,7 +155,6 @@ if colorkey then
 			timeout = 0,
 			buttons={ "yes", "no" }
 		}
-
 	end
 end
 

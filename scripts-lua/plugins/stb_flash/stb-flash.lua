@@ -30,7 +30,11 @@ local posix = require "posix"
 n = neutrino()
 fh = filehelpers.new()
 
+bootfile = "/boot/STARTUP"
+imageversion_source = "https://tuxbox-images.de/images/hd51/imageversion"
+
 locale = {}
+
 locale["deutsch"] = {
 	current_boot_partition = "Die aktuelle Startpartition ist: ",
 	choose_partition = "\n\nBitte wählen Sie die Flash-Partition aus",
@@ -50,6 +54,7 @@ locale["deutsch"] = {
        	prepare_system = "System wird vorbereitet ... Bitte warten",
 
 }
+
 locale["english"] = {
 	current_boot_partition = "The current start partition is: ",
 	choose_partition = "\n\nPlease choose the new flash partition",
@@ -70,20 +75,70 @@ locale["english"] = {
 }
 
 function sleep (a) 
-    local sec = tonumber(os.clock() + a); 
-    while (os.clock() < sec) do 
-    end 
+	local sec = tonumber(os.clock() + a); 
+	while (os.clock() < sec) do 
+	end 
+end
+
+function create_flashfile()
+	file = io.open("/tmp/flash.sh", "w")
+	file:write("#!/bin/sh", "\n")
+	file:write("", "\n")
+	file:write("systemctl stop nmb", "\n")
+	file:write("systemctl stop udpxy", "\n")
+	file:write("systemctl stop nfs-server", "\n")
+	file:write("systemctl stop nfs-mountd", "\n")
+	file:write("systemctl stop nfs-ststd", "\n")
+	file:write("systemctl stop oscam", "\n")
+	file:write("systemctl stop cccam", "\n")
+	file:write("systemctl stop gbox", "\n")
+	file:write("systemctl stop webmin", "\n")
+	file:write("systemctl stop rpcbind.socket", "\n")
+	file:write("systemctl stop rpcbind", "\n")
+	file:write("systemctl stop proftpd", "\n")
+	file:write("systemctl stop minidlna", "\n")
+	file:write("systemctl stop autofs", "\n")
+	file:write("systemctl stop ntpdate", "\n")
+	file:write("systemctl -q stop etckeeper", "\n")
+	file:write("systemctl stop dbus.socket", "\n")
+	file:write("systemctl stop dbus", "\n")
+	file:write("systemctl stop telnet", "\n")
+	file:write("systemctl stop sshd.socket", "\n")
+	file:write("systemctl stop mnt-partition_1.automount", "\n")
+	file:write("systemctl stop mnt-partition_2.automount", "\n")
+	file:write("systemctl stop mnt-partition_3.automount", "\n")
+	file:write("systemctl stop mnt-partition_4.automount", "\n")
+	file:write("systemctl stop mnt-partition_1.mount", "\n")
+	file:write("systemctl stop mnt-partition_2.mount", "\n")
+	file:write("systemctl stop mnt-partition_3.mount", "\n")
+	file:write("systemctl stop mnt-partition_4.mount", "\n")
+	file:write("mkdir -p /tmp/tmproot", "\n")
+	file:write("mkdir -p /tmp/tmproot/media/HDD", "\n")
+	file:write("mkdir -p /tmp/tmproot/lib/systemd/system/multi-user.target.wants", "\n")
+	file:write("mount -t tmpfs none /tmp/tmproot", "\n")
+	file:write("cp -ax / /tmp/tmproot", "\n")
+	file:write("rm -rf /tmp/tmproot/lib/systemd/system/mnt-partition*", "\n")
+	file:write("rm -rf /tmp/tmproot/lib/systemd/system/multi-user.target.wants/mnt-partition*", "\n")
+	file:write("rm -rf /tmp/tmproot/lib/systemd/system/mount@.service", "\n")
+	file:write("rm -rf /tmp/tmproot/lib/systemd/system/local-fs.target.wants/mount@.service", "\n")
+	file:write("cp -rf /tmp/tmproot/lib/systemd/system/flash@.service /tmp/tmproot/lib/systemd/system/flash@" .. flash_boot_partition .. ".service", "\n")
+	file:write("ln -sf /lib/systemd/system/flash@" .. flash_boot_partition .. ".service /tmp/tmproot/lib/systemd/system/multi-user.target.wants/", "\n")
+	file:write("systemctl switch-root --force /tmp/tmproot", "\n")
+	file:close()
+	file = os.execute('chmod +x "/tmp/flash.sh"')
 end
 
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/etc/neutrino/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
+
 if locale[lang] == nil then
 	lang = "english"
 end
+
 timing_menu = neutrino_conf:getString("timing.menu", "0")
 
-for line in io.lines("/boot/STARTUP") do
+for line in io.lines(bootfile) do
 	act_boot_partition = string.sub(line,23,23)
 end
 
@@ -105,6 +160,7 @@ chooser = cwindow.new {
 	btnYellow = "Partition 3",
 	btnBlue = "Partition 4"
 }
+
 chooser_text = ctext.new {
 	parent = chooser,
 	x = OFFSET.INNER_MID,
@@ -115,11 +171,13 @@ chooser_text = ctext.new {
 	font_text = FONT.MENU,
 	mode = "ALIGN_CENTER"
 }
+
 chooser:paint()
 
 i = 0
 d = 500 -- ms
 t = (timing_menu * 1000) / d
+
 if t == 0 then
 	t = -1 -- no timeout
 end
@@ -149,7 +207,7 @@ chooser:hide()
 
 if colorkey then
 	res = messagebox.exec {
-	title = caption .. " v",
+	title = caption,
 	icon = "settings",
 	text = locale[lang].start_partition1 .. flash_boot_partition .. locale[lang].start_partition2,
 	timeout = 0,
@@ -166,7 +224,7 @@ if colorkey then
        		local md5_local = file:read('*all')
        		file:close()
 
-       		local file = assert(io.popen("curl --silent https://tuxbox-images.de/images/hd51/imageversion | md5sum | cut -d' ' -f1"))
+       		local file = assert(io.popen("curl --silent " .. imageversion_source .. " | md5sum | cut -d' ' -f1"))
        		local md5_online = file:read('*all')
        		file:close()
 
@@ -180,17 +238,12 @@ if colorkey then
 
 		if (flash_boot_partition == act_boot_partition) then
 		       	local file = assert(io.popen("etckeeper commit -a", 'r'))
-	       		local output = file:read('*all')
-       			file:close()
                        	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].prepare_system };
                        	ret:paint()
-                        local file = assert(io.popen("flash_" .. flash_boot_partition, 'r'))
-                       	local output = file:read('*all')
-                       	file:close()
+			create_flashfile()
+                        local file = assert(io.popen("/tmp/flash.sh", 'r'))
 		else
 			local file = assert(io.popen("systemctl start flash@" .. flash_boot_partition, 'r'))
-			local output = file:read('*all')
-			file:close()
 		end
 	return
 	end
