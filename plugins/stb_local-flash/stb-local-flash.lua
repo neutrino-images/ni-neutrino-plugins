@@ -24,14 +24,13 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
-caption = "STB-Flash"
+caption = "STB-Local-Flash"
 
 local posix = require "posix"
 n = neutrino()
 fh = filehelpers.new()
 
 bootfile = "/boot/STARTUP"
-imageversion_source = "https://tuxbox-images.de/images/hd51/imageversion"
 
 local g = {}
 locale = {}
@@ -50,7 +49,7 @@ locale["deutsch"] = {
 	flash_partition9 = "Flashen des Kernel fehlgeschlagen",
 	flash_partition10 = "Flashen des Rootfs fehlgeschlagen",
 	flash_partition11 = "Partitionsschema ungültig",
-       	prepare_system = "System wird vorbereitet ... Bitte warten",
+	prepare_system = "System wird vorbereitet ... Bitte warten",
 
 }
 
@@ -68,7 +67,7 @@ locale["english"] = {
 	flash_partition9 = "Writing the kernel failed",
 	flash_partition10 = "Writing the rootfs failed",
 	flash_partition11 = "Partitionscheme invalid",
-       	prepare_system = "System is getting prepared ... please stand by",
+	prepare_system = "System is getting prepared ... please stand by",
 }
 
 function sleep (a) 
@@ -78,18 +77,18 @@ function sleep (a)
 end
 
 function create_servicefile()
-       	f = io.open("/tmp/flash@.service", "w")
-       	f:write("[Unit]", "\n")
-       	f:write("Description=flash on partition %I", "\n")
-       	f:write("", "\n")
-       	f:write("[Service]", "\n")
-       	f:write("ExecStart=/usr/bin/flash %I " .. image_path, "\n")
-       	f:write("ExecStartPost=/bin/echo -e '\033[?17;0;0c'", "\n")
-       	f:write("Type=oneshot", "\n")
-       	f:write("RemainAfterExit=no", "\n")
-       	f:write("StandardOutput=tty", "\n")
-       	f:write("TTYPath=/dev/tty1", "\n")
-       	f:close()
+	f = io.open("/tmp/flash@.service", "w")
+	f:write("[Unit]", "\n")
+	f:write("Description=flash on partition %I", "\n")
+	f:write("", "\n")
+	f:write("[Service]", "\n")
+	f:write("ExecStart=/usr/bin/flash %I " .. image_path, "\n")
+	f:write("ExecStartPost=/bin/echo -e '\033[?17;0;0c'", "\n")
+	f:write("Type=oneshot", "\n")
+	f:write("RemainAfterExit=no", "\n")
+	f:write("StandardOutput=tty", "\n")
+	f:write("TTYPath=/dev/tty1", "\n")
+	f:close()
 end
 
 function create_flashfile()
@@ -117,10 +116,10 @@ function create_flashfile()
 	file:write("systemctl stop dbus", "\n")
 	file:write("systemctl stop telnet", "\n")
 	file:write("systemctl stop sshd.socket", "\n")
-       	file:write("systemctl stop mount@sda1.service", "\n")
-       	file:write("systemctl stop mount@sdb1.service", "\n")
-       	file:write("systemctl stop mount@sdc1.service", "\n")
-       	file:write("systemctl stop mount@sdd1.service", "\n")
+	file:write("systemctl stop mount@sda1.service", "\n")
+	file:write("systemctl stop mount@sdb1.service", "\n")
+	file:write("systemctl stop mount@sdc1.service", "\n")
+	file:write("systemctl stop mount@sdd1.service", "\n")
 	file:write("systemctl stop mnt-partition_1.automount", "\n")
 	file:write("systemctl stop mnt-partition_2.automount", "\n")
 	file:write("systemctl stop mnt-partition_3.automount", "\n")
@@ -140,9 +139,9 @@ function create_flashfile()
 	file:write("cp -rf /tmp/flash@.service /tmp/tmproot/lib/systemd/system/flash@.service", "\n")
 	file:write("ln -sf /lib/systemd/system/flash@" .. flash_boot_partition .. ".service /tmp/tmproot/lib/systemd/system/multi-user.target.wants/", "\n")
 	file:write("ln -sf /lib/systemd/system/mount@.service /tmp/tmproot/lib/systemd/system/multi-user.target.wants/mount@sda1.service", "\n")
-       	file:write("ln -sf /lib/systemd/system/mount@.service /tmp/tmproot/lib/systemd/system/multi-user.target.wants/mount@sdb1.service", "\n")
-       	file:write("ln -sf /lib/systemd/system/mount@.service /tmp/tmproot/lib/systemd/system/multi-user.target.wants/mount@sdc1.service", "\n")
-       	file:write("ln -sf /lib/systemd/system/mount@.service /tmp/tmproot/lib/systemd/system/multi-user.target.wants/mount@sdd1.service", "\n")
+	file:write("ln -sf /lib/systemd/system/mount@.service /tmp/tmproot/lib/systemd/system/multi-user.target.wants/mount@sdb1.service", "\n")
+	file:write("ln -sf /lib/systemd/system/mount@.service /tmp/tmproot/lib/systemd/system/multi-user.target.wants/mount@sdc1.service", "\n")
+	file:write("ln -sf /lib/systemd/system/mount@.service /tmp/tmproot/lib/systemd/system/multi-user.target.wants/mount@sdd1.service", "\n")
 	file:write("systemctl switch-root --force /tmp/tmproot", "\n")
 	file:close()
 	file = os.execute('chmod +x "/tmp/flash.sh"')
@@ -162,41 +161,39 @@ for line in io.lines(bootfile) do
 	act_boot_partition = string.sub(line,23,23)
 end
 
-
-
 chooser_dx = n:scale2Res(600)
 chooser_dy = n:scale2Res(200)
 chooser_x = SCREEN.OFF_X + (((SCREEN.END_X - SCREEN.OFF_X) - chooser_dx) / 2)
 chooser_y = SCREEN.OFF_Y + (((SCREEN.END_Y - SCREEN.OFF_Y) - chooser_dy) / 2)
 
 chooser = cwindow.new {
-       	x = chooser_x,
-       	y = chooser_y,
-       	dx = chooser_dx,
-       	dy = chooser_dy,
-       	title = caption,
-       	icon = "settings",
-       	has_shadow = true,
-       	btnRed = "Partition 1",
-       	btnGreen = "Partition 2",
-       	btnYellow = "Partition 3",
-       	btnBlue = "Partition 4"
+	x = chooser_x,
+	y = chooser_y,
+	dx = chooser_dx,
+	dy = chooser_dy,
+	title = caption,
+	icon = "settings",
+	has_shadow = true,
+	btnRed = "Partition 1",
+	btnGreen = "Partition 2",
+	btnYellow = "Partition 3",
+	btnBlue = "Partition 4"
 }
 
 chooser_text = ctext.new {
-       	parent = chooser,
-       	x = OFFSET.INNER_MID,
-       	y = OFFSET.INNER_SMALL,
-       	dx = chooser_dx - 2*OFFSET.INNER_MID,
-       	dy = chooser_dy - chooser:headerHeight() - chooser:footerHeight() - 2*OFFSET.INNER_SMALL,
-       	text = locale[lang].current_boot_partition .. act_boot_partition .. locale[lang].choose_partition,
-       	font_text = FONT.MENU,
-       	mode = "ALIGN_CENTER"
+	parent = chooser,
+	x = OFFSET.INNER_MID,
+	y = OFFSET.INNER_SMALL,
+	dx = chooser_dx - 2*OFFSET.INNER_MID,
+	dy = chooser_dy - chooser:headerHeight() - chooser:footerHeight() - 2*OFFSET.INNER_SMALL,
+	text = locale[lang].current_boot_partition .. act_boot_partition .. locale[lang].choose_partition,
+	font_text = FONT.MENU,
+	mode = "ALIGN_CENTER"
 }
 
 
 function flash_image()
-
+	
 	chooser:paint()
 
 	i = 0
@@ -204,7 +201,7 @@ function flash_image()
 	t = (timing_menu * 1000) / d
 
 	if t == 0 then
-       		t = -1 -- no timeout
+		t = -1 -- no timeout
 	end
 
 	colorkey = nil
@@ -213,16 +210,17 @@ function flash_image()
 	msg, data = n:GetInput(d)
 
 	if (msg == RC['red']) then
-       		flash_boot_partition = "1"
-       		colorkey = true
+		flash_boot_partition = "1"
+		colorkey = true
 	elseif (msg == RC['green']) then
-       		flash_boot_partition = "2"
-       		colorkey = true
+		flash_boot_partition = "2"
+		colorkey = true
 	elseif (msg == RC['yellow']) then
-       		flash_boot_partition = "3"
+		flash_boot_partition = "3"
+		colorkey = true
 	elseif (msg == RC['blue']) then
-       		flash_boot_partition = "4"
-       		colorkey = true
+		flash_boot_partition = "4"
+		colorkey = true
 	end
 
 	until msg == RC['home'] or colorkey or i == t
@@ -230,31 +228,29 @@ function flash_image()
 	chooser:hide()
 
 	if colorkey then
-       		res = messagebox.exec {
-       		title = caption,
-       		icon = "settings",
-       		text = locale[lang].start_partition1 .. flash_boot_partition .. locale[lang].start_partition2,
-       		timeout = 0,
-       		buttons={ "yes", "no" }
-       		}
-       		if res == "yes" then
-
-               		if (flash_boot_partition == act_boot_partition) then
-                       		local file = assert(io.popen("etckeeper commit -a", 'r'))
-                       		local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].prepare_system };
-                       		ret:paint()
-				m:hide()
-                       		create_flashfile()
-                       		local file = assert(io.popen("/tmp/flash.sh", 'r'))
+		res = messagebox.exec {
+		title = caption,
+		icon = "settings",
+		text = locale[lang].start_partition1 .. flash_boot_partition .. locale[lang].start_partition2,
+		timeout = 0,
+		buttons={ "yes", "no" }
+		}
+		if res == "yes" then
+			if (flash_boot_partition == act_boot_partition) then
+				local file = assert(io.popen("etckeeper commit -a", 'r'))
+				local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].prepare_system };
+				ret:paint()
+				create_flashfile()
+				local file = assert(io.popen("/tmp/flash.sh", 'r'))
 				return
 			else
 				create_servicefile()
 				os.execute("mv -f /tmp/flash@.service /lib/systemd/system/local_flash@.service")
-	                        local file = assert(io.popen("systemctl start local_flash@" .. flash_boot_partition, 'r'))				
+				local file = assert(io.popen("systemctl start local_flash@" .. flash_boot_partition, 'r'))				
 				return
-               		end
-       		return
-       		end
+			end
+			return
+		end
 	end
 end
 
