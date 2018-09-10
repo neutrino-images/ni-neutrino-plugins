@@ -262,7 +262,7 @@ function set_path(id, value)
 end
 
 function main_menu()
-	g.main = menu.new{name="Lokal Flash", icon="settings"}
+	g.main = menu.new{name=caption, icon="settings"}
 	m=g.main
 	m:addItem{type="back"}
 	m:addItem{type="separatorline"}
