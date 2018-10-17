@@ -1,5 +1,6 @@
 # automake stuff
 *.in
+m4/
 aclocal.m4
 autom4te.cache/
 config.guess
@@ -10,6 +11,9 @@ install-sh
 ltmain.sh
 Makefile
 missing
+COPYING
+INSTALL
+compile
 
 # system
 *~
