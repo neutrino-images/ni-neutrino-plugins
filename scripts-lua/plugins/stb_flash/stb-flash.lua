@@ -117,7 +117,7 @@ function create_flashfile()
 	file:write("systemctl stop mnt-partition_3.mount", "\n")
 	file:write("systemctl stop mnt-partition_4.mount", "\n")
 	file:write("mkdir -p /tmp/tmproot", "\n")
-	file:write("mkdir -p /tmp/tmproot/media/HDD", "\n")
+	file:write("mkdir -p /tmp/tmproot/media/hdd", "\n")
 	file:write("mkdir -p /tmp/tmproot/lib/systemd/system/multi-user.target.wants", "\n")
 	file:write("mount -t tmpfs none /tmp/tmproot", "\n")
 	file:write("cp -ax / /tmp/tmproot", "\n")
@@ -220,11 +220,11 @@ if colorkey then
 	buttons={ "yes", "no" }
 	}
 	if res == "yes" then
-	       	local a,b,c = os.execute("mountpoint -q /media/HDD")
+	       	local a,b,c = os.execute("mountpoint -q /media/hdd")
        		if (c == 0) then
-               		device = "HDD"
+               		device = "hdd"
        		else
-               		device = "USB"
+               		device = "usb"
        		end
        		local file = assert(io.popen("md5sum /media/" .. device .. "/service/image/imageversion_partition_" .. flash_boot_partition .. " " .. "| cut -d' ' -f1"))
        		local md5_local = file:read('*all')

@@ -204,11 +204,11 @@ function do_copy_image ()
        	buttons={ "yes", "no" }
        	}
        	if res == "yes" then
-               	local a,b,c = os.execute("mountpoint -q /media/HDD")
+               	local a,b,c = os.execute("mountpoint -q /media/hdd")
                	if (c == 0) then
-                       	device = "HDD"
+                       	device = "hdd"
                	else
-                       	device = "USB"
+                       	device = "usb"
                	end
 
         	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].is_getting_copied };
