@@ -40,4 +40,3 @@ install-exec-local:
 	install -m 0644 $(srcdir)/tuxwetter.cfg $(DESTDIR)$(PLUGINDIR)
 	install -m 0644 $(srcdir)/tuxwetter.conf $(srcdir)/tuxwetter.mcfg $(srcdir)/convert.list $(srcdir)/startbild.jpg $(srcdir)/tuxwetter.png $(DESTDIR)$(CONFIGDIR)/tuxwetter
 	install -m 0644 $(srcdir)/tuxwetter_hint.png $(DESTDIR)$(PLUGINDIR)
-	

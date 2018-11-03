@@ -22,4 +22,4 @@ cooliTSclimax_LDADD = \
 
 install-exec-local:
 	install -d $(DESTDIR)/usr/bin
-	install -m 0755 cooliTSclimax $(DESTDIR)/usr/bin/cooliTSclimax
+	install -m 0755 cooliTSclimax $(DESTDIR)/bin/cooliTSclimax
