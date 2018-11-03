@@ -136,6 +136,9 @@ TUXBOX_APPS_DIRECTORY_ONE(datadir, DATADIR, datadir, /share, /tuxbox,
 TUXBOX_APPS_DIRECTORY_ONE(fontdir, FONTDIR, datadir, /share, /fonts,
 	[--with-fontdir=PATH], [where to find fonts])
 
+TUXBOX_APPS_DIRECTORY_ONE(fontdir_var, FONTDIR_VAR, localstatedir, /var, /tuxbox/fonts,
+	[--with-fontdir_var=PATH], [where to find fonts in /var])
+
 TUXBOX_APPS_DIRECTORY_ONE(gamesdir, GAMESDIR, localstatedir, /var, /tuxbox/games,
 	[--with-gamesdir=PATH], [where to find games])
 
@@ -153,12 +156,43 @@ TUXBOX_APPS_DIRECTORY_ONE(plugindir_mnt, PLUGINDIR_MNT, mntdir, /mnt, /plugins,
 
 TUXBOX_APPS_DIRECTORY_ONE(luaplugindir, LUAPLUGINDIR, libdir, /lib, /tuxbox/luaplugins,
 	[--with-luaplugindir=PATH], [where to find Lua plugins])
+
+TUXBOX_APPS_DIRECTORY_ONE(webradiodir, WEBRADIODIR, datadir, /share, /tuxbox/neutrino/webradio,
+	[--with-webradiodir=PATH], [where to find webradio content])
+
+TUXBOX_APPS_DIRECTORY_ONE(webradiodir_var, WEBRADIODIR_VAR, localstatedir, /var, /tuxbox/webradio,
+	[--with-webradiodir_var=PATH], [where to find webradio content in /var])
+
+TUXBOX_APPS_DIRECTORY_ONE(webtvdir, WEBTVDIR, datadir, /share, /tuxbox/neutrino/webtv,
+	[--with-webtvdir=PATH], [where to find webtv content])
+
+TUXBOX_APPS_DIRECTORY_ONE(webtvdir_var, WEBTVDIR_VAR, localstatedir, /var, /tuxbox/webtv,
+	[--with-webtvdir_var=PATH], [where to find webtv content in /var])
+
+TUXBOX_APPS_DIRECTORY_ONE(localedir, LOCALEDIR,datadir, /share, /tuxbox/neutrino/locale,
+	[--with-localedir=PATH], [where to find locale])
+
+TUXBOX_APPS_DIRECTORY_ONE(localedir_var, LOCALEDIR_VAR, localstatedir, /var, /tuxbox/locale,
+	[--with-localedir_var=PATH], [where to find locale in /var])
+
+TUXBOX_APPS_DIRECTORY_ONE(themesdir, THEMESDIR, datadir, /share, /tuxbox/neutrino/themes,
+	[--with-themesdir=PATH], [where to find themes])
+
+TUXBOX_APPS_DIRECTORY_ONE(themesdir_var, THEMESDIR_VAR, localstatedir, /var, /tuxbox/themes,
+	[--with-themesdir_var=PATH], [where to find themes in /var])
+
+TUXBOX_APPS_DIRECTORY_ONE(iconsdir, ICONSDIR, datadir, /share, /tuxbox/neutrino/icons,
+	[--with-iconsdir=PATH], [where to find icons])
+
+TUXBOX_APPS_DIRECTORY_ONE(iconsdir_var, ICONSDIR_VAR, localstatedir, /var, /tuxbox/icons,
+	[--with-iconsdir_var=PATH], [where to find icons in /var])
 ])
 
 dnl automake <= 1.6 needs this specifications
 AC_SUBST(CONFIGDIR)
 AC_SUBST(DATADIR)
 AC_SUBST(FONTDIR)
+AC_SUBST(FONTDIR_VAR)
 AC_SUBST(GAMESDIR)
 AC_SUBST(LIBDIR)
 AC_SUBST(MNTDIR)
@@ -166,6 +200,16 @@ AC_SUBST(PLUGINDIR)
 AC_SUBST(PLUGINDIR_VAR)
 AC_SUBST(PLUGINDIR_MNT)
 AC_SUBST(LUAPLUGINDIR)
+AC_SUBST(WEBRADIODIR)
+AC_SUBST(WEBRADIODIR_VAR)
+AC_SUBST(WEBTVDIR)
+AC_SUBST(WEBTVDIR_VAR)
+AC_SUBST(LOCALEDIR)
+AC_SUBST(LOCALEDIR_VAR)
+AC_SUBST(THEMESDIR)
+AC_SUBST(THEMESDIR_VAR)
+AC_SUBST(ICONSDIR)
+AC_SUBST(ICONSDIR_VAR)
 dnl end workaround
 
 AC_DEFUN([_TUXBOX_APPS_LIB_CONFIG], [
