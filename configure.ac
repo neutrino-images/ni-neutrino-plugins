@@ -35,7 +35,7 @@ input/Makefile
 logomask/Makefile
 msgbox/Makefile
 scripts-lua/plugins/ard_mediathek/Makefile
-scripts-lua/plugins/EPGfilter/Makefile
+scripts-lua/plugins/epgfilter/Makefile
 scripts-lua/plugins/EPGscan/Makefile
 scripts-lua/plugins/favorites2bin/Makefile
 scripts-lua/plugins/LocalTV/Makefile
