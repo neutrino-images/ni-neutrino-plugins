@@ -6,7 +6,7 @@ Version="1.0 v. 13.09.2018"
 #
 file=$0
 model=`cat /proc/stb/info/model`
-save_path="/tmp"
+save_path="/tmp/imgbackup"
 tmproot="/tmp/buroot"
 destname="imgbackup-hd51_$(date +%d.%m.%Y-%H.%M)"
 archive="tgz"
