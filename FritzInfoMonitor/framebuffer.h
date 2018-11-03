@@ -9,6 +9,10 @@
 #include <stdint.h>
 #include <linux/fb.h>
 
+#ifndef FONTDIR
+#define FONTDIR	"/share/fonts"
+#endif
+
 /* freetype stuff */
 #define FONT FONTDIR "/pakenham.ttf"
 
