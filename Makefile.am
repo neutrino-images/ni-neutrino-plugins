@@ -18,7 +18,7 @@ SUBDIRS = \
 
 SUBDIRS += \
 	scripts-lua/plugins/ard_mediathek \
-	scripts-lua/plugins/EPGfilter \
+	scripts-lua/plugins/epgfilter \
 	scripts-lua/plugins/EPGscan \
 	scripts-lua/plugins/favorites2bin \
 	scripts-lua/plugins/LocalTV \
