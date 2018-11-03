@@ -34,6 +34,16 @@ getrc/Makefile
 input/Makefile
 logomask/Makefile
 msgbox/Makefile
+scripts-lua/plugins/ard_mediathek/Makefile
+scripts-lua/plugins/EPGfilter/Makefile
+scripts-lua/plugins/EPGscan/Makefile
+scripts-lua/plugins/favorites2bin/Makefile
+scripts-lua/plugins/LocalTV/Makefile
+scripts-lua/plugins/mtv/Makefile
+scripts-lua/plugins/netzkino/Makefile
+scripts-lua/plugins/openvpn-setup/Makefile
+scripts-lua/plugins/stb-startup/Makefile
+scripts-lua/plugins/userbouquets/Makefile
 satfind/Makefile
 shellexec/Makefile
 tuxcal/Makefile
