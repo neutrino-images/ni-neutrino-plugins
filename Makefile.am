@@ -29,6 +29,7 @@ install-exec-local:
 	install -d $(DESTDIR)$(CONFIGDIR)
 	$(LIBTOOL) --mode=install install shellexec.la $(DESTDIR)$(PLUGINDIR)
 	install -m 0644 $(srcdir)/shellexec.cfg $(DESTDIR)$(PLUGINDIR)
+	install -m 0644 $(srcdir)/shellexec_hint.png $(DESTDIR)$(PLUGINDIR)
 	install -m 0644 $(srcdir)/shellexec.conf $(DESTDIR)$(CONFIGDIR)
 	install -d $(DESTDIR)$(CONFIGDIR)/flexinc
 	rm -f $(DESTDIR)$(CONFIGDIR)/flexinc/plugin_config.mnu
