@@ -42,19 +42,18 @@ Die Verzeichnis-Struktur gibt den Ort der Dateien im Image eigentlich schon vor,
 also shellexec.cfg und shellexec.so (Rechte auf 755) nach /lib/tuxbox/plugins/.
 shellexec nach /var/plugins und shellexec.conf nach /var/tuxbox/config. shellexec
 braucht die Rechte 755.
-Wer die beiliegende shellexec.conf testen möchte, benötigt dazu noch das Script
-"operations" in /var/plugins/, ebenfalls mit den Rechten 755.
 
 In der shellexec.cfg kann man eintragen, unter welchem Namen das Plugin in der
-Pluginliste der blauen Taste angezeigt werden soll. Umlaute sind hier nicht zu-
-lässig (liegt aber am Neutrino).
+Pluginliste der blauen Taste angezeigt werden soll. Umlaute sind mittlerweile zu-
+lässig.
 
 Die Einträge in der shellexec.conf legen fest, welche Aktionen ausgeführt werden
 sollen. In dieser Datei sind Umlaute zulässig.
 
 Die Höhe des Menüfensters wir mit dem Eintrag:
 
-HIGHT=
+alt: HIGHT= (aus kompatiblitätsgründen noch vorhanden)
+neu: HEIGHT=
 
 festgelegt. Kleinster Wert und auch Defaultwert ist aus Kompatibilitätsgründen
 zu vorherigen Versionen des FlexMenüs eine Höhe von 380 Pixeln. Der Maximalwert
@@ -179,9 +178,9 @@ lung zu Verfügung.
 
 Um in der Titelzeile eines Menüs ähnlich wie bei den Neurtrino-Menüs ein Icon anzeigen zu
 lassen, welches die Funktion des Menüs besser verdeutlicht, kann optional der Name eines
-Icons (,ICON=filename) angegeben werden. Die Icons müssen vom Format "*.raw" sein und kön-
-nen z. Bsp. mit dem "Neutrino Graphics Creator" erzeugt werden. Als Beispiel kann man sich
-das Icon "/share/tuxbox/neutrino/icons/mainmenue.raw" anschauen. (Erst ab 2.38 implementiert)
+Icons (,ICON=filename) angegeben werden. Die Icons müssen vom Format "*.png" sein und kön-
+nen z. Bsp. mit einem Grafikprogramm erzeugt werden. Als Beispiel kann man sich
+das Icon "/share/tuxbox/neutrino/icons/help.png" anschauen. (Erst ab 2.00 implementiert)
 Menütitel werden normalerweise, wie in den Neutrino-Menüs auch, auf Linksanschlag positioniert.
 Soll der Titel aus optischen Gründen zentriert dargestellt werden, ist dem Menünamen ein
 Unterstrich ( _ ) voranzustellen. Der Unterstrich selbst wird nicht angezeigt, sorgt aber
