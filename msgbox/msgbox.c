@@ -3,6 +3,7 @@
 #include <time.h>
 #include <signal.h>
 
+#include <fb_device.h>
 #include "current.h"
 #include "icons.h"
 #include "text.h"

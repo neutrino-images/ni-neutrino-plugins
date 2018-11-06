@@ -7,6 +7,7 @@
 #include "parser.h"
 #include "globals.h"
 
+#include <fb_device.h>
 #include "framebuffer.h"
 
 const char circle[]={
@@ -55,7 +56,7 @@ int Cfb::init()
 	fb = sx = ex = sy = ey = -1;
 
 	// open Framebuffer
-	fb=open ( "/dev/fb/0", O_RDWR );
+	fb = open(FB_DEVICE, O_RDWR);
 
 	// init framebuffer
 	if(ioctl(fb, FBIOGET_FSCREENINFO, &fix_screeninfo) == -1)

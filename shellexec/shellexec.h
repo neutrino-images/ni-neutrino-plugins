@@ -23,14 +23,6 @@
 #include FT_CACHE_H
 #include FT_CACHE_SMALL_BITMAPS_H
 
-#ifndef FB_DEVICE
-#define FB_DEVICE	"/dev/fb/0"
-#endif
-#ifndef FB_DEVICE_FALLBACK
-#define FB_DEVICE_FALLBACK	"/dev/fb0"
-#endif
-
-
 //rc codes
 
 #undef KEY_EPG

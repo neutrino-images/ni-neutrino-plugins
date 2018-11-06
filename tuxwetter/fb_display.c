@@ -29,8 +29,7 @@
 #include "io.h"
 #include "gfx.h"
 #include "fb_display.h"
-
-#define FB_DEVICE	"/dev/fb/0"
+#include <fb_device.h>
 
 /* Public Use Functions:
  *

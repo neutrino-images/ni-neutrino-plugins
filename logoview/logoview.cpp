@@ -32,6 +32,7 @@
 
 #include <configfile.h>
 
+#include <fb_device.h>
 #include "logoview.h"
 #include "jpeg.h"
 #include "version.h"
@@ -42,7 +43,6 @@
       ------------------------------------------------------------\n\n"
 #define FLAG_FILE "/tmp/.logoview"
 #define NEUTRINO_CONF "/var/tuxbox/config/neutrino.conf"
-#define FB_DEVICE "/dev/fb/0"
 
 #define DEFAULT_X_START_SD	60
 #define DEFAULT_Y_START_SD	20

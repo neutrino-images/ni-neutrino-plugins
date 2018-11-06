@@ -32,6 +32,7 @@
 #include <string.h>
 #include <time.h>
 #include <signal.h>
+#include <fb_device.h>
 #include "logomask.h"
 #include "gfx.h"
 

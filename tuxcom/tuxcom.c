@@ -25,6 +25,7 @@
 */
 
 #include "tuxcom.h"
+#include <fb_device.h>
 #include <rc_device.h>
 
 #define DEFAULT_XRES 1280
