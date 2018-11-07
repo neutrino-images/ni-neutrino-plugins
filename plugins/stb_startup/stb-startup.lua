@@ -53,9 +53,9 @@ function sleep (a)
 end
 
 function reboot()
-       	local file = assert(io.popen("which systemctl >> /dev/null"))
-       	running_init = file:read('*line')
-       	file:close()
+	local file = assert(io.popen("which systemctl >> /dev/null"))
+	running_init = file:read('*line')
+	file:close()
 	if running_init == "/bin/systemctl" then
 		local file = assert(io.popen("systemctl reboot"))
 	else
@@ -144,12 +144,14 @@ if colorkey then
 		return
 	else
 		local glob = require "posix".glob
-		for _, j in pairs(glob(bootfile .. '_*', 0)) do
+		for _, j in pairs(glob('/boot/*', 0)) do
 			for line in io.lines(j) do
 				if line:match(devbase .. root) then
-					local file = io.open(bootfile, "w")
-					file:write(line)
-					file:close()
+					if (j ~= bootfile) then
+						local file = io.open(bootfile, "w")
+						file:write(line)
+						file:close()
+					end
 				end
 			end
 		end
