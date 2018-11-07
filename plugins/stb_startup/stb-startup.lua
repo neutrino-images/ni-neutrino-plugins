@@ -144,10 +144,10 @@ if colorkey then
 		return
 	else
 		local glob = require "posix".glob
-		for _, j in pairs(glob('/boot/STARTUP_*', 0)) do
+		for _, j in pairs(glob(bootfile .. '_*', 0)) do
 			for line in io.lines(j) do
-				if line:match("mmcblk0p" .. root) then
-					file = io.open("/boot/STARTUP", "w")
+				if line:match(devbase .. root) then
+					local file = io.open(bootfile, "w")
 					file:write(line)
 					file:close()
 				end
