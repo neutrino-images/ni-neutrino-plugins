@@ -117,19 +117,15 @@ repeat
 	i = i + 1
 	msg, data = n:GetInput(d)
 	if (msg == RC['red']) then
-		start = "1"
 		root = "3"
 		colorkey = true
 	elseif (msg == RC['green']) then
-		start = "2"
 		root = "5"
 		colorkey = true
 	elseif (msg == RC['yellow']) then
-		start = "3"
 		root = "7"
 		colorkey = true
 	elseif (msg == RC['blue']) then
-		start = "4"
 		root = "9"
 		colorkey = true
 	end
