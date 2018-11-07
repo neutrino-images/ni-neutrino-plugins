@@ -47,9 +47,9 @@ locale["english"] = {
 }
 
 function sleep (a) 
-    local sec = tonumber(os.clock() + a); 
-    while (os.clock() < sec) do 
-    end 
+	local sec = tonumber(os.clock() + a); 
+	while (os.clock() < sec) do 
+	end 
 end
 
 function reboot()
@@ -59,8 +59,8 @@ function reboot()
 	if running_init == "/bin/systemctl" then
 		local file = assert(io.popen("systemctl reboot"))
 	else
-                local file = assert(io.popen("reboot"))
- 	end
+		local file = assert(io.popen("reboot"))
+	end
 end
 
 neutrino_conf = configfile.new()
@@ -147,7 +147,16 @@ if colorkey then
 		sleep(3)
 		return
 	else
-		fh:cp(bootfile .. "_" .. start, bootfile, "f")
+		local glob = require "posix".glob
+		for _, j in pairs(glob('/boot/STARTUP_*', 0)) do
+			for line in io.lines(j) do
+				if line:match("mmcblk0p" .. root) then
+					file = io.open("/boot/STARTUP", "w")
+					file:write(line)
+					file:close()
+				end
+			end
+		end
 		res = messagebox.exec {
 			title = caption,
 			icon = "settings",
