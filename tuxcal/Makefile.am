@@ -25,6 +25,7 @@ install-exec-local:
 	install -m 0755 tuxcald $(DESTDIR)/bin/tuxcald
 	install -m 0755 $(srcdir)/daemon/tuxcald $(DESTDIR)/etc/init.d/tuxcald
 	install -m 0644 $(srcdir)/tuxcal.cfg $(DESTDIR)$(PLUGINDIR)
-	install -m 0644 $(srcdir)/tuxcal.conf $(DESTDIR)$(CONFIGDIR)/tuxcal
 	install -m 0644 $(srcdir)/tuxcal_hint.png $(DESTDIR)$(PLUGINDIR)
+	install -m 0644 $(srcdir)/tuxcal.conf $(DESTDIR)$(CONFIGDIR)/tuxcal
+	install -m 0755 $(srcdir)/tuxcal.notify $(DESTDIR)$(CONFIGDIR)/tuxcal
 
