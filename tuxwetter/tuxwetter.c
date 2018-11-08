@@ -40,6 +40,7 @@
 #include "pngw.h"
 #include "gif.h"
 #include "fb_display.h"
+#include <fb_device.h>
 #include "resize.h"
 #include "gifdecomp.h"
 #include "icons.h"
