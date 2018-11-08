@@ -242,7 +242,7 @@ case "$1" in
 		# rezap
 		pzapit -zi $curr
 
-		if [ "$rezap_hack" = "1" -a -x /bin/rcsim ]
+		if [ "$rezap_hack" = "1" -a -x rcsim ]
 		then
 			keys="FAVORITES OK OK"
 			for key in $keys
