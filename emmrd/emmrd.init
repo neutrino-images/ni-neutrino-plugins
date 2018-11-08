@@ -6,7 +6,7 @@ case $1 in
 	start)
 		if [ -e /var/etc/.emmrd ]; then
 			SHOWINFO "starting ..."
-			/bin/emmrd /var/tuxbox/config/doscam.cfg /var/etc/.card &
+			emmrd /var/tuxbox/config/doscam.cfg /var/etc/.card &
 		fi
 	;;
 	stop)

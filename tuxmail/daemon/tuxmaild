@@ -4,7 +4,7 @@ case $1 in
 	start)
 		if [ -e /var/etc/.tuxmaild ]; then
 			echo "starting tuxmaild ..."
-			/bin/tuxmaild
+			tuxmaild
 			sleep 1
 		fi
 	;;

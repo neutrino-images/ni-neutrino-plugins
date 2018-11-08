@@ -88,7 +88,7 @@ then
 
 	# login aufbauen und hashen
 	CPSTR="$Challenge-$Passwd"
-	echo -n $CPSTR | /bin/iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
+	echo -n $CPSTR | iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
 	MD5=`md5sum /tmp/anrufer.md5 | sed -e s/' '.*$//`
 	RESPONSE="$Challenge-$MD5"
 	POSTDATA="login:command/response=$RESPONSE&getpage=../html/de/menus/menu2.html"
@@ -111,7 +111,7 @@ else
 		Challenge=`cat /tmp/anrufer.tmp | awk '{match($0,/Challenge>[^<>]+</); print substr($0,RSTART+10,RLENGTH-11)}'`
 		# login aufbauen und hashen
 		CPSTR="$Challenge-$Passwd"
-  	echo -n $CPSTR | /bin/iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
+	echo -n $CPSTR | iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
 		#echo -n $CPSTR > /tmp/anrufer.md5
 		MD5=`md5sum /tmp/anrufer.md5 | sed -e s/' '.*$//`
 		RESPONSE="$Challenge-$MD5"

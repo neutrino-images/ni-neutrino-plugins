@@ -4,7 +4,7 @@ case $1 in
 	start)
 		if [ -e /var/etc/.tuxcald ]; then
 			echo "starting tuxcald ..."
-			/bin/tuxcald
+			tuxcald
 		fi
 	;;
 	stop)
