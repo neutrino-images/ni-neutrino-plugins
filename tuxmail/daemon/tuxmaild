@@ -1,20 +1,21 @@
 #!/bin/sh
 
 case $1 in
-start)
-	if [ -e /var/etc/.tuxmaild ]; then
-		echo "starte tuxmaild..."
-		/bin/tuxmaild
-		sleep 1
-	fi
+	start)
+		if [ -e /var/etc/.tuxmaild ]; then
+			echo "starting tuxmaild ..."
+			/bin/tuxmaild
+			sleep 1
+		fi
 	;;
-stop)
-	if [ -e /var/etc/.tuxmaild ] && [ -e /var/run/tuxmaild.pid ]; then
-		echo "stoppe tuxmaild..."
-		kill $( cat /var/run/tuxmaild.pid )
-		sleep 2
-	fi
+	stop)
+		if [ -e /var/etc/.tuxmaild ]; then
+			echo "stopping tuxmaild ..."
+			pid=$(cat /var/run/tuxmail.pid 2>/dev/null)
+			test -n "$pid" && kill $pid || true
+		fi
+	;;
+	*)
+		echo "[${0##*/}] Usage: $0 {start|stop}"
 	;;
 esac
-
-exit 0

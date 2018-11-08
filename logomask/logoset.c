@@ -24,6 +24,7 @@
 #include <time.h>
 #include <linux/input.h>
 #include <sys/stat.h>
+#include <fb_device.h>
 #include "logoset.h"
 #include "io.h"
 #include "gfx.h"

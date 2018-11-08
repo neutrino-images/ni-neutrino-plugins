@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <fb_device.h>
 #include "current.h"
 #include "icons.h"
 #include "text.h"

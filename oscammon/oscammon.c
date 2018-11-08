@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include <fcntl.h>
 
+#include <fb_device.h>
 #include <rc_device.h>
 
 #include "oscammon.h"
@@ -1491,7 +1492,7 @@ static int csmon_init()
 	fb = rc = lcd = sx = ex = sy = ey = -1;
 
 	// open Framebuffer
-	fb=open("/dev/fb/0", O_RDWR);
+	fb=open(FB_DEVICE, O_RDWR);
       
 	// open Remote Control
 	rc = open(RC_DEVICE, O_RDONLY | O_CLOEXEC);

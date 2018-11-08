@@ -1,18 +1,20 @@
 #!/bin/sh
 
 case $1 in
-start)
-	if [ -e /var/etc/.tuxcald ]; then
-		echo "starte tuxcald..."
-		/bin/tuxcald
-	fi
+	start)
+		if [ -e /var/etc/.tuxcald ]; then
+			echo "starting tuxcald ..."
+			/bin/tuxcald
+		fi
 	;;
-stop)
-	if [ -e /var/etc/.tuxcald ]; then
-		echo "stoppe tuxcald..."
-		[ -e /var/run/tuxcald.pid ] && kill $( cat /var/run/tuxcald.pid )
-	fi
+	stop)
+		if [ -e /var/etc/.tuxcald ]; then
+			echo "stopping tuxcald ..."
+			pid=$(cat /var/run/tuxcald.pid 2>/dev/null)
+			test -n "$pid" && kill $pid || true
+		fi
+	;;
+	*)
+		echo "[${0##*/}] Usage: $0 {start|stop}"
 	;;
 esac
-
-exit 0

@@ -26,6 +26,6 @@ install-exec-local:
 	install -m 0755 tuxmaild $(DESTDIR)/bin/tuxmaild
 	install -m 0755 $(srcdir)/daemon/tuxmaild $(DESTDIR)/etc/init.d/tuxmaild
 	install -m 0644 $(srcdir)/tuxmail.cfg $(DESTDIR)$(PLUGINDIR)
-	install -m 0644 $(srcdir)/tuxmail.conf $(DESTDIR)$(CONFIGDIR)/tuxmail
 	install -m 0644 $(srcdir)/tuxmail_hint.png $(DESTDIR)$(PLUGINDIR)
-
+	install -m 0644 $(srcdir)/tuxmail.conf $(DESTDIR)$(CONFIGDIR)/tuxmail
+	install -m 0755 $(srcdir)/tuxmail.onreadmail $(DESTDIR)$(CONFIGDIR)/tuxmail

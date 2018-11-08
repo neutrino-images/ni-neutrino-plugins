@@ -4,6 +4,7 @@
 #include <signal.h>
 
 #include "current.h"
+#include <fb_device.h>
 
 #include "text.h"
 #include "io.h"
