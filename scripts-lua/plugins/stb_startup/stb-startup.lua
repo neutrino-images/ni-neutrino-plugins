@@ -47,20 +47,20 @@ locale["english"] = {
 }
 
 function sleep (a) 
-    local sec = tonumber(os.clock() + a); 
-    while (os.clock() < sec) do 
-    end 
+	local sec = tonumber(os.clock() + a); 
+	while (os.clock() < sec) do 
+	end 
 end
 
 function reboot()
-       	local file = assert(io.popen("which systemctl >> /dev/null"))
-       	running_init = file:read('*line')
-       	file:close()
+	local file = assert(io.popen("which systemctl >> /dev/null"))
+	running_init = file:read('*line')
+	file:close()
 	if running_init == "/bin/systemctl" then
 		local file = assert(io.popen("systemctl reboot"))
 	else
-                local file = assert(io.popen("reboot"))
- 	end
+		local file = assert(io.popen("reboot"))
+	end
 end
 
 neutrino_conf = configfile.new()
@@ -117,19 +117,15 @@ repeat
 	i = i + 1
 	msg, data = n:GetInput(d)
 	if (msg == RC['red']) then
-		start = "1"
 		root = "3"
 		colorkey = true
 	elseif (msg == RC['green']) then
-		start = "2"
 		root = "5"
 		colorkey = true
 	elseif (msg == RC['yellow']) then
-		start = "3"
 		root = "7"
 		colorkey = true
 	elseif (msg == RC['blue']) then
-		start = "4"
 		root = "9"
 		colorkey = true
 	end
@@ -147,7 +143,18 @@ if colorkey then
 		sleep(3)
 		return
 	else
-		fh:cp(bootfile .. "_" .. start, bootfile, "f")
+		local glob = require "posix".glob
+		for _, j in pairs(glob('/boot/*', 0)) do
+			for line in io.lines(j) do
+				if line:match(devbase .. root) then
+					if (j ~= bootfile) then
+						local file = io.open(bootfile, "w")
+						file:write(line)
+						file:close()
+					end
+				end
+			end
+		end
 		res = messagebox.exec {
 			title = caption,
 			icon = "settings",
