@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * NI Fritz! Smart Home Info mit toggle V3.61   *
+# * NI Fritz! Smart Home Info mit toggle V3.65   *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team), LoginTeil zur     *
@@ -22,7 +22,7 @@
 # * Datei (var/tuxbox/config) vorher anpassen    *
 # ************************************************
 
-#set -x 
+#set -x
 
 # Die Config-Daten werden aus der smarthomeinfo.cfg geholt
 CONFIG=$(cat /var/tuxbox/config/smarthomeinfo.conf)
@@ -30,15 +30,18 @@ CONFIG=$(cat /var/tuxbox/config/smarthomeinfo.conf)
 #Daten aus Config
 FRITZIP=`echo "$CONFIG" | grep '^FRITZBOXIP' | cut -d "=" -f2 | tr -d ' '`
 Passwd=`echo "$CONFIG" | grep '^PASSWD' | cut -d "=" -f2 | tr -d ' '`
+USERNAME=`echo "$CONFIG" | grep '^USERNM' | cut -d "=" -f2 | tr -d ' '`
 pluginpath=`echo "$CONFIG" | grep '^PLUGINPATH' | cut -d "=" -f2 | tr -d ' ' | tr -d '"'`
 
 
 # ab hier keine Eintragung mehr nötig
 #################################################
-vinfo="V3.61"
-vinfo2="361"
+vinfo="V3.65"
+vinfo2="365"
 
-
+echo "--------------------------------------"
+echo "SmartHomeInfo "$vinfo" startet"
+echo "--------------------------------------"
 
 if [ -e $pluginpath/smarthomeinfo_hint.png ]; then
 	   path=$pluginpath"/smarthomeinfo_hint.png"
@@ -58,18 +61,18 @@ curl -s http://smarthomeinfo.showpalast.com/smarthome"$vinfo2".html > /dev/null
 msgbox popup="Daten werden geholt..." icon=$path title=$titletext1"Smart Home Info "$vinfo timeout=02
 
 if [ -e $pluginpath/smarthomeinfopics/200.png ]; then
-	   echo "icons vorhanden"
+	   echo "SmartHomeInfo - icons vorhanden"
   else 
-     echo "icons download"
+     echo "SmartHomeInfo - icons download"
 		 mkdir $pluginpath/smarthomeinfopics
      wget -O $pluginpath/smarthomeinfopics/icons.zip http://www.neutrino-images.de/channellogos/fritzdect/icons.zip
      if [ -e $pluginpath/smarthomeinfopics/icons.zip ]; then
         cd $pluginpath/smarthomeinfopics
       	unzip $pluginpath/smarthomeinfopics/icons.zip >/dev/null  
       	rm -f $pluginpath/smarthomeinfopics/icons.zip
-      	echo "icons entpacked"   
+      	echo "SmartHomeInfo - icons entpacked"   
      else
-        echo "download fehler"
+        echo "SmartHomeInfo - download fehler"
      fi
 fi
 
@@ -78,17 +81,18 @@ fi
 # OS-Version ermitteln
 #Version=`wget -O - http://$FRITZIP/jason_boxinfo.xml | grep Version | awk '{match($0,/>[^<>]+</); print substr($0,RSTART+4,5)}'`
 Version=`wget -O- http://$FRITZIP/jason_boxinfo.xml | grep Version | awk '{match($0,/>[^<>]+</); print substr($0,RSTART+RLENGTH-6,5)}'`
-echo $Version
+echo "SmartHomeInfo - Fritzbox-Software V"$Version" "
 
 if [ "$Version" \< "05.50" ]
 then
+  echo "SmartHomeInfo - alte Login-Version <05.50"
 	# Challenge abholen
 	ChallengeXML=`wget -O - "http://$FRITZIP/cgi-bin/webcm?getpage=../html/login_sid.xml" 2>/dev/null| grep Challenge`
 	Challenge=`echo $ChallengeXML | awk '{match($0,/>[^<>]+</); print substr($0,RSTART+1,RLENGTH-2)}'`
 
 	# login aufbauen und hashen
 	CPSTR="$Challenge-$Passwd"
-	echo -n $CPSTR | iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
+	echo -n $CPSTR | /bin/iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
 	MD5=`md5sum /tmp/anrufer.md5 | sed -e s/' '.*$//`
 	RESPONSE="$Challenge-$MD5"
 	POSTDATA="login:command/response=$RESPONSE&getpage=../html/de/menus/menu2.html"
@@ -102,7 +106,8 @@ then
 	# CSV runterladen
 	wget -O /tmp/fb_anrufliste.csv "http://$FRITZIP/cgi-bin/webcm?sid=$SID&getpage=..%2Fhtml%2Fde%2FFRITZ%21Box_Anrufliste.csv" 2>/dev/null
 else
-	wget -O /tmp/anrufer.tmp http://$FRITZIP/login_sid.lua
+  echo "SmartHomeInfo - neue Login-Version >05.50"
+	wget -O /tmp/anrufer.tmp http://$FRITZIP/login_sid.lua?username=${USERNAME}
 	# SID testen
 	SID=`cat /tmp/anrufer.tmp | awk '{match($0,/SID>[^<>]+</); print substr($0,RSTART+4,RLENGTH-5)}'`
 	if [ "$SID" = "0000000000000000" ]
@@ -111,19 +116,20 @@ else
 		Challenge=`cat /tmp/anrufer.tmp | awk '{match($0,/Challenge>[^<>]+</); print substr($0,RSTART+10,RLENGTH-11)}'`
 		# login aufbauen und hashen
 		CPSTR="$Challenge-$Passwd"
-	echo -n $CPSTR | iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
+  	echo -n $CPSTR | /bin/iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
 		#echo -n $CPSTR > /tmp/anrufer.md5
 		MD5=`md5sum /tmp/anrufer.md5 | sed -e s/' '.*$//`
 		RESPONSE="$Challenge-$MD5"
-		GETDATA="?username=$Username&response=$RESPONSE"
+		GETDATA="?username=$USERNAME&response=$RESPONSE"
 		wget -O /tmp/anrufer.sid http://$FRITZIP/login_sid.lua$GETDATA 
 		SID=$(sed -n '/.*<SID>\([^<]*\)<.*/s//\1/p' /tmp/anrufer.sid)
 	fi
+echo "SmartHomeInfo - Login / SessionID abgeschlossen"
 fi
 
 rm -f /tmp/reftemp.tmp
 
-echo "reftemp-Table von Smart Home Info"
+echo "SmartHomeInfo - reftemp-Table für Temperatur-Einstellung wird erstellt"
 echo "--------------------------------"
 echo "T16;8;0" >> /tmp/reftemp.tmp
 echo "T17;8;5" >> /tmp/reftemp.tmp

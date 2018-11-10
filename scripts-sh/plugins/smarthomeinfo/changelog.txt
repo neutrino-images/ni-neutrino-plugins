@@ -1,5 +1,9 @@
 Changelog 
 
+V3.65
+- neue Login-Methode bei der Fritzbox incl. Username/Passwort (bisher war nur Login mit Passwort möglich)
+- ein paar Shell-Ausgaben hinzugefügt
+
 V3.61
 - deleting icons.zip after installing
 

@@ -14,4 +14,16 @@ alle Statusinfos zur Steckdose
 ### Vorbereitung: ###
 die Login-Daten fuer die FritzBox werden aus
 der smarthomeinfo.conf geholt. Bitte die
-Datei (var/tuxbox/config) vorher anpassen
+Datei unter (var/tuxbox/config) vorher anpassen
+Wenn der Login bei der Fritzbox nur aus Passwort besteht (meistens), 
+dann wird das Feld USERNM in der conf leer lassen.
+
+### Installation ###
+smarthomeinfo.conf kommt nach /var/tuxbox/config
+
+smarthomeinfo.so kommt nach /lib/tuxbox/plugins (Rechte auf 755)
+smarthomeinfo.cfg kommt nach /lib/tuxbox/plugins
+smarthomeinfo_hint.png kommt nach /lib/tuxbox/plugins
+
+Falls das Plugin nicht unter /lib/tuxbox/plugins, sondern bspw. unter /var/tuxbox/plugins installiert wird, dann muss das in der conf Datei entsprechend angepasst werden.
+
