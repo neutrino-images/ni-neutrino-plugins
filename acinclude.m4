@@ -292,10 +292,6 @@ AC_ARG_WITH(boxtype,
 		coolstream|generic|armbox)
 			BOXTYPE="$withval"
 		;;
-		hd51|hd60|vusolo4k)
-			BOXTYPE="armbox"
-			BOXMODEL="$withval"
-		;;
 		*)
 			AC_MSG_ERROR([bad value $withval for --with-boxtype])
 		;;
