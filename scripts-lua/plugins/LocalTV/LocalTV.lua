@@ -518,10 +518,10 @@ function loadConfig()
 	Nconfig:loadConfig("/var/tuxbox/config/neutrino.conf")
 	if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 5 )) then
 		conf.logo_dir = Nconfig:getString("logo_hdd_dir", "#")
-		local webtvpath = Nconfig:getString("livestreamScriptPath", "##")
 		-- NI - our movieplayer code will find epgscript in several places
 		--      so we don't need to check the existance here
 		--[[
+		local webtvpath = Nconfig:getString("livestreamScriptPath", "##")
 		if file_exists(webtvpath .. "/LocalTVEpg.lua") then
 			conf.epgscript = true
 		else
