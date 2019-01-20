@@ -25,6 +25,4 @@ SUBDIRS += \
 	scripts-lua/plugins/mtv \
 	scripts-lua/plugins/netzkino \
 	scripts-lua/plugins/openvpn-setup \
-	scripts-lua/plugins/stb-startup \
 	scripts-lua/plugins/userbouquets
-
