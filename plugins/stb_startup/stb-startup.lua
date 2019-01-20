@@ -161,6 +161,7 @@ if colorkey then
 	else
 		local file = assert(io.popen("cat /proc/mounts | grep " .. devbase .. root .. " | awk -F ' ' '{print $2}'"))
 		local mounted_part = file:read('*line')
+		file:close()
 		if(mounted_part == nil) then
 			mounted_part = ''
 		end
