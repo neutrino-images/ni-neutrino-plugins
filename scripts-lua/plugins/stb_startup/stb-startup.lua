@@ -63,6 +63,25 @@ function reboot()
 	end
 end
 
+function basename(str)
+        local name = string.gsub(str, "(.*/)(.*)", "%2")
+        return name
+end
+
+function get_imagename(root)
+        local glob = require "posix".glob
+        for _, j in pairs(glob('/boot/*', 0)) do
+                for line in io.lines(j) do
+                        if (j ~= bootfile) then
+                                if line:match(devbase .. root) then
+                                        partition = basename(j)
+                                end
+                        end
+                end
+        end
+        return partition
+end
+
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/var/tuxbox/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
@@ -88,10 +107,10 @@ chooser = cwindow.new {
 	title = caption,
 	icon = "settings",
 	has_shadow = true,
-	btnRed = "Partition 1",
-	btnGreen = "Partition 2",
-	btnYellow = "Partition 3",
-	btnBlue = "Partition 4"
+	btnRed = get_imagename(3),
+	btnGreen = get_imagename(5),
+	btnYellow = get_imagename(7),
+	btnBlue = get_imagename(9)
 }
 chooser_text = ctext.new {
 	parent = chooser,
@@ -134,27 +153,26 @@ until msg == RC['home'] or colorkey or i == t
 chooser:hide()
 
 if colorkey then
-	local file = assert(io.popen("cat /proc/mounts | grep " .. devbase .. root .. " | awk -F ' ' '{print $2}'"))
-	local mounted_part = file:read('*line')
-	local a,b,c = os.execute("test -d " .. mounted_part .. "/usr")
+        local file = assert(io.popen("blkid " .. devbase .. root .. " | grep TYPE"))
+	local check_exist = file:read('*line')
+	file:close()
+	if (check_exist == nil) then
+		c = 1
+	else
+		local file = assert(io.popen("cat /proc/mounts | grep " .. devbase .. root .. " | awk -F ' ' '{print $2}'"))
+		local mounted_part = file:read('*line')
+		file:close()
+		if(mounted_part == nil) then
+			mounted_part = ''
+		end
+		a,b,c = os.execute("test -d " .. mounted_part .. "/usr")
+	end
 	if (c == 1) then
 		local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].empty_partition };
 		ret:paint();
 		sleep(3)
 		return
 	else
-		local glob = require "posix".glob
-		for _, j in pairs(glob('/boot/*', 0)) do
-			for line in io.lines(j) do
-				if line:match(devbase .. root) then
-					if (j ~= bootfile) then
-						local file = io.open(bootfile, "w")
-						file:write(line)
-						file:close()
-					end
-				end
-			end
-		end
 		res = messagebox.exec {
 			title = caption,
 			icon = "settings",
@@ -166,6 +184,18 @@ if colorkey then
 end
 
 if res == "yes" then
+	local glob = require "posix".glob
+	for _, j in pairs(glob('/boot/*', 0)) do
+		for line in io.lines(j) do
+			if line:match(devbase .. root) then
+				if (j ~= bootfile) then
+					local file = io.open(bootfile, "w")
+					file:write(line)
+					file:close()
+				end
+			end
+		end
+	end
 	reboot()
 end
 
