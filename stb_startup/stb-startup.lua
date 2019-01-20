@@ -63,6 +63,25 @@ function reboot()
 	end
 end
 
+function basename(str)
+        local name = string.gsub(str, "(.*/)(.*)", "%2")
+        return name
+end
+
+function get_imagename(root)
+        local glob = require "posix".glob
+        for _, j in pairs(glob('/boot/*', 0)) do
+                for line in io.lines(j) do
+                        if (j ~= bootfile) then
+                                if line:match(devbase .. root) then
+                                        partition = basename(j)
+                                end
+                        end
+                end
+        end
+        return partition
+end
+
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/var/tuxbox/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
@@ -88,10 +107,10 @@ chooser = cwindow.new {
 	title = caption,
 	icon = "settings",
 	has_shadow = true,
-	btnRed = "Partition 1",
-	btnGreen = "Partition 2",
-	btnYellow = "Partition 3",
-	btnBlue = "Partition 4"
+	btnRed = get_imagename(3),
+	btnGreen = get_imagename(5),
+	btnYellow = get_imagename(7),
+	btnBlue = get_imagename(9)
 }
 chooser_text = ctext.new {
 	parent = chooser,
@@ -142,7 +161,6 @@ if colorkey then
 	else
 		local file = assert(io.popen("cat /proc/mounts | grep " .. devbase .. root .. " | awk -F ' ' '{print $2}'"))
 		local mounted_part = file:read('*line')
-		file:close()
 		if(mounted_part == nil) then
 			mounted_part = ''
 		end
