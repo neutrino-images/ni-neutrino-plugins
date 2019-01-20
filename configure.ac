@@ -42,6 +42,7 @@ scripts-lua/plugins/LocalTV/Makefile
 scripts-lua/plugins/mtv/Makefile
 scripts-lua/plugins/netzkino/Makefile
 scripts-lua/plugins/openvpn-setup/Makefile
+scripts-lua/plugins/stb_startup/Makefile
 scripts-lua/plugins/userbouquets/Makefile
 satfind/Makefile
 shellexec/Makefile
