@@ -154,7 +154,7 @@ chooser:hide()
 
 if colorkey then
         local file = assert(io.popen("blkid " .. devbase .. root .. " | grep TYPE"))
-	check_exist = file:read('*line')
+	local check_exist = file:read('*line')
 	file:close()
 	if (check_exist == nil) then
 		c = 1
@@ -173,18 +173,6 @@ if colorkey then
 		sleep(3)
 		return
 	else
-		local glob = require "posix".glob
-		for _, j in pairs(glob('/boot/*', 0)) do
-			for line in io.lines(j) do
-				if line:match(devbase .. root) then
-					if (j ~= bootfile) then
-						local file = io.open(bootfile, "w")
-						file:write(line)
-						file:close()
-					end
-				end
-			end
-		end
 		res = messagebox.exec {
 			title = caption,
 			icon = "settings",
@@ -196,6 +184,18 @@ if colorkey then
 end
 
 if res == "yes" then
+	local glob = require "posix".glob
+	for _, j in pairs(glob('/boot/*', 0)) do
+		for line in io.lines(j) do
+			if line:match(devbase .. root) then
+				if (j ~= bootfile) then
+					local file = io.open(bootfile, "w")
+					file:write(line)
+					file:close()
+				end
+			end
+		end
+	end
 	reboot()
 end
 
