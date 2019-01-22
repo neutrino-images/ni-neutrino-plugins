@@ -190,20 +190,20 @@ i = i + 1
 msg, data = n:GetInput(d)
 
 if (msg == RC['red']) then
-	backup_partition = "1"
-	root = "3"
+	backup_partition = 1
+	root = 3
 	colorkey = true
 elseif (msg == RC['green']) then
-	backup_partition = "2"
-	root = "5"
+	backup_partition = 2
+	root = 5
 	colorkey = true
 elseif (msg == RC['yellow']) then
-	backup_partition = "3"
-	root = "7"
+	backup_partition = 3
+	root = 7
 	colorkey = true
 elseif (msg == RC['blue']) then
-	backup_partition = "4"
-	root = "9"
+	backup_partition = 4
+	root = 9
 	colorkey = true
 end
 
