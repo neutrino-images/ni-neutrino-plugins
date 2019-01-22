@@ -34,7 +34,7 @@ bootfile = "/boot/STARTUP"
 
 for line in io.lines(bootfile) do
         i, j = string.find(line, devbase)
-        current_root = string.sub(line,j+1,j+2)
+        current_root = tonumber(string.sub(line,j+1,j+2))
 end
 
 locale = {}
