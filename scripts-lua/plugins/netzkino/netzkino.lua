@@ -122,7 +122,7 @@ function get_categories()
 	local h = hintbox.new{caption=caption, text="Kategorien werden geladen ...", icon=netzkino_png};
 	h:paint();
 
-	os.execute("wget -q -O " .. fname .. " 'http://www.netzkino.de/capi/get_category_index'" );
+	os.execute("wget -q -O " .. fname .. " 'https://www.netzkino.de/capi/get_category_index'" );
 
 	local fp = io.open(fname, "r")
 	if fp == nil then
@@ -209,7 +209,7 @@ function get_movies(_id)
 	local h = hintbox.new{caption=caption, text="Kategorie wird geladen ...", icon=netzkino_png};
 	h:paint();
 
-	os.execute("wget -q -O " .. fname .. " 'http://www.netzkino.de/capi/get_category_posts&id=" .. categories[index].category_id .. "&count=" .. items .. "d&page=" .. page_nr .. "&custom_fields=Streaming'");
+	os.execute("wget -q -O " .. fname .. " 'https://www.netzkino.de/capi/get_category_posts&id=" .. categories[index].category_id .. "&count=" .. items .. "d&page=" .. page_nr .. "&custom_fields=Streaming'");
 
 	local fp = io.open(fname, "r")
 	if fp == nil then
@@ -483,7 +483,7 @@ end
 function stream_movie(_id)
 	local index = tonumber(_id);
 	local stream_name = conv_utf8(movies[index].stream);
-	n:PlayFile(conv_utf8(movies[index].title), "http://pmd.netzkino-seite.netzkino.de/" .. stream_name ..".mp4");
+	n:PlayFile(conv_utf8(movies[index].title), "https://pmd.netzkino-seite.netzkino.de/" .. stream_name ..".mp4");
 end
 
 --Stream Download-Script erstellen
@@ -501,7 +501,7 @@ stream_name="$1"
 
 netzkino_wget() {
 	touch $wget_busy_file
-	wget -c -O "${movie_file}" "http://pmd.netzkino-seite.netzkino.de/${stream_name}.mp4"
+	wget -c -O "${movie_file}" "https://pmd.netzkino-seite.netzkino.de/${stream_name}.mp4"
 	rm $wget_busy_file
 }
 
