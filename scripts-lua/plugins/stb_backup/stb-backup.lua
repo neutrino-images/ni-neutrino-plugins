@@ -35,6 +35,7 @@ n = neutrino()
 fh = filehelpers.new()
 
 bootfile = "/boot/STARTUP"
+devbase = "/dev/mmcblk0p"
 
 locale = {}
 
@@ -73,7 +74,8 @@ end
 timing_menu = neutrino_conf:getString("timing.menu", "0")
 
 for line in io.lines(bootfile) do
-	act_boot_partition = string.sub(line,23,23)
+        i, j = string.find(line, devbase)
+        current_root = tonumber(string.sub(line,j+1,j+2))
 end
 
 function create_backupfile()
@@ -124,6 +126,25 @@ function create_backupfile()
 	file = os.execute('chmod +x "/tmp/backup.sh"')
 end
 
+function basename(str)
+        local name = string.gsub(str, "(.*/)(.*)", "%2")
+        return name
+end
+
+function get_imagename(root)
+        local glob = require "posix".glob
+        for _, j in pairs(glob('/boot/*', 0)) do
+                for line in io.lines(j) do
+                        if (j ~= bootfile) then
+                                if line:match(devbase .. root) then
+                                        imagename = basename(j)
+                                end
+                        end
+                end
+        end
+        return imagename
+end
+
 chooser_dx = n:scale2Res(600)
 chooser_dy = n:scale2Res(200)
 chooser_x = SCREEN.OFF_X + (((SCREEN.END_X - SCREEN.OFF_X) - chooser_dx) / 2)
@@ -137,10 +158,10 @@ chooser = cwindow.new {
 	title = caption,
 	icon = "settings",
 	has_shadow = true,
-	btnRed = "Partition 1",
-	btnGreen = "Partition 2",
-	btnYellow = "Partition 3",
-	btnBlue = "Partition 4",
+	btnRed = get_imagename(3),
+	btnGreen = get_imagename(5),
+	btnYellow = get_imagename(7),
+	btnBlue = get_imagename(9)
 }
 
 chooser_text = ctext.new {
@@ -149,7 +170,7 @@ chooser_text = ctext.new {
 	y = OFFSET.INNER_SMALL,
 	dx = chooser_dx - 2*OFFSET.INNER_MID,
 	dy = chooser_dy - chooser:headerHeight() - chooser:footerHeight() - 2*OFFSET.INNER_SMALL,
-	text = locale[lang].current_boot_partition .. act_boot_partition .. locale[lang].choose_partition,
+	text = locale[lang].current_boot_partition .. get_imagename(current_root) .. locale[lang].choose_partition,
 	font_text = FONT.MENU,
 	mode = "ALIGN_CENTER"
 }
@@ -169,16 +190,20 @@ i = i + 1
 msg, data = n:GetInput(d)
 
 if (msg == RC['red']) then
-	backup_partition = "1"
+	backup_partition = 1
+	root = 3
 	colorkey = true
 elseif (msg == RC['green']) then
-	backup_partition = "2"
+	backup_partition = 2
+	root = 5
 	colorkey = true
 elseif (msg == RC['yellow']) then
-	backup_partition = "3"
+	backup_partition = 3
+	root = 7
 	colorkey = true
 elseif (msg == RC['blue']) then
-	backup_partition = "4"
+	backup_partition = 4
+	root = 9
 	colorkey = true
 end
 
@@ -191,12 +216,12 @@ if colorkey then
 	res = messagebox.exec {
 	title = caption,
 	icon = "settings",
-	text = locale[lang].start_partition1 .. backup_partition .. locale[lang].start_partition2,
+	text = locale[lang].start_partition1 .. get_imagename(root) .. locale[lang].start_partition2,
 	timeout = 0,
 	buttons={ "yes", "no" }
 	}
 	if res == "yes" then
-		if (backup_partition == act_boot_partition) then
+		if (root == current_root) then
 			local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].prepare_system };
 			ret:paint()
 			create_backupfile()

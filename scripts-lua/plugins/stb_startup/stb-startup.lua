@@ -32,6 +32,11 @@ fh = filehelpers.new()
 devbase = "/dev/mmcblk0p"
 bootfile = "/boot/STARTUP"
 
+for line in io.lines(bootfile) do
+        i, j = string.find(line, devbase)
+        current_root = tonumber(string.sub(line,j+1,j+2))
+end
+
 locale = {}
 locale["deutsch"] = {
 	current_boot_partition = "Die aktuelle Startpartition ist: ",
@@ -40,8 +45,8 @@ locale["deutsch"] = {
 	empty_partition = "Die gewählte Partition ist leer"
 }
 locale["english"] = {
-	current_boot_partition = "The current start partition is: ",
-	choose_partition = "\n\nPlease choose the new start partition",
+	current_boot_partition = "The current boot partition is: ",
+	choose_partition = "\n\nPlease choose the new boot partition",
 	start_partition = "Reboot and start the chosen partition?",
 	empty_partition = "The selected partition is empty"
 }
@@ -74,12 +79,12 @@ function get_imagename(root)
                 for line in io.lines(j) do
                         if (j ~= bootfile) then
                                 if line:match(devbase .. root) then
-                                        partition = basename(j)
+                                        imagename = basename(j)
                                 end
                         end
                 end
         end
-        return partition
+        return imagename
 end
 
 neutrino_conf = configfile.new()
@@ -89,10 +94,6 @@ if locale[lang] == nil then
 	lang = "english"
 end
 timing_menu = neutrino_conf:getString("timing.menu", "0")
-
-for line in io.lines(bootfile) do
-	akt_boot_partition = string.sub(line,23,23)
-end
 
 chooser_dx = n:scale2Res(600)
 chooser_dy = n:scale2Res(200)
@@ -118,7 +119,7 @@ chooser_text = ctext.new {
 	y = OFFSET.INNER_SMALL,
 	dx = chooser_dx - 2*OFFSET.INNER_MID,
 	dy = chooser_dy - chooser:headerHeight() - chooser:footerHeight() - 2*OFFSET.INNER_SMALL,
-	text = locale[lang].current_boot_partition .. akt_boot_partition .. locale[lang].choose_partition,
+	text = locale[lang].current_boot_partition .. get_imagename(current_root) .. locale[lang].choose_partition,
 	font_text = FONT.MENU,
 	mode = "ALIGN_CENTER"
 }
@@ -136,16 +137,16 @@ repeat
 	i = i + 1
 	msg, data = n:GetInput(d)
 	if (msg == RC['red']) then
-		root = "3"
+		root = 3
 		colorkey = true
 	elseif (msg == RC['green']) then
-		root = "5"
+		root = 5
 		colorkey = true
 	elseif (msg == RC['yellow']) then
-		root = "7"
+		root = 7
 		colorkey = true
 	elseif (msg == RC['blue']) then
-		root = "9"
+		root = 9
 		colorkey = true
 	end
 until msg == RC['home'] or colorkey or i == t
