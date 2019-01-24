@@ -101,8 +101,6 @@ function init()
 	selected_stream_id = 0;
 	mode = 0;
 	config_file = "/var/tuxbox/config/netzkino.conf";
-	wget_script_file = "/tmp/netzkino_wget.sh"
-	wget_busy_file = "/tmp/.netzkino_wget.busy"
 
 	-- use netzkino icon placed in same dir as the plugin ...
 	--netzkino_png = script_path() .. "netzkino.png"
@@ -110,9 +108,6 @@ function init()
 	--netzkino_png = "netzkino"
 	-- ... or use a base64 encoded icon
 	netzkino_png = decodeImage("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAIAAABvFaqvAAAAA3NCSVQICAjb4U/gAAAAYnpUWHRSYXcgcHJvZmlsZSB0eXBlIEFQUDEAAHicVcixDYAwDADB3lN4hHccHDIOQgFFQoCyf0EBDVee7O1so696j2vrRxNVVVXPkmuuaQFmXgZuGAkoXy38TEQNDyseBiAPSLYUyXpQ8HMAAAL2SURBVDiNrZU7b1xVEMf/c869d++192FlN944rGPHdiIFCSmKeBQgREFBRUNDxQegoEWiT0FHg0QBVdpIfACqNJESKWmiBCSkOGZtL3i9jvZ57z2PGYrdldeLnUTCo1Odx+/M/GfmHPr67t84D1PnQnkzEJGA/geIFKmAvTfDbiypsPdQryAGp7oAqLyzI91dMQNL8Yc310jcwOqWKXZUVQGAvA5EypvUNh+BlLpwNazUAyZZIq8K3H9ZyffCQesg3kKYQPjs0Ii8Se2L+yitxJsfRUsrBIiwkMo98qCcV98ehlXae+iyAYjOBoFs8xGW1pNL18Q769lT8MnlET3/rRG97OcyzKwtrqbFNbf7WE4GNwMilXd2QCq5dI2dKxbUZzdKn9Y7P3331e1vvxl0WsZjZCS3NlnehC6Yw23Q8fFjjYiUdHdVdVOYveDWevmLd+Lx0vWNK14wsmK9EEHYqeoGH/xO9S3xPOcROZOKGYXlOoSJ0O7l3//4yw8/36ldrA37XevYeJnIIhJVlsVbmx4rNQUR2IwQLRJBmJXw0/1h8/Lnyx98uVK/sNfuOu8hLDwZYEZUFDM6Pf3eO2cysB/fO8zS0UCTCABh50yqxGNck6TZu1m5pyCBChPNJogWAB6XG4noKJl4rqMwLtL4DgIp7ThXYfzfrEkQL5AumN4/AAECyFyCITKeB2B6bZAKkzKmm47zJ8xUafDRNimNVxqpwHe2qdKQmeKeqSPhqLYOl2XtF6QmIROh1/5zrNGUorNOE6Yf1a7OdskJsYkQvHXL/fUgI4praxruj/3B7V93xJsOl+WQlQ6zo6YcPAtW3yOlzwRBJExKuPK+232c9lu6utFVF+/tJ84gSgI/bJujbeS9YPXdcLEifKJp57tfhIOkpDc/NofPfeuJ32dEJe+t8TkAqjSixk1Seo5yCmgMI0JheYvq123aE5sqEQqTcKFCwiI894CcDZrgWISDeBHx4mSG3fxr9kagqXev2TC1c/tF/gU5kpOQwApURgAAAABJRU5ErkJggg==");
-
-	-- create download script
-	create_downloader();
 end
 
 --Kategorien anzeigen
@@ -122,7 +117,7 @@ function get_categories()
 	local h = hintbox.new{caption=caption, text="Kategorien werden geladen ...", icon=netzkino_png};
 	h:paint();
 
-	os.execute("wget -q -O " .. fname .. " 'https://www.netzkino.de/capi/get_category_index'" );
+	os.execute("curl -s -o	 " .. fname .. " 'https://www.netzkino.de/capi/get_category_index'" );
 
 	local fp = io.open(fname, "r")
 	if fp == nil then
@@ -209,7 +204,7 @@ function get_movies(_id)
 	local h = hintbox.new{caption=caption, text="Kategorie wird geladen ...", icon=netzkino_png};
 	h:paint();
 
-	os.execute("wget -q -O " .. fname .. " 'https://www.netzkino.de/capi/get_category_posts&id=" .. categories[index].category_id .. "&count=" .. items .. "d&page=" .. page_nr .. "&custom_fields=Streaming'");
+	os.execute("curl -s -o " .. fname .. " 'https://www.netzkino.de/capi/get_category_posts&id=" .. categories[index].category_id .. "&count=" .. items .. "d&page=" .. page_nr .. "&custom_fields=Streaming'");
 
 	local fp = io.open(fname, "r")
 	if fp == nil then
@@ -368,13 +363,7 @@ function show_movie_info(_id)
 	local ct1_x = 240;
 
 	local window_title = caption .. "* " .. movies[index].title;
-	local wget_busy = io.open(wget_busy_file, "r")
-	if wget_busy then
-		wget_busy:close()
-		w = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=conv_utf8(window_title), icon=netzkino_png, btnRed="Film abspielen" };
-	else
-		w = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=conv_utf8(window_title), icon=netzkino_png, btnRed="Film abspielen", btnGreen="Film downloaden" };
-	end
+	w = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=conv_utf8(window_title), icon=netzkino_png, btnRed="Film abspielen", btnGreen="Film downloaden" };
 	local tmp_h = w:headerHeight() + w:footerHeight();
 	ct1 = ctext.new{parent=w, x=ct1_x, y=20, dx=dx-ct1_x-2, dy=dy-tmp_h-40, text=conv_utf8(movies[index].content), mode = "ALIGN_TOP | ALIGN_SCROLL | DECODE_HTML"};
 
@@ -397,7 +386,7 @@ function show_movie_info(_id)
 
 	w:paint();
 	ret = getInput(index);
-	w:hide{no_restore=true};
+	w:hide();
 
 	if ret == MENU_RETURN["EXIT_ALL"] then
 		return ret
@@ -476,7 +465,7 @@ end
 --herunterladen des Bildes
 function getPicture(_picture)
 	local fname = "/tmp/netzkino_cover.jpg";
-	os.execute("wget -q -U Mozilla -O " .. fname .. " '" .. _picture .. "'");
+	os.execute("curl -s -A 'Mozilla' -o " .. fname .. " '" .. _picture .. "'");
 end
 
 --Stream starten
@@ -484,38 +473,6 @@ function stream_movie(_id)
 	local index = tonumber(_id);
 	local stream_name = conv_utf8(movies[index].stream);
 	n:PlayFile(conv_utf8(movies[index].title), "https://pmd.netzkino-seite.netzkino.de/" .. stream_name ..".mp4");
-end
-
---Stream Download-Script erstellen
-function create_downloader()
-
-	local ds = io.open(wget_script_file, "w");
-	if ds then
-		ds:write(
-[[
-#!/bin/sh
-
-wget_busy_file=]] .. wget_busy_file .. "\n" .. [[
-movie_file="$2"
-stream_name="$1"
-
-netzkino_wget() {
-	touch $wget_busy_file
-	wget -c -O "${movie_file}" "https://pmd.netzkino-seite.netzkino.de/${stream_name}.mp4"
-	rm $wget_busy_file
-}
-
-if [ ! -e $wget_busy_file ]; then
-	netzkino_wget &
-fi
-]]
-		)
-		ds:close()
-
-		os.execute(string.format('chmod 755 %s', wget_script_file))
-	else
-		print(wget_script_file .. " konnte nicht angelegt werden")
-	end
 end
 
 --Stream downloaden
@@ -558,12 +515,14 @@ function download_stream(_id)
 		i = i + 1
 		msg, data = n:GetInput(500)
 	until msg == RC.ok or msg == RC.home or i == 4 -- 2 seconds
+	print("downloading " .. movie_file .. " https://pmd.netzkino-seite.netzkino.de/" .. stream_name .. ".mp4")
+	local a,b,c = os.execute("curl -C - -o " .. movie_file .. " https://pmd.netzkino-seite.netzkino.de/" .. stream_name .. ".mp4 &")
+	if (c == 1) then
+                print("Error while downloading https://pmd.netzkino-seite.netzkino.de/" .. stream_name .. ".mp4")
+	end
 	h:hide()
 
-	print(wget_script_file .. " " .. stream_name .. " " .. movie_file)
-	os.execute(wget_script_file .. " " .. stream_name .. " " .. movie_file)
 end
-
 
 -- UTF8 in Umlaute wandeln
 function conv_utf8(_string)

@@ -31,6 +31,7 @@ n = neutrino()
 fh = filehelpers.new()
 
 bootfile = "/boot/STARTUP"
+devbase = "/dev/mmcblk0p"
 
 local g = {}
 locale = {}
@@ -147,6 +148,11 @@ function create_flashfile()
 	file = os.execute('chmod +x "/tmp/flash.sh"')
 end
 
+for line in io.lines(bootfile) do
+	i, j = string.find(line, devbase)
+	current_root = tonumber(string.sub(line,j+1,j+2))
+end
+
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/etc/neutrino/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
@@ -155,11 +161,26 @@ if locale[lang] == nil then
 	lang = "english"
 end
 
-timing_menu = neutrino_conf:getString("timing.menu", "0")
-
-for line in io.lines(bootfile) do
-	act_boot_partition = string.sub(line,23,23)
+function basename(str)
+	local name = string.gsub(str, "(.*/)(.*)", "%2")
+	return name
 end
+
+function get_imagename(root)
+	local glob = require "posix".glob
+	for _, j in pairs(glob('/boot/*', 0)) do
+		for line in io.lines(j) do
+			if (j ~= bootfile) then
+				if line:match(devbase .. root) then
+					imagename = basename(j)
+				end
+			end
+		end
+	end
+	return imagename
+end
+
+timing_menu = neutrino_conf:getString("timing.menu", "0")
 
 chooser_dx = n:scale2Res(600)
 chooser_dy = n:scale2Res(200)
@@ -174,10 +195,10 @@ chooser = cwindow.new {
 	title = caption,
 	icon = "settings",
 	has_shadow = true,
-	btnRed = "Partition 1",
-	btnGreen = "Partition 2",
-	btnYellow = "Partition 3",
-	btnBlue = "Partition 4"
+	btnRed = get_imagename(3),
+	btnGreen = get_imagename(5),
+	btnYellow = get_imagename(7),
+	btnBlue = get_imagename(9)
 }
 
 chooser_text = ctext.new {
@@ -186,7 +207,7 @@ chooser_text = ctext.new {
 	y = OFFSET.INNER_SMALL,
 	dx = chooser_dx - 2*OFFSET.INNER_MID,
 	dy = chooser_dy - chooser:headerHeight() - chooser:footerHeight() - 2*OFFSET.INNER_SMALL,
-	text = locale[lang].current_boot_partition .. act_boot_partition .. locale[lang].choose_partition,
+	text = locale[lang].current_boot_partition .. get_imagename(current_root) .. locale[lang].choose_partition,
 	font_text = FONT.MENU,
 	mode = "ALIGN_CENTER"
 }
@@ -210,16 +231,20 @@ function flash_image()
 	msg, data = n:GetInput(d)
 
 	if (msg == RC['red']) then
-		flash_boot_partition = "1"
+		flash_boot_partition = 1
+		root = 3
 		colorkey = true
 	elseif (msg == RC['green']) then
-		flash_boot_partition = "2"
+		flash_boot_partition = 2
+		root = 5
 		colorkey = true
 	elseif (msg == RC['yellow']) then
-		flash_boot_partition = "3"
+		flash_boot_partition = 3
+		root = 7
 		colorkey = true
 	elseif (msg == RC['blue']) then
-		flash_boot_partition = "4"
+		flash_boot_partition = 4
+		root = 9
 		colorkey = true
 	end
 
@@ -231,12 +256,12 @@ function flash_image()
 		res = messagebox.exec {
 		title = caption,
 		icon = "settings",
-		text = locale[lang].start_partition1 .. flash_boot_partition .. locale[lang].start_partition2,
+		text = locale[lang].start_partition1 .. get_imagename(root) .. locale[lang].start_partition2,
 		timeout = 0,
 		buttons={ "yes", "no" }
 		}
 		if res == "yes" then
-			if (flash_boot_partition == act_boot_partition) then
+			if (root == current_root) then
 				local file = assert(io.popen("etckeeper commit -a", 'r'))
 				local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].prepare_system };
 				ret:paint()

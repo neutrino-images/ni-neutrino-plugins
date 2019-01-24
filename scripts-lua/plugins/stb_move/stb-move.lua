@@ -26,6 +26,9 @@
 
 caption = "STB-Move"
 
+devbase = "/dev/mmcblk0p"
+bootfile = "/boot/STARTUP"
+
 local posix = require "posix"
 n = neutrino()
 fh = filehelpers.new()
@@ -59,6 +62,25 @@ function sleep (a)
     end 
 end
 
+function basename(str)
+        local name = string.gsub(str, "(.*/)(.*)", "%2")
+        return name
+end
+
+function get_imagename(root)
+        local glob = require "posix".glob
+        for _, j in pairs(glob('/boot/*', 0)) do
+                for line in io.lines(j) do
+                        if (j ~= bootfile) then
+                                if line:match(devbase .. root) then
+                                        imagename = basename(j)
+                                end
+                        end
+                end
+        end
+        return imagename
+end
+
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/etc/neutrino/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
@@ -67,8 +89,9 @@ if locale[lang] == nil then
 end
 timing_menu = neutrino_conf:getString("timing.menu", "0")
 
-for line in io.lines("/boot/STARTUP") do
-	act_boot_partition = string.sub(line,23,23)
+for line in io.lines(bootfile) do
+        i, j = string.find(line, devbase)
+        current_root = tonumber(string.sub(line,j+1,j+2))
 end
 
 function get_source_partition ()
@@ -85,18 +108,17 @@ function get_source_partition ()
        		title = caption,
        		icon = "settings",
        		has_shadow = true,
-       		btnRed = "Partition 1",
-       		btnGreen = "Partition 2",
-       		btnYellow = "Partition 3",
-       		btnBlue = "Partition 4" }
-
+		btnRed = get_imagename(3),
+		btnGreen = get_imagename(5),
+		btnYellow = get_imagename(7),
+		btnBlue = get_imagename(9) }
 	chooser_text = ctext.new {
        		parent = chooser,
        		x = OFFSET.INNER_MID,
        		y = OFFSET.INNER_SMALL,
        		dx = chooser_dx - 2*OFFSET.INNER_MID,
        		dy = chooser_dy - chooser:headerHeight() - chooser:footerHeight() - 2*OFFSET.INNER_SMALL,
-       		text = locale[lang].current_boot_partition .. act_boot_partition .. locale[lang].choose_source,
+       		text = locale[lang].current_boot_partition .. get_imagename(current_root) .. locale[lang].choose_source,
        		font_text = FONT.MENU,
        		mode = "ALIGN_CENTER" }
 
@@ -115,16 +137,20 @@ function get_source_partition ()
 	msg, data = n:GetInput(d)
 
 	if (msg == RC['red']) then
-		source_partition = "1"
+		source_partition = 1
+		source_root = 3
 		colorkey = true
 	elseif (msg == RC['green']) then
-		source_partition = "2"
+		source_partition = 2
+		source_root =5
 		colorkey = true
 	elseif (msg == RC['yellow']) then
-		source_partition = "3"
+		source_partition = 3
+		source_root = 7
 		colorkey = true
 	elseif (msg == RC['blue']) then
-		source_partition = "4"
+		source_partition = 4
+		source_root = 9
 		colorkey = true
 	end
 
@@ -147,18 +173,17 @@ function get_destination_partition ()
                 title = caption,
                 icon = "settings",
                 has_shadow = true,
-                btnRed = "Partition 1",
-                btnGreen = "Partition 2",
-                btnYellow = "Partition 3",
-                btnBlue = "Partition 4" }
-
+                btnRed = get_imagename(3),
+                btnGreen = get_imagename(5),
+                btnYellow = get_imagename(7),
+                btnBlue = get_imagename(9) }
         chooser_text = ctext.new {
                 parent = chooser,
                 x = OFFSET.INNER_MID,
                 y = OFFSET.INNER_SMALL,
                 dx = chooser_dx - 2*OFFSET.INNER_MID,
                 dy = chooser_dy - chooser:headerHeight() - chooser:footerHeight() - 2*OFFSET.INNER_SMALL,
-                text = locale[lang].current_boot_partition .. act_boot_partition .. locale[lang].choose_destination,
+                text = locale[lang].current_boot_partition .. get_imagename(current_root) .. locale[lang].choose_destination,
                 font_text = FONT.MENU,
                 mode = "ALIGN_CENTER" }
 
@@ -177,16 +202,20 @@ function get_destination_partition ()
        	msg, data = n:GetInput(d)
 
        	if (msg == RC['red']) then
-               	destination_partition = "1"
+               	destination_partition = 1
+		dest_root = 3
                	colorkey = true
        	elseif (msg == RC['green']) then
-               	destination_partition = "2"
+               	destination_partition = 2
+		dest_root = 5
                	colorkey = true
        	elseif (msg == RC['yellow']) then
-               	destination_partition = "3"
+               	destination_partition = 3
+		dest_root = 7
                	colorkey = true
        	elseif (msg == RC['blue']) then
-               	destination_partition = "4"
+               	destination_partition = 4
+		dest_root = 9
                	colorkey = true
        	end
 
@@ -199,7 +228,7 @@ function do_copy_image ()
        	res = messagebox.exec {
        	title = caption,
        	icon = "settings",
-       	text = locale[lang].copy_from .. source_partition .. locale[lang].copy_to .. destination_partition .. locale[lang].copy_to_append,
+       	text = locale[lang].copy_from .. get_imagename(source_root) .. locale[lang].copy_to .. get_imagename(dest_root) .. locale[lang].copy_to_append,
        	timeout = 0,
        	buttons={ "yes", "no" }
        	}

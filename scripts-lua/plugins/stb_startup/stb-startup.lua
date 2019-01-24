@@ -34,7 +34,7 @@ bootfile = "/boot/STARTUP"
 
 for line in io.lines(bootfile) do
         i, j = string.find(line, devbase)
-        current_root = string.sub(line,j+1,j+2)
+        current_root = tonumber(string.sub(line,j+1,j+2))
 end
 
 locale = {}
@@ -137,16 +137,16 @@ repeat
 	i = i + 1
 	msg, data = n:GetInput(d)
 	if (msg == RC['red']) then
-		root = "3"
+		root = 3
 		colorkey = true
 	elseif (msg == RC['green']) then
-		root = "5"
+		root = 5
 		colorkey = true
 	elseif (msg == RC['yellow']) then
-		root = "7"
+		root = 7
 		colorkey = true
 	elseif (msg == RC['blue']) then
-		root = "9"
+		root = 9
 		colorkey = true
 	end
 until msg == RC['home'] or colorkey or i == t
