@@ -518,7 +518,7 @@ function download_stream(_id)
 	print("downloading " .. movie_file .. " https://pmd.netzkino-seite.netzkino.de/" .. stream_name .. ".mp4")
 	local a,b,c = os.execute("curl -C - -o " .. movie_file .. " https://pmd.netzkino-seite.netzkino.de/" .. stream_name .. ".mp4 &")
 	if (c == 1) then
-                print("Error downloading file '" .. fname .. "'.")
+                print("Error while downloading https://pmd.netzkino-seite.netzkino.de/" .. stream_name .. ".mp4")
 	end
 	h:hide()
 
