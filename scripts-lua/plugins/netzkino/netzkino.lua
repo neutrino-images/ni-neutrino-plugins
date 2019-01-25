@@ -472,7 +472,8 @@ end
 function stream_movie(_id)
 	local index = tonumber(_id);
 	local stream_name = conv_utf8(movies[index].stream);
-	n:PlayFile(conv_utf8(movies[index].title), "https://pmd.netzkino-seite.netzkino.de/" .. stream_name ..".mp4");
+	video = video.new()
+	video:PlayFile(conv_utf8(movies[index].title), "https://pmd.netzkino-seite.netzkino.de/" .. stream_name ..".mp4");
 end
 
 --Stream downloaden
