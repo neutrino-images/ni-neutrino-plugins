@@ -29,16 +29,16 @@ kernelmtd=$mmcprefix$kernelnumber
 
 echo "  HD51 Image Backup (Version: $Version)"
 if [ "$model" == "hd51" ];then
-	echo "  Image Backup für Boxmodel '$model' startet..."
+	echo "  Image Backup für Boxmodel '$model' startet ..."
 else
-	echo "  Falsche Box...Abbruch"
+	echo "  Falsche Box. Abbruch!"
 	exit 0
 fi
 
 if [ -z "$bz2" ];then
 	echo "  Kein 'bzip2' im Image"
-	echo "  packen von 'rootfs.tar.bz2' nicht möglich"
-	echo "  Abbruch... !!"
+	echo "  Packen von 'rootfs.tar.bz2' nicht möglich"
+	echo "  Abbruch!"
 	exit 0
 fi
 
@@ -47,8 +47,8 @@ if [ $kernelnumber -lt 9 -a $kernelnumber -gt 1 ];then
 	echo "  Bootdevice   = $rootmtd"
 	echo "  Kerneldevice = $kernelmtd"
 else
-	echo "  Kernel MTD nicht im Bereich ( 2,4,6,8 ) !! > $kernelnumber"
-	echo "  Abbruch !!"
+	echo "  Kernel MTD nicht im Bereich (2,4,6,8)! > $kernelnumber"
+	echo "  Abbruch!"
 	exit 0
 fi
 
@@ -172,8 +172,8 @@ mount --bind / $tmproot
 echo
 echo "  erstelle 'rootfs.tar'"
 tar -cf $save_path/rootfs.tar -C $tmproot ./ 2> /dev/null
-echo "  packe 'rootfs.tar' zu rootfs.tar.bz2'"
-echo "  dauert ca. 1 bis 2 Minuten...."
+echo "  packe 'rootfs.tar' zu 'rootfs.tar.bz2'"
+echo "  dauert ca. 1 bis 2 Minuten ..."
 $bz2 $save_path/rootfs.tar
 
 umount -f $tmproot
