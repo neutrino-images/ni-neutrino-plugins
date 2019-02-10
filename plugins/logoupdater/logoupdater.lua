@@ -43,7 +43,6 @@ menu_options = "Einstellungen",
 menu_update = "Update starten",
 yes = "ja",
 no = "nein",
-options = "Einstellungen",
 cfg_popup = "Popup Logos installieren",
 cfg_event = "Event Logos installieren",
 cfg_git = "Git für den Download verwenden"
@@ -59,11 +58,10 @@ link_logos = "Creating needed links",
 link_failed = "Linking failed",
 cleanup = "Cleanup temporary files",
 cleanup_failed = "Cleanup data failed",
-chooser_options = "Options",
-chooser_update = "Start update",
+menu_options = "Options",
+menu_update = "Start update",
 yes = "yes",
 no = "no",
-options = "Options",
 cfg_popup = "Install popup logos",
 cfg_event = "Install event logos",
 cfg_git = "Use git for downloading"
@@ -306,7 +304,7 @@ end
 
 function options ()
 	chooser:hide()
-	menu = menu.new{name=locale[lang].options}
+	menu = menu.new{name=locale[lang].menu_options}
 	menu:addItem{type="back"}
 	menu:addItem{type="separatorline"}
 	opt = {locale[lang].yes ,locale[lang].no}	
