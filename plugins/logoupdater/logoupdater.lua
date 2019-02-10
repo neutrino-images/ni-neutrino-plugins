@@ -66,13 +66,12 @@ no = "no",
 options = "Options",
 cfg_popup = "Install popup logos",
 cfg_event = "Install event logos",
-cfg_git = "Use git for download"
+cfg_git = "Use git for downloading"
 }
 
 n = neutrino()
 neutrino_conf = "/var/tuxbox/config/neutrino.conf" 
 tmp = "/tmp/logoupdate"
-prefix = "/usr"
 icondir = "/share/tuxbox/neutrino/icons"
 logo_source = tmp .. "/logos"
 logo_event_source = tmp .. "/logos-events"
