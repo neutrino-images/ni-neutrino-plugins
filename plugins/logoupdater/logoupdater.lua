@@ -100,8 +100,8 @@ end
 function create_logoupdater_cfg()
 	file = io.open(logoupdater_cfg, "w")
 	file:write("eventlogos=1", "\n")
-	file:write("popuplogos=1", "\n")
-	file:write("use_git=1", "\n")
+	file:write("popuplogos=0", "\n")
+	file:write("use_git=0, "\n")
 	file:close()
 end
 
