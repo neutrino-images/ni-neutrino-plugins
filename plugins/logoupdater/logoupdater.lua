@@ -349,7 +349,7 @@ function options ()
 	end
 	if (get_cfg_value("keep_files") == 1) then
 		menu:addItem{type="chooser", action="keep_files_cfg", options={opt[1], opt[2]}, id="ID4", value="update", icon=4, directkey=RC["4"], name=locale[lang].cfg_keep}
-	elseif (get_cfg_value("use_git") == 0) then
+	elseif (get_cfg_value("keep_files") == 0) then
 		menu:addItem{type="chooser", action="keep_files_cfg", options={opt[2], opt[1]}, id="ID4", value="update", icon=4, directkey=RC["4"], name=locale[lang].cfg_keep}
 	end
 	menu:exec()
