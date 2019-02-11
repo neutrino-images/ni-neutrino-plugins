@@ -1,29 +1,29 @@
 
--- The Tuxbox Copyright
---
--- Copyright 2018 Markus Volk
---
--- Redistribution and use in source and binary forms, with or without modification, 
--- are permitted provided that the following conditions are met:
---
--- Redistributions of source code must retain the above copyright notice, this list
--- of conditions and the following disclaimer. Redistributions in binary form must
--- reproduce the above copyright notice, this list of conditions and the following
--- disclaimer in the documentation and/or other materials provided with the distribution.
---
--- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS`` AND ANY EXPRESS OR IMPLIED
--- WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
--- AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
--- HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
--- EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
--- SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
--- HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
--- OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
--- SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
---
--- The views and conclusions contained in the software and documentation are those of the
--- authors and should not be interpreted as representing official policies, either expressed
--- or implied, of the Tuxbox Project.
+--[[ The Tuxbox Copyright
+
+ Copyright 2019 Markus Volk
+
+ Redistribution and use in source and binary forms, with or without modification, 
+ are permitted provided that the following conditions are met:
+
+ Redistributions of source code must retain the above copyright notice, this list
+ of conditions and the following disclaimer. Redistributions in binary form must
+ reproduce the above copyright notice, this list of conditions and the following
+ disclaimer in the documentation and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS`` AND ANY EXPRESS OR IMPLIED
+ WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+ AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those of the
+ authors and should not be interpreted as representing official policies, either expressed
+ or implied, of the Tuxbox Project.]]
 
 caption = "Logo Updater"
 
@@ -45,7 +45,8 @@ yes = "ja",
 no = "nein",
 cfg_popup = "Popup Logos installieren",
 cfg_event = "Event Logos installieren",
-cfg_git = "Git für den Download verwenden"
+cfg_git = "Git für den Download verwenden",
+cfg_keep = "Bestehende Dateien behalten",
 }
 locale["english"] = {
 fetch_source = "The latest logos are getting downloaded",
@@ -64,7 +65,8 @@ yes = "yes",
 no = "no",
 cfg_popup = "Install popup logos",
 cfg_event = "Install event logos",
-cfg_git = "Use git for downloading"
+cfg_git = "Use git for downloading",
+cfg_keep = "Keep existing files"
 }
 
 n = neutrino()
@@ -99,6 +101,7 @@ function create_logoupdater_cfg()
 	file:write("eventlogos=1", "\n")
 	file:write("popuplogos=0", "\n")
 	file:write("use_git=0", "\n")
+	file:write("keep_files=0", "\n")
 	file:close()
 end
 
@@ -184,7 +187,9 @@ function start_update()
 	
 	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].copy_logos };
 	ret:paint();
-	local ok,err,exitcode = os.execute("rsync -av --delete " .. logo_source .. "/ " .. logodir)
+	local delete = ""
+	if (get_cfg_value("keep_files") == 0) then delete = "--delete " end 
+	local ok,err,exitcode = os.execute("rsync -rlpgoD --size-only " .. delete .. logo_source .. "/ " .. logodir)
 	sleep(1);
 	if (exitcode ~= 0) then
 		ret:hide()
@@ -197,7 +202,7 @@ function start_update()
 	if (get_cfg_value("eventlogos") == 1) then
 		local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].copy_eventlogos };
 		ret:paint();
-		local ok,err,exitcode = os.execute("rsync -av " .. logo_event_source .. "/* " .. logodir)
+		local ok,err,exitcode = os.execute("rsync -rlpgoD --size-only " .. delete .. logo_event_source .. "/* " .. logodir)
 		sleep(1);
 		if (exitcode ~= 0) then
 			ret:hide()
@@ -211,7 +216,7 @@ function start_update()
 	if (get_cfg_value("popuplogos") == 1) then
 		local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].copy_popuplogos };
 		ret:paint();
-		local ok,err,exitcode = os.execute("rsync -av " .. logo_popup_source .. "/* " .. logodir)
+		local ok,err,exitcode = os.execute("rsync -rlpgoD --size-only " .. delete .. logo_popup_source .. "/* " .. logodir)
 		sleep(1);
 		if (exitcode ~= 0) then
 			ret:hide()
@@ -273,10 +278,12 @@ function eventlogo_cfg(k, v)
 	n_line = newline(k, v, "eventlogos")
 	a_line = appendline("popuplogos")
 	a1_line = appendline("use_git")
+	a2_line = appendline("keep_files")
 	file = io.open(logoupdater_cfg, "w")
 	file:write(n_line, "\n")
 	file:write(a_line, "\n")
 	file:write(a1_line, "\n")
+	file:write(a2_line, "\n")
 	file:close()
 end
 
@@ -284,10 +291,12 @@ function popuplogo_cfg(k, v)
 	n_line = newline(k, v, "popuplogos")
 	a_line = appendline("eventlogos")
 	a1_line = appendline("use_git")
+	a2_line = appendline("keep_files")
 	file = io.open(logoupdater_cfg, "w")
 	file:write(a_line, "\n")
 	file:write(n_line, "\n")
 	file:write(a1_line, "\n")
+	file:write(a2_line, "\n")
 	file:close()
 end
 
@@ -295,9 +304,24 @@ function use_git_cfg(k, v)
 	n_line = newline(k, v, "use_git")
 	a_line = appendline("eventlogos")
 	a1_line = appendline("popuplogos")
+	a2_line = appendline("keep_files")
 	file = io.open(logoupdater_cfg, "w")
 	file:write(a_line, "\n")
 	file:write(a1_line, "\n")
+	file:write(n_line, "\n")
+	file:write(a2_line, "\n")
+	file:close()
+end
+
+function keep_files_cfg(k, v)
+	n_line = newline(k, v, "keep_files")
+	a_line = appendline("eventlogos")
+	a1_line = appendline("popuplogos")
+	a2_line = appendline("use_git")
+	file = io.open(logoupdater_cfg, "w")
+	file:write(a_line, "\n")
+	file:write(a1_line, "\n")
+	file:write(a2_line, "\n")
 	file:write(n_line, "\n")
 	file:close()
 end
@@ -314,7 +338,7 @@ function options ()
 		menu:addItem{type="chooser", action="eventlogo_cfg", options={opt[2], opt[1]}, id="ID1", value="event", icon=1, directkey=RC["1"], name=locale[lang].cfg_event}
 	end
 	if (get_cfg_value("popuplogos") == 1) then
-                menu:addItem{type="chooser", action="popuplogo_cfg", options={opt[1], opt[2]}, id="ID2", value="popup", icon=2, directkey=RC["2"], name=locale[lang].cfg_popup}
+		menu:addItem{type="chooser", action="popuplogo_cfg", options={opt[1], opt[2]}, id="ID2", value="popup", icon=2, directkey=RC["2"], name=locale[lang].cfg_popup}
 	elseif (get_cfg_value("popuplogos") == 0) then
 		menu:addItem{type="chooser", action="popuplogo_cfg", options={opt[2], opt[1]}, id="ID2", value="popup", icon=2, directkey=RC["2"], name=locale[lang].cfg_popup}
 	end
@@ -322,6 +346,11 @@ function options ()
 		menu:addItem{type="chooser", action="use_git_cfg", options={opt[1], opt[2]}, id="ID3", value="download", icon=3, directkey=RC["3"], name=locale[lang].cfg_git}
 	elseif (get_cfg_value("use_git") == 0) then
 		menu:addItem{type="chooser", action="use_git_cfg", options={opt[2], opt[1]}, id="ID3", value="download", icon=3, directkey=RC["3"], name=locale[lang].cfg_git}
+	end
+	if (get_cfg_value("keep_files") == 1) then
+		menu:addItem{type="chooser", action="keep_files_cfg", options={opt[1], opt[2]}, id="ID4", value="update", icon=4, directkey=RC["4"], name=locale[lang].cfg_keep}
+	elseif (get_cfg_value("use_git") == 0) then
+		menu:addItem{type="chooser", action="keep_files_cfg", options={opt[2], opt[1]}, id="ID4", value="update", icon=4, directkey=RC["4"], name=locale[lang].cfg_keep}
 	end
 	menu:exec()
 	main()
