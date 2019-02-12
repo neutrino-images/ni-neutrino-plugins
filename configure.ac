@@ -39,6 +39,7 @@ scripts-lua/plugins/epgfilter/Makefile
 scripts-lua/plugins/EPGscan/Makefile
 scripts-lua/plugins/favorites2bin/Makefile
 scripts-lua/plugins/LocalTV/Makefile
+scripts-lua/plugins/logoupdater/Makefile
 scripts-lua/plugins/mtv/Makefile
 scripts-lua/plugins/netzkino/Makefile
 scripts-lua/plugins/openvpn-setup/Makefile
