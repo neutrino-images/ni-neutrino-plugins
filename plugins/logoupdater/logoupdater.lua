@@ -111,7 +111,7 @@ end
 
 function get_cfg_value(str)
 	for line in io.lines(logoupdater_cfg) do
-		if line:match(str) then
+		if line:match(str .. "=") then
 			local i,j = string.find(line, str .. "=")
 			r = tonumber(string.sub(line, j+1, #line))
 		end
@@ -127,7 +127,7 @@ end
 
 function nconf_value(str)
 	for line in io.lines(neutrino_conf) do
-		if line:match(str) then
+		if line:match(str .. "=") then
 			local i,j = string.find(line, str .. "=")
 			value = string.sub(line, j+1, #line)
 		end
@@ -252,79 +252,41 @@ function start_update()
 	end
 end
 
-function newline(k, v, str)
+function write_cfg(k, v, str)
 	local a
 	if (v == locale[lang].yes) then a = 1 else a = 0 end
+	local cfg_content = {}
 	for line in io.lines(logoupdater_cfg) do
-		if line:match(str) then
-			local i,j = string.find(line, str .. "=")
-			b = string.sub(line, j+1, #line)
-			nline = string.gsub(line, b, a)
+		if line:match(str .. "=") then
+			nline = string.reverse(string.gsub(string.reverse(line), string.sub(string.reverse(line), 1, 1), a, 1))
+			table.insert (cfg_content, nline)
+		else
+			table.insert (cfg_content, line)
 		end
 	end
-	return nline
-end
-
-function appendline(str)
-	for line in io.lines(logoupdater_cfg) do
-		if line:match(str) then
-			aline = string.sub(line, 1, #line)
-		end
+	file = io.open(logoupdater_cfg, 'w')
+	for i, v in ipairs(cfg_content) do
+		file:write(v, "\n")
 	end
-	return aline
+	io.close(file)
 end
 
-function eventlogo_cfg(k, v)
-	n_line = newline(k, v, "eventlogos")
-	a_line = appendline("popuplogos")
-	a1_line = appendline("use_git")
-	a2_line = appendline("keep_files")
-	file = io.open(logoupdater_cfg, "w")
-	file:write(n_line, "\n")
-	file:write(a_line, "\n")
-	file:write(a1_line, "\n")
-	file:write(a2_line, "\n")
-	file:close()
+function eventlogos_cfg(k, v, str)
+	write_cfg(k, v, "eventlogos")
 end
 
-function popuplogo_cfg(k, v)
-	n_line = newline(k, v, "popuplogos")
-	a_line = appendline("eventlogos")
-	a1_line = appendline("use_git")
-	a2_line = appendline("keep_files")
-	file = io.open(logoupdater_cfg, "w")
-	file:write(a_line, "\n")
-	file:write(n_line, "\n")
-	file:write(a1_line, "\n")
-	file:write(a2_line, "\n")
-	file:close()
+function popuplogos_cfg(k, v, str) 
+	write_cfg(k, v, "popuplogos")
 end
 
-function use_git_cfg(k, v)
-	n_line = newline(k, v, "use_git")
-	a_line = appendline("eventlogos")
-	a1_line = appendline("popuplogos")
-	a2_line = appendline("keep_files")
-	file = io.open(logoupdater_cfg, "w")
-	file:write(a_line, "\n")
-	file:write(a1_line, "\n")
-	file:write(n_line, "\n")
-	file:write(a2_line, "\n")
-	file:close()
+function use_git_cfg(k, v, str) 
+	write_cfg(k, v, "use_git")
 end
 
-function keep_files_cfg(k, v)
-	n_line = newline(k, v, "keep_files")
-	a_line = appendline("eventlogos")
-	a1_line = appendline("popuplogos")
-	a2_line = appendline("use_git")
-	file = io.open(logoupdater_cfg, "w")
-	file:write(a_line, "\n")
-	file:write(a1_line, "\n")
-	file:write(a2_line, "\n")
-	file:write(n_line, "\n")
-	file:close()
+function keep_files_cfg(k, v, str) 
+	write_cfg(k, v, "keep_files")
 end
+
 
 function options ()
 	chooser:hide()
@@ -333,24 +295,24 @@ function options ()
 	menu:addItem{type="separatorline"}
 	opt = {locale[lang].yes ,locale[lang].no}	
 	if (get_cfg_value("eventlogos") == 1) then
-		menu:addItem{type="chooser", action="eventlogo_cfg", options={opt[1], opt[2]}, id="ID1", value="event", icon=1, directkey=RC["1"], name=locale[lang].cfg_event}
+		menu:addItem{type="chooser", action="eventlogos_cfg", options={opt[1], opt[2]}, id="ID1", icon=1, directkey=RC["1"], name=locale[lang].cfg_event}
 	elseif (get_cfg_value("eventlogos") == 0) then
-		menu:addItem{type="chooser", action="eventlogo_cfg", options={opt[2], opt[1]}, id="ID1", value="event", icon=1, directkey=RC["1"], name=locale[lang].cfg_event}
+		menu:addItem{type="chooser", action="eventlogos_cfg", options={opt[2], opt[1]}, id="ID1", icon=1, directkey=RC["1"], name=locale[lang].cfg_event}
 	end
 	if (get_cfg_value("popuplogos") == 1) then
-		menu:addItem{type="chooser", action="popuplogo_cfg", options={opt[1], opt[2]}, id="ID2", value="popup", icon=2, directkey=RC["2"], name=locale[lang].cfg_popup}
+		menu:addItem{type="chooser", action="popuplogos_cfg", options={opt[1], opt[2]}, id="ID2", icon=2, directkey=RC["2"], name=locale[lang].cfg_popup}
 	elseif (get_cfg_value("popuplogos") == 0) then
-		menu:addItem{type="chooser", action="popuplogo_cfg", options={opt[2], opt[1]}, id="ID2", value="popup", icon=2, directkey=RC["2"], name=locale[lang].cfg_popup}
+		menu:addItem{type="chooser", action="popuplogos_cfg", options={opt[2], opt[1]}, id="ID2", icon=2, directkey=RC["2"], name=locale[lang].cfg_popup}
 	end
 	if (get_cfg_value("use_git") == 1) then
-		menu:addItem{type="chooser", action="use_git_cfg", options={opt[1], opt[2]}, id="ID3", value="download", icon=3, directkey=RC["3"], name=locale[lang].cfg_git}
+		menu:addItem{type="chooser", action="use_git_cfg", options={opt[1], opt[2]}, id="ID3", icon=3, directkey=RC["3"], name=locale[lang].cfg_git}
 	elseif (get_cfg_value("use_git") == 0) then
-		menu:addItem{type="chooser", action="use_git_cfg", options={opt[2], opt[1]}, id="ID3", value="download", icon=3, directkey=RC["3"], name=locale[lang].cfg_git}
+		menu:addItem{type="chooser", action="use_git_cfg", options={opt[2], opt[1]}, id="ID3", icon=3, directkey=RC["3"], name=locale[lang].cfg_git}
 	end
 	if (get_cfg_value("keep_files") == 1) then
-		menu:addItem{type="chooser", action="keep_files_cfg", options={opt[1], opt[2]}, id="ID4", value="update", icon=4, directkey=RC["4"], name=locale[lang].cfg_keep}
+		menu:addItem{type="chooser", action="keep_files_cfg", options={opt[1], opt[2]}, id="ID4", icon=4, directkey=RC["4"], name=locale[lang].cfg_keep}
 	elseif (get_cfg_value("keep_files") == 0) then
-		menu:addItem{type="chooser", action="keep_files_cfg", options={opt[2], opt[1]}, id="ID4", value="update", icon=4, directkey=RC["4"], name=locale[lang].cfg_keep}
+		menu:addItem{type="chooser", action="keep_files_cfg", options={opt[2], opt[1]}, id="ID4", icon=4, directkey=RC["4"], name=locale[lang].cfg_keep}
 	end
 	menu:exec()
 	main()
