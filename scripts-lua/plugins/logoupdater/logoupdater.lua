@@ -183,7 +183,7 @@ function start_update()
 		ret:hide();
 	end
 
-	os.execute("rsync -av " .. logo_intro .. "/logoupdater_" .. nconf_value("osd_resolution") .. ".png " .. icondir .. "/logoupdater.png")
+	os.execute("rsync -rlpgoD --size-only " .. logo_intro .. "/logoupdater_" .. nconf_value("osd_resolution") .. ".png " .. icondir .. "/logoupdater.png")
 	
 	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].copy_logos };
 	ret:paint();

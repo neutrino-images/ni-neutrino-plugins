@@ -1,6 +1,6 @@
 --[[
 	mtv.ch
-	Copyright (C) 2015,  Jacek Jendrzej 'satbaby'
+	Copyright (C) 2015,2019  Jacek Jendrzej 'satbaby'
 
 	License: GPL
 
@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.ch Version 0.18" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.ch Version 0.21" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -118,42 +118,21 @@ function init()
 	end
 	glob.mtv_artist={}
 	glob.mtv={
-		{name = "MTV unplugged",url="http://www.mtv.ch/mtv-unplugged",fav=false},
-		{name = "Brandneu",url="http://www.mtv.ch/musik",fav=false},
-		{name = "Hitlist Germany - Top 100",url="http://www.mtv.ch/charts/288-hitlist-germany-top-100",fav=false},
-		{name = "Hitlist Schweiz - Top 50",url="http://www.mtv.ch/charts/206-mtv-ch-videocharts",fav=false},
-		{name = "SINGLE TOP 20",url="http://www.mtv.ch/charts/302-single-top-20",fav=false},
-		{name = "SINGLE TOP 100",url="http://www.mtv.ch/charts/288-single-top-100",fav=false},
-		{name = "Top 100 Jahrescharts 2017",url="http://www.mtv.ch/charts/307-top-100-jahrescharts-2017",fav=false},
-		{name = "Top 100 Jahrescharts 2016",url="http://www.mtv.ch/charts/274-top-100-jahrescharts-2016",fav=false},
-		{name = "Top 100 Jahrescharts 2015",url="http://www.mtv.ch/charts/275-top-100-jahrescharts-2015",fav=false},
-		{name = "Top 100 Jahrescharts 2014",url="http://www.mtv.ch/charts/241-top-100-single-jahrescharts-2014",fav=false},
-		{name = "Dance Charts",url="http://www.mtv.ch/charts/293-dance-charts",fav=false},
---		{name = "Deutsche Hip Hop Charts",url="http://www.mtv.ch/charts/292-hip-hop-charts",fav=false},
-		{name = "Midweek Charts",url="http://www.mtv.ch/charts/287-midweek-single-top-100",fav=false},
-		{name = "Videocharts DE (via viva.tv)",url="http://www.viva.tv/charts/8-mtv-de-videocharts",fav=false},
-		{name = "Videocharts CH",url="http://www.mtv.ch/charts/206-mtv-ch-videocharts",fav=false},
---		{name = "Throwback Charts CH",url="http://www.mtv.ch/charts/278-throwback-charts-ch",fav=false},
---		{name = "Midweek Charts CH",url="http://www.mtv.ch/charts/283-single-midweek-charts",fav=false},
---		{name = "SINGLE TOP 20 CH",url="http://www.mtv.ch/charts/280-single-top-20",fav=false},
---		{name = "SINGLE TOP 100 CH",url="http://www.mtv.ch/charts/279-single-top-100",fav=false},
-		{name = "VIVA Top 100",url="http://www.viva.tv/charts/288-top-100-single-charts",fav=false},
-		{name = "Viva Top 100 Jahrescharts 2017 OFFIZIELLEN SINGLE-CHARTS ermittelt von GFK Entertaiment",url="http://www.viva.tv/charts/307-top-100-jahrescharts-2017",fav=false},
-		{name = "Viva Top 100 Jahrescharts 2016 OFFIZIELLEN SINGLE-CHARTS ermittelt von GFK Entertaiment",url="http://www.viva.tv/charts/274-top-100-jahrescharts-2016",fav=false},
-		{name = "Viva Top 100 Jahrescharts 2015 OFFIZIELLEN SINGLE-CHARTS ermittelt von GFK Entertaiment",url="http://www.viva.tv/charts/275-top-100-jahrescharts-2015",fav=false},
-		{name = "Viva Top 100 Jahrescharts 2014 OFFIZIELLEN SINGLE-CHARTS ermittelt von GFK Entertaiment",url="http://www.viva.tv/charts/241-top-100-jahrescharts-2014",fav=false},
-		{name = "Viva SINGLE TOP 20",url="http://www.viva.tv/charts/302-top-20-single-charts",fav=false},
-		{name = "Viva SINGLE TOP 100",url="http://www.viva.tv/charts/288-single-top-100",fav=false},
-		{name = "Viva Dance Charts",url="http://www.viva.tv/charts/293-dance-charts",fav=false},
-		{name = "Viva Brandneu",url="http://www.viva.tv/news/19363-viva-neu",fav=false},
---		{name = "Viva Hop Hop Charts",url="http://www.viva.tv/charts/292-hip-hop-charts",fav=false},
-		{name = "Viva Jahrescharts 2016 - Ihr habt eure 50 liebsten Videos gewählt",url="http://www.viva.tv/charts/277-eure-viva-jahrescharts-2016",fav=false},
-		{name = "SINGLE TRENDING",url="http://www.mtv.ch/charts/301-single-trending",fav=false},
-		{name = "TOP 100 MUSIC STREAMING",url="http://www.mtv.ch/charts/286-top-100-music-streaming",fav=false},
-		{name = "TOP 15 DEUTSCHSPRACHIGE SINGLES",url="http://www.mtv.ch/charts/304-top-15-deutschsprachige-singles",fav=false},
-		{name = "DOWNLOAD CHARTS SINGLE",url="http://www.mtv.ch/charts/289-download-charts-single",fav=false},
-		{name = "MOST WANTED 90'S",url="http://www.mtv.ch/charts/295-most-wanted-90-s",fav=false},
-		{name = "MOST WANTED 2000'S",url="http://www.mtv.ch/charts/296-most-wanted-2000-s",fav=false}
+		{name = "Hitlist Germany - Top 100",url="http://www.mtv.de/charts/c6mc86/single-top-100",fav=false},
+		{name = "SINGLE TOP 100",url="http://www.mtv.de/charts/n91ory/midweek-single-top-100",fav=false},
+		{name = "SINGLE TRENDING",url="http://www.mtv.de/charts/9gtiy5/single-trending",fav=false},
+		{name = "Offizielle Dance Charts",url="http://www.mtv.de/charts/2ny5w9/dance-charts",fav=false},
+		{name = "Offizielle Top 15 deutschsprachige Single Charts",url="http://www.mtv.de/charts/jlyhaa/top-15-deutschsprachige-single-charts",fav=false},
+		{name = "Offizielle Top 100 Music Streaming",url="http://www.mtv.de/charts/h4oi23/top100-music-streaming",fav=false},
+		{name = "Offizielle Download Charts Single",url="http://www.mtv.de/charts/pcbqpc/downloads-charts-single",fav=false},
+		{name = "Deine Lieblingsvideos bei MTV",url="http://www.mtv.de/charts/n2aau3/most-watched-videos",fav=false},
+		{name = "Offizielle Midweek Album Top 100",url="http://www.mtv.de/charts/ew735d/midweek-album-top-100",fav=false},
+		{name = "Top 100 Jahrescharts 2018",url="http://www.mtv.de/charts/yrk67s/top-100-jahrescharts-2016",fav=false},
+		{name = "Top 100 Jahrescharts 2017",url="http://www.mtv.de/charts/czzmta/top-100-jahrescharts-2017",fav=false},
+		{name = "Top 100 Jahrescharts 2015",url="http://www.mtv.de/charts/4z2jri/top-100-jahrescharts-2015",fav=false},
+		{name = "Top 100 Jahrescharts 2014",url="http://www.mtv.de/charts/ns9mkd/top-100-jahrescharts-2014",fav=false},
+
+		{name = "metallica",url="http://www.mtv.de/kuenstler/k4az43/metallica",fav=false}, --test
 	}
 	local mtvconf = get_conf_mtvfavFile()
 	local havefile = file_exists(mtvconf)
@@ -216,68 +195,66 @@ function exist_id(table, id)
 end
 
 function getliste(url)
-	local clip_page = getdata(url)
-	if clip_page == nil then return nil end
-	local videosection = string.match(clip_page,"window.pagePlaylist = %[(.-)%];")
+	local data = getdata(url)
+	if data == nil then return nil end
+	local videosection = string.match(data,"triforceManifestFeed = (.-);")
 	if videosection == nil then return nil end
+
 	local liste = {}
 	local json = require "json"
-	for j in string.gmatch(videosection, "(%{.id.-%})") do
-		local jnTab = json:decode(j)
-		if(jnTab.title and jnTab.subtitle and jnTab.riptide_image_id) then
-			local pic = ""
-			if jnTab.riptide_image_id then
-				pic = "http://images.mtvnn.com/" .. jnTab.riptide_image_id .. "/306x172_"
+	local urlTab = json:decode(videosection)
+	local videosection_url = urlTab.manifest.zones.t4_lc_promo1.feed
+	for p=1,5,1 do
+		if videosection_url then
+			videosection = getdata(videosection_url .. "?pageNumber=" .. p)
+			if videosection == nil then
+				if #liste > 0 then return liste else return nil end
 			end
-			jnTab.title=jnTab.title:gsub("&quot;",'"')
-			jnTab.title=jnTab.title:gsub("&amp;",'&')
-			table.insert(liste,{name=jnTab.title .. ": " .. jnTab.subtitle, url=jnTab.mrss,
-			type=jnTab.video_type, tok=jnTab.video_token, logo=pic,enabled=conf.dlflag, vid=jnTab.id
-			})
+		else
+			return nil
 		end
-	end
-	local listechart = {}
-	local begin = clip_page:find('<ul class="video%-collection">')
-	if begin then
-		local section = clip_page:sub(begin,#clip_page)
-		for _chartpos , id in section:gmatch('<div class="chart%-position">(%d+)</div>.-data%-object%-id="(%d+)">') do
-			local vid = exist_id(liste, id)
-			if vid then
-				table.insert(listechart,{name=liste[vid].name, url=liste[vid].url,
-				type=liste[vid].type, tok=liste[vid].tok, logo=liste[vid].logo,enabled=conf.dlflag, vid=liste[vid].vid, chartpos=_chartpos
-			})
+
+		local jnTab = json:decode(videosection)
+		if jnTab == nil then if #liste > 0 then return liste else return nil end end
+		for k, v in ipairs(jnTab.result.data.items) do
+			if v.videoUrl or v.canonicalURL then
+				local video_url = v.videoUrl or v.canonicalURL
+				local artist = v.shortTitle or v.artist or ""
+				if #artist == 0 and v.artists then artist = v.artists[1].name end
+				local _logo = nil
+-- 				if v.images then id = v.images[1].id _logo = v.images[1].url end
+				_logo = _logo or ""
+				local chpos = nil
+				if v.chartPosition and v.chartPosition.current then chpos = v.chartPosition.current end 
+				table.insert(liste,{name=artist .. ": " .. v.title, url=video_url,
+				logo=_logo,enabled=conf.dlflag, vid=id,chartpos=chpos
+				})
 			end
 		end
-	end
-	if #listechart > 0 then
-		return listechart
 	end
 	return liste
 end
 
-function getvideourl(url,vidname,tok,typ,h)
-	if url == nil then return nil end
-	local video_url = nil
-	if (typ ~= "arc" and typ ~="local_playlist") and tok  ~= nil then
-		url = 'http://intl.esperanto.mtvi.com/www/xml/media/mediaGen.jhtml?uri=mgid:uma:video:mtv.ch:' .. tok
+function getvideourl(url,vidname)
+	local	json = require "json"
+	local data = getdata(url)
+
+	local id = data:match('itemId":"(.-)"')
+	local service_url = "http://media.mtvnservices.com/pmt/e1/access/index.html?uri=mgid:arc:episode:mtv.de:" ..id .. "&configtype=edge&ref=" .. url
+	data = getdata(service_url)
+	local jnTab = json:decode(data)
+	if jnTab.feed.items[1].group.content then
+		data = getdata(jnTab.feed.items[1].group.content .. "&format=json")
 	end
-	local clip_page = getdata(url)
-	if clip_page == nil then return nil end
-
-	if (typ ~= "arc" and typ ~="local_playlist") and tok  ~= nil then
-		video_url  = clip_page:match("<src>(.-)</src>")
-		print(video_url)
-	else
-
-		url  = clip_page:match("url='(.-)'")
-		if url == nil then return nil end
-		url=url:gsub(":mtvni.com:",":mtv.ch:")
-		clip_page = getdata(url)
-		local max_width = -1
-		for  width,url in string.gmatch(clip_page, '<rendition.-width="(%d+).-<src>(.-)</src>') do
-			if max_width < tonumber(width) and url then
-				max_width = tonumber(width)
-				video_url = url
+	jnTab = json:decode(data)
+	local max_w = 0
+	local video_url = nil
+	for k,v in pairs(jnTab.package.video.item[1].rendition) do
+		if v.width and v.src then
+			local w = tonumber(v.width)
+			if w > max_w then
+				video_url = v.src
+				max_w = w
 			end
 		end
 	end
@@ -330,11 +307,11 @@ function action_exec(id)
 		if glob.MTVliste[i].name == nil then
 			glob.MTVliste[i].name = "NoName_" .. i
 		end
-		local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name,glob.MTVliste[i].tok,glob.MTVliste[i].type)
+		local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name)
 		if url then
 			hideMenu(glob.menu_liste)
 			vodeoPlay:setSinglePlay()
-			vodeoPlay:PlayFile(glob.MTVliste[i].name, url,glob.MTVliste[i].type);
+			vodeoPlay:PlayFile(glob.MTVliste[i].name, url);
 		end
 	end
 	return MENU_RETURN.EXIT_REPAINT
@@ -352,7 +329,7 @@ function gen_m3u_list(filename)
 		if v.name == nil then
 			v.name = "NoName"
 		end
-		local url = getvideourl(v.url,v.name,v.tok,v.type)
+		local url = getvideourl(v.url,v.name)
 		if url then
 			local extinf = ", "
 -- 			if v.logo then --TODO Add Logo parse to CMoviePlayerGui::parsePlaylist
@@ -401,7 +378,7 @@ function playlist(filename)
 		if tab[i].name == nil then
 			tab[i].name = "NoName"
 		end
-		local url = getvideourl(tab[i].url,tab[i].name,tab[i].tok,tab[i].type)
+		local url = getvideourl(tab[i].url,tab[i].name)
 		if url then
 			local videoformat = url:sub(-4)
 			if videoformat ~= ".flv" or conf.playflvflag then
@@ -455,7 +432,7 @@ function dlstart(name)
 			if glob.MTVliste[i].name == nil then
 				glob.MTVliste[i].name = "NoName_" .. i
 			end
-			local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name,glob.MTVliste[i].tok,glob.MTVliste[i].type,h)
+			local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name)
 			if url then
 				local fname = v.name:gsub([[%s+]], "_")
 				fname = fname:gsub("[:'()]", "_")
@@ -656,7 +633,7 @@ function __menu(_menu,menu_name,table,_action)
 		if v.chartpos then
 			cont = " (" .. v.chartpos .. ") "
 		end
-		_menu:addItem{type="forwarder", name=cont .. v.name, action=_action,enabled=true,id=i,directkey=dkey,hint=v.type}
+		_menu:addItem{type="forwarder", name=cont .. v.name, action=_action,enabled=true,id=i,directkey=dkey,hint=""}
 	end
 	_menu:exec()
 	_menu:hide()
@@ -829,12 +806,13 @@ function main_menu()
 	id="dummy"..d, directkey=godirectkey(d),hint="MTV Listen"}
         d=d+1
 	menu:addItem{type="separatorline"}
-	menu:addItem{type="forwarder", name="Suche nach Künstler", action="search_artists", enabled=true,
-	id="find", directkey=godirectkey(d),hint="Suche nach Künstler"}
-	d=d+1
-	menu:addItem{type="keyboardinput", action="setvar", id="search", name="Künstler Name:", value=conf.search,directkey=godirectkey(d),hint_icon="hint_service",hint="Nach welchem Künstler soll gesucht werden ?"}
+--search need rework
+-- 	menu:addItem{type="forwarder", name="Suche nach Künstler", action="search_artists", enabled=true,
+-- 	id="find", directkey=godirectkey(d),hint="Suche nach Künstler"}
+-- 	d=d+1
+-- 	menu:addItem{type="keyboardinput", action="setvar", id="search", name="Künstler Name:", value=conf.search,directkey=godirectkey(d),hint_icon="hint_service",hint="Nach welchem Künstler soll gesucht werden ?"}
 
-	menu:addItem{type="separatorline"}
+-- 	menu:addItem{type="separatorline"}
 	d=d+1
 	menu:addItem{type="forwarder", name="Einstellungen", action="setings", enabled=true,
 	id="dummy"..d, directkey=godirectkey(d),hint="Einstellungen"}
