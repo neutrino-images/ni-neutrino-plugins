@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.ch Version 0.20" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.ch Version 0.21" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -220,6 +220,7 @@ function getliste(url)
 			if v.videoUrl or v.canonicalURL then
 				local video_url = v.videoUrl or v.canonicalURL
 				local artist = v.shortTitle or v.artist or ""
+				if #artist == 0 and v.artists then artist = v.artists[1].name end
 				local _logo = nil
 -- 				if v.images then id = v.images[1].id _logo = v.images[1].url end
 				_logo = _logo or ""
