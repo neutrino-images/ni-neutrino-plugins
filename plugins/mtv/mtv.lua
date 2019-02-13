@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.ch Version 0.19" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.ch Version 0.20" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -131,6 +131,8 @@ function init()
 		{name = "Top 100 Jahrescharts 2017",url="http://www.mtv.de/charts/czzmta/top-100-jahrescharts-2017",fav=false},
 		{name = "Top 100 Jahrescharts 2015",url="http://www.mtv.de/charts/4z2jri/top-100-jahrescharts-2015",fav=false},
 		{name = "Top 100 Jahrescharts 2014",url="http://www.mtv.de/charts/ns9mkd/top-100-jahrescharts-2014",fav=false},
+
+		{name = "metallica",url="http://www.mtv.de/kuenstler/k4az43/metallica",fav=false}, --test
 	}
 	local mtvconf = get_conf_mtvfavFile()
 	local havefile = file_exists(mtvconf)
@@ -215,16 +217,16 @@ function getliste(url)
 		local jnTab = json:decode(videosection)
 		if jnTab == nil then if #liste > 0 then return liste else return nil end end
 		for k, v in ipairs(jnTab.result.data.items) do
-			if v.videoUrl then
-				local artist = v.shortTitle or v.artists[1].name
-				local id = nil
+			if v.videoUrl or v.canonicalURL then
+				local video_url = v.videoUrl or v.canonicalURL
+				local artist = v.shortTitle or v.artist or ""
 				local _logo = nil
-				if v.images then id = v.images[1].id _logo = v.images[1].url end
-				if id == nil and v.artists then id = v.artists[1].id _logo = v.artists[1].images.url end
-				id = id or ""
+-- 				if v.images then id = v.images[1].id _logo = v.images[1].url end
 				_logo = _logo or ""
-				table.insert(liste,{name=artist .. ": " .. v.title, url=v.videoUrl,
-				type="TYPE", tok=id, logo=_logo,enabled=conf.dlflag, vid=id,chartpos=v.chartPosition.current
+				local chpos = nil
+				if v.chartPosition and v.chartPosition.current then chpos = v.chartPosition.current end 
+				table.insert(liste,{name=artist .. ": " .. v.title, url=video_url,
+				logo=_logo,enabled=conf.dlflag, vid=id,chartpos=chpos
 				})
 			end
 		end
@@ -232,7 +234,7 @@ function getliste(url)
 	return liste
 end
 
-function getvideourl(url,vidname,tok,typ,h)
+function getvideourl(url,vidname)
 	local	json = require "json"
 	local data = getdata(url)
 
@@ -304,11 +306,11 @@ function action_exec(id)
 		if glob.MTVliste[i].name == nil then
 			glob.MTVliste[i].name = "NoName_" .. i
 		end
-		local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name,glob.MTVliste[i].tok,glob.MTVliste[i].type)
+		local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name)
 		if url then
 			hideMenu(glob.menu_liste)
 			vodeoPlay:setSinglePlay()
-			vodeoPlay:PlayFile(glob.MTVliste[i].name, url,glob.MTVliste[i].type);
+			vodeoPlay:PlayFile(glob.MTVliste[i].name, url);
 		end
 	end
 	return MENU_RETURN.EXIT_REPAINT
@@ -326,7 +328,7 @@ function gen_m3u_list(filename)
 		if v.name == nil then
 			v.name = "NoName"
 		end
-		local url = getvideourl(v.url,v.name,v.tok,v.type)
+		local url = getvideourl(v.url,v.name)
 		if url then
 			local extinf = ", "
 -- 			if v.logo then --TODO Add Logo parse to CMoviePlayerGui::parsePlaylist
@@ -375,7 +377,7 @@ function playlist(filename)
 		if tab[i].name == nil then
 			tab[i].name = "NoName"
 		end
-		local url = getvideourl(tab[i].url,tab[i].name,tab[i].tok,tab[i].type)
+		local url = getvideourl(tab[i].url,tab[i].name)
 		if url then
 			local videoformat = url:sub(-4)
 			if videoformat ~= ".flv" or conf.playflvflag then
@@ -429,7 +431,7 @@ function dlstart(name)
 			if glob.MTVliste[i].name == nil then
 				glob.MTVliste[i].name = "NoName_" .. i
 			end
-			local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name,glob.MTVliste[i].tok,glob.MTVliste[i].type,h)
+			local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name)
 			if url then
 				local fname = v.name:gsub([[%s+]], "_")
 				fname = fname:gsub("[:'()]", "_")
@@ -630,7 +632,7 @@ function __menu(_menu,menu_name,table,_action)
 		if v.chartpos then
 			cont = " (" .. v.chartpos .. ") "
 		end
-		_menu:addItem{type="forwarder", name=cont .. v.name, action=_action,enabled=true,id=i,directkey=dkey,hint=v.type}
+		_menu:addItem{type="forwarder", name=cont .. v.name, action=_action,enabled=true,id=i,directkey=dkey,hint=""}
 	end
 	_menu:exec()
 	_menu:hide()
