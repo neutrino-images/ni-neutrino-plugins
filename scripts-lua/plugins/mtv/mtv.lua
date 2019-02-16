@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.ch Version 0.21" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.ch Version 0.23" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -46,9 +46,8 @@ function setvar(k, v)
 end
 
 function file_exists(file)
-	local f = io.open(file, "rb")
-	if f then f:close() end
-	return f ~= nil
+	local fh = filehelpers.new()
+	if fh then return fh:exist(file, "f") else return false end
 end
 
 function saveConfig()
@@ -82,15 +81,19 @@ function loadConfig()
 	conf.flvflag = config:getBool("flvflag", false)
 	conf.playflvflag = config:getBool("playflvflag", false)
 	conf.shuffleflag = config:getBool("shuffleflag", false)
-	conf.search = config:getString("search", "Imagine Dragons")
+	conf.search = config:getString("search", "Rammstein")
 	conf.changed = false
 end
 
-function pop(cmd)
-       local f = assert(io.popen(cmd, 'r'))
-       local s = assert(f:read('*a'))
-       f:close()
-       return s
+function which(bin_name)
+	local path = os.getenv("PATH") or "/bin"
+	for v in path:gmatch("([^:]+):?") do
+		local file = v .. "/" .. bin_name
+		if file_exists(file) then
+			return true
+		end
+	end
+	return false
 end
 
 function read_file(filename)
@@ -106,16 +109,13 @@ function read_file(filename)
 end
 
 function init()
+	collectgarbage()
 	if vodeoPlay == nil then
 		vodeoPlay = video.new()
 	end
 
 	glob.fav_changed = false
-	glob.have_rtmpdump=false
-	local r= pop("which rtmpdump")
-	if #r>0 then
-		glob.have_rtmpdump=true
-	end
+	glob.have_rtmpdump=which("rtmpdump")
 	glob.mtv_artist={}
 	glob.mtv={
 		{name = "Hitlist Germany - Top 100",url="http://www.mtv.de/charts/c6mc86/single-top-100",fav=false},
@@ -131,8 +131,6 @@ function init()
 		{name = "Top 100 Jahrescharts 2017",url="http://www.mtv.de/charts/czzmta/top-100-jahrescharts-2017",fav=false},
 		{name = "Top 100 Jahrescharts 2015",url="http://www.mtv.de/charts/4z2jri/top-100-jahrescharts-2015",fav=false},
 		{name = "Top 100 Jahrescharts 2014",url="http://www.mtv.de/charts/ns9mkd/top-100-jahrescharts-2014",fav=false},
-
-		{name = "metallica",url="http://www.mtv.de/kuenstler/k4az43/metallica",fav=false}, --test
 	}
 	local mtvconf = get_conf_mtvfavFile()
 	local havefile = file_exists(mtvconf)
@@ -185,15 +183,6 @@ function getdata(Url,outputfile)
 	end
 end
 
-function exist_id(table, id)
-	for i, v in ipairs(table) do
-		if tonumber(v.vid) == tonumber(id) then
-			return i
-		end
-	end
-	return nil
-end
-
 function getliste(url)
 	local data = getdata(url)
 	if data == nil then return nil end
@@ -215,7 +204,7 @@ function getliste(url)
 		end
 
 		local jnTab = json:decode(videosection)
-		if jnTab == nil then if #liste > 0 then return liste else return nil end end
+		if jnTab == nil or jnTab.result == nil or jnTab.result.data == nil then if #liste > 0 then return liste else return nil end end
 		for k, v in ipairs(jnTab.result.data.items) do
 			if v.videoUrl or v.canonicalURL then
 				local video_url = v.videoUrl or v.canonicalURL
@@ -232,6 +221,8 @@ function getliste(url)
 			end
 		end
 	end
+	data = nil
+
 	return liste
 end
 
@@ -247,14 +238,18 @@ function getvideourl(url,vidname)
 		data = getdata(jnTab.feed.items[1].group.content .. "&format=json")
 	end
 	jnTab = json:decode(data)
+	data = nil
+
 	local max_w = 0
 	local video_url = nil
-	for k,v in pairs(jnTab.package.video.item[1].rendition) do
-		if v.width and v.src then
-			local w = tonumber(v.width)
-			if w > max_w then
-				video_url = v.src
-				max_w = w
+	if jnTab.package.video.item[1].rendition then
+		for k,v in pairs(jnTab.package.video.item[1].rendition) do
+			if v.width and v.src then
+				local w = tonumber(v.width)
+				if w > max_w then
+					video_url = v.src
+					max_w = w
+				end
 			end
 		end
 	end
@@ -361,7 +356,6 @@ function make_shuffle_list(tab)
 end
 
 function playlist(filename)
-	if (n:checkVersion(1, 1) == 0) then do return end end
 	hideMenu(glob.menu_liste)
 
 	local tab = {}
@@ -647,6 +641,7 @@ function mtv_liste(id)
 	glob.MTVliste = getliste(url)
 	glob.menu_liste  = menu.new{name=glob.mtv[i].name, icon="icon_blue"}
 	__menu(glob.menu_liste ,glob.mtv[i].name, glob.MTVliste,"action_exec")
+	collectgarbage()
 	return MENU_RETURN.EXIT_REPAINT
 end
 
@@ -709,19 +704,60 @@ function setings()
 end
 
 function gen_search_list(search)
-	search=search:gsub(" ",'+')
-	local url = "http://www.mtv.ch/searches?q=+"..search .. "+&ajax=1"
-	local clip_page = getdata(url)
-	if clip_page == nil then return nil end
-	glob.mtv_artist={}
-	for _url ,title in clip_page:gmatch('/artists/(.-)"><div class="title">(.-)</div>') do
-		title=title:gsub("&quot;",'"')
-		title=title:gsub("&amp;",'&')
-		_url="http://www.mtv.ch/artists/" .. _url
-		if exist(_url) == false then
-			table.insert(glob.mtv_artist,{name=title, url=_url, enabled=false,disabled=false})
+	local url = "http://www.mtv.de/kuenstler/" .. search:sub(1,1) .. "/1"
+	local data = getdata(url)
+	glob.mtv_artist = {}
+	if data == nil then return nil end
+	local videosection = string.match(data,"triforceManifestFeed = (.-);")
+
+	data = nil
+	collectgarbage()
+
+	if videosection == nil then return nil end
+
+	local json = require "json"
+	local jnTab = json:decode(videosection)
+	if jnTab == nil  then return nil end
+	local videosection_url = jnTab.manifest.zones.t5_lc_promo1.feed
+	videosection = getdata(videosection_url)
+	if videosection == nil then return nil end
+
+	jnTab = json:decode(videosection)
+	local pages = 1
+	videosection_url = videosection_url:match("(.*)%d+$")
+	if jnTab.result.pages then pages = tonumber(jnTab.result.pages) end
+
+	for p=1,pages,1 do
+		if p > 1 then
+			if videosection_url then
+				videosection = getdata(videosection_url .. p)
+				if videosection == nil then
+					return MENU_RETURN.EXIT_REPAINT
+				end
+			else
+				return MENU_RETURN.EXIT_REPAINT
+			end
+			jnTab = json:decode(videosection)
+		end
+
+		if jnTab == nil or jnTab.result == nil or jnTab.result.artists == nil then return MENU_RETURN.EXIT_REPAINT end
+
+		local add = true
+		local use_seek = #search > 1
+		for k, v in ipairs(jnTab.result.artists) do
+			if v.name and v.canonicalURL then
+				if use_seek then
+					local name = v.name:lower()
+					local a,b = name:find(search:lower())
+					if a == 1 and b then add = true else add = false end
+				end
+				if add then
+					table.insert(glob.mtv_artist,{name=v.name, url=v.canonicalURL, enabled=false,disabled=false})
+				end
+			end
 		end
 	end
+
 	return MENU_RETURN.EXIT_REPAINT
 
 end
@@ -735,6 +771,7 @@ function searchliste(id)
 	glob.MTVliste = getliste(url)
 	glob.menu_liste  = menu.new{name=glob.mtv_artist[i].name, icon="icon_blue"}
 	__menu(glob.menu_liste ,glob.mtv_artist[i].name, glob.MTVliste,"action_exec")
+	collectgarbage()
 	return MENU_RETURN.EXIT_REPAINT
 end
 
@@ -744,7 +781,7 @@ function search_artists()
 	hideMenu(glob.main_menu)
 	local h = hintbox.new{caption="Info", text="Suche: " .. conf.search}
 	h:paint()
-	if #conf.search > 1 then
+	if #conf.search > 0 then
 		gen_search_list(conf.search)
 	end
 	h:hide()
@@ -806,13 +843,12 @@ function main_menu()
 	id="dummy"..d, directkey=godirectkey(d),hint="MTV Listen"}
         d=d+1
 	menu:addItem{type="separatorline"}
---search need rework
--- 	menu:addItem{type="forwarder", name="Suche nach Künstler", action="search_artists", enabled=true,
--- 	id="find", directkey=godirectkey(d),hint="Suche nach Künstler"}
--- 	d=d+1
--- 	menu:addItem{type="keyboardinput", action="setvar", id="search", name="Künstler Name:", value=conf.search,directkey=godirectkey(d),hint_icon="hint_service",hint="Nach welchem Künstler soll gesucht werden ?"}
+	menu:addItem{type="forwarder", name="Suche nach Künstler", action="search_artists", enabled=true,
+	id="find", directkey=godirectkey(d),hint="Suche nach Künstler"}
+	d=d+1
+	menu:addItem{type="keyboardinput", action="setvar", id="search", name="Künstler Name:", value=conf.search,directkey=godirectkey(d),hint_icon="hint_service",hint="Nach welchem Künstler soll gesucht werden ?"}
 
--- 	menu:addItem{type="separatorline"}
+	menu:addItem{type="separatorline"}
 	d=d+1
 	menu:addItem{type="forwarder", name="Einstellungen", action="setings", enabled=true,
 	id="dummy"..d, directkey=godirectkey(d),hint="Einstellungen"}
@@ -824,6 +860,7 @@ function main()
 	loadConfig()
 	main_menu()
 	saveConfig()
+	collectgarbage()
 end
 
 main()
