@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.ch Version 0.22" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.ch Version 0.23" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -742,16 +742,16 @@ function gen_search_list(search)
 
 		if jnTab == nil or jnTab.result == nil or jnTab.result.artists == nil then return MENU_RETURN.EXIT_REPAINT end
 
-		local found = true
+		local add = true
 		local use_seek = #search > 1
 		for k, v in ipairs(jnTab.result.artists) do
 			if v.name and v.canonicalURL then
 				if use_seek then
 					local name = v.name:lower()
 					local a,b = name:find(search:lower())
-					if a == 1 and b then found = true else found = false end
+					if a == 1 and b then add = true else add = false end
 				end
-				if found and exist(v.canonicalURL) == false then
+				if add then
 					table.insert(glob.mtv_artist,{name=v.name, url=v.canonicalURL, enabled=false,disabled=false})
 				end
 			end
