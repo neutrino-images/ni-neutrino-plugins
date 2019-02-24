@@ -49,7 +49,7 @@ menu_update = "Start update",
 yes = "yes",
 no = "no",
 cfg_install_a = "Install ",
-cfg_install_b = " settings",    
+cfg_install_b = " settings",
 cfg_ubouquets = "Install ubouqets",
 cfg_git = "Use git for downloading",
 last_update = "Last update: "
@@ -59,7 +59,7 @@ n = neutrino()
 tmp = "/tmp/settingupdate"
 neutrino_conf_base = "/var/tuxbox/config"
 icondir = "/share/tuxbox/neutrino/icons"
-neutrino_conf = neutrino_conf_base .. "/neutrino.conf" 
+neutrino_conf = neutrino_conf_base .. "/neutrino.conf"
 zapitdir = neutrino_conf_base .. "/zapit"
 setting_intro = tmp .. "/lua"
 settingupdater_cfg = neutrino_conf_base .. "/settingupdater.cfg"
@@ -137,10 +137,8 @@ end
 
 timing_menu = nconf_value("timing.menu")
 
-function sleep(a) 
-	local sec = tonumber(os.clock() + a); 
-	while (os.clock() < sec) do 
-	end 
+function sleep(n)
+  os.execute("sleep " .. tonumber(n))
 end
 
 function show_error(msg)
@@ -155,7 +153,7 @@ function start_update()
 	if (isdir(tmp) == true) then os.execute("rm -rf " .. tmp) end
 	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].fetch_source };
 	ret:paint();
-	if (get_cfg_value("use_git") == 1) then 
+	if (get_cfg_value("use_git") == 1) then
 		setting_url = "https://github.com/horsti58/lua-data"
 		ok ,err, exitcode = os.execute("git clone " .. setting_url .. " " .. tmp)
 	else
@@ -239,7 +237,7 @@ function start_update()
 		return
 	else
 		ret:hide()
-	end	
+	end
 end
 
 function write_cfg(k, v, str)
@@ -258,17 +256,17 @@ function write_cfg(k, v, str)
 		file:write(v, "\n")
 	end
 	io.close(file)
-	end
+end
 
-function astra_gb_cfg(k, v, str) 
+function astra_gb_cfg(k, v, str)
 	write_cfg(k, v, "28.2E")
 end
 
-function badr_cfg(k, v, str) 
+function badr_cfg(k, v, str)
 	write_cfg(k, v, "26.0E")
 end
 
-function astra_nl_cfg(k, v, str) 
+function astra_nl_cfg(k, v, str)
 	write_cfg(k, v, "23.5E")
 end
 
@@ -276,31 +274,31 @@ function astra_cfg(k, v, str)
 	write_cfg(k, v, "19.2E")
 end
 
-function eutelsatc_cfg(k, v, str) 
+function eutelsatc_cfg(k, v, str)
 	write_cfg(k, v, "16.0E")
 end
 
-function hotbird_cfg(k, v, str) 
+function hotbird_cfg(k, v, str)
 	write_cfg(k, v, "13.0E")
 end
 
-function eutelsata_cfg(k, v, str) 
+function eutelsata_cfg(k, v, str)
 	write_cfg(k, v, "9.0E")
 end
 
-function eutelsatb_cfg(k, v, str) 
+function eutelsatb_cfg(k, v, str)
 	write_cfg(k, v, "7.0E")
 end
 
-function astraa_cfg(k, v, str) 
+function astraa_cfg(k, v, str)
 	write_cfg(k, v, "4.8E")
 end
 
-function thor_cfg(k, v, str) 
+function thor_cfg(k, v, str)
 	write_cfg(k, v, "0.8W")
 end
 
-function use_git_cfg(k, v, str) 
+function use_git_cfg(k, v, str)
 	write_cfg(k, v, "use_git")
 end
 
@@ -309,7 +307,7 @@ function options ()
 	menu = menu.new{name=locale[lang].menu_options}
 	menu:addItem{type="back"}
 	menu:addItem{type="separatorline"}
-	opt = {locale[lang].yes ,locale[lang].no}	
+	opt = {locale[lang].yes ,locale[lang].no}
 	if (get_cfg_value("19.2E") == 1) then
 		menu:addItem{type="chooser", action="astra_cfg", options={opt[1], opt[2]}, icon=1, directkey=RC["1"], name=locale[lang].cfg_install_a .. " 19.2E " .. locale[lang].cfg_install_b}
 	elseif (get_cfg_value("19.2E") == 0) then
