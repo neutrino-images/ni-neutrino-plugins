@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.ch Version 0.23" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.ch Version 0.24" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -107,6 +107,15 @@ function read_file(filename)
 	fp:close()
 	return data
 end
+function get_json_data(url)
+	local data = getdata(url)
+	if data == nil then return nil end
+	local videosection = string.match(data,"triforceManifestFeed = (.-});")
+
+	data = nil
+	collectgarbage()
+	return videosection
+end
 
 function init()
 	collectgarbage()
@@ -118,20 +127,35 @@ function init()
 	glob.have_rtmpdump=which("rtmpdump")
 	glob.mtv_artist={}
 	glob.mtv={
-		{name = "Hitlist Germany - Top 100",url="http://www.mtv.de/charts/c6mc86/single-top-100",fav=false},
-		{name = "SINGLE TOP 100",url="http://www.mtv.de/charts/n91ory/midweek-single-top-100",fav=false},
-		{name = "SINGLE TRENDING",url="http://www.mtv.de/charts/9gtiy5/single-trending",fav=false},
-		{name = "Offizielle Dance Charts",url="http://www.mtv.de/charts/2ny5w9/dance-charts",fav=false},
-		{name = "Offizielle Top 15 deutschsprachige Single Charts",url="http://www.mtv.de/charts/jlyhaa/top-15-deutschsprachige-single-charts",fav=false},
-		{name = "Offizielle Top 100 Music Streaming",url="http://www.mtv.de/charts/h4oi23/top100-music-streaming",fav=false},
-		{name = "Offizielle Download Charts Single",url="http://www.mtv.de/charts/pcbqpc/downloads-charts-single",fav=false},
-		{name = "Deine Lieblingsvideos bei MTV",url="http://www.mtv.de/charts/n2aau3/most-watched-videos",fav=false},
-		{name = "Offizielle Midweek Album Top 100",url="http://www.mtv.de/charts/ew735d/midweek-album-top-100",fav=false},
-		{name = "Top 100 Jahrescharts 2018",url="http://www.mtv.de/charts/yrk67s/top-100-jahrescharts-2016",fav=false},
-		{name = "Top 100 Jahrescharts 2017",url="http://www.mtv.de/charts/czzmta/top-100-jahrescharts-2017",fav=false},
-		{name = "Top 100 Jahrescharts 2015",url="http://www.mtv.de/charts/4z2jri/top-100-jahrescharts-2015",fav=false},
-		{name = "Top 100 Jahrescharts 2014",url="http://www.mtv.de/charts/ns9mkd/top-100-jahrescharts-2014",fav=false},
+			{name = "Playlists",url="http://www.mtv.de/playlists",fav=false},
+			{name = "MTV MUSIK",url="http://www.mtv.de/musik",fav=false}
 	}
+
+	local url = "http://www.mtv.de/charts"
+	videosection = get_json_data(url)
+	if videosection == nil then return nil end
+
+	local json = require "json"
+	local jnTab = json:decode(videosection)
+	if jnTab == nil  then return nil end
+	local videosection_url = jnTab.manifest.zones.t5_lc_promo1.feed
+	videosection = getdata(videosection_url)
+	if videosection == nil then return nil end
+	jnTab = json:decode(videosection)
+	local pages = 1
+	videosection_url = videosection_url:match("(.*)%d+$")
+
+	local add = true
+	if jnTab.result and jnTab.result.chartTypeList then
+		for k, v in ipairs(jnTab.result.chartTypeList) do
+			if v.label and v.link then
+				if v.label ~= "Deine Lieblingsvideos bei MTV" and v.label:find("Album") == nil and v.label:find("Alben") == nil and v.label:find("Vinyl") == nil then
+					print(v.label)
+					table.insert(glob.mtv,{name=v.label, url=v.link,})
+				end
+			end
+		end
+	end
 	local mtvconf = get_conf_mtvfavFile()
 	local havefile = file_exists(mtvconf)
 	if havefile == true then
@@ -183,46 +207,66 @@ function getdata(Url,outputfile)
 	end
 end
 
+function exist_url(tab,_url)
+	for i, v in ipairs(tab) do
+		if v.url == _url then
+			return true
+		end
+	end
+	return false
+end
+
 function getliste(url)
-	local data = getdata(url)
-	if data == nil then return nil end
-	local videosection = string.match(data,"triforceManifestFeed = (.-);")
-	if videosection == nil then return nil end
+	local h = hintbox.new{caption="Info", text="List wird erstellt\n"}
+	h:paint()
+
+	local videosection = get_json_data(url)
+	if videosection == nil then h:hide() return nil end
 
 	local liste = {}
 	local json = require "json"
 	local urlTab = json:decode(videosection)
-	local videosection_url = urlTab.manifest.zones.t4_lc_promo1.feed
-	for p=1,5,1 do
-		if videosection_url then
-			videosection = getdata(videosection_url .. "?pageNumber=" .. p)
-			if videosection == nil then
-				if #liste > 0 then return liste else return nil end
-			end
-		else
-			return nil
-		end
+	local tc = {"t4_lc_promo1"}
+	if url == "http://www.mtv.de/musik" then tc = {"t4_lc_promo1","t5_lc_promo1","t6_lc_promo1","t7_lc_promo1","t8_lc_promo1","t9_lc_promo1","t10_lc_promo1","t11_lc_promo1"}  end
+	for t in pairs(tc) do
+		if urlTab.manifest.zones[tc[t]] and urlTab.manifest.zones[tc[t]].feed then
+			local videosection_url = urlTab.manifest.zones[tc[t]].feed
+			for p=1,6,1 do
+				if videosection_url then
+					local  pc = "?"
+					if videosection_url:find("?") then pc = "&" end
+					videosection = getdata(videosection_url .. pc .. "pageNumber=" .. p)
+					if videosection == nil then
+						if #liste > 0 then return liste else h:hide() return nil end
+					end
+				else
+					h:hide()
+					return nil
+				end
 
-		local jnTab = json:decode(videosection)
-		if jnTab == nil or jnTab.result == nil or jnTab.result.data == nil then if #liste > 0 then return liste else return nil end end
-		for k, v in ipairs(jnTab.result.data.items) do
-			if v.videoUrl or v.canonicalURL then
-				local video_url = v.videoUrl or v.canonicalURL
-				local artist = v.shortTitle or v.artist or ""
-				if #artist == 0 and v.artists then artist = v.artists[1].name end
-				local _logo = nil
--- 				if v.images then id = v.images[1].id _logo = v.images[1].url end
-				_logo = _logo or ""
-				local chpos = nil
-				if v.chartPosition and v.chartPosition.current then chpos = v.chartPosition.current end 
-				table.insert(liste,{name=artist .. ": " .. v.title, url=video_url,
-				logo=_logo,enabled=conf.dlflag, vid=id,chartpos=chpos
-				})
+				local jnTab = json:decode(videosection)
+				if jnTab == nil or jnTab.result == nil or jnTab.result.data == nil then if #liste > 0 then return liste else h:hide() return nil end end
+				for k, v in ipairs(jnTab.result.data.items) do
+					if v.videoUrl or v.canonicalURL then
+						local video_url = v.videoUrl or v.canonicalURL
+							if exist_url(liste,video_url) == false then
+							local artist = v.shortTitle or v.artist or ""
+							if #artist == 0 and v.artists then artist = v.artists[1].name end
+							local _logo = nil
+-- 							if v.images then id = v.images[1].id _logo = v.images[1].url end
+							_logo = _logo or ""
+							local chpos = nil
+							if v.chartPosition and v.chartPosition.current then chpos = v.chartPosition.current end
+							table.insert(liste,{name=artist .. ": " .. v.title, url=video_url,
+							logo=_logo,enabled=conf.dlflag, vid=id,chartpos=chpos
+							})
+						end
+					end
+				end
 			end
 		end
 	end
-	data = nil
-
+	h:hide()
 	return liste
 end
 
@@ -705,10 +749,9 @@ end
 
 function gen_search_list(search)
 	local url = "http://www.mtv.de/kuenstler/" .. search:sub(1,1) .. "/1"
-	local data = getdata(url)
 	glob.mtv_artist = {}
-	if data == nil then return nil end
-	local videosection = string.match(data,"triforceManifestFeed = (.-);")
+	local videosection = get_json_data(url)
+	if videosection == nil then return nil end
 
 	data = nil
 	collectgarbage()
