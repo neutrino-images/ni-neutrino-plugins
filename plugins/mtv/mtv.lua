@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.ch Version 0.25" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.ch Version 0.26" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -484,6 +484,7 @@ function dlstart(name)
 			if url then
 				local fname = v.name:gsub([[%s+]], "_")
 				fname = fname:gsub("[:'()]", "_")
+				fname = fname:gsub("/", "-")
 				pw:showStatus{prog=i,max=#glob.MTVliste,statusText=tostring(i) .. "/" .. tostring(#glob.MTVliste) .. "  " .. fname}
 				local videoformat = url:sub(-4)
 				if videoformat == nil then
