@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.ch Version 0.24" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.ch Version 0.26" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -111,7 +111,9 @@ function get_json_data(url)
 	local data = getdata(url)
 	if data == nil then return nil end
 	local videosection = string.match(data,"triforceManifestFeed = (.-});")
-
+	if glob.mtv_live_url == nil then
+		glob.mtv_live_url = data:match("(http[%w%./:]+mtv%-germany%-live)")
+	end
 	data = nil
 	collectgarbage()
 	return videosection
@@ -132,6 +134,7 @@ function init()
 	}
 
 	local url = "http://www.mtv.de/charts"
+	glob.mtv_live_url = nil
 	videosection = get_json_data(url)
 	if videosection == nil then return nil end
 
@@ -217,7 +220,7 @@ function exist_url(tab,_url)
 end
 
 function getliste(url)
-	local h = hintbox.new{caption="Info", text="List wird erstellt\n"}
+	local h = hintbox.new{caption="Info", text="Liste wird erstellt\n"}
 	h:paint()
 
 	local videosection = get_json_data(url)
@@ -237,7 +240,7 @@ function getliste(url)
 					if videosection_url:find("?") then pc = "&" end
 					videosection = getdata(videosection_url .. pc .. "pageNumber=" .. p)
 					if videosection == nil then
-						if #liste > 0 then return liste else h:hide() return nil end
+						if #liste > 0 then h:hide() return liste else return nil end
 					end
 				else
 					h:hide()
@@ -245,7 +248,7 @@ function getliste(url)
 				end
 
 				local jnTab = json:decode(videosection)
-				if jnTab == nil or jnTab.result == nil or jnTab.result.data == nil then if #liste > 0 then return liste else h:hide() return nil end end
+				if jnTab == nil or jnTab.result == nil or jnTab.result.data == nil then h:hide()  if #liste > 0 then return liste else return nil end end
 				for k, v in ipairs(jnTab.result.data.items) do
 					if v.videoUrl or v.canonicalURL then
 						local video_url = v.videoUrl or v.canonicalURL
@@ -270,26 +273,33 @@ function getliste(url)
 	return liste
 end
 
-function getvideourl(url,vidname)
+function getvideourl(url,vidname,hls)
 	local	json = require "json"
 	local data = getdata(url)
 
 	local id = data:match('itemId":"(.-)"')
-	local service_url = "http://media.mtvnservices.com/pmt/e1/access/index.html?uri=mgid:arc:episode:mtv.de:" ..id .. "&configtype=edge&ref=" .. url
+	local service_url = "http://media.mtvnservices.com/pmt/e1/access/index.html?uri=mgid:arc:episode:mtv.de:" .. id .. "&configtype=edge&ref=" .. url
 	data = getdata(service_url)
 	local jnTab = json:decode(data)
 	if jnTab.feed.items[1].group.content then
-		data = getdata(jnTab.feed.items[1].group.content .. "&format=json")
+		local jsUrl = jnTab.feed.items[1].group.content
+		if hls then
+			jsUrl = jsUrl:gsub("(&device=.-)&","")
+			jsUrl = jsUrl .. "&acceptMethods=hls"
+		end
+		data = getdata(jsUrl .. "&format=json")
+		if data then
+			jnTab = json:decode(data)
+		end
 	end
-	jnTab = json:decode(data)
 	data = nil
 
 	local max_w = 0
 	local video_url = nil
 	if jnTab.package.video.item[1].rendition then
 		for k,v in pairs(jnTab.package.video.item[1].rendition) do
-			if v.width and v.src then
-				local w = tonumber(v.width)
+			if (v.width or v.rdminwidth) and v.src then
+				local w = tonumber(v.width or v.rdminwidth)
 				if w > max_w then
 					video_url = v.src
 					max_w = w
@@ -302,7 +312,7 @@ function getvideourl(url,vidname)
 	end
 	local x = nil
 	if video_url then
-		x = video_url:find("rtmp")
+		x = video_url:find("rtmp") or video_url:find("m3u8")
 	end
 	if not x then
 	  print("########## Error ##########")
@@ -474,6 +484,7 @@ function dlstart(name)
 			if url then
 				local fname = v.name:gsub([[%s+]], "_")
 				fname = fname:gsub("[:'()]", "_")
+				fname = fname:gsub("/", "-")
 				pw:showStatus{prog=i,max=#glob.MTVliste,statusText=tostring(i) .. "/" .. tostring(#glob.MTVliste) .. "  " .. fname}
 				local videoformat = url:sub(-4)
 				if videoformat == nil then
@@ -854,6 +865,29 @@ function search_artists()
 	menu:hide()
 end
 
+function play_live()
+	local video_url = getvideourl(glob.mtv_live_url,"live",true)
+	if video_url then
+		local videodata = getdata(video_url)
+		local res = 0
+		for band, res1, res2, url in videodata:gmatch('#EXT.X.STREAM.INF.-BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-(http.-)\n') do
+			if url and res1 then
+				local nr = tonumber(res1)
+				if nr < 2000 and nr > res then
+					res=nr
+					video_url = url
+				end
+			end
+		end
+	end
+	if video_url then
+		hideMenu(glob.main_menu)
+		vodeoPlay:setSinglePlay()
+		vodeoPlay:PlayFile("MTV Live Stream", video_url);
+	end
+	return MENU_RETURN.EXIT_REPAINT
+end
+
 function mtv_listen_menu()
 	if glob.mtv == nil then
 		return
@@ -890,6 +924,10 @@ function main_menu()
 	id="find", directkey=godirectkey(d),hint="Suche nach Künstler"}
 	d=d+1
 	menu:addItem{type="keyboardinput", action="setvar", id="search", name="Künstler Name:", value=conf.search,directkey=godirectkey(d),hint_icon="hint_service",hint="Nach welchem Künstler soll gesucht werden ?"}
+	menu:addItem{type="separatorline"}
+	d=d+1
+	menu:addItem{type="forwarder", name="MTV Live", action="play_live", enabled=(glob.mtv_live_url~=nil),
+	id="dummy", directkey=godirectkey(d),hint="MTV Live Stream"}
 
 	menu:addItem{type="separatorline"}
 	d=d+1
