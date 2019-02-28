@@ -101,15 +101,19 @@ if (exists(settingupdater_cfg) ~= true) then
 end
 
 function last_updated()
-	for line in io.lines(neutrino_conf_base .. "/satellites.xml") do
-		if line:match(",") then
-		local _,mark_begin = string.find(line, ",")
-		local _,mark_end = string.find(line, ":")
-		date = string.sub(line,mark_begin+2, mark_end-3)
-		if date == nil then date = "" end
-			return date
+	if exists(neutrino_conf_base .. "/satellites.xml") then
+		for line in io.lines(neutrino_conf_base .. "/satellites.xml") do
+			if line:match(",") then
+				local _,mark_begin = string.find(line, ",")
+				local _,mark_end = string.find(line, ":")
+				date = string.sub(line,mark_begin+2, mark_end-3)
+				if date == nil then date = "" end
+			end
 		end
+	else
+		date = ""
 	end
+	return date
 end
 
 function check_for_update()
