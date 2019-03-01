@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.ch Version 0.27" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.ch Version 0.28" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -133,8 +133,6 @@ function init()
 			{name = "MTV MUSIK",url="http://www.mtv.de/musik",fav=false},
 			{name = "MTV Unplugged",url="http://www.mtv.de/shows/w2nofb/mtv-unplugged",fav=false},
 			{name = "Hitlist Germany - Top100",url="http://www.mtv.de/shows/fdc2nt/mtv-top-100",fav=false},
-			{name = "MTV Niederlande MUSIK",url="http://www.mtv.nl/muziek",fav=false},
-			{name = "MTV MUSICA",url="http://www.mtv.it/musica",fav=false},
 			{name = "MTV Shows",url="http://www.mtv.de/shows",fav=false},
 			{name = "MTV Buzz",url="http://www.mtv.de/buzz",fav=false}
 	}
