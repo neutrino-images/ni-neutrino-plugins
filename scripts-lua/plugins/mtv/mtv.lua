@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.ch Version 0.26" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.ch Version 0.28" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -81,7 +81,7 @@ function loadConfig()
 	conf.flvflag = config:getBool("flvflag", false)
 	conf.playflvflag = config:getBool("playflvflag", false)
 	conf.shuffleflag = config:getBool("shuffleflag", false)
-	conf.search = config:getString("search", "Rammstein")
+	conf.search = config:getString("search", "Justin Bieber")
 	conf.changed = false
 end
 
@@ -130,7 +130,11 @@ function init()
 	glob.mtv_artist={}
 	glob.mtv={
 			{name = "Playlists",url="http://www.mtv.de/playlists",fav=false},
-			{name = "MTV MUSIK",url="http://www.mtv.de/musik",fav=false}
+			{name = "MTV MUSIK",url="http://www.mtv.de/musik",fav=false},
+			{name = "MTV Unplugged",url="http://www.mtv.de/shows/w2nofb/mtv-unplugged",fav=false},
+			{name = "Hitlist Germany - Top100",url="http://www.mtv.de/shows/fdc2nt/mtv-top-100",fav=false},
+			{name = "MTV Shows",url="http://www.mtv.de/shows",fav=false},
+			{name = "MTV Buzz",url="http://www.mtv.de/buzz",fav=false}
 	}
 
 	local url = "http://www.mtv.de/charts"
@@ -149,12 +153,16 @@ function init()
 	videosection_url = videosection_url:match("(.*)%d+$")
 
 	local add = true
+	local add2016 = false
 	if jnTab.result and jnTab.result.chartTypeList then
 		for k, v in ipairs(jnTab.result.chartTypeList) do
 			if v.label and v.link then
-				if v.label ~= "Deine Lieblingsvideos bei MTV" and v.label:find("Album") == nil and v.label:find("Alben") == nil and v.label:find("Vinyl") == nil then
-					print(v.label)
+				if v.label:find("Offizielle") == nil and v.label ~= "Deine Lieblingsvideos bei MTV" and v.label:find("Album") == nil and v.label:find("Alben") == nil and v.label:find("Vinyl") == nil then
 					table.insert(glob.mtv,{name=v.label, url=v.link,})
+					if add2016 == false and v.label == "Top 100 Jahrescharts 2015" then
+						add2016 = true
+						table.insert(glob.mtv,{name="Top 100 Jahrescharts 2016", url="http://www.mtv.de/charts/yrk67s/top-100-jahrescharts-2016",})
+					end
 				end
 			end
 		end
