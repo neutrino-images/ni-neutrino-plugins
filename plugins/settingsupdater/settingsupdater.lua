@@ -129,6 +129,7 @@ function check_for_update()
 		os.execute("rm -rf " .. tmp)
 		return true
 	end
+	os.execute("rm -rf " .. tmp)
 end
 
 function get_cfg_value(str)
