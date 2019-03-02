@@ -119,18 +119,15 @@ function check_for_update()
 	if not isdir(tmp) then os.execute("mkdir -p " .. tmp) end
 	os.execute("curl https://raw.githubusercontent.com/horsti58/lua-data/master/start/satellites.xml -o " .. tmp .. "/version_online")
 	for line in io.lines(tmp .. "/version_online") do
-		if line:match(",") then
+		if line:match(",") and line:match(":") then
 			local _,mark_begin = string.find(line, ",")
 			local _,mark_end = string.find(line, ":")
 			online_date = string.sub(line,mark_begin+2, mark_end-3)
-			if online_date == nil then online_date = "" end
-			if last_updated() ~= online_date then
-				os.execute("rm -rf " .. tmp)
-				return true
-			end
-			os.execute("rm -rf " .. tmp)
-			return false
-		end
+ 		end
+	end
+	if last_updated() ~= online_date then
+		os.execute("rm -rf " .. tmp)
+		return true
 	end
 end
 
