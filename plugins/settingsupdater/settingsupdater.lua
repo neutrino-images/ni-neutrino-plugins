@@ -106,7 +106,6 @@ function last_updated()
 			if line:match(",") and line:match(":") then
 				local _,mark_begin = string.find(line, ",")
 				local _,mark_end = string.find(line, ":")
-				if mark_begin == nil or mark_end == nil then date = "" return date end
 				date = string.sub(line,mark_begin+2, mark_end-3)
 				found = true
 			end
