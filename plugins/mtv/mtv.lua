@@ -386,7 +386,7 @@ function gen_m3u_list(filename)
 		local infotext = "Dateien werden für M3U Liste vorbereitet.  "
 		local pw = cprogresswindow.new{title=infotext}
 		pw:paint()
-		pw:showStatus{statusText="Stat"}
+		pw:showStatus{statusText="Start"}
         for k, v in ipairs(glob.MTVliste) do
 			if v.name == nil then
 				v.name = "NoName"
@@ -492,7 +492,7 @@ function dlstart(name)
 
 	local pw = cprogresswindow.new{title=infotext}
 	pw:paint()
-	pw:showStatus{statusText="Stat"}
+	pw:showStatus{statusText="Start"}
 	for i, v in ipairs(glob.MTVliste) do
 		if v.enabled == true then
 			if glob.MTVliste[i].name == nil then
