@@ -400,7 +400,7 @@ function gen_m3u_list(filename)
 				extinf = extinf .. v.name
 				m3ufile:write("#EXTINF:-1".. extinf .."\n")
 				m3ufile:write(url .."\n")
-				pw:showStatus{prog=i,max=#glob.MTVliste,statusText=tostring(k) .. "/" .. tostring(#glob.MTVliste) .. "  " .. v.name}
+				pw:showStatus{prog=k,max=#glob.MTVliste,statusText=tostring(k) .. "/" .. tostring(#glob.MTVliste) .. "  " .. v.name}
 			end
 		end
 		m3ufile:close()
