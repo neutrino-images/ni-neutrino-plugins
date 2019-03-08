@@ -1,6 +1,7 @@
 --[[
 	mtv.ch
 	Copyright (C) 2015,2019  Jacek Jendrzej 'satbaby'
+	With Help from: Thomas(2015,2016,2017,2018,2019),Dosik7(2017),BPanther(2018)
 
 	License: GPL
 
@@ -21,7 +22,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.ch Version 0.28" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.31" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -54,6 +55,7 @@ function saveConfig()
 	if conf.changed then
 		local config	= configfile.new()
 		config:setString("path", conf.path)
+		config:setString("path_m3u", conf.path_m3u)
 		config:setBool  ("dlflag",conf.dlflag)
 		config:setBool  ("flvflag",conf.flvflag)
 		config:setBool  ("playflvflag",conf.playflvflag)
@@ -77,6 +79,7 @@ function loadConfig()
 	local config	= configfile.new()
 	config:loadConfig(get_confFile())
 	conf.path = config:getString("path", "/media/sda1/movies/")
+	conf.path_m3u = config:getString("path_m3u", "/media/sda1/movies/")
 	conf.dlflag = config:getBool("dlflag", false)
 	conf.flvflag = config:getBool("flvflag", false)
 	conf.playflvflag = config:getBool("playflvflag", false)
@@ -264,7 +267,7 @@ function getliste(url)
 							local artist = v.shortTitle or v.artist or ""
 							if #artist == 0 and v.artists then artist = v.artists[1].name end
 							local _logo = nil
--- 							if v.images then id = v.images[1].id _logo = v.images[1].url end
+							if v.images and v.images.url then _logo = v.images.url end
 							_logo = _logo or ""
 							local chpos = nil
 							if v.chartPosition and v.chartPosition.current then chpos = v.chartPosition.current end
@@ -304,7 +307,7 @@ function getvideourl(url,vidname,hls)
 
 	local max_w = 0
 	local video_url = nil
-	if jnTab.package.video.item[1].rendition then
+	if jnTab and jnTab.package and jnTab.package.video and jnTab.package.video.item and jnTab.package.video.item[1].rendition then
 		for k,v in pairs(jnTab.package.video.item[1].rendition) do
 			if (v.width or v.rdminwidth) and v.src then
 				local w = tonumber(v.width or v.rdminwidth)
@@ -375,31 +378,37 @@ function action_exec(id)
 end
 
 function gen_m3u_list(filename)
-	local m3ufilename="/tmp/" .. filename .. ".m3u"
-
-	local h = hintbox.new{caption="Info", text=filename .." - Playlist wird erstellt\n"..m3ufilename}
-	h:paint()
+	local m3ufilename= conf.path_m3u .. "/" .. filename .. ".m3u"
 
 	local m3ufile=io.open(m3ufilename,"w")
-	m3ufile:write("#EXTM3U name=" .. filename .. "\n")
+	if m3ufile then
+		m3ufile:write("#EXTM3U name=" .. filename .. "\n")
+		local infotext = "Dateien werden für M3U Liste vorbereitet.  "
+		local pw = cprogresswindow.new{title=infotext}
+		pw:paint()
+		pw:showStatus{statusText="Start"}
         for k, v in ipairs(glob.MTVliste) do
-		if v.name == nil then
-			v.name = "NoName"
+			if v.name == nil then
+				v.name = "NoName"
+			end
+			local url = getvideourl(v.url,v.name)
+			if url then
+				local extinf = ", "
+				if v.logo and #v.logo > 1 then --TODO Add Logo parse to CMoviePlayerGui::parsePlaylist
+					extinf = " logo=" .. v.logo ..".jpg ,"
+				end
+				extinf = extinf .. v.name
+				m3ufile:write("#EXTINF:-1".. extinf .."\n")
+				m3ufile:write(url .."\n")
+				pw:showStatus{prog=k,max=#glob.MTVliste,statusText=tostring(k) .. "/" .. tostring(#glob.MTVliste) .. "  " .. v.name}
+			end
 		end
-		local url = getvideourl(v.url,v.name)
-		if url then
-			local extinf = ", "
--- 			if v.logo then --TODO Add Logo parse to CMoviePlayerGui::parsePlaylist
--- 				extinf = " logo=" .. v.logo ..".jpg ,"
--- 			end
-			extinf = extinf .. v.name
-			m3ufile:write("#EXTINF:-1".. extinf .."\n")
-			m3ufile:write(url .."\n")
-		end
+		m3ufile:close()
+		pw:hide()
+		info("Info", filename.." - Playlist wurde erstellt\n" .. m3ufilename,2)
+	else
+		info("Info", filename.." - Fehler beim erstellen:\n " .. m3ufilename .. " ",3)
 	end
-	h:hide()
-        m3ufile:close()
-	info("Info", filename.." - Playlist wurde erstellt\n"..m3ufilename,2)
 	return MENU_RETURN.EXIT_REPAINT
 end
 
@@ -483,6 +492,7 @@ function dlstart(name)
 
 	local pw = cprogresswindow.new{title=infotext}
 	pw:paint()
+	pw:showStatus{statusText="Start"}
 	for i, v in ipairs(glob.MTVliste) do
 		if v.enabled == true then
 			if glob.MTVliste[i].name == nil then
@@ -676,7 +686,7 @@ function __menu(_menu,menu_name,table,_action)
 	id="Playlist " .. menu_name, directkey=godirectkey(d),hint=playhint .. menu_name}
         d=d+1
 	_menu:addItem{type="forwarder", name="Erstelle M3U Playlist", action="gen_m3u_list", enabled=true,
-	id=menu_name, directkey=godirectkey(d),hint="Erstelle eine M3U Playlist im Verzeichnis: /tmp/" .. menu_name .. ".m3u"}
+	id=menu_name, directkey=godirectkey(d),hint="Erstelle eine M3U Playlist im Verzeichnis: " .. conf.path_m3u .. "/" .. menu_name .. ".m3u"}
 	d = d + 1
 	_menu:addItem{type="forwarder", name="Erstelle Download Liste", action="chooser_menu", enabled=glob.have_rtmpdump,
 			id="Erstelle Download Liste für "..menu_name, directkey=godirectkey(d),hint="Welche Videos sollen heruntergeladen werden ?"}
@@ -708,14 +718,9 @@ function mtv_liste(id)
 	return MENU_RETURN.EXIT_REPAINT
 end
 
-if APIVERSION ~=nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 24 )) then
-	function set_path(id,value)
+function set_path(id,value)
+	if conf[id] ~= value then
 		conf[id]=value
-		conf.changed = true
-	end
-else
-	function set_path(value)
-		conf.path=value
 		conf.changed = true
 	end
 end
@@ -745,6 +750,11 @@ function setings()
 	menu:addItem{ type="filebrowser", dir_mode="1", id="path", name="Verzeichnis: ", action="set_path",
 		   enabled=true,value=conf.path,directkey=godirectkey(d),
 		   hint_icon="hint_service",hint="In welchem Verzeichnis soll das Video gespeichert werden ?"
+		 }
+	d=d+1
+	menu:addItem{ type="filebrowser", dir_mode="1", id="path_m3u", name="Verzeichnis M3U: ", action="set_path",
+		   enabled=true,value=conf.path_m3u,directkey=godirectkey(d),
+		   hint_icon="hint_service",hint="In welchem Verzeichnis soll das M3U Playlist gespeichert werden ?"
 		 }
 	d=d+1
 	menu:addItem{type="chooser", action="set_option", options={ on, off }, id="dlflag", value=bool2onoff(conf.dlflag), directkey=godirectkey(d), name="Auswahl vorbelegen mit",hint_icon="hint_service",hint="Erstelle Auswahlliste mit 'ein' oder 'aus'"}
