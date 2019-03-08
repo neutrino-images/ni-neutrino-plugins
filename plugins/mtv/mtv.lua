@@ -22,7 +22,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.de Version 0.30" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.31" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -307,7 +307,7 @@ function getvideourl(url,vidname,hls)
 
 	local max_w = 0
 	local video_url = nil
-	if jnTab.package.video.item[1].rendition then
+	if jnTab and jnTab.package and jnTab.package.video and jnTab.package.video.item and jnTab.package.video.item[1].rendition then
 		for k,v in pairs(jnTab.package.video.item[1].rendition) do
 			if (v.width or v.rdminwidth) and v.src then
 				local w = tonumber(v.width or v.rdminwidth)
