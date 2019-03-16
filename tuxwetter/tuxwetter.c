@@ -78,7 +78,8 @@ void blit(void) {
 
 // Forward defines
 int pic_on_data(char *name, int xstart, int ystart, int xsize, int ysize, int wait, int single, int center, int rahmen);
-char par[32]="1005530704", key[32]="a9c95f7636ad307b";
+int png_on_data(char *name, int xstart, int ystart, int xsize, int ysize, int wait, int single, int center, int rahmen);
+char par[32]="1005530704", key[64]="a9c95f7636ad307b";
 void TrimString(char *strg);
 
 // Color table stuff
@@ -1288,13 +1289,13 @@ void show_data(int ix)
 	int itmp;
 #endif
 
-char vstr[512]={0},v2str[512]={0},rstr[512]={0},tstr[512]={0},icon[60]={0};
+char vstr[512]={0},v2str[512]={0},rstr[512]={0},tstr[512]={0},icon[200]={0};
 int col1=scale2res(40), vy=scale2res(70);
 int col2=((preset)?scale2res(380):scale2res(340));
 
 int wxw=ex-sx-((preset)?scale2res(120):scale2res(30));  //box width
 int wyw=ey-sy-((preset)?scale2res(60):scale2res(20));   //box height
-int nc=10;                   //table columns 10
+int nc=7;                   //table columns 10
 int gys=vy;                  //table space top
 int gysf=scale2res(34);      //table space bottom
 int gxs=4*OFFSET_MED;        //table space left
@@ -1542,9 +1543,11 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				if(!show_icons)
 				{
 #ifdef WWEATHER
-					prs_get_val(i,PRE_DAY_SIG,0,vstr);
+					prs_get_timeWday(i, PRE_DAY,vstr);
+					strcat(vstr,"_SIG");
 #else
 					prs_get_day(i, vstr, metric);
+
 					if((pt1=strchr(vstr,','))!=NULL)
 					{
 						strcpy(pt1,"_SIG");
@@ -1687,21 +1690,21 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				{
 					prs_get_val(i,PRE_ICON,prelate,vstr);
 #ifdef WWEATHER
-					if (HTTP_downloadFile(vstr, ICON_FILE, 0, intype, ctmo, 2) == 0)
+					snprintf(icon, sizeof(icon), "https://darksky.net/images/weather-icons/%s.png",vstr); 
 #else
 					snprintf(icon, sizeof(icon), "http://image.weather.com/web/common/intlwxicons/52/%s.gif",vstr);
-					if (HTTP_downloadFile(icon, ICON_FILE, 0, intype, ctmo, 2) == 0)
 #endif
+					if (HTTP_downloadFile(icon, ICON_FILE, 0, intype, ctmo, 2) == 0)
 					{
 						int picx=scale2res(80),picy=scale2res(80);
-						pic_on_data(icon,sx+gxs+(i*gicw)+((gicw/2)-(picx/2)),sy+gys+gyw+((gywf/2)-(picy/2)), picx, picy, 5, (i)?((i==4)?1:0):2, 0, 0);
+						png_on_data(icon,sx+gxs+(i*gicw)+((gicw/2)-(picx/2)),sy+gys+gyw+((gywf/2)-(picy/2)), picx, picy, 5, (i)?((i==4)?1:0):2, 0, 0);
 					}
 #ifdef WWEATHER
-					prs_get_val(i,PRE_DAY_SIG,0,vstr);
+					prs_get_timeWday(i, PRE_DAY,vstr);
 #else
 					prs_get_dwday(i, PRE_DAY,vstr);
-					strcat(vstr,"_SIG");
 #endif
+					strcat(vstr,"_SIG");
 					strcpy(rstr,prs_translate(vstr,CONVERT_LIST));
 					RenderString(rstr, gxs+(i*gicw+scale2res(17)), gys+scale2res(12)+gyw+FSIZE_BIG, gicw, LEFT, FSIZE_BIG,CMCIT );//weekday
 				}
@@ -1726,11 +1729,11 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				{
 					xremove(ICON_FILE);
 #ifdef WWEATHER
-					if (HTTP_downloadFile(vstr, ICON_FILE, 0, intype, ctmo, 2) != 0) 
+					snprintf(icon, sizeof(icon), "https://darksky.net/images/weather-icons/%s.png",vstr);
 #else
 					snprintf(icon, sizeof(icon), "http://image.weather.com/web/common/intlwxicons/52/%s.gif",vstr);
-					if (HTTP_downloadFile(icon, ICON_FILE, 0, intype, ctmo, 2) != 0)
 #endif
+					if (HTTP_downloadFile(icon, ICON_FILE, 0, intype, ctmo, 2) != 0)
 					{
 						printf("Tuxwetter <unable to get icon>\n");
 					}
@@ -1986,9 +1989,9 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 						pic_on_data(icon,col2+200, wsy+115, 80, 80, 5, 3, 0, 0);
 */
 					if(!slim)
-						pic_on_data(icon,scale2res(800), scale2res(270), scale2res(100), scale2res(100), 5, 3, 0, 0);
+						png_on_data(icon,scale2res(800), scale2res(270), scale2res(100), scale2res(100), 5, 3, 0, 0);
 					else
-						pic_on_data(icon,540, 115, 80, 80, 5, 3, 0, 0);
+						png_on_data(icon,540, 115, 80, 80, 5, 3, 0, 0);
 				}
 				blit();
 			}
@@ -2018,11 +2021,12 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				{
 					xremove(ICON_FILE);
 #ifdef WWEATHER
-					if (HTTP_downloadFile(vstr, ICON_FILE, 0, intype, ctmo, 2) != 0) 
+					snprintf(icon, sizeof(icon), "https://darksky.net/images/weather-icons/%s.png",vstr);
 #else
 					snprintf(icon, sizeof(icon), "http://image.weather.com/web/common/intlwxicons/52/%s.gif",vstr);
-					if (HTTP_downloadFile(icon, ICON_FILE,0,intype,ctmo,2) != 0)
 #endif
+					if (HTTP_downloadFile(icon, ICON_FILE,0,intype,ctmo,2) != 0)
+
 					{
 						printf("Tuxwetter <unable to get icon file \n");
 					}
@@ -2247,7 +2251,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				if(show_icons)
 				{
 					//pic_on_data(icon, 540, 115, 100, 100, 5, 3, 0, 0);
-					pic_on_data(icon,slim?540:scale2res(700), scale2res(115), scale2res(100), scale2res(100), 5, 3, 0, 0);
+					png_on_data(icon,slim?540:scale2res(700), scale2res(115), scale2res(100), scale2res(100), 5, 3, 0, 0);
 				}
 				blit();
 			}
@@ -2554,6 +2558,58 @@ unsigned char *buffer=NULL/*,*gbuf*/;
  				ioctl(fb, FBIOPUTCMAP, &spcmap);
  			}
 #endif
+			gmodeon=1;
+
+		}
+		free(buffer);
+//		lfb=tbuf;
+	}
+	return (rv)?-1:0;
+}
+
+int png_on_data(char *url __attribute__((unused)), int xstart, int ystart, int xsize, int ysize, int wait __attribute__((unused)), int single, int center, int rahmen)
+{
+FILE *tfh;
+int x1,y1,rv=-1, alpha=0, bpp=0;
+
+int imx,imy,dxo,dyo,dxp,dyp;
+unsigned char *buffer=NULL/*,*gbuf*/;
+//unsigned char *tbuf=lfb;
+
+	if((tfh=fopen(ICON_FILE,"r"))!=NULL)
+	{
+		fclose(tfh);
+		//lfb=lbb;
+
+		if(png_getsize(ICON_FILE, &x1, &y1))
+		{
+			printf("Tuxwetter <invalid PNG-Format>\n");
+			return -1;
+		}
+
+		if((buffer=(unsigned char *) malloc(x1*y1*4))==NULL)
+		{
+			printf(NOMEM);
+			return -1;
+		}
+
+		//if(!(rv=fh_gif_load(ICON_FILE, buffer, x1, y1)))
+		if(!(rv=png_load(ICON_FILE, &buffer, &x1, &y1, &bpp)))
+		{
+			alpha=(bpp==4)?1:0;
+			scale_pic(&buffer,x1,y1,xstart,ystart,xsize,ysize,&imx,&imy,&dxp,&dyp,&dxo,&dyo,center,alpha);
+			if (rahmen >0)
+			{
+				RenderBox(xstart+scale2res(1)-sx-rahmen, ystart-OFFSET_SMALL-sy-rahmen,xstart+xsize+OFFSET_MIN-sx+rahmen,ystart+ysize-sy-OFFSET_SMALL+rahmen, 0, CMCS);
+			}
+
+			if(single & 2)
+			{
+				single &= ~2;
+			}
+
+			fb_display(buffer, imx, imy, dxp, dyp, dxo, dyo, 0, single, alpha);
+
 			gmodeon=1;
 
 		}
@@ -3612,7 +3668,7 @@ PLISTENTRY pl=&epl;
 								}
 								else
 								{
-									prs_get_val(ix-2,PRE_DAY,0,tstr);
+									prs_get_timeWday(ix-2,PRE_DAY,tstr);
 									sprintf(rstr,"%s",prs_translate(tstr,CONVERT_LIST));
 								}
 #else
