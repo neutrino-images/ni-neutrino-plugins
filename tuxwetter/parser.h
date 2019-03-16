@@ -33,68 +33,68 @@
 #ifdef WWEATHER
 #	define NA		0
 	//offset simpleforecast
-#	define PRE_STEP		61
-#	define NIGHT_STEP	3
+#	define PRE_STEP		39
+#	define NIGHT_STEP	0
 	//offset forecast
-#	define PRE_STEP2	14
-#	define NIGHT_STEP2	7
+#	define PRE_STEP2	39
+#	define NIGHT_STEP2	0
 
 	// atual Values
-#	define ACT_CITY		7
-#	define ACT_OBST		21
-#	define ACT_LAT		16
-#	define ACT_LON		17
-#	define ACT_UPTIME	31
-#	define ACT_LOCALTIME	33
-#	define ACT_TEMP_F	40
-#	define ACT_TEMP_C	41
-#	define ACT_FTEMP_F	63
-#	define ACT_FTEMP_C	64
-#	define ACT_ICON		75
-#	define ACT_COND		38 //| TRANSLATION
-#	define ACT_HMID		42
-#	define ACT_WINDD	44 | TRANSLATION
-#	define ACT_WSPEED_M	46
-#	define ACT_WSPEED_K	48
-#	define ACT_PRESS_MB	50
-#	define ACT_PRESS_IN	51
-#	define ACT_DEWP_F	54
-#	define ACT_DEWP_C	55
-#	define ACT_PRECIP_MM	72
-#	define ACT_PRECIP_IN	73
-#	define ACT_VIS_MI	65
-#	define ACT_VIS_KM	66
-#	define ACT_CLOUDC	NA
-#	define ACT_SUNR		845
-#	define ACT_SUNR_MM	846
-#	define ACT_SUNS		848
-#	define ACT_SUNS_MM	849
-#	define ACT_PRTEND	52
-#	define ACT_UVIND	NA
+#	define ACT_CITY		NA
+#	define ACT_OBST		NA
+#	define ACT_LAT		1
+#	define ACT_LON		2
+#	define ACT_UPTIME	4
+#	define ACT_LOCALTIME	NA
+#	define ACT_TEMP_F	10
+#	define ACT_TEMP_C	10
+#	define ACT_FTEMP_F	11
+#	define ACT_FTEMP_C	11
+#	define ACT_ICON		6
+#	define ACT_COND		5 //| TRANSLATION
+#	define ACT_HMID		12
+#	define ACT_WINDD	16 | TRANSLATION
+#	define ACT_WSPEED_M	15
+#	define ACT_WSPEED_K	15
+#	define ACT_PRESS_MB	14
+#	define ACT_PRESS_IN	14
+#	define ACT_DEWP_F	12
+#	define ACT_DEWP_C	12
+#	define ACT_PRECIP_MM	NA
+#	define ACT_PRECIP_IN	NA
+#	define ACT_VIS_MI	19
+#	define ACT_VIS_KM	19
+#	define ACT_CLOUDC	17
+#	define ACT_SUNR		27
+#	define ACT_SUNR_MM	27
+#	define ACT_SUNS		28
+#	define ACT_SUNS_MM	28
+#	define ACT_PRTEND	NA
+#	define ACT_UVIND	19
 #	define ACT_UVTEXT	NA
-#	define ACT_MOON_VIS	837
-#	define ACT_MOON		839 | TRANSLATION
+#	define ACT_MOON_VIS	29
+#	define ACT_MOON		29 | TRANSLATION
 
 	// Preview Values
-#	define PRE_DAY_SIG	239
-#	define PRE_DAY		240
-#	define PRE_TEMPH_F	246
-#	define PRE_TEMPH_C	247
-#	define PRE_TEMPL_F	249
-#	define PRE_TEMPL_C	250
-#	define PRE_SNOW_IN	266 | TRANSLATION
-#	define PRE_SNOW_MM	267 | TRANSLATION
-#	define PRE_WSPEED	281
-#	define PRE_WINDD	282 | TRANSLATION
-#	define PRE_ICON		253
-#	define PRE_COND		88
-#	define PRE_COND_M	89
-#	define PRE_PRECIPMM	261 | TRANSLATION
-#	define PRE_SUNR		NA
-#	define PRE_SUNS		NA
+#	define PRE_DAY_SIG	24
+#	define PRE_DAY		24
+#	define PRE_TEMPH_F	35
+#	define PRE_TEMPH_C	35
+#	define PRE_TEMPL_F	37
+#	define PRE_TEMPL_C	37
+#	define PRE_SNOW_IN	NA | TRANSLATION
+#	define PRE_SNOW_MM	NA | TRANSLATION
+#	define PRE_WSPEED	46
+#	define PRE_WINDD	49 | TRANSLATION
+#	define PRE_ICON		26
+#	define PRE_COND		25
+#	define PRE_COND_M	25
+#	define PRE_PRECIPMM	30 | TRANSLATION
+#	define PRE_SUNR		27
+#	define PRE_SUNS		28
 #	define PRE_BT		NA
-#	define PRE_PPCP		90
-#	define PRE_HMID		284
+#	define PRE_PPCP		33
+#	define PRE_HMID		44
 #else
 #	define PRE_STEP		32
 #	define NIGHT_STEP	13
@@ -159,6 +159,7 @@ int  prs_get_time(int i, int what, char *out, int metric);
 int  prs_get_dtime(int i, int what, char *out, int metric);
 int  prs_get_dwday(int i, int what, char *out);
 char *prs_translate(char *trans, const char *tfile);
+int  prs_get_timeWday(int i, int what, char *out);
 
 #endif // __wxparser__
 
