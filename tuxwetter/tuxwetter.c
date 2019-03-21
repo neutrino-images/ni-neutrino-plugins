@@ -45,7 +45,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.12"
+#define P_VERSION "4.16"
 #define S_VERSION ""
 
 char CONVERT_LIST[]= CFG_TUXWET "/convert.list";
@@ -79,7 +79,7 @@ void blit(void) {
 // Forward defines
 int pic_on_data(char *name, int xstart, int ystart, int xsize, int ysize, int wait, int single, int center, int rahmen);
 int png_on_data(char *name, int xstart, int ystart, int xsize, int ysize, int wait, int single, int center, int rahmen);
-char par[32]="1005530704", key[64]="a9c95f7636ad307b";
+char key[64]={0};
 void TrimString(char *strg);
 
 // Color table stuff
@@ -348,10 +348,6 @@ int ReadConf(char *iscmd)
 			if(strstr(line_buffer,"LoadAlways") == line_buffer)
 				{
 					sscanf(cptr+1,"%d",&loadalways);
-				}
-			if(strstr(line_buffer,"PartnerID") == line_buffer)
-				{
-					strncpy(par,cptr+1,sizeof(par)-1);
 				}
 			if(strstr(line_buffer,"LicenseKey") == line_buffer)
 				{
@@ -1690,7 +1686,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				{
 					prs_get_val(i,PRE_ICON,prelate,vstr);
 #ifdef WWEATHER
-					snprintf(icon, sizeof(icon), "https://darksky.net/images/weather-icons/%s.png",vstr); 
+					snprintf(icon, sizeof(icon), "https://darksky.net/images/weather-icons/%s.png",vstr);
 #else
 					snprintf(icon, sizeof(icon), "http://image.weather.com/web/common/intlwxicons/52/%s.gif",vstr);
 #endif
