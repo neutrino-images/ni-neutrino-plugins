@@ -44,7 +44,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.13"
+#define P_VERSION "4.14"
 #define S_VERSION ""
 
 
@@ -68,7 +68,7 @@ char CONVERT_LIST[]= CFG_TUXWET "/convert.list";
 static char TCF_FILE[128]="";
 
 #define LIST_STEP 	10
-#define MAX_FUNCS   2+10
+#define MAX_FUNCS   2+7
 #define LCD_CPL 	12
 #define LCD_RDIST 	10
 
@@ -2036,11 +2036,12 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				else
 				{
 #ifdef WWEATHER
-					prs_get_val(ix-1,PRE_DAY,0,vstr);
+					prs_get_timeWday(ix-1,PRE_DAY,tstr);
 #else
-					prs_get_day(ix-1, vstr, metric);
+					prs_get_day(ix-1, tstr, metric);
 #endif
 				}
+				sprintf(vstr,"%s",prs_translate(tstr,CONVERT_LIST));
 				sprintf(rstr,"%s %s",prs_translate("Vorschau für",CONVERT_LIST),vstr);
 				RenderString(rstr, wsx, wsy+4*OFFSET_MED, wxw, CENTER, FSIZE_BIG, CMHT);
 
