@@ -325,13 +325,33 @@ int prs_get_dwday(int i, int what, char *out)
 	return ret;
 }
 
+int prs_get_timeWday(int i, int what, char *out)
+{
+	int ret=1;
+	*out=0;
+	struct tm ts;
+	char buffer [80];
+
+	strcpy(out,data[(what & ~TRANSLATION)+(i*PRE_STEP)]);
+	TrimString(out);
+
+	time_t rawtime=atoi(out);
+	struct tm * timeinfo;
+	timeinfo = localtime (&rawtime);
+
+	strftime (buffer,sizeof(buffer),"%A",timeinfo);
+	sprintf(out,"%s", buffer);
+
+	return (strlen(out)==0);
+}
+
 //**************************************** Parser ****************************************
 
 //*** XML File ***
 
 int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 {
-	int  rec=0, flag=0;
+	int  rec=0, flag=0, next=0;
 	int cc=0, bc=1, exit_ind=-1;
 	char gettemp;
 	FILE *wxfile=NULL;
@@ -340,7 +360,7 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 
 #ifdef WWEATHER
 	char tagname[512];
-	int getold=0, skip=1, tag=0, tcc=0;
+	int getold=0, skip=1, tag=0, tc=0, tcc=0;
 	extern char key[];
 #else
 	int day_data=PRE_DAY;
@@ -362,7 +382,11 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	exit_ind=system(url);
 	sleep(1);
 */
-	sprintf (url,"http://api.wunderground.com/api/%s/geolookup/conditions/forecast10day/astronomy/lang:DL/pws:0/q/%s.json",key,citycode);
+	//FIXME KEY! and CITYCODE
+	//sprintf (url,"http://api.wunderground.com/api/%s/geolookup/conditions/forecast10day/astronomy/lang:DL/pws:0/q/%s.json",key,citycode);
+	sprintf (url,"https://api.darksky.net/forecast/%s/%s?lang=de&units=ca&exclude=hourly,minutely",key,citycode);
+	printf("https://api.darksky.net/forecast/%s/%s?lang=de&units=ca&exclude=hourly,minutely\n",key,citycode);
+
 	exit_ind=HTTP_downloadFile(url, "/tmp/tuxwettr.tmp", 0, inet, ctmo, 3);
 
 	if(exit_ind != 0)
@@ -381,11 +405,9 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	}
 	else
 	{
-		fgets(debug,5,wxfile);
-		fgets(debug,5,wxfile);
 		fgets(debug,50,wxfile);
-	    	//printf("%s\n",debug);
-		if((debug[3] != 'r')||(debug[4] != 'e')||(debug[5] != 's'))
+	    	printf("%s\n",debug);
+		if((debug[2] != 'l')||(debug[3] != 'a')||(debug[4] != 't'))
 		{
 			fclose(wxfile);
 			return exit_ind;
@@ -393,93 +415,90 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 		else
 		{
 			// starting position forcast
-			bc = NA;
-			strcpy(data[bc],"N/A");
-			bc++;
+			strcpy(data[tc],"N/A");
+			tc++;
 
 			fseek(wxfile, 0L, SEEK_SET);
 			while (!feof(wxfile))
 			{
 				gettemp=fgetc(wxfile);
-				if(rec==0 && tag==0 && gettemp=='"')
+				if(gettemp=='"')
 				{
-					tag=1;
+					if(tag==0 && rec==0)
+					{
+						tag=1;
+					}
+					continue;
 				}
-				if(tag==1 && gettemp!='"' && gettemp!=':')
-				{
-					tagname[tcc]=gettemp;
-					tcc++;
-				}
-				if(getold=='"' && gettemp==':')
+				if(gettemp==':')
 				{
 					tagname[tcc]='\0';
-					tag=0;
+					if(!strcmp(tagname,"currently") || !strcmp(tagname,"daily") || !strcmp(tagname,"data") || !strcmp(tagname,"flags") || !strcmp(tagname,"sources"))
+					{
+						tcc=0;
+						if(!strcmp(tagname,"flags"))
+						{
+							tagname[0]='\0';
+							break;
+						}
+						else
+						{
+							//printf("	skip %s\n",tagname);
+							tagname[0]='\0';
+							continue;
+						}
+					}
 					rec=1;
-
-					if(!strcmp(tagname,"current_observation"))
-					{
-						skip=0;
-					}
-					else if(!strcmp(tagname,"error"))
-					{
-						return exit_ind;
-					}
-
-					getold=gettemp;
 					continue;
 				}
 
-				if(gettemp=='\n')
+				if(tag==1 && rec==0)
 				{
-					if(!strcmp(tagname,"")) {
+					if(gettemp=='{' || gettemp=='[')
 						continue;
-					}
 
-					//remove last ","
-					if(data[bc][cc-1]==',') {
-
-						cc--;
-					}
-
-					data[bc][cc]='\0';
-					//printf("[%s%d]%s = %s\n",(skip==1?"skip ":""),bc,tagname,data[bc]);
-
-					if(skip==1) {
-						data[bc][0]='\0';
-						tagname[0]='\0';
-					}
-					else {
-						tagname[0]='\0';
-						bc++;
-					}
-
-					rec=0;
-					cc=0;
-					tag=0;
-					tcc=0;
+					tagname[tcc]=gettemp;
+					//printf("tag_char[%d] [%c]\n",tcc,gettemp);
+					tcc++;
+					continue;
 				}
 
-				if(rec==1 && gettemp!='"')
+				if(rec==1)
 				{
-					if(getold==':' && gettemp==' ')
+					if(tag==1)
+						tag==0;
+
+					if(gettemp=='}' || gettemp==']')
 						continue;
 
-					data[bc][cc]=gettemp;
-					//printf("#2 data[%d][%d] = %c(%d)\n",bc,cc,gettemp,gettemp);
-					cc++;
-
-					if(cc==MAXMEM-1)
+					if(gettemp==',')
 					{
-						printf("data MAXMEM\n");
-						return exit_ind;
+						data[tc][cc]='\0';
+						//printf("tagname[%d] = %s | data = %s\n",tc,tagname,data[tc]);
+						//fix zero precipType
+						if(!strcmp(tagname,"precipProbability") && !strcmp(data[tc],"0"))
+						{
+							tc++;
+							data[tc]==NA;
+							//printf("tagname[%d] = precipType | data = %s\n",tc,data[tc]);
+						}
+						tagname[0]='\0';
+						rec=0;
+						cc=0;
+						tcc=0;
+						tc++;
 					}
- 				}
-				getold=gettemp;
+					else
+					{
+						//printf("%c",gettemp);
+						data[tc][cc]=gettemp;
+						cc++;
+					}
+				}
 			}
 		}
 	}
 	fclose(wxfile);
-	cc=0;
 
 	exit_ind=1;
 #else

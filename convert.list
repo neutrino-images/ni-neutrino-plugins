@@ -332,10 +332,17 @@ Wochentrend anzeigen|
 Höchstwerte|
 Tiefstwerte|
 Trend für die kommende Woche|
-MONDAY_SIG|Mo
-TUESDAY_SIG|Di
-WEDNESDAY_SIG|Mi
-THURSDAY_SIG|Do
-FRIDAY_SIG|Fr
-SATURDAY_SIG|Sa
-SUNDAY_SIG|So
+Monday|Montag
+Tuesday|Dienstag
+Wednesday|Mittwoch
+Thursday|Donnerstag
+Friday|Freitag
+Saturday|Samstag
+Sunday|Sonntag
+Monday_SIG|Mo
+Tuesday_SIG|Di
+Wednesday_SIG|Mi
+Thursday_SIG|Do
+Friday_SIG|Fr
+Saturday_SIG|Sa
+Sunday_SIG|So
