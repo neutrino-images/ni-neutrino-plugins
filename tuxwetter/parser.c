@@ -406,7 +406,7 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	else
 	{
 		fgets(debug,50,wxfile);
-	    	printf("%s\n",debug);
+		printf("%s\n",debug);
 		if((debug[2] != 'l')||(debug[3] != 'a')||(debug[4] != 't'))
 		{
 			fclose(wxfile);

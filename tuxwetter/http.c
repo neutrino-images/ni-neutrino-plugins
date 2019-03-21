@@ -81,6 +81,7 @@ int HTTP_downloadFile(char *URL, char *downloadTarget, int showprogress, int tmo
 			curl_easy_setopt(curl, CURLOPT_WRITEDATA, tmpFile);
 			curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
 			curl_easy_setopt(curl, CURLOPT_URL, surl);
+			curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 			curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, (ctimo)?ctimo:(30+tmo*45));
 			curl_easy_setopt(curl, CURLOPT_TIMEOUT, (tmo+1)*60);
 			curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
