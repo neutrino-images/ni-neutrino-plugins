@@ -54,7 +54,7 @@ int fh_gif_id(const char *name)
 	return(0);
 }
 
-inline void m_rend_gif_decodecolormap(unsigned char *cmb,unsigned char *rgbb,ColorMapObject *cm,int s,int l)
+void m_rend_gif_decodecolormap(unsigned char *cmb,unsigned char *rgbb,ColorMapObject *cm,int s,int l)
 {
 	GifColorType *cmentry;
 	int i;

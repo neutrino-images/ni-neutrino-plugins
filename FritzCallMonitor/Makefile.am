@@ -18,6 +18,8 @@ FritzCallMonitor_SOURCES = \
 install-exec-local:
 	install -d $(DESTDIR)$(PLUGINDIR)
 	install -d $(DESTDIR)$(CONFIGDIR)
+	install -d $(DESTDIR)$(DATADIR)/neutrino/icons
+	install -d $(DESTDIR)/etc/init.d
 	install -m 0755 FritzCallMonitor $(DESTDIR)/bin/FritzCallMonitor
 	install -m644 $(srcdir)/FritzCallMonitor.addr $(DESTDIR)$(CONFIGDIR)
 	install -m644 $(srcdir)/FritzCallMonitor.cfg $(DESTDIR)$(CONFIGDIR)
