@@ -42,6 +42,17 @@ extern int num_of_days;
 extern const char CONVERT_LIST[];
 extern void TrimString(char *strg);
 
+char *convertUnixTime(const char *timestr, char *buf)
+{
+	time_t timenum = (time_t) atoi(timestr);
+
+	struct tm t;
+	localtime_r(&timenum, &t);
+	strftime(buf, 30, "%H:%M", &t);
+	//printf ("DateTime = %s\n", buf);
+	return buf;
+}
+
 void prs_check_missing(char *entry)
 {
 char rstr[512];
@@ -406,7 +417,7 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	else
 	{
 		fgets(debug,50,wxfile);
-		printf("%s\n",debug);
+		//printf("%s\n",debug);
 		if((debug[2] != 'l')||(debug[3] != 'a')||(debug[4] != 't'))
 		{
 			fclose(wxfile);

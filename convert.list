@@ -287,10 +287,11 @@ Luftfeuchtigkeit:|
 Taupunkt:|
 Luftdruck:|
 Wind:|
-windstill|
-von|
+Windböen:
+aus Richtung|
 mit|
-sichtbar|
+bis zu|
+Vollmond|
 Sonnenaufgang:|
 Sonnenuntergang:|
 Bewölkung:|
@@ -298,6 +299,7 @@ Mondphase:|
 Fernsicht:|
 Niederschlag:|
 UV-Index:|
+Ozon:|
 Regenrisiko:|
 Heute|
 Wochentrend|

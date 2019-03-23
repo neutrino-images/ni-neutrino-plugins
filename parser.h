@@ -52,26 +52,25 @@
 #	define ACT_FTEMP_C	11
 #	define ACT_ICON		6
 #	define ACT_COND		5 //| TRANSLATION
-#	define ACT_HMID		12
-#	define ACT_WINDD	16 | TRANSLATION
-#	define ACT_WSPEED_M	15
-#	define ACT_WSPEED_K	15
+#	define ACT_HMID		13
+#	define ACT_WINDSPEED	15
+#	define ACT_WINDGUST	16
+#	define ACT_WINDDIR	17 | TRANSLATION
 #	define ACT_PRESS_MB	14
 #	define ACT_PRESS_IN	14
 #	define ACT_DEWP_F	12
 #	define ACT_DEWP_C	12
-#	define ACT_PRECIP_MM	NA
-#	define ACT_PRECIP_IN	NA
-#	define ACT_VIS_MI	19
-#	define ACT_VIS_KM	19
+#	define ACT_PRECIP_MM	7
+#	define ACT_PRECIP_IN	7
+#	define ACT_PPCP		8
+#	define ACT_VISIBILITY	20
 #	define ACT_CLOUDC	17
 #	define ACT_SUNR		27
-#	define ACT_SUNR_MM	27
 #	define ACT_SUNS		28
-#	define ACT_SUNS_MM	28
 #	define ACT_PRTEND	NA
 #	define ACT_UVIND	19
 #	define ACT_UVTEXT	NA
+#	define ACT_OZONE	21
 #	define ACT_MOON_VIS	29
 #	define ACT_MOON		29 | TRANSLATION
 
@@ -160,6 +159,7 @@ int  prs_get_dtime(int i, int what, char *out, int metric);
 int  prs_get_dwday(int i, int what, char *out);
 char *prs_translate(char *trans, const char *tfile);
 int  prs_get_timeWday(int i, int what, char *out);
+char *convertUnixTime(const char *timestr, char *buf);
 
 #endif // __wxparser__
 
