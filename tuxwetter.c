@@ -44,7 +44,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.17"
+#define P_VERSION "4.18"
 #define S_VERSION ""
 
 
@@ -265,6 +265,15 @@ int rv=-1,styp=0;
 				sscanf(tstr, "font_file=%127s", FONT);
 				rv = 1;
 			}
+			if((strncmp(entry, tstr, 16) == 0) && (strncmp(entry, "weather_api_key=", 16) == 0))
+			{
+				if(strstr(tstr+1, "XXX") == NULL)
+				{
+					printf("[tuxwetter] API Key found in neutrino.conf\n");
+					sscanf(tstr, "weather_api_key=%63s", key);
+					rv = 1;
+				}
+			}
 			//printf("%s\n%s=%s -> %d\n",tstr,entry,cfptr,rv);
 		}
 		fclose(nfh);
@@ -280,6 +289,7 @@ int ReadConf(char *iscmd)
 {
 	FILE *fd_conf;
 	char *cptr;
+	int cfgfile = 0;
 
 	//open config
 
@@ -296,6 +306,7 @@ int ReadConf(char *iscmd)
 		else
 		{
 			strcpy(TCF_FILE,CFG_FILE);
+			cfgfile = 1;
 		}
 	}
 	if(fd_conf)
@@ -307,13 +318,15 @@ int ReadConf(char *iscmd)
 		fd_conf = fopen(TCF_FILE, "r");
 	}
 
+	int neutrinofont = Read_Neutrino_Cfg("font_file=");
+	int weatherkey   = Read_Neutrino_Cfg("weather_api_key=");
+
 	while(fgets(line_buffer, BUFSIZE, fd_conf))
 	{
 		TrimString(line_buffer);
 
 		if((line_buffer[0]) && (line_buffer[0]!='#') && (!isspace(line_buffer[0])) && ((cptr=strchr(line_buffer,'='))!=NULL))
 		{
-			int neutrinofont = Read_Neutrino_Cfg("font_file=");
 			if(neutrinofont!=1 && strstr(line_buffer, "FONT=") == line_buffer)
 			{
 				strcpy(FONT,strchr(line_buffer,'=')+1);
@@ -346,9 +359,17 @@ int ReadConf(char *iscmd)
 				{
 					sscanf(cptr+1,"%d",&loadalways);
 				}
-			if(strstr(line_buffer,"LicenseKey") == line_buffer)
+			if(weatherkey!=1 && strstr(line_buffer,"LicenseKey") == line_buffer)
 				{
 					strncpy(key,cptr+1,sizeof(key)-1);
+					if (key[0] != 0)
+					{
+						TrimString(key);
+						if(cfgfile == 0)
+							printf("[tuxwetter] API Key found in tuxwetter.mcfg\n");
+						else
+							printf("[tuxwetter] API Key found in tuxwetter.conf\n");
+					}
 				}
 			if(strstr(line_buffer,"InetConnection") == line_buffer)
 				{
