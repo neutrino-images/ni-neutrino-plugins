@@ -42,13 +42,16 @@ extern int num_of_days;
 extern const char CONVERT_LIST[];
 extern void TrimString(char *strg);
 
-char *convertUnixTime(const char *timestr, char *buf)
+char *convertUnixTime(const char *timestr, char *buf, int metric)
 {
 	time_t timenum = (time_t) atoi(timestr);
 
 	struct tm t;
 	localtime_r(&timenum, &t);
-	strftime(buf, 30, "%H:%M", &t);
+	if (metric)
+		strftime(buf, 30, "%H:%M", &t);
+	else
+		strftime(buf, 30, "%I:%M %P", &t);
 	//printf ("DateTime = %s\n", buf);
 	return buf;
 }
@@ -260,14 +263,14 @@ int hh,mm,ret=1;
 		{
 			if(hh<12)
 			{
-				if(strstr(data[(what & ~TRANSLATION)+(i*PRE_STEP)],"PM")!=NULL)
+				if(strstr(data[(what & ~TRANSLATION)+(i*PRE_STEP)],"pm")!=NULL)
 				{
 					hh+=12;
 				}
 			}
 			else
 			{
-				if(strstr(data[(what & ~TRANSLATION)+(i*PRE_STEP)],"AM")!=NULL)
+				if(strstr(data[(what & ~TRANSLATION)+(i*PRE_STEP)],"am")!=NULL)
 				{
 					hh=0;
 				}
@@ -276,7 +279,7 @@ int hh,mm,ret=1;
 		}
 		else
 		{
-			sprintf(out,"%02d:%02d %s",hh,mm,(strstr(data[(what & ~TRANSLATION)+(i*PRE_STEP)],"PM")!=NULL)?"PM":"AM");
+			sprintf(out,"%02d:%02d %s",hh,mm,(strstr(data[(what & ~TRANSLATION)+(i*PRE_STEP)],"pm")!=NULL)?"pm":"pm");
 		}
 		ret=0;
 	}
@@ -300,7 +303,7 @@ int hh,mm,ret=1;
 		}
 		else
 		{
-			sprintf(out,"%04d/%02d/%02d %02d:%02d %s",t_actyear+2000,t_actmonth,t_actday,hh,mm,(strstr(data[(what & ~TRANSLATION)+(i*PRE_STEP)],"PM")!=NULL)?"PM":"AM");
+			sprintf(out,"%04d/%02d/%02d %02d:%02d %s",t_actyear+2000,t_actmonth,t_actday,hh,mm,(strstr(data[(what & ~TRANSLATION)+(i*PRE_STEP)],"PM")!=NULL)?"pm":"am");
 		}
 		ret=0;
 	}
@@ -389,14 +392,10 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	t_actmonth=0;
 
 #ifdef WWEATHER
-/*	sprintf (url,"wget -q -O /tmp/tuxwettr.tmp \"http://free.worldweatheronline.com/feed/weather.ashx?q=%s&format=xml&num_of_days=5&includeLocation=yes&key=%s\"",citycode,key);
-	exit_ind=system(url);
-	sleep(1);
-*/
 	//FIXME KEY! and CITYCODE
 	//sprintf (url,"http://api.wunderground.com/api/%s/geolookup/conditions/forecast10day/astronomy/lang:DL/pws:0/q/%s.json",key,citycode);
-	sprintf (url,"https://api.darksky.net/forecast/%s/%s?lang=de&units=ca&exclude=hourly,minutely",key,citycode);
-	printf("https://api.darksky.net/forecast/%s/%s?lang=de&units=ca&exclude=hourly,minutely\n",key,citycode);
+	sprintf (url,"https://api.darksky.net/forecast/%s/%s?lang=%s&units=%s&exclude=hourly,minutely",key,citycode,(metric)?"de":"en",(metric)?"ca":"us");
+	printf("url:%s\n",url);
 
 	exit_ind=HTTP_downloadFile(url, "/tmp/tuxwettr.tmp", 0, inet, ctmo, 3);
 

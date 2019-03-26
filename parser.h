@@ -46,53 +46,42 @@
 #	define ACT_LON		2
 #	define ACT_UPTIME	4
 #	define ACT_LOCALTIME	NA
-#	define ACT_TEMP_F	10
-#	define ACT_TEMP_C	10
-#	define ACT_FTEMP_F	11
-#	define ACT_FTEMP_C	11
+#	define ACT_TEMP		10
+#	define ACT_FTEMP	11
 #	define ACT_ICON		6
 #	define ACT_COND		5 //| TRANSLATION
 #	define ACT_HMID		13
 #	define ACT_WINDSPEED	15
 #	define ACT_WINDGUST	16
 #	define ACT_WINDDIR	17 | TRANSLATION
-#	define ACT_PRESS_MB	14
-#	define ACT_PRESS_IN	14
-#	define ACT_DEWP_F	12
-#	define ACT_DEWP_C	12
-#	define ACT_PRECIP_MM	7
-#	define ACT_PRECIP_IN	7
-#	define ACT_PPCP		8
+#	define ACT_PRESS	14
+#	define ACT_DEWPOINT	12
+#	define ACT_PRECIPINT	7
+#	define ACT_PRECIPPROP	8
 #	define ACT_VISIBILITY	20
-#	define ACT_CLOUDC	17
+#	define ACT_CLOUDC	18
 #	define ACT_SUNR		27
 #	define ACT_SUNS		28
 #	define ACT_PRTEND	NA
 #	define ACT_UVIND	19
 #	define ACT_UVTEXT	NA
 #	define ACT_OZONE	21
-#	define ACT_MOON_VIS	29
 #	define ACT_MOON		29 | TRANSLATION
 
 	// Preview Values
-#	define PRE_DAY_SIG	24
 #	define PRE_DAY		24
-#	define PRE_TEMPH_F	35
-#	define PRE_TEMPH_C	35
-#	define PRE_TEMPL_F	37
-#	define PRE_TEMPL_C	37
-#	define PRE_SNOW_IN	NA | TRANSLATION
-#	define PRE_SNOW_MM	NA | TRANSLATION
+#	define PRE_TEMPH	35
+#	define PRE_TEMPL	37
+#	define PRE_SNOW		NA | TRANSLATION
 #	define PRE_WSPEED	46
 #	define PRE_WINDD	49 | TRANSLATION
 #	define PRE_ICON		26
 #	define PRE_COND		25
-#	define PRE_COND_M	25
-#	define PRE_PRECIPMM	30 | TRANSLATION
+#	define PRE_PRECIPINT	30 | TRANSLATION
+#	define PRE_PRECIPPROP	33
 #	define PRE_SUNR		27
 #	define PRE_SUNS		28
 #	define PRE_BT		NA
-#	define PRE_PPCP		33
 #	define PRE_HMID		44
 #else
 #	define PRE_STEP		32
@@ -159,7 +148,7 @@ int  prs_get_dtime(int i, int what, char *out, int metric);
 int  prs_get_dwday(int i, int what, char *out);
 char *prs_translate(char *trans, const char *tfile);
 int  prs_get_timeWday(int i, int what, char *out);
-char *convertUnixTime(const char *timestr, char *buf);
+char *convertUnixTime(const char *timestr, char *buf, int metric);
 
 #endif // __wxparser__
 

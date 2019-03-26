@@ -44,7 +44,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.18"
+#define P_VERSION "4.19"
 #define S_VERSION ""
 
 
@@ -1328,7 +1328,7 @@ int slim=0;                  //using 720x576
 
 time_t atime;
 struct tm *sltime;
-char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
+char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm", cun[20];
 
 	//recalculate wigth
 	gicw += ((gicw%10) > OFFSET_SMALL ? OFFSET_MED-(gicw%10) : -(gicw%10)); //rounded table data width, needing for smoothed curves
@@ -1363,14 +1363,14 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 		}
 	}
 
-	strcpy(cun,prs_translate("Uhr",CONVERT_LIST));
+	strncpy(cun, prs_translate("Uhr",CONVERT_LIST), sizeof(cun)/sizeof(cun[0]));
 	if(!metric)
 	{
-		sprintf(tun,"F");     // Fahrenheit
-		sprintf(sun,"mph");   // miles per hour
-		sprintf(dun,"miles");
-		sprintf(pun,"inch");    // millibar
-		sprintf(iun,"inch");
+		snprintf(tun, sizeof(tun)/sizeof(tun[0]), "°F");     // Fahrenheit
+		snprintf(sun, sizeof(sun)/sizeof(sun[0]), "mph");   // miles per hour
+		snprintf(dun, sizeof(dun)/sizeof(dun[0]), "miles");
+		snprintf(pun, sizeof(pun)/sizeof(pun[0]), "mbar");  // millibar
+		snprintf(iun, sizeof(iun)/sizeof(iun[0]), "inches");
 		*cun=0;               // Uhrzeit
 	}
 	if(ix==-99)
@@ -1514,10 +1514,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 			RenderLine(gxs+1,gys,gxs+1,gys+gyw+gywf,CMCIT);
 			for(i=0; i<nc; i++)
 			{
-				if (metric)
-					prs_get_val(i, PRE_TEMPH_C,0,vstr);
-				else
-					prs_get_val(i, PRE_TEMPH_F,0,vstr);
+				prs_get_val(i, PRE_TEMPH,0,vstr);
 				if(sscanf(vstr,"%d",&tmax[i])!=1)
 				{
 					if(!i)
@@ -1530,10 +1527,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 						tmax[i]=tmax[i-1];
 					}
 				}
-				if (metric)
-					prs_get_val(i, PRE_TEMPL_C,0,vstr);
-				else
-					prs_get_val(i, PRE_TEMPL_F,0,vstr);
+				prs_get_val(i, PRE_TEMPL,0,vstr);
 				if(sscanf(vstr,"%d",&tmin[i])!=1)
 				{
 					tmin[i]=(i)?tmin[i-1]:0;
@@ -1584,8 +1578,8 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 			RenderLine(gxs,gys+gyw+2,gxs+gxw,gys+gyw+2,CMCIT);
 			RenderLine(gxs,gys+gyw+gywf,gxs+gxw,gys+gyw+gywf,CMCIT);
 			RenderLine(gxs,gys+gyw+gywf+1,gxs+gxw,gys+gyw+gywf+1,CMCIT);
-			RenderString((metric)? "°C":"°F", gxs-22, gys+3, 30, RIGHT, FSIZE_SMALL, CMCT);
-			RenderString((metric)? "°C":"°F", gxs+gxw-22, gys+3, 30, RIGHT, FSIZE_SMALL, CMCT);
+			RenderString(tun, gxs-22, gys+3, 30, RIGHT, FSIZE_SMALL, CMCT);
+			RenderString(tun, gxs+gxw-22, gys+3, 30, RIGHT, FSIZE_SMALL, CMCT);
 			RenderString(prs_translate("Höchstwerte",CONVERT_LIST), gxs, gys+5, gxw/2, CENTER, FSIZE_SMALL, YELLOW);
 			RenderString(prs_translate("Tiefstwerte",CONVERT_LIST), gxs+(gxw/2), gys+5, gxw/2, CENTER, FSIZE_SMALL, GREEN);
 
@@ -1811,7 +1805,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				}
 				else
 				{
-					sprintf(rstr,"%02d:%02d %s",(sltime->tm_hour)?((sltime->tm_hour>12)?sltime->tm_hour-12:sltime->tm_hour):12,sltime->tm_min,(sltime->tm_hour>=12)?"PM":"AM");
+					sprintf(rstr,"%02d:%02d %s",(sltime->tm_hour)?((sltime->tm_hour>12)?sltime->tm_hour-12:sltime->tm_hour):12,sltime->tm_min,(sltime->tm_hour>=12)?"pm":"am");
 				}
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
@@ -1820,7 +1814,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 #ifdef WWEATHER
 				prs_get_val(0, ACT_UPTIME, 0, vstr);
-				convertUnixTime(vstr, rstr);
+				convertUnixTime(vstr, rstr, metric);
 				sprintf(rstr,"%s %s",rstr,cun);
 
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
@@ -1847,15 +1841,9 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 
 				sprintf(rstr,"%s",prs_translate("Temperatur:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				if (metric) {
-					prs_get_val(0, ACT_TEMP_C, 0, vstr);
-					prs_get_val(0, ACT_FTEMP_C, 0, v2str);
-				}
-				else {
-					prs_get_val(0, ACT_TEMP_F, 0, vstr);
-					prs_get_val(0, ACT_FTEMP_F, 0, v2str);
-				}
-				sprintf(rstr,"%s °%s  %s %s °%s",vstr,tun,prs_translate("gefühlt:",CONVERT_LIST),v2str,tun);
+				prs_get_val(0, ACT_TEMP, 0, vstr);
+				prs_get_val(0, ACT_FTEMP, 0, v2str);
+				sprintf(rstr,"%s %s  %s %s %s",vstr,tun,prs_translate("gefühlt:",CONVERT_LIST),v2str,tun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
@@ -1868,21 +1856,14 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 
 				sprintf(rstr,"%s",prs_translate("Taupunkt:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				if (metric)
-					prs_get_val(0, ACT_DEWP_C, 0, vstr);
-				else
-					prs_get_val(0, ACT_DEWP_F, 0, vstr);
-				sprintf(rstr,"%s °%s",vstr,tun);
-
+				prs_get_val(0, ACT_DEWPOINT, 0, vstr);
+				sprintf(rstr,"%s %s",vstr,tun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
 				sprintf(rstr,"%s",prs_translate("Luftdruck:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				if (metric)
-					prs_get_val(0, ACT_PRESS_MB, 0, vstr);
-				else
-					prs_get_val(0, ACT_PRESS_IN, 0, vstr);
+				prs_get_val(0, ACT_PRESS, 0, vstr);
 #ifdef WWEATHER
 				sprintf(rstr,"%s %s",vstr,pun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
@@ -1916,7 +1897,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 #ifdef WWEATHER
 				prs_get_val(0, ACT_SUNR, 0, vstr);
-				convertUnixTime(vstr, rstr);
+				convertUnixTime(vstr, rstr, metric);
 				sprintf(rstr,"%s %s",rstr,cun);
 #else
 				prs_get_time(0, ACT_SUNR, vstr,metric);
@@ -1929,7 +1910,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 #ifdef WWEATHER
 				prs_get_val(0, ACT_SUNS, 0, vstr);
-				convertUnixTime(vstr, rstr);
+				convertUnixTime(vstr, rstr, metric);
 				sprintf(rstr,"%s %s",rstr,cun);
 #else
 				prs_get_time(0, ACT_SUNS, vstr,metric);
@@ -1941,8 +1922,8 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Mondphase:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				prs_get_val(0, ACT_MOON, 0, vstr);
-				//prs_get_val(0, ACT_MOON_VIS, 0, v2str);
 				sprintf(rstr,"%s (0.5 ~ %s)",vstr, prs_translate("Vollmond",CONVERT_LIST));
+
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
@@ -1986,10 +1967,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 
 				sprintf(rstr,"%s",prs_translate("Niederschlag:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				if (metric)
-					prs_get_val(0, ACT_PRECIP_MM, 0, vstr);
-				else
-					prs_get_val(0, ACT_PRECIP_IN, 0, vstr);
+				prs_get_val(0, ACT_PRECIPINT, 0, vstr);
 				sprintf(rstr,"%s %s",vstr,iun);
 
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
@@ -1997,7 +1975,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 
 				sprintf(rstr,"%s",prs_translate("Regenrisiko:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				prs_get_val(0, ACT_PPCP, 0, vstr);
+				prs_get_val(0, ACT_PRECIPPROP, 0, vstr);
 				sprintf(rstr,"%d %%",(int)(atof(vstr) * 100));
 
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
@@ -2023,10 +2001,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				--ix;
 				if(ix==1)
 				{
-					if (metric)
-						prs_get_val(ix-1, PRE_TEMPH_C, 0, vstr);
-					else
-						prs_get_val(ix-1, PRE_TEMPH_F, 0, vstr);
+					prs_get_val(ix-1, PRE_TEMPH, 0, vstr);
 
 					if(strstr(vstr,"N/A")!=NULL)
 					{
@@ -2081,21 +2056,17 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 
 				sprintf(rstr,"%s",prs_translate("Höchste Temperatur:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				if (metric)
-					prs_get_val(ix-1, PRE_TEMPH_C, 0, vstr);
-				else
-					prs_get_val(ix-1, PRE_TEMPH_F, 0, vstr);
-				sprintf(rstr,"%s °%s",vstr,tun);
+				prs_get_val(ix-1, PRE_TEMPH, 0, vstr);
+				sprintf(rstr,"%s %s",vstr,tun);
+
 				RenderString((prelate)?"---":rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
 				sprintf(rstr,"%s",prs_translate("Tiefste Temperatur:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				if (metric)
-					prs_get_val(ix-1, PRE_TEMPL_C, 0, vstr);
-				else
-					prs_get_val(ix-1, PRE_TEMPL_F, 0, vstr);
-				sprintf(rstr,"%s °%s",vstr,tun);
+				prs_get_val(ix-1, PRE_TEMPL, 0, vstr);
+				sprintf(rstr,"%s %s",vstr,tun);
+
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
@@ -2103,7 +2074,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 #ifdef WWEATHER
 				prs_get_val(0, ACT_SUNR, 0, vstr);
-				convertUnixTime(vstr, rstr);
+				convertUnixTime(vstr, rstr, metric);
 				sprintf(rstr,"%s %s",rstr,cun);
 #else
 				prs_get_time(ix-1, PRE_SUNR,vstr,metric);
@@ -2116,7 +2087,7 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 #ifdef WWEATHER
 				prs_get_val(0, ACT_SUNS, 0, vstr);
-				convertUnixTime(vstr, rstr);
+				convertUnixTime(vstr, rstr, metric);
 				sprintf(rstr,"%s %s",rstr,cun);
 #else
 				prs_get_time(ix-1, PRE_SUNS,vstr,metric);
@@ -2131,17 +2102,14 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Bedingung:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 #ifdef WWEATHER
-				if (metric)
-					prs_get_val2(ix-1, PRE_COND_M, 0, rstr);
-				else
-					prs_get_val2(ix-1, PRE_COND, 0, rstr);
+				prs_get_val2(ix-1, PRE_COND, 0, rstr);
 				vy=PaintWideString(dy, rstr, col2, vy, wxw-col2-50, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
 				sprintf(rstr,"%s",prs_translate("Regenrisiko:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
-				prs_get_val2(ix-1, PRE_PPCP, 0, vstr);
+				prs_get_val2(ix-1, PRE_PRECIPPROP, 0, vstr);
 				sprintf(rstr,"%d %%",(int)(atof(vstr) * 100));
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
@@ -2149,17 +2117,14 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Niederschlag:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
-				prs_get_val(ix-1, PRE_PRECIPMM, 0, vstr);
+				prs_get_val(ix-1, PRE_PRECIPINT, 0, vstr);
 				sprintf(rstr,"%s %s/h",vstr,iun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 #if 0
 				sprintf(rstr,"%s",prs_translate("Schneemenge:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				if (metric)
-					prs_get_val(ix-1, PRE_SNOW_MM, 0, vstr);
-				else
-					prs_get_val(ix-1, PRE_SNOW_IN, 0, vstr);
+				prs_get_val(ix-1, PRE_SNOW_MM, 0, vstr);
 				sprintf(rstr,"%s %s",vstr,iun);
 
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
@@ -2209,37 +2174,33 @@ char tun[2]="C",sun[5]="km/h",dun[6]="km",pun[5]="hPa",iun[7]="mm", cun[20];
 #endif
 #ifdef WWEATHER
 #if 0
-				if (metric)
-					prs_get_val2(ix-1, PRE_COND_M, 1, rstr);
-				else
-					prs_get_val2(ix-1, PRE_COND, 1, rstr);
+				prs_get_val2(ix-1, PRE_COND, 1, rstr);
 				vy=PaintWideString(dy, rstr, col2, vy, wxw-col2-5*OFFSET_MED, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
 				sprintf(rstr,"%s",prs_translate("Regenrisiko:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-
 				prs_get_val2(ix-1, PRE_PPCP, 1, vstr);
 				sprintf(rstr,"%s %%",vstr);
+
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
 				sprintf(rstr,"%s",prs_translate("Niederschlag:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-
 				prs_get_val(ix-1, PRE_PRECIPMM, 1, vstr);
 				sprintf(rstr,"%s %s",vstr,iun);
+
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
 				sprintf(rstr,"%s",prs_translate("Schneemenge:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				if (metric)
-					prs_get_val(ix-1, PRE_SNOW_MM, 1, vstr);
-				else
-					prs_get_val(ix-1, PRE_SNOW_IN, 1, vstr);
+				prs_get_val(ix-1, PRE_SNOW_MM, 1, vstr);
 				sprintf(rstr,"%s %s",vstr,iun);
+
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
+				vy+=dy;
 #endif
 #else
 				prs_get_val(ix-1, PRE_COND, 1, vstr);
