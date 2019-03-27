@@ -485,11 +485,18 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 					{
 						data[tc][cc]='\0';
 						//printf("tagname[%d] = %s | data = %s\n",tc,tagname,data[tc]);
-						//fix zero precipType
-						if(!strcmp(tagname,"precipProbability") && !strcmp(data[tc],"0"))
+						//fix zero precipIntensityMaxTime
+						if(!strcmp(tagname,"precipIntensityMax") && !strcmp(data[tc],"0"))
 						{
 							tc++;
-							data[tc]==NA;
+							strcpy(data[tc], "0");
+							//printf("tagname[%d] = precipIntensityMaxTime | data = %s\n",tc,data[tc]);
+						}
+						//fix zero precipType
+						else if(!strcmp(tagname,"precipProbability") && !strcmp(data[tc],"0"))
+						{
+							tc++;
+							strcpy(data[tc], "0");
 							//printf("tagname[%d] = precipType | data = %s\n",tc,data[tc]);
 						}
 						tagname[0]='\0';
