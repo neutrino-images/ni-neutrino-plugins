@@ -39,7 +39,7 @@
 #	define PRE_STEP2	39
 #	define NIGHT_STEP2	0
 
-	// atual Values
+	// actual Values
 #	define ACT_CITY		NA
 #	define ACT_OBST		NA
 #	define ACT_LAT		1
@@ -53,18 +53,18 @@
 #	define ACT_HMID		13
 #	define ACT_WINDSPEED	15
 #	define ACT_WINDGUST	16
-#	define ACT_WINDDIR	17 | TRANSLATION
+#	define ACT_WINDDIR	17 //| TRANSLATION
 #	define ACT_PRESS	14
 #	define ACT_DEWPOINT	12
 #	define ACT_PRECIPINT	7
 #	define ACT_PRECIPPROP	8
-#	define ACT_VISIBILITY	20
 #	define ACT_CLOUDC	18
 #	define ACT_SUNR		27
 #	define ACT_SUNS		28
 #	define ACT_PRTEND	NA
 #	define ACT_UVIND	19
 #	define ACT_UVTEXT	NA
+#	define ACT_VISIBILITY	20
 #	define ACT_OZONE	21
 #	define ACT_MOON		29 | TRANSLATION
 
@@ -73,8 +73,6 @@
 #	define PRE_TEMPH	35
 #	define PRE_TEMPL	37
 #	define PRE_SNOW		NA | TRANSLATION
-#	define PRE_WSPEED	46
-#	define PRE_WINDD	49 | TRANSLATION
 #	define PRE_ICON		26
 #	define PRE_COND		25
 #	define PRE_PRECIPINT	30 | TRANSLATION
@@ -83,6 +81,9 @@
 #	define PRE_SUNS		28
 #	define PRE_BT		NA
 #	define PRE_HMID		44
+#	define PRE_WINDSPEED	46
+#	define PRE_WINDGUST	47
+#	define PRE_WINDDIR	49 //| TRANSLATION
 #else
 #	define PRE_STEP		32
 #	define NIGHT_STEP	13
