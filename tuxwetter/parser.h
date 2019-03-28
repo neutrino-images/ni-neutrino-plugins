@@ -150,6 +150,7 @@ int  prs_get_dwday(int i, int what, char *out);
 char *prs_translate(char *trans, const char *tfile);
 int  prs_get_timeWday(int i, int what, char *out);
 char *convertUnixTime(const char *timestr, char *buf, int metric);
+int  convertDegToCardinal(const char *degstr, char *out);
 
 #endif // __wxparser__
 
