@@ -8,6 +8,7 @@
 //#include <ctype.h>
 
 #include <curl/curl.h>
+#include <math.h>
 //#include <strings.h>
 #include "tuxwetter.h"
 #include "parser.h"
@@ -54,6 +55,19 @@ char *convertUnixTime(const char *timestr, char *buf, int metric)
 		strftime(buf, 30, "%I:%M %P", &t);
 	//printf ("DateTime = %s\n", buf);
 	return buf;
+}
+
+int convertDegToCardinal(const char *degstr, char *out)
+{
+	const char DirTable[][5] = {"N","NNO","NO","ONO","O","OSO","SO","SSO","S","SSW","SW","WSW","W","WNW","NW","NNW"};
+	float deg = atof(degstr);
+
+	while( deg < 0 ) deg += 360 ;
+	while( deg >= 360 ) deg -= 360 ;
+
+	sprintf(out, "%s", prs_translate((char*)DirTable[(int)(floor((deg+11.25)/22.5))], CONVERT_LIST));
+
+	return 0;
 }
 
 void prs_check_missing(char *entry)
@@ -365,7 +379,7 @@ int prs_get_timeWday(int i, int what, char *out)
 
 int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 {
-	int  rec=0, flag=0, next=0;
+	int  rec=0, flag=0, next=0, windspeed=1;
 	int cc=0, bc=1, exit_ind=-1;
 	char gettemp;
 	FILE *wxfile=NULL;
@@ -498,6 +512,19 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 							tc++;
 							strcpy(data[tc], "0");
 							//printf("tagname[%d] = precipType | data = %s\n",tc,data[tc]);
+						}
+						//fix zero windSpeed / windBearing
+						else if(!strcmp(tagname,"windSpeed") && !strcmp(data[tc], "0"))
+						{
+							printf("tagname[%d] = windSpeed | data = %s\n",tc,data[tc]);
+							windspeed = 0;
+						}
+						else if(!strcmp(tagname,"windGust") && windspeed == 0)
+						{
+							tc++;
+							strcpy(data[tc], "0");
+							windspeed = 1;
+							printf("tagname[%d] = windBearing | data = %s\n",tc,data[tc]);
 						}
 						tagname[0]='\0';
 						rec=0;

@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <time.h>
+#include <math.h>
 //#include <linux/delay.h>
 #include "tuxwetter.h"
 #include "parser.h"
@@ -44,7 +45,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.21"
+#define P_VERSION "4.22"
 #define S_VERSION ""
 
 
@@ -1328,7 +1329,7 @@ int slim=0;                  //using 720x576
 
 time_t atime;
 struct tm *sltime;
-char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm", cun[20];
+char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 
 	//recalculate wigth
 	gicw += ((gicw%10) > OFFSET_SMALL ? OFFSET_MED-(gicw%10) : -(gicw%10)); //rounded table data width, needing for smoothed curves
@@ -1508,7 +1509,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm", cun[20];
 
 			RenderBox(wsx, wsy, wxw, wyw, radius, CMC);
 			RenderBox(wsx, wsy, wxw, scale2res(44), radius, CMH);
-			sprintf(rstr,"%s %d %s",prs_translate("Trend für die kommende Woche",CONVERT_LIST),nc,prs_translate("Tage",CONVERT_LIST));
+			sprintf(rstr,"%s %d %s",prs_translate("Trend für die kommenden",CONVERT_LIST),nc,prs_translate("Tage",CONVERT_LIST));
 			RenderString(rstr, wsx, wsy+4*OFFSET_MED, wxw, CENTER, FSIZE_BIG, CMHT);
 			RenderLine(gxs,gys,gxs,gys+gyw+gywf,CMCIT);
 			RenderLine(gxs+1,gys,gxs+1,gys+gyw+gywf,CMCIT);
@@ -1843,7 +1844,8 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				prs_get_val(0, ACT_TEMP, 0, vstr);
 				prs_get_val(0, ACT_FTEMP, 0, v2str);
-				sprintf(rstr,"%s %s  %s %s %s",vstr,tun,prs_translate("gefühlt:",CONVERT_LIST),v2str,tun);
+				sprintf(rstr,"%d %s  %s %d %s",(int)round(atof(vstr)),tun,prs_translate("gefühlt:",CONVERT_LIST),(int)round(atof(v2str)),tun);
+
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
@@ -1851,13 +1853,15 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				prs_get_val(0, ACT_HMID, 0, vstr);
 				sprintf(rstr,"%d %%",(int)(atof(vstr) * 100));
+
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
 				sprintf(rstr,"%s",prs_translate("Taupunkt:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				prs_get_val(0, ACT_DEWPOINT, 0, vstr);
-				sprintf(rstr,"%s %s",vstr,tun);
+				sprintf(rstr,"%d %s",(int)round(atof(vstr)),tun);
+
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
@@ -1865,7 +1869,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				prs_get_val(0, ACT_PRESS, 0, vstr);
 #ifdef WWEATHER
-				sprintf(rstr,"%s %s",vstr,pun);
+				sprintf(rstr,"%d %s",(int)round(atof(vstr)),pun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 #else
 				prs_get_val(0, ACT_PRTEND, 0, v2str);
@@ -1876,27 +1880,25 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm", cun[20];
 
 				sprintf(rstr,"%s",prs_translate("Wind:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-
-				prs_get_val(0, ACT_WINDDIR, 0, vstr);
-				sprintf(tstr,"%s %s°",prs_translate("aus Richtung",CONVERT_LIST),vstr);
 				prs_get_val(0, ACT_WINDSPEED, 0, vstr);
-				sprintf(rstr,"%s %s %s %s",tstr,prs_translate("mit",CONVERT_LIST),vstr,sun);
-
+				if(!strcmp(vstr, "0"))
+				{
+					sprintf(rstr,"%s",prs_translate("Windstill",CONVERT_LIST));
+				}	
+				else
+				{
+					prs_get_val(0, ACT_WINDDIR, 0, v2str);
+					convertDegToCardinal(v2str, rstr);
+					sprintf(tstr,"%s %s",prs_translate("Richtung",CONVERT_LIST),rstr);
+					sprintf(rstr,"%s %s %d %s",tstr,prs_translate("mit",CONVERT_LIST),(int)round(atof(vstr)),sun);
+				}
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
 				sprintf(rstr,"%s",prs_translate("Windböen:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				prs_get_val(0, ACT_WINDGUST, 0, vstr);
-				sprintf(rstr,"%s %s %s",prs_translate("bis zu",CONVERT_LIST),vstr,sun);
-
-				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
-				vy+=dy;
-
-				sprintf(rstr,"%s",prs_translate("Niederschlag:",CONVERT_LIST));
-				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				prs_get_val(0, ACT_PRECIPINT, 0, vstr);
-				sprintf(rstr,"%s %s",vstr,iun);
+				sprintf(rstr,"%s %d %s",prs_translate("bis zu",CONVERT_LIST),(int)round(atof(vstr)),sun);
 
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
@@ -1905,6 +1907,19 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				prs_get_val(0, ACT_PRECIPPROP, 0, vstr);
 				sprintf(rstr,"%d %%",(int)(atof(vstr) * 100));
+
+				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
+				vy+=dy;
+
+				sprintf(rstr,"%s",prs_translate("Niederschlag:",CONVERT_LIST));
+				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
+				prs_get_val(0, ACT_PRECIPINT, 0, vstr);
+				if(atof(vstr) < 1.0 && strcmp(vstr, "0"))
+					sprintf(rstr,"%s %s","< 1",iun);
+				else if(atof(vstr) >= 1.0)
+					sprintf(rstr,"%.1f %s",atof(vstr),iun);
+				else
+					sprintf(rstr,"%s %s",vstr,iun);
 
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=(1.5*(double)dy);
@@ -1947,7 +1962,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				prs_get_val(0, ACT_VISIBILITY, 0, vstr);
 #ifdef WWEATHER
-				sprintf(rstr,"%s %s",vstr,dun);
+				sprintf(rstr,"%d %s",(int)round(atof(vstr)),dun);
 #else
 				if(sscanf(vstr,"%d",&itmp)==1)
 				{
@@ -1976,7 +1991,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
 				prs_get_val(0, ACT_OZONE, 0, vstr);
-				sprintf(rstr,"%s DU",vstr);
+				sprintf(rstr,"%d DU",(int)round(atof(vstr)));
 
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
@@ -2057,7 +2072,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Höchste Temperatur:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				prs_get_val(ix-1, PRE_TEMPH, 0, vstr);
-				sprintf(rstr,"%s %s",vstr,tun);
+				sprintf(rstr,"%d %s",(int)round(atof(vstr)),tun);
 
 				RenderString((prelate)?"---":rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
@@ -2065,7 +2080,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Tiefste Temperatur:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				prs_get_val(ix-1, PRE_TEMPL, 0, vstr);
-				sprintf(rstr,"%s %s",vstr,tun);
+				sprintf(rstr,"%d %s",(int)round(atof(vstr)),tun);
 
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
@@ -2073,7 +2088,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Sonnenaufgang:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 #ifdef WWEATHER
-				prs_get_val(0, PRE_SUNR, 0, vstr);
+				prs_get_val(ix-1, PRE_SUNR, 0, vstr);
 				convertUnixTime(vstr, rstr, metric);
 				sprintf(rstr,"%s %s",rstr,cun);
 #else
@@ -2086,7 +2101,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Sonnenuntergang:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 #ifdef WWEATHER
-				prs_get_val(0, PRE_SUNS, 0, vstr);
+				prs_get_val(ix-1, PRE_SUNS, 0, vstr);
 				convertUnixTime(vstr, rstr, metric);
 				sprintf(rstr,"%s %s",rstr,cun);
 #else
@@ -2116,9 +2131,14 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm", cun[20];
 
 				sprintf(rstr,"%s",prs_translate("Niederschlag:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-
 				prs_get_val(ix-1, PRE_PRECIPINT, 0, vstr);
-				sprintf(rstr,"%s %s/h",vstr,iun);
+				if(atof(vstr) < 1.0 && strcmp(vstr, "0"))
+					sprintf(rstr,"%s %s","< 1",iun);
+				else if(atof(vstr) >= 1.0)
+					sprintf(rstr,"%.1f %s",atof(vstr),iun);
+				else
+					sprintf(rstr,"%s %s",vstr,iun);
+
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 #if 0
@@ -2133,17 +2153,24 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
 				prs_get_val(ix-1, PRE_HMID, 1, vstr);
-				sprintf(rstr,"%s %%",vstr);
+				sprintf(rstr,"%d %%",(int)(atof(vstr) * 100));
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
 				sprintf(rstr,"%s",prs_translate("Wind:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-
-				prs_get_val(ix-1, PRE_WINDDIR, 0, vstr);
-				sprintf(tstr,"%s %s°",prs_translate("aus Richtung",CONVERT_LIST),vstr);
 				prs_get_val(ix-1, PRE_WINDSPEED, 0, vstr);
-				sprintf(rstr,"%s %s %s %s",tstr,prs_translate("mit",CONVERT_LIST),vstr,sun);
+				if(!strcmp(vstr, "0"))
+				{
+					sprintf(rstr,"%s",prs_translate("Windstill",CONVERT_LIST));
+				}	
+				else
+				{
+					prs_get_val(ix-1, PRE_WINDDIR, 0, v2str);
+					convertDegToCardinal(v2str, rstr);
+					sprintf(tstr,"%s %s",prs_translate("Richtung",CONVERT_LIST),rstr);
+					sprintf(rstr,"%s %s %d %s",tstr,prs_translate("mit",CONVERT_LIST),(int)round(atof(vstr)),sun);
+				}
 
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
@@ -2151,7 +2178,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm", cun[20];
 				sprintf(rstr,"%s",prs_translate("Windböen:",CONVERT_LIST));
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				prs_get_val(ix-1, PRE_WINDGUST, 0, vstr);
-				sprintf(rstr,"%s %s %s",prs_translate("bis zu",CONVERT_LIST),vstr,sun);
+				sprintf(rstr,"%s %d %s",prs_translate("bis zu",CONVERT_LIST),(int)round(atof(vstr)),sun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 #else
