@@ -516,7 +516,7 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 						//fix zero windSpeed / windBearing
 						else if(!strcmp(tagname,"windSpeed") && !strcmp(data[tc], "0"))
 						{
-							printf("tagname[%d] = windSpeed | data = %s\n",tc,data[tc]);
+							//printf("tagname[%d] = windSpeed | data = %s\n",tc,data[tc]);
 							windspeed = 0;
 						}
 						else if(!strcmp(tagname,"windGust") && windspeed == 0)
@@ -524,7 +524,7 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 							tc++;
 							strcpy(data[tc], "0");
 							windspeed = 1;
-							printf("tagname[%d] = windBearing | data = %s\n",tc,data[tc]);
+							//printf("tagname[%d] = windBearing | data = %s\n",tc,data[tc]);
 						}
 						tagname[0]='\0';
 						rec=0;
@@ -534,6 +534,17 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 					}
 					else
 					{
+						//FIXME optional value
+						if(!strcmp(tagname,"precipAccumulation"))
+						{
+							//printf("tagname[%d] = %s \n",tc, tagname);
+							tagname[0]='\0';
+							tag=0;
+							rec=0;
+							cc=0;
+							tcc=0;
+							continue;
+						}
 						//printf("%c",gettemp);
 						data[tc][cc]=gettemp;
 						cc++;
