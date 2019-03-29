@@ -1,7 +1,7 @@
 #ifndef __shellexec_H__
 #define __shellexec_H__
 
-//#include <config.h>
+#include <config.h>
 #define _FILE_OFFSET_BITS 64
 #include <errno.h>
 #include <fcntl.h>
