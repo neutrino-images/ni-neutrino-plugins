@@ -43,6 +43,7 @@
       ------------------------------------------------------------\n\n"
 #define FLAG_FILE "/tmp/.logoview"
 #define NEUTRINO_CONF "/var/tuxbox/config/neutrino.conf"
+#define START_LOGO DATADIR "/neutrino/icons/start.jpg"
 
 #define DEFAULT_X_START_SD	60
 #define DEFAULT_Y_START_SD	20
@@ -84,7 +85,7 @@ CLogoView::CLogoView()
 	onlyClearScreen = false;
 	background    = false;
 	nomem         = "logoview <Out of memory>\n";
-	start_logo    = "/share/tuxbox/neutrino/icons/start.jpg";
+	start_logo    = START_LOGO;
 }
 
 CLogoView::~CLogoView()
