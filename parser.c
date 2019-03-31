@@ -59,7 +59,7 @@ char *convertUnixTime(const char *timestr, char *buf, int metric)
 
 int convertDegToCardinal(const char *degstr, char *out)
 {
-	const char DirTable[][5] = {"N","NNO","NO","ONO","O","OSO","SO","SSO","S","SSW","SW","WSW","W","WNW","NW","NNW"};
+	const char DirTable[][5] = {"N","NNO","NO","ONO","O","OSO","SO","SSO","S","SSW","SW","WSW","W","WNW","NW","NNW","N"};
 	float deg = atof(degstr);
 
 	while( deg < 0 ) deg += 360 ;
