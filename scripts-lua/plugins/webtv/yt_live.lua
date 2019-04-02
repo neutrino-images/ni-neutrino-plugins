@@ -136,9 +136,9 @@ function getVideoData(yurl)
 		end
 
 		if data then
-			local m3u_url = data:match('hlsvp.:.(https:\\.-m3u8)')
+			local m3u_url = data:match('hlsManifestUrl..:..(https:\\.-m3u8)') or data:match('hlsvp.:.(https:\\.-m3u8)')
 			if m3u_url == nil then
-				m3u_url = data:match('hlsvp=(https%%3A%%2F%%2F.-m3u8)')
+				m3u_url = data:match('hlsManifestUrl..:..(https%%3A%%2F%%2F.-m3u8)') or data:match('hlsvp=(https%%3A%%2F%%2F.-m3u8)')
 				if m3u_url then
 					m3u_url = unescape_uri(m3u_url)
 				end
