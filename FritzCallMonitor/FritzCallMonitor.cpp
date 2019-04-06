@@ -76,7 +76,7 @@ void CFCM::FritzCall()
 		sockfd = cconnect->connect2Host(FritzAdr, FritzPort);
 
 		if (sockfd > 0) {
-			printf("[%s] - Socked (%i) connected to %s\n", BASENAME, sockfd, easymode?"EasyBox":"FritzBox");
+			printf("[%s] - Socked (%i) connected to %s\n", FCMNAME, sockfd, easymode?"EasyBox":"FritzBox");
 			loop=1;
 		}
 		else
@@ -88,7 +88,7 @@ void CFCM::FritzCall()
 	    do {
 		bzero(Buff1, sizeof(Buff1));
 		if((len = recv(sockfd, Buff1, sizeof(Buff1), 0)) <= 0) {
-			printf("[%s] - recv error\n", BASENAME);
+			printf("[%s] - recv error\n", FCMNAME);
 			break;
 		}
 #if 0
@@ -110,7 +110,7 @@ void CFCM::FritzCall()
 		 *	28.08.10 10:28:51;DISCONNECT;1;0;
 		 */
 #endif
-		printf("[%s] - %s",BASENAME, Buff1);
+		printf("[%s] - %s",FCMNAME, Buff1);
 
 		i=0;
 		//item[0]="not used";
@@ -139,7 +139,7 @@ void CFCM::FritzCall()
 				strcpy(CallFrom, item[4]);
 				strcpy(CallTo, item[5]);
 			}
-			printf("[%s] - Eingehender Anruf von %s an %s\n", BASENAME, CallFrom, CallTo);
+			printf("[%s] - Eingehender Anruf von %s an %s\n", FCMNAME, CallFrom, CallTo);
 
 			for (i=0; i < (int)(sizeof(msnnum)/sizeof(msnnum[0])); i++)
 			{
@@ -164,7 +164,7 @@ void CFCM::FritzCall()
 	    do {
 		bzero(Buff1, sizeof(Buff1));
 		if((len = recv(sockfd, Buff1, sizeof(Buff1), 0)) <= 0) {
-			printf("[%s] - recv error\n",BASENAME );
+			printf("[%s] - recv error\n",FCMNAME );
 			break;
 		}
 #if 0
@@ -180,7 +180,7 @@ void CFCM::FritzCall()
 		 * 	CID: *DATE*01072011*TIME*2007*LINE**NMBR*Privat*MESG*NONE*NAME*NO NAME*
 		 */
 #endif
-		printf("[%s] - %s",BASENAME, Buff1);
+		printf("[%s] - %s",FCMNAME, Buff1);
 
 		char* ptr;
 		strcpy(CallFrom,"Unbekannt");
@@ -193,7 +193,7 @@ void CFCM::FritzCall()
 			else if ((ptr = strstr(Buff1, "LINE*")))
 				sscanf(ptr + 5, "%63[^*]", (char *) &CallTo);
 
-			printf("[%s] - Eingehender Anruf von %s an %s\n", BASENAME, CallFrom, CallTo);
+			printf("[%s] - Eingehender Anruf von %s an %s\n", FCMNAME, CallFrom, CallTo);
 
 			for (i=0; i < (int)(sizeof(msnnum)/sizeof(msnnum[0])); i++)
 			{
@@ -267,7 +267,7 @@ int CFCM::search(const char *searchNO)
 		free(line);
 
 	if(strlen(address.name)!=0) {
-		if (debug){printf("[%s] - (%s) = %s, %s, %s %s\n",BASENAME, searchNO, address.name, address.street, address.code, address.locality);}
+		if (debug){printf("[%s] - (%s) = %s, %s, %s %s\n",FCMNAME, searchNO, address.name, address.street, address.code, address.locality);}
 
 		sendMSG(strlen(address.name));
 
@@ -275,7 +275,7 @@ int CFCM::search(const char *searchNO)
 		add_AddrBook(CallFrom);
 	}
 	else {
-		printf("[%s] - no results for %s\n",BASENAME, searchNO);
+		printf("[%s] - no results for %s\n",FCMNAME, searchNO);
 	}
 
 	sendMSG(0);
@@ -315,7 +315,7 @@ void CFCM::sendMSG(int caller_address)
 				perror("vfork");
 				break;
 			case 0:
-				printf("[%s] - Execute -> %s\n",BASENAME,execute);
+				printf("[%s] - Execute -> %s\n",FCMNAME,execute);
 				if(execl("/bin/sh", "sh", execute, msg.str().c_str(), NULL))
 				{
 					perror("execl");
@@ -387,7 +387,7 @@ int CFCM::search_AddrBook(const char *caller)
 					(char *) &address.code,
 					(char *) &address.locality);
 				if (debug)
-					printf("[%s] - \"%s\" found in %s[%d]\n", BASENAME, caller, addressbook, i);
+					printf("[%s] - \"%s\" found in %s[%d]\n", FCMNAME, caller, addressbook, i);
 				fclose(fd);
 				if(line_buffer)
 					free(line_buffer);
@@ -395,7 +395,7 @@ int CFCM::search_AddrBook(const char *caller)
 			}
 		}
 		if (debug)
-			printf("[%s] - \"%s\" not found in %s\n", BASENAME, caller, addressbook);
+			printf("[%s] - \"%s\" not found in %s\n", FCMNAME, caller, addressbook);
 
 		fclose(fd);
 		if(line_buffer)
@@ -514,7 +514,7 @@ int CFCM::query_loop()
 	{
 		if(searchmode)
 		{
-			printf("[%s] - %s send query\n", BASENAME, cconnect->timestamp().c_str());
+			printf("[%s] - %s send query\n", FCMNAME, cconnect->timestamp().c_str());
 			if(cconnect->get_login(FritzPW))
 			{
 				cconnect->send_TAMquery(adflag,cconnect->getSid(),searchquery);
@@ -524,7 +524,7 @@ int CFCM::query_loop()
 		if(!c["DECTBOXIP"].empty())
 		{
 			cconnect->setFritzAdr(c["DECTBOXIP"].c_str());
-			printf("[%s] - %s getdevicelistinfos %s\n", BASENAME, cconnect->timestamp().c_str(),c["DECTBOXIP"].c_str());
+			printf("[%s] - %s getdevicelistinfos %s\n", FCMNAME, cconnect->timestamp().c_str(),c["DECTBOXIP"].c_str());
 
 			if(cconnect->get_login(c["DECTPASSWD"].c_str()))
 			{
@@ -544,7 +544,7 @@ void CFCM::start_loop()
 {
 	if (searchmode || !c["DECTBOXIP"].empty()) {
 		if(!thrTimer) {
-			printf("[%s] - %s Start Thread for checking FRITZ!Box (reload %i seconds)\n",BASENAME, cconnect->timestamp().c_str(), searchint);
+			printf("[%s] - %s Start Thread for checking FRITZ!Box (reload %i seconds)\n",FCMNAME, cconnect->timestamp().c_str(), searchint);
 			pthread_create (&thrTimer, NULL, proxy_loop, this) ;
 			pthread_detach(thrTimer);
 		}
@@ -554,7 +554,7 @@ void CFCM::start_loop()
 void CFCM::stop_loop()
 {
 	if(thrTimer) {
-		printf("[%s] - %s Stop Thread for checking FRITZ!Box\n", BASENAME, cconnect->timestamp().c_str());
+		printf("[%s] - %s Stop Thread for checking FRITZ!Box\n", FCMNAME, cconnect->timestamp().c_str());
 		pthread_cancel(thrTimer);
 		thrTimer = 0;
 	}
@@ -668,7 +668,7 @@ int CFCM::ReadConfig(const char *fname)
 	}
 	else
 	{
-		printf("[%s] - ERROR open %s\n", BASENAME,fname);
+		printf("[%s] - ERROR open %s\n", FCMNAME,fname);
 	}
 	if(line_buffer)
 		free(line_buffer);
@@ -755,8 +755,8 @@ int CFCM::read_conf(const string& file)
 
 void Usage()
 {
-	printf("[%s] - FritzBox-Anrufmonitor %s %s\n\n", BASENAME, VERSION, COPYR);;
-	printf("\t\tUSAGE:\t%s\n", BASENAME);
+	printf("[%s] - FritzBox-Anrufmonitor %s %s\n\n", FCMNAME, FCMVERSION, FCMCOPYRIGHT);;
+	printf("\t\tUSAGE:\t%s\n", FCMNAME);
 	printf("\t\t\t-c\t\t\tget callerlist (FRITZ!Box_Anrufliste.csv)\n");
 	printf("\t\t\t-h\t\t\tshow help\n");
 	printf("\t\t\t-q\t\t\tsend query to FRITZ!Box\n");
@@ -773,14 +773,14 @@ int main(int argc, char *argv[])
 
 int CFCM::run(int argc, char *argv[])
 {
-	printf("\n[%s] - NI FRITZ!Box-Anrufmonitor %s - %s\n", BASENAME, VERSION, COPYR);
+	printf("\n[%s] - NI FRITZ!Box-Anrufmonitor %s - %s\n", FCMNAME, FCMVERSION, FCMCOPYRIGHT);
 
 	if(strlen(msnnum[0].msn)==0)
-		printf("[%s] - Listening to all MSN's\n", BASENAME);
+		printf("[%s] - Listening to all MSN's\n", FCMNAME);
 	else {
 		for (int i=0; i < (int)(sizeof(msnnum)/sizeof(msnnum[0])); i++) {
 			if(strlen(msnnum[i].msn)!=0) {
-				cout << '[' << BASENAME << "] - Listening to MSN " << msnnum[i].msn << 
+				cout << '[' << FCMNAME << "] - Listening to MSN " << msnnum[i].msn << 
 				(strlen(msnnum[i].msnName)!=0 ? " (" : "") <<
 				(strlen(msnnum[i].msnName)!=0 ? msnnum[i].msnName : "") <<
 				(strlen(msnnum[i].msnName)!=0 ? ")" : "") << endl;
@@ -812,7 +812,7 @@ int CFCM::run(int argc, char *argv[])
 						break;
 
 					case -1:
-						printf("[%s] - Aborted!\n", BASENAME);
+						printf("[%s] - Aborted!\n", FCMNAME);
 						return -1;
 					default:
 					      exit(0);
@@ -820,7 +820,7 @@ int CFCM::run(int argc, char *argv[])
 			}
 			else if (strstr(argv[1], "-c"))
 			{
-				printf("[%s] - get FRITZ!Box_Anrufliste.csv from FritzBox\n", BASENAME);
+				printf("[%s] - get FRITZ!Box_Anrufliste.csv from FritzBox\n", FCMNAME);
 
 				if(!cconnect->get_login(FritzPW)) {
 					exit(1);
@@ -833,7 +833,7 @@ int CFCM::run(int argc, char *argv[])
 			}
 			else if (strstr(argv[1], "-q"))
 			{
-				printf("[%s] - %s send query 2 FritzBox\n", BASENAME, cconnect->timestamp().c_str());
+				printf("[%s] - %s send query 2 FritzBox\n", FCMNAME, cconnect->timestamp().c_str());
 
 				if(!cconnect->get_login(FritzPW)) {
 					exit(1);
@@ -850,7 +850,7 @@ int CFCM::run(int argc, char *argv[])
 			}
 			else if (strstr(argv[1], "-s"))
 			{
-				printf("[%s] - get smart Home infos from FritzBox\n", BASENAME);
+				printf("[%s] - get smart Home infos from FritzBox\n", FCMNAME);
 
 				cconnect->setFritzAdr(c["DECTBOXIP"].c_str());
 
@@ -877,7 +877,7 @@ int CFCM::run(int argc, char *argv[])
 		case 4:
 			if (strstr(argv[1], "-t"))
 			{
-				printf("[%s] - serarch for %s\n", BASENAME, argv[2]);
+				printf("[%s] - serarch for %s\n", FCMNAME, argv[2]);
 				strcpy(CallFrom, argv[2]);
 				strcpy(CallTo, argv[3]);
 				search(CallFrom);
