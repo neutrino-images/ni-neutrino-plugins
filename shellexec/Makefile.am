@@ -29,7 +29,7 @@ configdir = $(CONFIGDIR)
 config_DATA = \
 	shellexec.conf
 
-flexdir = $(DESTDIR)/share/tuxbox/neutrino/flex
+flexdir = $(DATADIR)/neutrino/flex
 
 flex_DATA = \
 	flex_plugins.conf \
