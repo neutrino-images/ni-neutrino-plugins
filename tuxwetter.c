@@ -2516,10 +2516,17 @@ unsigned char *buffer=NULL;
  					LCD_update();
 				}
 #endif
+				if (gifs > 1)
+				{
+					if (cloop == 1)
+						usleep(1600000);
+					else
+						usleep(400000);
+				}
 			}
 			free(buffer);
 		}
-		
+
 		if(!rv && wait)
 		{
 			rcg=wait_image(repeat, 1);
