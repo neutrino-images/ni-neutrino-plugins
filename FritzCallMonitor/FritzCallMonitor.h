@@ -13,11 +13,11 @@
 
 #include "connect.h"
 
-#define BASENAME "FCM"
-#define VERSION "V5.1"
-#define COPYR "2010, 2017 (c) FlatTV"
-#define BUFFERSIZE 1024
+#define FCMNAME "FCM"
+#define FCMVERSION "V5.1"
+#define FCMCOPYRIGHT "2010, 2017 (c) FlatTV"
 
+#define BUFFERSIZE 1024
 #define MAXITEM 10 
 #define CONFIGFILE "/var/tuxbox/config/FritzCallMonitor.cfg"
 
