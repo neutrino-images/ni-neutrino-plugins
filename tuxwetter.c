@@ -45,7 +45,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.25"
+#define P_VERSION "4.26"
 #define S_VERSION ""
 
 

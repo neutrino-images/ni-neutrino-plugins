@@ -76,6 +76,7 @@ int HTTP_downloadFile(char *URL, char *downloadTarget, int showprogress, int tmo
 		{
 			curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
 			curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L/*(showprogress)?0:1*/);
+			curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0");
 			curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
 			curl_easy_setopt(curl, CURLOPT_WRITEDATA, tmpFile);
