@@ -27,9 +27,15 @@ icons_DATA = \
 	hint_FritzCallMonitor.png
 
 install-exec-local:
-	install -D -m 0755 $(srcdir)/fritzcallmonitor.init $(DESTDIR)/etc/init.d/fritzcallmonitor
+	install -D -m 0755 $(srcdir)/fritzcallmonitor.init $(DESTDIR)$(sysconfdir)/init.d/fritzcallmonitor
 
 install-exec-hook:
-	set -e; cd $(DESTDIR)/etc/init.d; \
+	set -e; cd $(DESTDIR)$(sysconfdir)/init.d; \
 		ln -sf fritzcallmonitor S99fritzcallmonitor; \
 		ln -sf fritzcallmonitor K01fritzcallmonitor
+
+uninstall-local:
+	set -e; cd $(DESTDIR)$(sysconfdir)/init.d; \
+		rm -f fritzcallmonitor; \
+		rm -f S99fritzcallmonitor; \
+		rm -f K01fritzcallmonitor

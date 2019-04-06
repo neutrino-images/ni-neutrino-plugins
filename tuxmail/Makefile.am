@@ -25,3 +25,6 @@ tuxmail_DATA = \
 
 tuxmail_SCRIPTS = \
 	tuxmail.onreadmail
+
+uninstall-local:
+	rm -f $(DESTDIR)$(tuxmaildir)
