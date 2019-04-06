@@ -3,26 +3,33 @@ AM_CPPFLAGS = \
 	@CURL_CFLAGS@ \
 	-I$(top_srcdir)/include
 
+bin_PROGRAMS = FritzCallMonitor
+
+FritzCallMonitor_SOURCES = \
+	connect.cpp \
+	FritzCallMonitor.cpp
+
 FritzCallMonitor_LDADD = \
 	@FREETYPE_LIBS@ \
 	@CURL_LIBS@ \
 	-lcrypto \
 	-lssl
 
-noinst_PROGRAMS = FritzCallMonitor
+configdir = $(CONFIGDIR)
 
-FritzCallMonitor_SOURCES = \
-	connect.cpp \
-	FritzCallMonitor.cpp
+config_DATA = \
+	FritzCallMonitor.addr \
+	FritzCallMonitor.cfg
+
+iconsdir = $(ICONSDIR)
+
+icons_DATA = \
+	hint_FritzCallMonitor.png
 
 install-exec-local:
-	install -d $(DESTDIR)$(PLUGINDIR)
-	install -d $(DESTDIR)$(CONFIGDIR)
-	install -d $(DESTDIR)$(DATADIR)/neutrino/icons
-	install -d $(DESTDIR)/etc/init.d
-	install -m 0755 FritzCallMonitor $(DESTDIR)/bin/FritzCallMonitor
-	install -m644 $(srcdir)/FritzCallMonitor.addr $(DESTDIR)$(CONFIGDIR)
-	install -m644 $(srcdir)/FritzCallMonitor.cfg $(DESTDIR)$(CONFIGDIR)
-	install -m644 $(srcdir)/hint_FritzCallMonitor.png $(DESTDIR)$(DATADIR)/neutrino/icons
-	install -m755 $(srcdir)/fritzcallmonitor.init $(DESTDIR)/etc/init.d/fritzcallmonitor
+	install -D -m 0755 $(srcdir)/fritzcallmonitor.init $(DESTDIR)/etc/init.d/fritzcallmonitor
 
+install-exec-hook:
+	set -e; cd $(DESTDIR)/etc/init.d; \
+		ln -sf fritzcallmonitor S99fritzcallmonitor; \
+		ln -sf fritzcallmonitor K01fritzcallmonitor

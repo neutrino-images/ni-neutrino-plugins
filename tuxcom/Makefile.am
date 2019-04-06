@@ -2,17 +2,26 @@ AM_CPPFLAGS = \
 	@FREETYPE_CFLAGS@ \
 	-I$(top_srcdir)/include
 
-noinst_PROGRAMS = tuxcom
+plugindir = $(PLUGINDIR)
 
-tuxcom_SOURCES = tuxcom.c
+plugin_PROGRAMS = tuxcom.so
 
-tuxcom_LDADD = \
+tuxcom_so_SOURCES = \
+	tuxcom.c
+
+tuxcom_so_LDADD = \
 	@FREETYPE_LIBS@
 
-install-exec-local:
-	install -d $(DESTDIR)$(PLUGINDIR)
-	install -d $(DESTDIR)$(CONFIGDIR)
-	install -d $(DESTDIR)$(CONFIGDIR)/tuxcom
-	install -m 0755 tuxcom $(DESTDIR)$(PLUGINDIR)/tuxcom.so
-	install -m 0644 $(srcdir)/tuxcom.cfg $(DESTDIR)$(PLUGINDIR)
-	install -m 0644 $(srcdir)/tuxcom_hint.png $(DESTDIR)$(PLUGINDIR)
+plugin_DATA = \
+	tuxcom.cfg \
+	tuxcom_hint.png
+
+tuxcomdir = $(CONFIGDIR)/tuxcom
+
+#tuxcom_DATA =
+
+#tuxcom_SCRIPTS =
+
+# creating empty tuxcomdir until we have no DATA or SCRIPTS to install
+install-data-hook:
+	install -d $(DESTDIR)$(tuxcomdir)

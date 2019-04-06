@@ -2,9 +2,11 @@ AM_CPPFLAGS =  \
 	@FREETYPE_CFLAGS@ \
 	-I$(top_srcdir)/include
 
-noinst_PROGRAMS = shellexec
+plugindir = $(PLUGINDIR)
 
-shellexec_SOURCES = \
+plugin_PROGRAMS = shellexec.so
+
+shellexec_so_SOURCES = \
 	shellexec.c \
 	io.c \
 	text.c \
@@ -14,19 +16,28 @@ shellexec_SOURCES = \
 	pngw.cpp \
 	png_helper.cpp
 
-shellexec_LDADD = \
+shellexec_so_LDADD = \
 	@FREETYPE_LIBS@ \
 	@PNG_LIBS@
 
-install-exec-local:
-	install -d $(DESTDIR)$(PLUGINDIR)
-	install -d $(DESTDIR)$(CONFIGDIR)
-	install -d $(DESTDIR)/bin
-	install -m 0755 shellexec $(DESTDIR)$(PLUGINDIR)/shellexec.so
-	install -m 0644 $(srcdir)/shellexec.conf $(DESTDIR)$(CONFIGDIR)
-	install -m 0644 $(srcdir)/shellexec.cfg $(DESTDIR)$(PLUGINDIR)
-	ln -sf $(PLUGINDIR)/shellexec.so $(DESTDIR)/bin/shellexec
-	install -m 0644 $(srcdir)/shellexec_hint.png $(DESTDIR)$(PLUGINDIR)
-	install -d $(DESTDIR)$(CONFIGDIR)/flexinc
-	rm -f $(DESTDIR)$(CONFIGDIR)/flexinc/plugin_config.mnu
-	touch $(DESTDIR)$(CONFIGDIR)/flexinc/plugin_config.mnu
+plugin_DATA = \
+	shellexec.cfg \
+	shellexec_hint.png
+
+configdir = $(CONFIGDIR)
+
+config_DATA = \
+	shellexec.conf
+
+flexdir = $(DESTDIR)/share/tuxbox/neutrino/flex
+
+flex_DATA = \
+	flex_plugins.conf \
+	flex_user.conf
+
+install-data-hook:
+	set -e; cd $(DESTDIR)$(PLUGINDIR); \
+		mv -f shellexec.so 00_shellexec.so; \
+		mv -f shellexec.cfg 00_shellexec.cfg; \
+		mv -f shellexec_hint.png 00_shellexec_hint.png
+	ln -sf $(PLUGINDIR)/00_shellexec.so $(DESTDIR)/bin/shellexec

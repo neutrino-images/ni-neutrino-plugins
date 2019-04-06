@@ -5,18 +5,11 @@ AM_CPPFLAGS = \
 	@PNG_CFLAGS@ \
 	-I$(top_srcdir)/include
 
-tuxwetter_LDADD = \
-	@FREETYPE_LIBS@ \
-	@CURL_LIBS@ \
-	@PNG_LIBS@ \
-	-lcrypto \
-	-lssl \
-	-ljpeg \
-	-lgif
+plugindir = $(PLUGINDIR)
 
-noinst_PROGRAMS = tuxwetter
+plugin_PROGRAMS = tuxwetter.so
 
-tuxwetter_SOURCES = \
+tuxwetter_so_SOURCES = \
 	tuxwetter.c \
 	gfx.c \
 	io.c \
@@ -32,11 +25,24 @@ tuxwetter_SOURCES = \
 	gif.c \
 	gifdecomp.c
 
-install-exec-local:
-	install -d $(DESTDIR)$(PLUGINDIR)
-	install -d $(DESTDIR)$(CONFIGDIR)
-	install -d $(DESTDIR)$(CONFIGDIR)/tuxwetter
-	install -m 0755 tuxwetter $(DESTDIR)$(PLUGINDIR)/tuxwetter.so
-	install -m 0644 $(srcdir)/tuxwetter.cfg $(DESTDIR)$(PLUGINDIR)
-	install -m 0644 $(srcdir)/tuxwetter.conf $(srcdir)/tuxwetter.mcfg $(srcdir)/convert.list $(srcdir)/startbild.jpg $(srcdir)/tuxwetter.png $(DESTDIR)$(CONFIGDIR)/tuxwetter
-	install -m 0644 $(srcdir)/tuxwetter_hint.png $(DESTDIR)$(PLUGINDIR)
+tuxwetter_so_LDADD = \
+	@FREETYPE_LIBS@ \
+	@CURL_LIBS@ \
+	@PNG_LIBS@ \
+	-lcrypto \
+	-lssl \
+	-ljpeg \
+	-lgif
+
+plugin_DATA = \
+	tuxwetter.cfg \
+	tuxwetter_hint.png
+
+tuxwetterdir = $(CONFIGDIR)/tuxwetter
+
+tuxwetter_DATA = \
+	convert.list \
+	startbild.jpg \
+	tuxwetter.conf \
+	tuxwetter.mcfg \
+	tuxwetter.png

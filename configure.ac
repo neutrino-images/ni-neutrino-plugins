@@ -1,6 +1,5 @@
 AC_INIT([neutrino-mp-plugins], [0.0.1])
 AM_INIT_AUTOMAKE
-
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
 
 AC_GNU_SOURCE
@@ -43,11 +42,13 @@ scripts-lua/plugins/logoupdater/Makefile
 scripts-lua/plugins/mtv/Makefile
 scripts-lua/plugins/netzkino/Makefile
 scripts-lua/plugins/openvpn-setup/Makefile
+scripts-lua/plugins/openvpn-setup/openvpn-setup/Makefile
 scripts-lua/plugins/stb_startup/Makefile
 scripts-lua/plugins/userbouquets/Makefile
 satfind/Makefile
 shellexec/Makefile
 tuxcal/Makefile
+tuxcal/daemon/Makefile
 tuxcom/Makefile
 tuxmail/Makefile
 tuxmail/daemon/Makefile

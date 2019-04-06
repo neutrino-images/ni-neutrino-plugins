@@ -1,6 +1,6 @@
 #!/bin/sh
 
-package="neutrino-mp-plugins"
+package="ni-neutrino-plugins"
 
 srcdir=`dirname $0`
 test -z "$srcdir" && srcdir=.

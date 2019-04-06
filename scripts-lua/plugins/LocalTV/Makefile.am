@@ -1,7 +1,11 @@
-install-exec-local:
-	install -d $(DESTDIR)$(PLUGINDIR)
-	install -d $(DESTDIR)$(WEBTVDIR)
-	install -m 0644 $(srcdir)/LocalTV.cfg $(DESTDIR)$(PLUGINDIR)
-	install -m 0644 $(srcdir)/LocalTV.lua $(DESTDIR)$(PLUGINDIR)
-	install -m 0644 $(srcdir)/LocalTV_hint.png $(DESTDIR)$(PLUGINDIR)
-	install -m 0644 $(srcdir)/LocalTVEpg.lua $(DESTDIR)$(WEBTVDIR)
+plugindir = $(PLUGINDIR)
+
+plugin_DATA = \
+	LocalTV.cfg \
+	LocalTV.lua \
+	LocalTV_hint.png
+
+webtvdir = $(WEBTVDIR)
+
+webtv_DATA = \
+	LocalTVEpg.lua
