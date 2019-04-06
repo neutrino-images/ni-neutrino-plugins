@@ -1,5 +1,6 @@
-install-exec-local:
-	install -d $(DESTDIR)$(PLUGINDIR)
-	install -m 0644 $(srcdir)/netzkino.cfg $(DESTDIR)$(PLUGINDIR)
-	install -m 0644 $(srcdir)/netzkino.lua $(DESTDIR)$(PLUGINDIR)
-	install -m 0644 $(srcdir)/netzkino.png $(DESTDIR)$(PLUGINDIR)
+plugindir = $(PLUGINDIR)
+
+plugin_DATA = \
+	netzkino.cfg \
+	netzkino.lua \
+	netzkino.png

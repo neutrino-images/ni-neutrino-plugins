@@ -8,4 +8,5 @@ if [ -e $PIDFILE ]; then
 else
 	logomask
 fi
+
 exit 0

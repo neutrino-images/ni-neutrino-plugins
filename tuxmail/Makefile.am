@@ -1,31 +1,27 @@
+SUBDIRS = daemon
+
 AM_CPPFLAGS = \
 	@FREETYPE_CFLAGS@ \
 	-I$(top_srcdir)/include
 
-noinst_PROGRAMS = tuxmail tuxmaild
+plugindir = $(PLUGINDIR)
 
-tuxmail_SOURCES = tuxmail.c
+plugin_PROGRAMS = tuxmail.so
 
-tuxmail_LDADD = \
+tuxmail_so_SOURCES = \
+	tuxmail.c
+
+tuxmail_so_LDADD = \
 	@FREETYPE_LIBS@
 
-tuxmaild_SOURCES = daemon/tuxmaild.c
+plugin_DATA = \
+	tuxmail.cfg \
+	tuxmail_hint.png
 
-tuxmaild_LDADD = \
-	-lpthread \
-	-lssl \
-	-lcrypto \
-	-lfreetype \
-	-lz
+tuxmaildir = $(CONFIGDIR)/tuxmail
 
-install-exec-local:
-	install -d $(DESTDIR)$(PLUGINDIR)
-	install -d $(DESTDIR)$(CONFIGDIR)
-	install -d $(DESTDIR)$(CONFIGDIR)/tuxmail
-	install -m 0755 tuxmail $(DESTDIR)$(PLUGINDIR)/tuxmail.so
-	install -m 0755 tuxmaild $(DESTDIR)/bin/tuxmaild
-	install -m 0755 $(srcdir)/daemon/tuxmaild $(DESTDIR)/etc/init.d/tuxmaild
-	install -m 0644 $(srcdir)/tuxmail.cfg $(DESTDIR)$(PLUGINDIR)
-	install -m 0644 $(srcdir)/tuxmail_hint.png $(DESTDIR)$(PLUGINDIR)
-	install -m 0644 $(srcdir)/tuxmail.conf $(DESTDIR)$(CONFIGDIR)/tuxmail
-	install -m 0755 $(srcdir)/tuxmail.onreadmail $(DESTDIR)$(CONFIGDIR)/tuxmail
+tuxmail_DATA = \
+	tuxmail.conf
+
+tuxmail_SCRIPTS = \
+	tuxmail.onreadmail

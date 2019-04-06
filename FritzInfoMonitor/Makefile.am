@@ -3,9 +3,11 @@ AM_CPPFLAGS = \
 	@CURL_CFLAGS@ \
 	-I$(top_srcdir)/include
 
-noinst_PROGRAMS = FritzInfoMonitor
+plugindir = $(PLUGINDIR)
 
-FritzInfoMonitor_SOURCES = \
+plugin_PROGRAMS = FritzInfoMonitor.so
+
+FritzInfoMonitor_so_SOURCES = \
 	connect.cpp \
 	framebuffer.cpp \
 	FritzInfoMonitor.cpp \
@@ -15,20 +17,18 @@ FritzInfoMonitor_SOURCES = \
 	rc.cpp \
 	submenu.cpp
 
-FritzInfoMonitor_LDADD = \
+FritzInfoMonitor_so_LDADD = \
 	@FREETYPE_LIBS@ \
 	@CURL_LIBS@ \
 	-lz \
 	-lstdc++ \
 	-lcrypto
 
-install-exec-local:
-	install -d $(DESTDIR)$(PLUGINDIR)
-	install -d $(DESTDIR)$(CONFIGDIR)
-	install -m 0755 FritzInfoMonitor $(DESTDIR)$(PLUGINDIR)/FritzInfoMonitor.so
-	install -m644 $(srcdir)/FritzInfoMonitor.cfg $(DESTDIR)$(PLUGINDIR)
-	install -m644 $(srcdir)/FritzInfoMonitor_hint.png $(DESTDIR)$(PLUGINDIR)
-	install -m755 $(srcdir)/FritzInfoMonitor_setup.lua $(DESTDIR)$(PLUGINDIR)
-	install -m644 $(srcdir)/FritzInfoMonitor_setup.cfg $(DESTDIR)$(PLUGINDIR)
-	install -m644 $(srcdir)/FritzInfoMonitor_setup_hint.png $(DESTDIR)$(PLUGINDIR)
+plugin_DATA = \
+	FritzInfoMonitor.cfg \
+	FritzInfoMonitor_hint.png
 
+plugin_DATA += \
+	FritzInfoMonitor_setup.lua \
+	FritzInfoMonitor_setup.cfg \
+	FritzInfoMonitor_setup_hint.png
