@@ -12,6 +12,7 @@ SUBDIRS = \
 	oscammon \
 	satfind \
 	shellexec \
+	showiframe \
 	tuxcal \
 	tuxcom \
 	tuxmail \

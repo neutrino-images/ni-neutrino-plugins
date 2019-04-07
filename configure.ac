@@ -49,6 +49,7 @@ scripts-lua/plugins/openvpn-setup/openvpn-setup/Makefile
 scripts-lua/plugins/stb_startup/Makefile
 scripts-lua/plugins/userbouquets/Makefile
 shellexec/Makefile
+showiframe/Makefile
 tuxcal/daemon/Makefile
 tuxcal/Makefile
 tuxcom/Makefile
