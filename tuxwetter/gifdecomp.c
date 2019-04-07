@@ -86,14 +86,25 @@ int i, err = 0;
     /* Open input file: */
     if (InFileName != NULL) 
     {	
-	if ((GifFileIn = DGifOpenFileName(InFileName, &err)) == NULL)
-		QuitGifError(GifFileIn, GifFileOut, err);
+		GifFileIn = DGifOpenFileName(InFileName, &err);
+		if (GifFileIn == NULL) {
+			fprintf(stderr, "Could not read file: %s.\n", InFileName);
+			return 0;
+		}
+
+		int gif_error = DGifSlurp(GifFileIn);
+		if (gif_error != GIF_OK) {
+			fprintf(stderr, "Could not parse image: %s.\n", InFileName);
+			DGifCloseFile(GifFileIn, &err);
+			return 0;
+		}
+		DGifCloseFile(GifFileIn, &err);
     }
+
     if ((GifFileIn = DGifOpenFileName(InFileName, &err)) != NULL)
     {
 		if ((GifFileOut = EGifOpenFileName(TempGifName, TRUE, &err)) == NULL)
 		QuitGifError(GifFileIn, GifFileOut, err);
-   
     
     		if (EGifPutScreenDesc(GifFileOut,
 		GifFileIn->SWidth, GifFileIn->SHeight,

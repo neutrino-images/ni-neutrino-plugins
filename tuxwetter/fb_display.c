@@ -155,7 +155,7 @@ void fb_display(unsigned char *rgbbuff, int x_size, int y_size, int x_pan, int y
 
 	 /* ClearFB if image is smaller */
 	if(clearflag)
-		setBG();
+		setBG(BLACK); // black screen
 
     blit2FB(fbbuff, x_size, y_size, var.xres, var.yres, x_pan, y_pan, x_offs, y_offs, bp, setpal);
 
@@ -287,9 +287,22 @@ void blit2FB(void *fbbuff,
 		blit();
 }
 
-void setBG()
+void setBG(int col)
 {
-	RenderBox(0, 0, var_screeninfo.xres-sx, var_screeninfo.yres-sy, 0, 0/*black*/);
+	uint32_t *pos = lbb;
+	uint32_t *i, pix = bgra[col];
+	int count, yres = var_screeninfo.yres;
+
+	if (stride == 7680 && var_screeninfo.xres == 1280) {
+		yres = 720;
+	}
+
+	for (count = 0; count < yres; count++)
+	{
+		for (i = pos; i < pos+var_screeninfo.xres; i++)
+			*i = pix;
+		pos += swidth;
+	}
 }
 
 void clearBB()
