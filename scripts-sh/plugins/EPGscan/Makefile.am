@@ -7,11 +7,6 @@ plugin_DATA = \
 plugin_SCRIPTS = \
 	EPGscan.sh
 
-plugin_DATA += \
-	EPGscan_setup.cfg \
-	EPGscan_setup.lua \
-	EPGscan_setup_hint.png
-
 configdir = $(CONFIGDIR)
 
 config_DATA = \
