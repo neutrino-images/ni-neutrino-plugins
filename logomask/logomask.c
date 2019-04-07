@@ -277,6 +277,8 @@ int main (int argc, char **argv)
 		printf("logomask Version %s for Coolstream\n",CL_VERSION);
 #elif HAVE_ARM_HARDWARE
 		printf("logomask Version %s for Armbox\n",CL_VERSION);
+#elif HAVE_MIPS_HARDWARE
+		printf("logomask Version %s for Mipsel\n",CL_VERSION);
 #else
 		printf("logomask Version %s\n",CL_VERSION);
 #endif

@@ -87,6 +87,9 @@
 #ifdef HAVE_ARM_HARDWARE
 #define KEY_FWD					0x0d0
 #endif
+#ifdef HAVE_MIPS_HARDWARE
+#define KEY_FWD					0x0d0
+#endif
 
 // Coolstream
 #define KEY_COOL				0x1a1
