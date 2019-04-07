@@ -27,8 +27,3 @@ FritzInfoMonitor_so_LDADD = \
 plugin_DATA = \
 	FritzInfoMonitor.cfg \
 	FritzInfoMonitor_hint.png
-
-plugin_DATA += \
-	FritzInfoMonitor_setup.lua \
-	FritzInfoMonitor_setup.cfg \
-	FritzInfoMonitor_setup_hint.png
