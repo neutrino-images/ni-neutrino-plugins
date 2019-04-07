@@ -36,10 +36,12 @@ logomask/Makefile
 msgbox/Makefile
 oscammon/Makefile
 satfind/Makefile
+scripts-lua/plugins/add-locale/Makefile
 scripts-lua/plugins/ard_mediathek/Makefile
 scripts-lua/plugins/epgfilter/Makefile
 scripts-lua/plugins/EPGscan/Makefile
 scripts-lua/plugins/favorites2bin/Makefile
+scripts-lua/plugins/heizoelpreise/Makefile
 scripts-lua/plugins/LocalTV/Makefile
 scripts-lua/plugins/logoupdater/Makefile
 scripts-lua/plugins/mtv/Makefile
@@ -48,6 +50,12 @@ scripts-lua/plugins/openvpn-setup/Makefile
 scripts-lua/plugins/openvpn-setup/openvpn-setup/Makefile
 scripts-lua/plugins/stb_startup/Makefile
 scripts-lua/plugins/userbouquets/Makefile
+scripts-sh/plugins/autoreboot/Makefile
+scripts-sh/plugins/dropbox_uploader/Makefile
+scripts-sh/plugins/imgbackup-hd51/Makefile
+scripts-sh/plugins/mountpointmanagement/Makefile
+scripts-sh/plugins/pr-auto-timer/Makefile
+scripts-sh/plugins/smarthomeinfo/Makefile
 shellexec/Makefile
 showiframe/Makefile
 stbup/Makefile
