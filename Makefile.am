@@ -2,12 +2,14 @@ AUTOMAKE_OPTIONS = gnu
 
 SUBDIRS = \
 	cooliTSclimax \
+	emmrd \
 	FritzCallMonitor \
 	FritzInfoMonitor \
 	getrc \
 	input \
-	msgbox \
 	logomask \
+	msgbox \
+	oscammon \
 	satfind \
 	shellexec \
 	tuxcal \
