@@ -26,5 +26,5 @@ tuxcomdir = $(CONFIGDIR)/tuxcom
 install-data-hook:
 	install -d $(DESTDIR)$(tuxcomdir)
 
-uninstall-local:
-	rm -rf $(DESTDIR)$(tuxcomdir)
+uninstall-hook:
+	-rmdir $(DESTDIR)$(tuxcomdir)

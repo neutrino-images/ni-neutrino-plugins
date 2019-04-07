@@ -47,5 +47,5 @@ tuxwetter_DATA = \
 	tuxwetter.mcfg \
 	tuxwetter.png
 
-uninstall-local:
-	rm -f $(DESTDIR)$(tuxwetterdir)
+uninstall-hook:
+	-rmdir $(DESTDIR)$(tuxwetterdir)

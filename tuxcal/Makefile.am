@@ -27,5 +27,5 @@ tuxcal_DATA = \
 tuxcal_SCRIPTS = \
 	tuxcal.notify
 
-uninstall-local:
-	rm -f $(DESTDIR)$(tuxcaldir)
+uninstall-hook:
+	-rmdir $(DESTDIR)$(tuxcaldir)
