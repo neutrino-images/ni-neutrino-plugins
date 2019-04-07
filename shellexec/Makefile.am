@@ -43,6 +43,7 @@ install-data-hook:
 	ln -sf $(PLUGINDIR)/00_shellexec.so $(DESTDIR)$(bindir)/shellexec
 
 uninstall-local:
+	rm -f $(DESTDIR)$(flexdir)
 	set -e; cd $(DESTDIR)$(PLUGINDIR); \
 		rm -f 00_shellexec.so; \
 		rm -f 00_shellexec.cfg; \

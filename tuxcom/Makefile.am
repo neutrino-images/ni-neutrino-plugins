@@ -25,3 +25,6 @@ tuxcomdir = $(CONFIGDIR)/tuxcom
 # creating empty tuxcomdir until we have no DATA or SCRIPTS to install
 install-data-hook:
 	install -d $(DESTDIR)$(tuxcomdir)
+
+uninstall-local:
+	rm -rf $(DESTDIR)$(tuxcomdir)
