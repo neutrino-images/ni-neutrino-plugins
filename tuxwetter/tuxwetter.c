@@ -46,7 +46,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.24"
+#define P_VERSION "4.26"
 #define S_VERSION ""
 
 char CONVERT_LIST[]= CFG_TUXWET "/convert.list";
@@ -2519,10 +2519,17 @@ unsigned char *buffer=NULL;
  					LCD_update();
 				}
 #endif
+				if (gifs > 1)
+				{
+					if (cloop == 1)
+						usleep(1600000);
+					else
+						usleep(400000);
+				}
 			}
 			free(buffer);
 		}
-		
+
 		if(!rv && wait)
 		{
 			rcg=wait_image(repeat, 1);
