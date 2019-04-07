@@ -34,7 +34,7 @@ install-exec-hook:
 		ln -sf fritzcallmonitor S99fritzcallmonitor; \
 		ln -sf fritzcallmonitor K01fritzcallmonitor
 
-uninstall-local:
+uninstall-hook:
 	set -e; cd $(DESTDIR)$(sysconfdir)/init.d; \
 		rm -f fritzcallmonitor; \
 		rm -f S99fritzcallmonitor; \

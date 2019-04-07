@@ -20,7 +20,7 @@ install-exec-hook:
 		ln -sf tuxcald S99tuxcald; \
 		ln -sf tuxcald K01tuxcald
 
-uninstall-local:
+uninstall-hook:
 	set -e; cd $(DESTDIR)$(sysconfdir)/init.d; \
 		rm -f tuxcald; \
 		rm -f S99tuxcald; \
