@@ -50,6 +50,7 @@ scripts-lua/plugins/stb_startup/Makefile
 scripts-lua/plugins/userbouquets/Makefile
 shellexec/Makefile
 showiframe/Makefile
+stbup/Makefile
 tuxcal/daemon/Makefile
 tuxcal/Makefile
 tuxcom/Makefile
