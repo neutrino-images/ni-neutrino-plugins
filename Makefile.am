@@ -13,6 +13,7 @@ SUBDIRS = \
 	satfind \
 	shellexec \
 	showiframe \
+	stbup \
 	tuxcal \
 	tuxcom \
 	tuxmail \
