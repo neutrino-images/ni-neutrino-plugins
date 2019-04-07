@@ -144,7 +144,8 @@ enum {
 	CMCP1,
 	CMCP2,
 	CMCP3,
-	CSP0
+	CSP0,
+	BLACK
 };
 #define TRANSP 0
 
@@ -160,6 +161,7 @@ extern int OFFSET_SMALL;
 extern int OFFSET_MIN;
 
 extern uint32_t bgra[];
+extern int stride;
 extern int swidth;
 extern uint32_t *lfb, *lbb;
 

@@ -46,7 +46,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.26"
+#define P_VERSION "4.27"
 #define S_VERSION ""
 
 char CONVERT_LIST[]= CFG_TUXWET "/convert.list";
@@ -95,20 +95,20 @@ char FONT[128] = FONTDIR "/neutrino.ttf";
 
 //					    CMCST,  CMCS,   CMCT,   CMC,    CMCIT,  CMCI,   CMHT,   CMH
 //					    WHITE,  BLUE0,  TRANSP, CMS,    ORANGE, GREEN,  YELLOW, RED
-//					    CMCP0,  CMCP1,  CMCP2,  CMCP3,  CSP0
+//					    CMCP0,  CMCP1,  CMCP2,  CMCP3,  CSP0,   BLACK
 unsigned char bl[] = {	0x00, 	0x00, 	0xFF, 	0x80, 	0xFF, 	0x80, 	0x00, 	0x80,
 						0xFF, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0x00, 	0x00, 	0x00,
-						0x00, 	0x00,  	0x00,  	0x00,  	0x00};
+						0x00, 	0x00,  	0x00,  	0x00,  	0x00,   0x00};
 unsigned char gn[] = {	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0xC0, 	0x00,
 						0xFF, 	0x80, 	0x00, 	0x80, 	0xC0, 	0xFF, 	0xFF, 	0x00,
-						0x00, 	0x00,  	0x00,  	0x00,  	0x00};
+						0x00, 	0x00,  	0x00,  	0x00,  	0x00,   0x00};
 unsigned char rd[] = {	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0x00,
 						0xFF, 	0x00, 	0x00, 	0x00, 	0xFF, 	0x00, 	0xFF, 	0xFF,
-						0x00, 	0x00,  	0x00,  	0x00,  	0x00};
+						0x00, 	0x00,  	0x00,  	0x00,  	0x00,   0x00};
 unsigned char tr[] = {	0xFF, 	0xFF, 	0xFF,  	0xA0,  	0xFF,  	0x80,  	0xFF,  	0xFF,
 						0xFF, 	0xFF, 	0x00,  	0xFF,  	0xFF,  	0xFF,  	0xFF,  	0xFF,
-						0x00, 	0x00,  	0x00,  	0x00,  	0x00};
-uint32_t bgra[22];
+						0x00, 	0x00,  	0x00,  	0x00,  	0x00,   0xFF};
+uint32_t bgra[23];
 
 // Menu structure stuff
 enum {TYP_MENU, TYP_CITY, TYP_PICTURE, TYP_PICHTML, TYP_TXTHTML, TYP_TEXTPAGE, TYP_TXTPLAIN, TYP_EXECUTE, TYP_ENDMENU, TYP_WEATH};
@@ -152,6 +152,7 @@ const char INST_FILE[]="/tmp/rc.locked";
 int instance=0;
 int rclocked=0;
 int swidth;
+int stride;
 
 int get_instance(void)
 {
@@ -3225,7 +3226,7 @@ PLISTENTRY pl=&epl;
 	if((tv=Read_Neutrino_Cfg(trstr))>=0)
 		rd[CSP0]=(float)tv*2.55*0.4;
 
-	for (ix = 0; ix <= CSP0; ix++)
+	for (ix = 0; ix <= BLACK; ix++)
 		bgra[ix] = (tr[ix] << 24) | (rd[ix] << 16) | (gn[ix] << 8) | bl[ix];
 
 	if(Read_Neutrino_Cfg("rounded_corners")>0) {
@@ -3290,7 +3291,7 @@ PLISTENTRY pl=&epl;
 	desc.flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT;
 
 	//init backbuffer
-	int stride = fix_screeninfo.line_length;
+	stride = fix_screeninfo.line_length;
 	swidth = stride/sizeof(uint32_t);
 	if (stride == 7680 && var_screeninfo.xres == 1280) {
 		var_screeninfo.yres = 1080;
