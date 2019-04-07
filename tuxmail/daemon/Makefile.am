@@ -20,7 +20,7 @@ install-exec-hook:
 		ln -sf tuxmaild S99tuxmaild; \
 		ln -sf tuxmaild K01tuxmaild
 
-uninstall-local:
+uninstall-hook:
 	set -e; cd $(DESTDIR)$(sysconfdir)/init.d; \
 		rm -f tuxmaild; \
 		rm -f S99tuxmaild; \
