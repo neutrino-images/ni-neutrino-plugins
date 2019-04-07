@@ -42,10 +42,10 @@ install-data-hook:
 		mv -f shellexec_hint.png 00_shellexec_hint.png
 	ln -sf $(PLUGINDIR)/00_shellexec.so $(DESTDIR)$(bindir)/shellexec
 
-uninstall-local:
-	rm -f $(DESTDIR)$(flexdir)
+uninstall-hook:
 	set -e; cd $(DESTDIR)$(PLUGINDIR); \
 		rm -f 00_shellexec.so; \
 		rm -f 00_shellexec.cfg; \
 		rm -f 00_shellexec_hint.png
 	rm -f $(DESTDIR)$(bindir)/shellexec
+	-rmdir $(DESTDIR)$(flexdir)

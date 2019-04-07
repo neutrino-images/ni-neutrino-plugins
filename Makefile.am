@@ -28,3 +28,6 @@ SUBDIRS += \
 	scripts-lua/plugins/openvpn-setup \
 	scripts-lua/plugins/stb_startup \
 	scripts-lua/plugins/userbouquets
+
+uninstall-hook:
+	-rmdir $(DESTDIR)$(PLUGINDIR)
