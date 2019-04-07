@@ -46,6 +46,3 @@ tuxwetter_DATA = \
 	tuxwetter.conf \
 	tuxwetter.mcfg \
 	tuxwetter.png
-
-uninstall-local:
-	rm -f $(DESTDIR)$(tuxwetterdir)
