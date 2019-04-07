@@ -41,6 +41,7 @@ scripts-lua/plugins/ard_mediathek/Makefile
 scripts-lua/plugins/epgfilter/Makefile
 scripts-lua/plugins/EPGscan-setup/Makefile
 scripts-lua/plugins/favorites2bin/Makefile
+scripts-lua/plugins/FritzInfoMonitor-setup/Makefile
 scripts-lua/plugins/heizoelpreise/Makefile
 scripts-lua/plugins/LocalTV/Makefile
 scripts-lua/plugins/logoupdater/Makefile

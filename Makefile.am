@@ -26,6 +26,7 @@ SUBDIRS += \
 	scripts-lua/plugins/epgfilter \
 	scripts-lua/plugins/EPGscan-setup \
 	scripts-lua/plugins/favorites2bin \
+	scripts-lua/plugins/FritzInfoMonitor-setup \
 	scripts-lua/plugins/heizoelpreise \
 	scripts-lua/plugins/LocalTV \
 	scripts-lua/plugins/logoupdater \
