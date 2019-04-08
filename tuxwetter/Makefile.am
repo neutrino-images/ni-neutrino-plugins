@@ -47,5 +47,9 @@ tuxwetter_DATA = \
 	tuxwetter.mcfg \
 	tuxwetter.png
 
+install-data-hook:
+	ln -sf $(PLUGINDIR)/tuxwetter.so $(DESTDIR)$(bindir)/tuxwetter
+
 uninstall-hook:
+	rm -f $(DESTDIR)$(bindir)/tuxwetter
 	-rmdir $(DESTDIR)$(tuxwetterdir)
