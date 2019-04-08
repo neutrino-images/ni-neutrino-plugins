@@ -1,4 +1,4 @@
-AC_INIT([neutrino-mp-plugins], [0.0.1])
+AC_INIT([NI-Neutrino-Plugins], [0.0.1])
 AM_INIT_AUTOMAKE
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
 
