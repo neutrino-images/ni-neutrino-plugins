@@ -36,6 +36,8 @@ logomask/Makefile
 msgbox/Makefile
 oscammon/Makefile
 satfind/Makefile
+scripts-lua/Makefile
+scripts-lua/plugins/Makefile
 scripts-lua/plugins/add-locale/Makefile
 scripts-lua/plugins/ard_mediathek/Makefile
 scripts-lua/plugins/epgfilter/Makefile
@@ -51,6 +53,8 @@ scripts-lua/plugins/openvpn-setup/Makefile
 scripts-lua/plugins/openvpn-setup/openvpn-setup/Makefile
 scripts-lua/plugins/stb_startup/Makefile
 scripts-lua/plugins/userbouquets/Makefile
+scripts-sh/Makefile
+scripts-sh/plugins/Makefile
 scripts-sh/plugins/autoreboot/Makefile
 scripts-sh/plugins/dropbox_uploader/Makefile
 scripts-sh/plugins/EPGscan/Makefile
