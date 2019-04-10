@@ -162,7 +162,7 @@ AC_ARG_ENABLE(favorites2bin,
 	[enable_favorites2bin="yes"])
 AM_CONDITIONAL(ENABLE_FAVORITES2BIN, test "$enable_favorites2bin" = "yes")
 
-AC_ARG_ENABLE(plugin,
+AC_ARG_ENABLE(fritzinfomonitor-setup,
 	AS_HELP_STRING([--enable-fritzinfomonitor-setup], [enable fritzinfomonitor-setup @<:@default=yes@:>@]),
 	[enable_fritzinfomonitor_setup="$enableval"],
 	[enable_fritzinfomonitor_setup="yes"])
