@@ -10,13 +10,17 @@ if ENABLE_EPGFILTER
 SUBDIRS += epgfilter
 endif
 if ENABLE_EPGSCAN_SETUP
+if ENABLE_EPGSCAN
 SUBDIRS += EPGscan-setup
+endif
 endif
 if ENABLE_FAVORITES2BIN
 SUBDIRS += favorites2bin
 endif
 if ENABLE_FRITZINFOMONITOR_SETUP
+if ENABLE_FRITZINFOMONITOR
 SUBDIRS += FritzInfoMonitor-setup
+endif
 endif
 if ENABLE_HEIZOELPREISE
 SUBDIRS += heizoelpreise
