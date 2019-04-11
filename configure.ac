@@ -24,6 +24,18 @@ PKG_CHECK_MODULES(CURL,libcurl)
 PKG_CHECK_MODULES(FREETYPE,freetype2)
 PKG_CHECK_MODULES(PNG,libpng)
 
+AC_ARG_WITH(neutrino-source,
+	AS_HELP_STRING([--with-neutrino-source=PATH], [path where Neutrino source is located @<:@default=NONE@:>@]]),
+	[NEUTRINO_SOURCE="$withval"],
+	[NEUTRINO_SOURCE=""])
+AC_SUBST(NEUTRINO_SOURCE)
+
+AC_ARG_WITH(neutrino-build,
+	AS_HELP_STRING([--with-neutrino-build=PATH], [path where Neutrino is built @<:@default=NONE@:>@]]),
+	[NEUTRINO_BUILD="$withval"],
+	[NEUTRINO_BUILD=""])
+AC_SUBST(NEUTRINO_BUILD)
+
 AC_ARG_ENABLE(coolitsclimax,
 	AS_HELP_STRING([--enable-coolitsclimax], [enable coolitsclimax @<:@default=yes@:>@]),
 	[enable_coolitsclimax="$enableval"],
@@ -71,6 +83,10 @@ AC_ARG_ENABLE(logoview,
 	[enable_logoview="$enableval"],
 	[enable_logoview="yes"])
 AM_CONDITIONAL(ENABLE_LOGOVIEW, test "$enable_logoview" = "yes")
+
+AS_IF(test "$enable_logoview" = "yes",
+	AS_IF(test -z "$NEUTRINO_SOURCE", AC_MSG_ERROR([logoview needs --with-neutrino-source=...]))
+	AS_IF(test -z "$NEUTRINO_BUILD",  AC_MSG_ERROR([logoview needs --with-neutrino-build=...])))
 
 AC_ARG_ENABLE(msgbox,
 	AS_HELP_STRING([--enable-msgbox], [enable msgbox @<:@default=yes@:>@]),
@@ -263,18 +279,6 @@ AC_ARG_ENABLE(smarthomeinfo,
 	[enable_smarthomeinfo="$enableval"],
 	[enable_smarthomeinfo="yes"])
 AM_CONDITIONAL(ENABLE_SMARTHOMEINFO, test "$enable_smarthomeinfo" = "yes")
-
-AC_ARG_WITH(neutrino-source,
-	AS_HELP_STRING([--with-neutrino-source=PATH], [path where Neutrino source is located [[NONE]]]),
-	[NEUTRINO_SOURCE="$withval"],
-	[NEUTRINO_SOURCE=""])
-AC_SUBST(NEUTRINO_SOURCE)
-
-AC_ARG_WITH(neutrino-build,
-	AS_HELP_STRING([--with-neutrino-build=PATH], [path where Neutrino is built [[NONE]]]),
-	[NEUTRINO_BUILD="$withval"],
-	[NEUTRINO_BUILD=""])
-AC_SUBST(NEUTRINO_BUILD)
 
 AC_OUTPUT([
 Makefile
