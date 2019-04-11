@@ -30,12 +30,12 @@
 #include <signal.h>
 #include <getopt.h>
 
-#include <configfile.h>
+// included from neutrino source
+#include <lib/libconfigfile/configfile.h>
 
 #include <fb_device.h>
 #include "logoview.h"
 #include "jpeg.h"
-#include "version.h"
 
 #define VERSIONSTR "\n\
       ------------------------------------------------------------\n\

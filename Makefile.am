@@ -23,6 +23,9 @@ endif
 if ENABLE_LOGOMASK
 SUBDIRS += logomask
 endif
+if ENABLE_LOGOVIEW
+SUBDIRS += logoview
+endif
 if ENABLE_OSCAMMON
 SUBDIRS += oscammon
 endif

@@ -66,6 +66,12 @@ AC_ARG_ENABLE(logomask,
 	[enable_logomask="yes"])
 AM_CONDITIONAL(ENABLE_LOGOMASK, test "$enable_logomask" = "yes")
 
+AC_ARG_ENABLE(logoview,
+	AS_HELP_STRING([--enable-logoview], [enable logoview @<:@default=yes@:>@]),
+	[enable_logoview="$enableval"],
+	[enable_logoview="yes"])
+AM_CONDITIONAL(ENABLE_LOGOVIEW, test "$enable_logoview" = "yes")
+
 AC_ARG_ENABLE(msgbox,
 	AS_HELP_STRING([--enable-msgbox], [enable msgbox @<:@default=yes@:>@]),
 	[enable_msgbox="$enableval"],
@@ -258,6 +264,18 @@ AC_ARG_ENABLE(smarthomeinfo,
 	[enable_smarthomeinfo="yes"])
 AM_CONDITIONAL(ENABLE_SMARTHOMEINFO, test "$enable_smarthomeinfo" = "yes")
 
+AC_ARG_WITH(neutrino-source,
+	AS_HELP_STRING([--with-neutrino-source=PATH], [path where Neutrino source is located [[NONE]]]),
+	[NEUTRINO_SOURCE="$withval"],
+	[NEUTRINO_SOURCE=""])
+AC_SUBST(NEUTRINO_SOURCE)
+
+AC_ARG_WITH(neutrino-build,
+	AS_HELP_STRING([--with-neutrino-build=PATH], [path where Neutrino is built [[NONE]]]),
+	[NEUTRINO_BUILD="$withval"],
+	[NEUTRINO_BUILD=""])
+AC_SUBST(NEUTRINO_BUILD)
+
 AC_OUTPUT([
 Makefile
 cooliTSclimax/Makefile
@@ -267,6 +285,7 @@ FritzInfoMonitor/Makefile
 getrc/Makefile
 input/Makefile
 logomask/Makefile
+logoview/Makefile
 msgbox/Makefile
 oscammon/Makefile
 satfind/Makefile
