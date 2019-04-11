@@ -18,18 +18,6 @@ logoview benötigt keine libcoolstream, ist also unabhängig von eventuellen
 Lizenz:
 	GPL Version 2
 
-Sourcecode ansehen:
-	https://github.com/tuxbox-neutrino/plugin-logoview
-	https://gitweb.tuxcode.de/tuxbox-neutrino-plugins/?p=plugin-logoview.git;a=tree
-
-Sourcecode herunterladen:
-	git clone https://github.com/tuxbox-neutrino/plugin-logoview.git
-	git clone https://git.tuxcode.de/plugin-logoview.git
-
-    Aktualisieren:
-	git pull
-
-
 Aufruf:
 -------
 

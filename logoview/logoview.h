@@ -40,6 +40,7 @@
 #include <string>
 
 //#define LV_DEBUG
+#define LV_VERSION "1.07"
 
 class CLogoView
 {
