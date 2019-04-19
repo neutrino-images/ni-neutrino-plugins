@@ -215,8 +215,6 @@ end
 
 function set_path(id, value)
 	image_path=value
-	print(image_path)
-	return image_path
 end
 
 function main_menu()
