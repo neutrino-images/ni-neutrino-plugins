@@ -26,7 +26,7 @@
 
 caption = "STB-Move"
 
-devbase = "/dev/mmcblk0p"
+devbase = "linuxrootfs"
 bootfile = "/boot/STARTUP"
 
 local posix = require "posix"
@@ -56,10 +56,8 @@ locale["english"] = {
 	copy_successful = " \n\nBackup was copied successful",
 }
 
-function sleep (a) 
-    local sec = tonumber(os.clock() + a); 
-    while (os.clock() < sec) do 
-    end 
+function sleep(n)
+	os.execute("sleep " .. tonumber(n))
 end
 
 function basename(str)
@@ -91,7 +89,7 @@ timing_menu = neutrino_conf:getString("timing.menu", "0")
 
 for line in io.lines(bootfile) do
         i, j = string.find(line, devbase)
-        current_root = tonumber(string.sub(line,j+1,j+2))
+        current_root = tonumber(string.sub(line,j+1,j+1))
 end
 
 function get_source_partition ()
@@ -108,10 +106,10 @@ function get_source_partition ()
        		title = caption,
        		icon = "settings",
        		has_shadow = true,
-		btnRed = get_imagename(3),
-		btnGreen = get_imagename(5),
-		btnYellow = get_imagename(7),
-		btnBlue = get_imagename(9) }
+		btnRed = get_imagename(1),
+		btnGreen = get_imagename(2),
+		btnYellow = get_imagename(3),
+		btnBlue = get_imagename(4) }
 	chooser_text = ctext.new {
        		parent = chooser,
        		x = OFFSET.INNER_MID,
@@ -137,20 +135,16 @@ function get_source_partition ()
 	msg, data = n:GetInput(d)
 
 	if (msg == RC['red']) then
-		source_partition = 1
-		source_root = 3
+		source_root = 1
 		colorkey = true
 	elseif (msg == RC['green']) then
-		source_partition = 2
-		source_root =5
+		source_root =2
 		colorkey = true
 	elseif (msg == RC['yellow']) then
-		source_partition = 3
-		source_root = 7
+		source_root = 3
 		colorkey = true
 	elseif (msg == RC['blue']) then
-		source_partition = 4
-		source_root = 9
+		source_root = 4
 		colorkey = true
 	end
 
@@ -173,10 +167,10 @@ function get_destination_partition ()
                 title = caption,
                 icon = "settings",
                 has_shadow = true,
-                btnRed = get_imagename(3),
-                btnGreen = get_imagename(5),
-                btnYellow = get_imagename(7),
-                btnBlue = get_imagename(9) }
+                btnRed = get_imagename(1),
+                btnGreen = get_imagename(2),
+                btnYellow = get_imagename(3),
+                btnBlue = get_imagename(4) }
         chooser_text = ctext.new {
                 parent = chooser,
                 x = OFFSET.INNER_MID,
@@ -202,20 +196,16 @@ function get_destination_partition ()
        	msg, data = n:GetInput(d)
 
        	if (msg == RC['red']) then
-               	destination_partition = 1
-		dest_root = 3
+		dest_root = 1
                	colorkey = true
        	elseif (msg == RC['green']) then
-               	destination_partition = 2
-		dest_root = 5
+		dest_root = 2
                	colorkey = true
        	elseif (msg == RC['yellow']) then
-               	destination_partition = 3
-		dest_root = 7
+		dest_root = 3
                	colorkey = true
        	elseif (msg == RC['blue']) then
-               	destination_partition = 4
-		dest_root = 9
+		dest_root = 4
                	colorkey = true
        	end
 
@@ -243,7 +233,7 @@ function do_copy_image ()
         	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].is_getting_copied };
                 ret:paint()
 
-		local file = assert(io.popen("cp -rf /media/" .. device .. "/service/image/backup/partition" .. source_partition .. "/* /media/" .. device .. "/service/image/backup/partition" .. destination_partition))
+		local file = assert(io.popen("cp -rf /media/" .. device .. "/service/image/backup/partition_" .. source_root .. "/* /media/" .. device .. "/service/image/backup/partition_" .. dest_root))
 		local output = file:read('*all')
 		file:close()
 		ret:hide()
