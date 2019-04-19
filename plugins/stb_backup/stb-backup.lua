@@ -169,9 +169,7 @@ if colorkey then
 	buttons={ "yes", "no" }
 	}
 	if res == "yes" then
-		if (root == current_root) then
-			local file = assert(io.popen("systemctl start backup@" .. root, 'r'))
-		end
+		local file = assert(io.popen("systemctl start backup@" .. root, 'r'))
 		return
 	end
 end
