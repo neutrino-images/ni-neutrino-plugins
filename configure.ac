@@ -1,7 +1,6 @@
-AC_INIT([NI-Neutrino-Plugins], [0.0.1], [https://www.neutrino-images.de])
+AC_INIT([NI-Neutrino-Plugins],[0.0.1],[https://www.neutrino-images.de])
 AM_INIT_AUTOMAKE
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
-
 AC_GNU_SOURCE
 
 TUXBOX_APPS
@@ -18,7 +17,7 @@ PKG_PROG_PKG_CONFIG
 ## --enable-shared --enable-static => build both
 AC_DISABLE_STATIC
 AC_SYS_LARGEFILE
-AC_PROG_LIBTOOL
+LT_INIT
 
 PKG_CHECK_MODULES(CURL,libcurl)
 PKG_CHECK_MODULES(FREETYPE,freetype2)
@@ -280,7 +279,7 @@ AC_ARG_ENABLE(smarthomeinfo,
 	[enable_smarthomeinfo="yes"])
 AM_CONDITIONAL(ENABLE_SMARTHOMEINFO, test "$enable_smarthomeinfo" = "yes")
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 Makefile
 cooliTSclimax/Makefile
 emmrd/Makefile
@@ -330,3 +329,5 @@ tuxmail/daemon/Makefile
 tuxwetter/Makefile
 vinfo/Makefile
 ])
+
+AC_OUTPUT
