@@ -12,7 +12,7 @@
 
 int fh_php_trans(const char *name, int _sx, int _sy, int dy, int cs, int line, int highlite, int *cut, int *x, int *y, int plain, int plot)
 {
-char tstr[BUFSIZE]={0},rstr[BUFSIZE]={0},*tptr=NULL,*xptr=NULL,cc,br3flag=0;
+char tstr[BUFSIZE]={0},rstr[BUFSIZE]={0},*tptr=NULL,*xptr=NULL,cc,c3,c20,br3flag=0;
 int loop=1, j, first, aline=0, fx=_sx, fy=_sy, slen, deg=0;
 
 int wxw=ex-_sx-((preset)?scale2res(120):scale2res(30));		//box width
@@ -71,34 +71,47 @@ FILE *fh;
 								(strstr(tptr,"lt;")  != (tptr+1)) &&
 								(strstr(tptr,"amp;") != (tptr+1)) &&
 								(strstr(tptr,"quot;")!= (tptr+1)) &&
-								(strstr(tptr,"zlig;")!= (tptr+2)))
+								(strstr(tptr,"zlig;")!= (tptr+2)) &&
+								(strstr(tptr,"uro;") != (tptr+2)) &&
+								(strstr(tptr,"nsp;") != (tptr+2)) && // 4x space
+								(strstr(tptr,"msp;") != (tptr+2)))   // 5x space
 							{
 								rstr[j++]=*tptr++;
 							}
 							else
 							{
 								tptr++;
-								cc=' ';
+								cc='\0';
+								c3='\0';
+								c20='\0';
 								switch (*tptr)
 								{
 									case 'a':
 										if (strncmp(tptr,"amp;",4)==0) {
-											cc='&';
+											cc=0x26; // &
 										}
 										else {
-											cc=0xA4;  //ä
+											c3=0xA4;  //ä
 										}
 										break;
-									case 'A': cc=0x84; break;
-									case 'o': cc=0xB6; break;
-									case 'O': cc=0x96; break;
-									case 'u': cc=0xBC; break;
-									case 'U': cc=0x9C; break;
-									case 's': cc=0x9F; break; // ß
-									case 'q':
-									case 'Q': cc='"'; break;
-									case 'l':
-									case 'g': cc=0;   break;
+									case 'A': c3=0x84; break;
+									case 'o': c3=0xB6; break;
+									case 'O': c3=0x96; break;
+									case 'u': c3=0xBC; break;
+									case 'U': c3=0x9C; break;
+									case 's': c3=0x9F; break; // ß
+									case 'e':
+										if (strncmp(tptr+1,"uro;",4)==0)
+											cc=0xAC;  // euro
+										else if (strncmp(tptr+1,"nsp;",4)==0)
+											c20=0x02;  // 4x space
+										else if (strncmp(tptr+1,"msp;",4)==0)
+											c20=0x03;  // 5x space
+										break;
+									case 'n': cc=0x20; break; // space
+									case 'q': cc=0x22; break; // "
+									case 'l': cc=0x3C; break; // <
+									case 'g': cc=0x3E; break; // >
 									case '#': 
 										if(sscanf(tptr+1,"%3d",&deg)==1)
 										{
@@ -106,11 +119,31 @@ FILE *fh;
 										}
 										break;
 								}
-								if(cc)
+
+								if(cc!='\0')
+								{
+									if (cc==0xAC) {
+										rstr[j++]=0xE2;
+										rstr[j++]=0x82;
+										rstr[j++]=cc;
+									}
+									else
+										rstr[j++]=cc;
+								}
+								if(c3!='\0')
 								{
 									rstr[j++]=0xC3;
-									rstr[j++]=cc;
+									rstr[j++]=c3;
 								}
+								if(c20!='\0')
+								{
+									int n = 0, space = (c20==0x02) ? 4 : 5;
+									while(n < space) {
+										rstr[j++]=' ';
+										n++;
+									}
+								}
+
 								if((tptr=strchr(tptr,';'))==NULL)
 								{
 									printf("Tuxwetter <Parser Error in PHP>\n");
