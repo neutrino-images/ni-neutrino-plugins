@@ -191,7 +191,7 @@ if res == "yes" then
 			if line:match(devbase .. root) then
 				if (j ~= bootfile) then
 					local file = io.open(bootfile, "w")
-					file:write(line)
+					file:write(line .. "\n")
 					file:close()
 				end
 			end
