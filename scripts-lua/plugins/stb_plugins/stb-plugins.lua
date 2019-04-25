@@ -51,10 +51,8 @@ locale_stb_restore = "Restore an image backup",
 locale_stb_move = "Move an image backup",
 }
 
-function sleep (a) 
-	local sec = tonumber(os.clock() + a); 
-	while (os.clock() < sec) do 
-	end 
+function sleep(n)
+	os.execute("sleep " .. tonumber(n))
 end
 
 neutrino_conf = configfile.new()
@@ -67,22 +65,27 @@ if locale[lang] == nil then
 end
 
 function start_flash()
+	m:hide()
 	dofile(pluginpath .. "stb-flash.lua")
 end
 
 function start_local_flash()
+	m:hide()
        	dofile(pluginpath .. "stb-local-flash.lua")
 end
 
 function start_backup()
+	m:hide()
        	dofile(pluginpath .. "stb-backup.lua")
 end
 
 function start_restore()
+	m:hide()
        	dofile(pluginpath .. "stb-restore.lua")
 end
 
 function start_move()
+	m:hide()
        	dofile(pluginpath .. "stb-move.lua")
 end
 

@@ -31,7 +31,7 @@ n = neutrino()
 fh = filehelpers.new()
 
 bootfile = "/boot/STARTUP"
-devbase = "/dev/mmcblk0p"
+devbase = "linuxrootfs"
 
 locale = {}
 
@@ -69,55 +69,7 @@ timing_menu = neutrino_conf:getString("timing.menu", "0")
 
 for line in io.lines(bootfile) do
         i, j = string.find(line, devbase)
-        current_root = tonumber(string.sub(line,j+1,j+2))
-end
-
-function create_restorefile()
-	file = io.open("/tmp/restore.sh", "w")
-	file:write("#!/bin/sh", "\n")
-	file:write("", "\n")
-	file:write("systemctl stop nmb", "\n")
-	file:write("systemctl stop udpxy", "\n")
-	file:write("systemctl stop nfs-server", "\n")
-	file:write("systemctl stop nfs-mountd", "\n")
-	file:write("systemctl stop nfs-ststd", "\n")
-	file:write("systemctl stop oscam", "\n")
-	file:write("systemctl stop cccam", "\n")
-	file:write("systemctl stop gbox", "\n")
-	file:write("systemctl stop webmin", "\n")
-	file:write("systemctl stop rpcbind.socket", "\n")
-	file:write("systemctl stop rpcbind", "\n")
-	file:write("systemctl stop proftpd", "\n")
-	file:write("systemctl stop minidlna", "\n")
-	file:write("systemctl stop autofs", "\n")
-	file:write("systemctl stop ntpdate", "\n")
-	file:write("systemctl -q stop etckeeper", "\n")
-	file:write("systemctl stop dbus.socket", "\n")
-	file:write("systemctl stop dbus", "\n")
-	file:write("systemctl stop telnet", "\n")
-	file:write("systemctl stop sshd.socket", "\n")
-	file:write("systemctl stop mnt-partition_1.automount", "\n")
-	file:write("systemctl stop mnt-partition_2.automount", "\n")
-	file:write("systemctl stop mnt-partition_3.automount", "\n")
-	file:write("systemctl stop mnt-partition_4.automount", "\n")
-	file:write("systemctl stop mnt-partition_1.mount", "\n")
-	file:write("systemctl stop mnt-partition_2.mount", "\n")
-	file:write("systemctl stop mnt-partition_3.mount", "\n")
-	file:write("systemctl stop mnt-partition_4.mount", "\n")
-	file:write("mkdir -p /tmp/tmproot", "\n")
-	file:write("mkdir -p /tmp/tmproot/media/hdd", "\n")
-	file:write("mkdir -p /tmp/tmproot/lib/systemd/system/multi-user.target.wants", "\n")
-	file:write("mount -t tmpfs none /tmp/tmproot", "\n")
-	file:write("cp -ax / /tmp/tmproot", "\n")
-	file:write("rm -rf /tmp/tmproot/lib/systemd/system/mnt-partition*", "\n")
-	file:write("rm -rf /tmp/tmproot/lib/systemd/system/multi-user.target.wants/mnt-partition*", "\n")
-	file:write("rm -rf /tmp/tmproot/lib/systemd/system/mount@.service", "\n")
-	file:write("rm -rf /tmp/tmproot/lib/systemd/system/local-fs.target.wants/mount@.service", "\n")
-	file:write("cp -rf /tmp/tmproot/lib/systemd/system/restore@.service /tmp/tmproot/lib/systemd/system/restore@" .. restore_partition .. ".service", "\n")
-	file:write("ln -sf /lib/systemd/system/restore@" .. restore_partition .. ".service /tmp/tmproot/lib/systemd/system/multi-user.target.wants/", "\n")
-	file:write("systemctl switch-root --force /tmp/tmproot", "\n")
-	file:close()
-	file = os.execute('chmod +x "/tmp/restore.sh"')
+        current_root = tonumber(string.sub(line,j+1,j+1))
 end
 
 function basename(str)
@@ -152,10 +104,10 @@ chooser = cwindow.new {
 	title = caption,
 	icon = "settings",
 	has_shadow = true,
-        btnRed = get_imagename(3),
-        btnGreen = get_imagename(5),
-        btnYellow = get_imagename(7),
-        btnBlue = get_imagename(9) 
+        btnRed = get_imagename(1),
+        btnGreen = get_imagename(2),
+        btnYellow = get_imagename(3),
+        btnBlue = get_imagename(4)
 }
 
 chooser_text = ctext.new {
@@ -184,20 +136,16 @@ i = i + 1
 msg, data = n:GetInput(d)
 
 if (msg == RC['red']) then
-	restore_partition = 1
-	root = 3
+	root = 1
 	colorkey = true
 elseif (msg == RC['green']) then
-	restore_partition = 2
-	root = 5
+	root = 2
 	colorkey = true
 elseif (msg == RC['yellow']) then
-	restore_partition = 3
-	root = 7
+	root = 3
 	colorkey = true
 elseif (msg == RC['blue']) then
-	restore_partition = 4
-	root = 9
+	root = 4
 	colorkey = true
 end
 
@@ -214,14 +162,7 @@ if colorkey then
 	buttons={ "yes", "no" }
 	};
 	if res == "yes" then
-		if (root == current_root) then
-			local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].prepare_system };
-			ret:paint()
-			create_restorefile()
-			local file = assert(io.popen("/tmp/restore.sh", 'r'))
-		else
-			local file = assert(io.popen("systemctl start restore@" .. restore_partition, 'r'))
-		end
-	return
+		local file = assert(io.popen("systemctl start restore@" .. root, 'r'))
 	end
+	return
 end
