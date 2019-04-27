@@ -114,7 +114,7 @@ for line in io.lines(bootfile) do
 	current_root = tonumber(string.sub(line,j+1,j+1))
 end
 
-chooser_dx = n:scale2Res(600)
+chooser_dx = n:scale2Res(700)
 chooser_dy = n:scale2Res(200)
 chooser_x = SCREEN.OFF_X + (((SCREEN.END_X - SCREEN.OFF_X) - chooser_dx) / 2)
 chooser_y = SCREEN.OFF_Y + (((SCREEN.END_Y - SCREEN.OFF_Y) - chooser_dy) / 2)
