@@ -309,6 +309,8 @@ scripts-lua/plugins/openvpn-setup/Makefile
 scripts-lua/plugins/openvpn-setup/openvpn-setup/Makefile
 scripts-lua/plugins/stb_startup/Makefile
 scripts-lua/plugins/userbouquets/Makefile
+scripts-lua/plugins/webradio/Makefile
+scripts-lua/plugins/webtv/Makefile
 scripts-sh/Makefile
 scripts-sh/plugins/Makefile
 scripts-sh/plugins/autoreboot/Makefile
