@@ -83,18 +83,47 @@ function basename(str)
         return name
 end
 
+function get_value(str,part)
+	for line in io.lines("mnt/userdata/linuxrootfs" .. part  .. "/etc/image-version") do
+		if line:match(str .. "=") then
+			local i,j = string.find(line, str .. "=")
+			ret = string.sub(line, j+1, #line)
+		end
+	end
+	return ret
+end
+
+function exists(file)
+	local ok, err, exitcode = os.rename(file, file)
+	if not ok then
+		if exitcode == 13 then
+			-- Permission denied, but it exists
+			return true
+		end
+	end
+	return ok, err
+end
+
+function isdir(path)
+	return exists(path .. "/")
+end
+
 function get_imagename(root)
-        local glob = require "posix".glob
-        for _, j in pairs(glob('/boot/*', 0)) do
-                for line in io.lines(j) do
-                        if (j ~= bootfile) then
-                                if line:match(devbase .. root) then
-                                        imagename = basename(j)
-                                end
-                        end
-                end
-        end
-        return imagename
+	if exists("mnt/userdata/linuxrootfs" .. root  .. "/etc/image-version") then
+		imagename = get_value("distro", root) .. " " .. get_value("imageversion", root)
+	else
+		local glob = require "posix".glob
+		for _, j in pairs(glob('/boot/*', 0)) do
+			for line in io.lines(j) do
+				if (j ~= bootfile) or (j ~= nil) then
+					if line:match(devbase .. root) then
+						imagename = basename(j)
+					end
+				end
+			end
+		end
+	end
+	return imagename
 end
 
 chooser_dx = n:scale2Res(700)
