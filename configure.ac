@@ -237,6 +237,12 @@ AC_ARG_ENABLE(userbouquets,
 	[enable_userbouquets="yes"])
 AM_CONDITIONAL(ENABLE_USERBOUQUETS, test "$enable_userbouquets" = "yes")
 
+AC_ARG_ENABLE(webchannels,
+	AS_HELP_STRING([--enable-webchannels], [enable webchannels @<:@default=yes@:>@]),
+	[enable_webchannels="$enableval"],
+	[enable_webchannels="yes"])
+AM_CONDITIONAL(ENABLE_WEBCHANNELS, test "$enable_webchannels" = "yes")
+
 AC_ARG_ENABLE(autoreboot,
 	AS_HELP_STRING([--enable-autoreboot], [enable autoreboot @<:@default=yes@:>@]),
 	[enable_autoreboot"$enableval"],

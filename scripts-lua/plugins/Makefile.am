@@ -46,6 +46,7 @@ endif
 if ENABLE_USERBOUQUETS
 SUBDIRS += userbouquets
 endif
-
+if ENABLE_WEBCHANNELS
 SUBDIRS += webradio
 SUBDIRS += webtv
+endif
