@@ -282,6 +282,8 @@ AM_CONDITIONAL(ENABLE_SMARTHOMEINFO, test "$enable_smarthomeinfo" = "yes")
 AC_CONFIG_FILES([
 Makefile
 cooliTSclimax/Makefile
+data/Makefile
+data/fonts/Makefile
 emmrd/Makefile
 FritzCallMonitor/Makefile
 FritzInfoMonitor/Makefile

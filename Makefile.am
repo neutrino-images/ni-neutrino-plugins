@@ -62,5 +62,7 @@ SUBDIRS += \
 	scripts-lua \
 	scripts-sh
 
+SUBDIRS += data
+
 uninstall-hook:
 	-rmdir $(DESTDIR)$(PLUGINDIR)
