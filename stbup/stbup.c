@@ -14,6 +14,7 @@
 #include <string.h>
 #include <syslog.h>
 #include <stdint.h>
+#include <ctype.h>
 #include <time.h>
 #include <sys/sysinfo.h>
 #include <sys/utsname.h>
