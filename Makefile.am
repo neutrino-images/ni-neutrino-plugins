@@ -57,6 +57,15 @@ endif
 if ENABLE_VINFO
 SUBDIRS += vinfo
 endif
+if BOXMODEL_VUSOLO4K
+SUBDIRS += vu-initfb
+SUBDIRS += vu-turnoff_power
+endif
+if BOXMODEL_VUDUO
+SUBDIRS += vu-initfb
+SUBDIRS += vu-turnoff_power
+endif
+
 
 SUBDIRS += \
 	scripts-lua \

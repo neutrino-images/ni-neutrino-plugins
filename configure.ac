@@ -338,6 +338,8 @@ tuxmail/Makefile
 tuxmail/daemon/Makefile
 tuxwetter/Makefile
 vinfo/Makefile
+vu-initfb/Makefile
+vu-turnoff_power/Makefile
 ])
 
 AC_OUTPUT
