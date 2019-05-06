@@ -29,12 +29,14 @@ caption = "STB-Startup"
 n = neutrino()
 fh = filehelpers.new()
 
-devbase = "/dev/mmcblk0p"
+devbase = "linuxrootfs"
 bootfile = "/boot/STARTUP"
 
 for line in io.lines(bootfile) do
-        i, j = string.find(line, devbase)
-        current_root = tonumber(string.sub(line,j+1,j+2))
+	i, j = string.find(line, devbase)
+	if (j ~= nil) then
+		current_root = tonumber(string.sub(line,j+1,j+1))
+	end
 end
 
 locale = {}
@@ -42,19 +44,17 @@ locale["deutsch"] = {
 	current_boot_partition = "Die aktuelle Startpartition ist: ",
 	choose_partition = "\n\nBitte wählen Sie die neue Startpartition aus",
 	start_partition = "Rebooten und die gewählte Partition starten?",
-	empty_partition = "Die gewählte Partition ist leer"
+	empty_partition = "Das gewählte Image ist nicht vorhanden"
 }
 locale["english"] = {
 	current_boot_partition = "The current boot partition is: ",
 	choose_partition = "\n\nPlease choose the new boot partition",
 	start_partition = "Reboot and start the chosen partition?",
-	empty_partition = "The selected partition is empty"
+	empty_partition = "No image available"
 }
 
-function sleep (a) 
-	local sec = tonumber(os.clock() + a); 
-	while (os.clock() < sec) do 
-	end 
+function sleep(n)
+	os.execute("sleep " .. tonumber(n))
 end
 
 function reboot()
@@ -69,22 +69,60 @@ function reboot()
 end
 
 function basename(str)
-        local name = string.gsub(str, "(.*/)(.*)", "%2")
-        return name
+	local name = string.gsub(str, "(.*/)(.*)", "%2")
+	return name
+end
+
+function get_value(str,part)
+	for line in io.lines("mnt/userdata/linuxrootfs" .. part  .. "/etc/image-version") do
+		if line:match(str .. "=") then
+			local i,j = string.find(line, str .. "=")
+			ret = string.sub(line, j+1, #line)
+		end
+	end
+	return ret
 end
 
 function get_imagename(root)
-        local glob = require "posix".glob
-        for _, j in pairs(glob('/boot/*', 0)) do
-                for line in io.lines(j) do
-                        if (j ~= bootfile) then
-                                if line:match(devbase .. root) then
-                                        imagename = basename(j)
-                                end
-                        end
-                end
-        end
-        return imagename
+	if exists("mnt/userdata/linuxrootfs" .. root  .. "/etc/image-version") then
+		imagename = get_value("distro", root) .. " " .. get_value("imageversion", root)
+	else
+		local glob = require "posix".glob
+		for _, j in pairs(glob('/boot/*', 0)) do
+			for line in io.lines(j) do
+				if (j ~= bootfile) or (j ~= nil) then
+					if line:match(devbase .. root) then
+						imagename = basename(j)
+					end
+				end
+			end
+		end
+	end
+	return imagename
+end
+
+function exists(file)
+	local ok, err, exitcode = os.rename(file, file)
+	if not ok then
+		if exitcode == 13 then
+			-- Permission denied, but it exists
+			return true
+		end
+	end
+	return ok, err
+end
+
+function isdir(path)
+	return exists(path .. "/")
+end
+
+function is_active(root)
+	if (current_root == root) then
+		active = " *"
+	else
+		active = ""
+	end
+	return active
 end
 
 neutrino_conf = configfile.new()
@@ -95,7 +133,7 @@ if locale[lang] == nil then
 end
 timing_menu = neutrino_conf:getString("timing.menu", "0")
 
-chooser_dx = n:scale2Res(600)
+chooser_dx = n:scale2Res(700)
 chooser_dy = n:scale2Res(200)
 chooser_x = SCREEN.OFF_X + (((SCREEN.END_X - SCREEN.OFF_X) - chooser_dx) / 2)
 chooser_y = SCREEN.OFF_Y + (((SCREEN.END_Y - SCREEN.OFF_Y) - chooser_dy) / 2)
@@ -108,10 +146,10 @@ chooser = cwindow.new {
 	title = caption,
 	icon = "settings",
 	has_shadow = true,
-	btnRed = get_imagename(3),
-	btnGreen = get_imagename(5),
-	btnYellow = get_imagename(7),
-	btnBlue = get_imagename(9)
+	btnRed = get_imagename(1) .. is_active(1),
+	btnGreen = get_imagename(2) .. is_active(2),
+	btnYellow = get_imagename(3) .. is_active(3),
+	btnBlue = get_imagename(4) .. is_active(4)
 }
 chooser_text = ctext.new {
 	parent = chooser,
@@ -137,66 +175,60 @@ repeat
 	i = i + 1
 	msg, data = n:GetInput(d)
 	if (msg == RC['red']) then
-		root = 3
+		root = 1
 		colorkey = true
 	elseif (msg == RC['green']) then
-		root = 5
+		root = 2
 		colorkey = true
 	elseif (msg == RC['yellow']) then
-		root = 7
+		root = 3
 		colorkey = true
 	elseif (msg == RC['blue']) then
-		root = 9
+		root = 4
 		colorkey = true
 	end
 until msg == RC['home'] or colorkey or i == t
-
 chooser:hide()
 
 if colorkey then
-        local file = assert(io.popen("blkid " .. devbase .. root .. " | grep TYPE"))
-	local check_exist = file:read('*line')
-	file:close()
-	if (check_exist == nil) then
-		c = 1
+	if isdir("/mnt/" .. devbase .. root) then
+		-- found image folder
+	elseif isdir("/mnt/userdata/" .. devbase .. root) then
+		-- found image folder
 	else
-		local file = assert(io.popen("cat /proc/mounts | grep " .. devbase .. root .. " | awk -F ' ' '{print $2}'"))
-		local mounted_part = file:read('*line')
-		file:close()
-		if(mounted_part == nil) then
-			mounted_part = ''
-		end
-		a,b,c = os.execute("test -d " .. mounted_part .. "/usr")
-	end
-	if (c == 1) then
 		local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].empty_partition };
 		ret:paint();
 		sleep(3)
 		return
-	else
-		res = messagebox.exec {
-			title = caption,
-			icon = "settings",
-			text = locale[lang].start_partition,
-			timeout = 0,
-			buttons={ "yes", "no" }
-		}
 	end
+	res = messagebox.exec {
+	title = caption,
+	icon = "settings",
+	text = locale[lang].start_partition,
+	timeout = 0,
+	buttons={ "yes", "no" }
+	}
 end
 
 if res == "yes" then
 	local glob = require "posix".glob
+	local startup_lines = {}
 	for _, j in pairs(glob('/boot/*', 0)) do
 		for line in io.lines(j) do
-			if line:match(devbase .. root) then
-				if (j ~= bootfile) then
-					local file = io.open(bootfile, "w")
-					file:write(line)
-					file:close()
+			if (j ~= bootfile) or (j ~= nil) then
+				if line:match(devbase .. root) then
+					for line in io.lines(j) do
+						table.insert(startup_lines, line)
+					end
 				end
 			end
 		end
 	end
+	file = io.open(bootfile, 'w')
+	for i, v in ipairs(startup_lines) do
+		file:write(v, "\n")
+	end
+	file:close()
 	reboot()
 end
 
