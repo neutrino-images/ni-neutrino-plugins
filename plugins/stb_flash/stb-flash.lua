@@ -128,6 +128,16 @@ function get_imagename(root)
 	return imagename
 end
 
+
+function is_active(root)
+	if (current_root == root) then
+		active = " *"
+	else
+		active = ""
+	end
+	return active
+end
+
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/etc/neutrino/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
@@ -156,10 +166,10 @@ chooser = cwindow.new {
 	title = caption,
 	icon = "settings",
 	has_shadow = true,
-	btnRed = get_imagename(1),
-	btnGreen = get_imagename(2),
-	btnYellow = get_imagename(3),
-	btnBlue = get_imagename(4)
+	btnRed = get_imagename(1) .. is_active(1),
+	btnGreen = get_imagename(2) .. is_active(2),
+	btnYellow = get_imagename(3) .. is_active(3),
+	btnBlue = get_imagename(4) .. is_active(4)
 }
 
 chooser_text = ctext.new {

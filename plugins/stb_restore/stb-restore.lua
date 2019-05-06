@@ -120,6 +120,15 @@ function get_imagename(root)
 	return imagename
 end
 
+function is_active(root)
+	if (current_root == root) then
+		active = " *"
+	else
+		active = ""
+	end
+	return active
+end
+
 chooser_dx = n:scale2Res(700)
 chooser_dy = n:scale2Res(200)
 chooser_x = SCREEN.OFF_X + (((SCREEN.END_X - SCREEN.OFF_X) - chooser_dx) / 2)
@@ -133,10 +142,10 @@ chooser = cwindow.new {
 	title = caption,
 	icon = "settings",
 	has_shadow = true,
-        btnRed = get_imagename(1),
-        btnGreen = get_imagename(2),
-        btnYellow = get_imagename(3),
-        btnBlue = get_imagename(4)
+        btnRed = get_imagename(1) .. is_active(1),
+        btnGreen = get_imagename(2) .. is_active(2),
+        btnYellow = get_imagename(3) .. is_active(3),
+        btnBlue = get_imagename(4) .. is_active(4)
 }
 
 chooser_text = ctext.new {
