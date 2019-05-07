@@ -108,6 +108,15 @@ function get_imagename(root)
 	return imagename
 end
 
+function is_active(root)
+	if (current_root == root) then
+		active = " *"
+	else
+		active = ""
+	end
+	return active
+end
+
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/etc/neutrino/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
@@ -117,8 +126,10 @@ end
 timing_menu = neutrino_conf:getString("timing.menu", "0")
 
 for line in io.lines(bootfile) do
-        i, j = string.find(line, devbase)
-        current_root = tonumber(string.sub(line,j+1,j+1))
+	i, j = string.find(line, devbase)
+	if (j ~= nil) then
+		current_root = tonumber(string.sub(line,j+1,j+1))
+	end
 end
 
 function get_source_partition ()
@@ -135,10 +146,10 @@ function get_source_partition ()
        		title = caption,
        		icon = "settings",
        		has_shadow = true,
-		btnRed = get_imagename(1),
-		btnGreen = get_imagename(2),
-		btnYellow = get_imagename(3),
-		btnBlue = get_imagename(4) }
+		btnRed = get_imagename(1) .. is_active(1),
+		btnGreen = get_imagename(2) .. is_active(2),
+		btnYellow = get_imagename(3) .. is_active(3),
+		btnBlue = get_imagename(4) .. is_active(4) }
 	chooser_text = ctext.new {
        		parent = chooser,
        		x = OFFSET.INNER_MID,

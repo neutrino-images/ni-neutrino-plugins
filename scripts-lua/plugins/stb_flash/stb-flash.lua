@@ -85,18 +85,57 @@ function basename(str)
 	return name
 end
 
+function exists(file)
+	local ok, err, exitcode = os.rename(file, file)
+	if not ok then
+		if exitcode == 13 then
+			-- Permission denied, but it exists
+			return true
+		end
+	end
+	return ok, err
+end
+
+function isdir(path)
+	return exists(path .. "/")
+end
+
+function get_value(str,part)
+	for line in io.lines("mnt/userdata/linuxrootfs" .. part  .. "/etc/image-version") do
+		if line:match(str .. "=") then
+			local i,j = string.find(line, str .. "=")
+			ret = string.sub(line, j+1, #line)
+		end
+	end
+	return ret
+end
+
 function get_imagename(root)
-	local glob = require "posix".glob
-	for _, j in pairs(glob('/boot/*', 0)) do
-		for line in io.lines(j) do
-			if (j ~= bootfile) then
-				if line:match(devbase .. root) then
-					imagename = basename(j)
+	if exists("mnt/userdata/linuxrootfs" .. root  .. "/etc/image-version") then
+		imagename = get_value("distro", root) .. " " .. get_value("imageversion", root)
+	else
+		local glob = require "posix".glob
+		for _, j in pairs(glob('/boot/*', 0)) do
+			for line in io.lines(j) do
+				if (j ~= bootfile) or (j ~= nil) then
+					if line:match(devbase .. root) then
+						imagename = basename(j)
+					end
 				end
 			end
 		end
 	end
 	return imagename
+end
+
+
+function is_active(root)
+	if (current_root == root) then
+		active = " *"
+	else
+		active = ""
+	end
+	return active
 end
 
 neutrino_conf = configfile.new()
@@ -111,7 +150,9 @@ timing_menu = neutrino_conf:getString("timing.menu", "0")
 
 for line in io.lines(bootfile) do
 	i, j = string.find(line, devbase)
-	current_root = tonumber(string.sub(line,j+1,j+1))
+	if (j ~= nil) then
+		current_root = tonumber(string.sub(line,j+1,j+1))
+	end
 end
 
 chooser_dx = n:scale2Res(700)
@@ -127,10 +168,10 @@ chooser = cwindow.new {
 	title = caption,
 	icon = "settings",
 	has_shadow = true,
-	btnRed = get_imagename(1),
-	btnGreen = get_imagename(2),
-	btnYellow = get_imagename(3),
-	btnBlue = get_imagename(4)
+	btnRed = get_imagename(1) .. is_active(1),
+	btnGreen = get_imagename(2) .. is_active(2),
+	btnYellow = get_imagename(3) .. is_active(3),
+	btnBlue = get_imagename(4) .. is_active(4)
 }
 
 chooser_text = ctext.new {
