@@ -126,8 +126,10 @@ end
 timing_menu = neutrino_conf:getString("timing.menu", "0")
 
 for line in io.lines(bootfile) do
-        i, j = string.find(line, devbase)
-        current_root = tonumber(string.sub(line,j+1,j+1))
+	i, j = string.find(line, devbase)
+	if (j ~= nil) then
+		current_root = tonumber(string.sub(line,j+1,j+1))
+	end
 end
 
 function get_source_partition ()

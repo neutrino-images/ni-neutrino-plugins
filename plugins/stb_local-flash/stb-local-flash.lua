@@ -92,7 +92,9 @@ end
 
 for line in io.lines(bootfile) do
 	i, j = string.find(line, devbase)
-	current_root = tonumber(string.sub(line,j+1,j+1))
+	if (j ~= nil) then
+		current_root = tonumber(string.sub(line,j+1,j+1))
+	end
 end
 
 neutrino_conf = configfile.new()
