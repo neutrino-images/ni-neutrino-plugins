@@ -73,8 +73,8 @@ function basename(str)
 	return name
 end
 
-function get_value(str,part)
-	for line in io.lines("mnt/userdata/linuxrootfs" .. part  .. "/etc/image-version") do
+function get_value(str, rootfs)
+	for line in io.lines(rootfs .. "/etc/image-version") do
 		if line:match(str .. "=") then
 			local i,j = string.find(line, str .. "=")
 			ret = string.sub(line, j+1, #line)
@@ -84,8 +84,12 @@ function get_value(str,part)
 end
 
 function get_imagename(root)
-	if exists("mnt/userdata/linuxrootfs" .. root  .. "/etc/image-version") then
-		imagename = get_value("distro", root) .. " " .. get_value("imageversion", root)
+	local rootfs = ""
+	if (current_root ~= root) then
+		rootfs = "mnt/userdata/linuxrootfs" .. root
+	end
+	if exists(rootfs  .. "/etc/image-version") then
+		imagename = get_value("distro", rootfs) .. " " .. get_value("imageversion", rootfs)
 	else
 		local glob = require "posix".glob
 		for _, j in pairs(glob('/boot/*', 0)) do
