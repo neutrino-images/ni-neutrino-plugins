@@ -85,7 +85,9 @@ end
 
 function get_imagename(root)
 	local rootfs = ""
-	if (current_root ~= root) then
+	if (root == 1) then
+		rootfs = "/mnt/linuxrootfs1/linuxrootfs1"
+	elseif (current_root ~= root) then
 		rootfs = "/mnt/userdata/linuxrootfs" .. root
 	end
 	if exists(rootfs  .. "/etc/image-version") then
