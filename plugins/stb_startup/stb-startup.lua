@@ -32,7 +32,7 @@ fh = filehelpers.new()
 devbase = "linuxrootfs"
 bootfile = "/boot/STARTUP"
 
-for line in io.lines(bootfile) do
+for line in io.lines("/proc/cmdline") do
 	i, j = string.find(line, devbase)
 	if (j ~= nil) then
 		current_root = tonumber(string.sub(line,j+1,j+1))
