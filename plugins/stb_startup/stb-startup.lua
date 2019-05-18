@@ -24,44 +24,79 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
-caption = "STB-Startup"
+function exists(file)
+	local ok, err, exitcode = os.rename(file, file)
+	if not ok then
+		if exitcode == 13 then
+			-- Permission denied, but it exists
+			return true
+		end
+	end
+	return ok, err
+end
 
-n = neutrino()
-fh = filehelpers.new()
+function isdir(path)
+	return exists(path .. "/")
+end
 
-devbase = "linuxrootfs"
-bootfile = "/boot/STARTUP"
+function mkdir(path)
+	os.execute("mkdir -p " .. path)
+end
 
-for line in io.lines("/proc/cmdline") do
-	i, j = string.find(line, devbase)
-	if (j ~= nil) then
-		current_root = tonumber(string.sub(line,j+1,j+1))
+function rmdir(path)
+	os.execute("rm -rf " .. path)
+end
+
+function mount(dev,destination)
+	os.execute("mount -l " .. dev .. " " .. destination)
+end
+
+function umount(path)
+	os.execute("umount -l " .. path)
+end
+
+function link(source,destination)
+	os.execute("ln -sf " .. source .. " " .. destination)
+end
+
+function is_mounted(path)
+	for line in io.lines("/proc/self/mountinfo") do
+		_, j = string.find(line, path)
+		if line:match(path) then
+			return true
+		end
 	end
 end
 
-locale = {}
-locale["deutsch"] = {
-	current_boot_partition = "Die aktuelle Startpartition ist: ",
-	choose_partition = "\n\nBitte wählen Sie die neue Startpartition aus",
-	start_partition = "Rebooten und die gewählte Partition starten?",
-	empty_partition = "Das gewählte Image ist nicht vorhanden"
-}
-locale["english"] = {
-	current_boot_partition = "The current boot partition is: ",
-	choose_partition = "\n\nPlease choose the new boot partition",
-	start_partition = "Reboot and start the chosen partition?",
-	empty_partition = "No image available"
-}
+function mount_filesystems()
+	for _,v in ipairs(partlabels) do
+		mkdir("/tmp/testmount/" .. v)
+		if exists(partitions_by_name .. "/" .. v) then
+			mount(partitions_by_name .. "/" .. v,"/tmp/testmount/" .. v)
+		end
+	end
+	if exists(partitions_by_name .. "/" .. devbase) then
+		link("/tmp/testmount/linuxrootfs/linuxrootfs1","/tmp/testmount/userdata")
+	end
+end
+
+function umount_filesystems()
+	for _,v in ipairs(partlabels) do
+		umount("/tmp/testmount/" .. v)
+		if is_mounted("/tmp/testmount/" .. v) then
+			print("umount failed")
+			return false
+		end
+	end
+	rmdir("/tmp/testmount")
+end
 
 function sleep(n)
 	os.execute("sleep " .. tonumber(n))
 end
 
 function reboot()
-	local file = assert(io.popen("which systemctl >> /dev/null"))
-	running_init = file:read('*line')
-	file:close()
-	if running_init == "/bin/systemctl" then
+	if exists("/bin/systemctl") then
 		local file = assert(io.popen("systemctl reboot"))
 	else
 		local file = assert(io.popen("reboot"))
@@ -74,7 +109,7 @@ function basename(str)
 end
 
 function get_value(str,part)
-	for line in io.lines("mnt/userdata/linuxrootfs" .. part  .. "/etc/image-version") do
+	for line in io.lines("/tmp/testmount/userdata/linuxrootfs" .. part  .. "/etc/image-version") do
 		if line:match(str .. "=") then
 			local i,j = string.find(line, str .. "=")
 			ret = string.sub(line, j+1, #line)
@@ -84,7 +119,7 @@ function get_value(str,part)
 end
 
 function get_imagename(root)
-	if exists("mnt/userdata/linuxrootfs" .. root  .. "/etc/image-version") then
+	if exists("/tmp/testmount/userdata/linuxrootfs" .. root  .. "/etc/image-version") then
 		imagename = get_value("distro", root) .. " " .. get_value("imageversion", root)
 	else
 		local glob = require "posix".glob
@@ -101,21 +136,6 @@ function get_imagename(root)
 	return imagename
 end
 
-function exists(file)
-	local ok, err, exitcode = os.rename(file, file)
-	if not ok then
-		if exitcode == 13 then
-			-- Permission denied, but it exists
-			return true
-		end
-	end
-	return ok, err
-end
-
-function isdir(path)
-	return exists(path .. "/")
-end
-
 function is_active(root)
 	if (current_root == root) then
 		active = " *"
@@ -125,111 +145,155 @@ function is_active(root)
 	return active
 end
 
-neutrino_conf = configfile.new()
-neutrino_conf:loadConfig("/var/tuxbox/config/neutrino.conf")
-lang = neutrino_conf:getString("language", "english")
-if locale[lang] == nil then
-	lang = "english"
-end
-timing_menu = neutrino_conf:getString("timing.menu", "0")
+function main()
+	caption = "STB-Startup"
+	partlabels = {"linuxrootfs","userdata"}
+	n = neutrino()
+	devbase = "linuxrootfs"
+	bootfile = "/boot/STARTUP"
 
-chooser_dx = n:scale2Res(700)
-chooser_dy = n:scale2Res(200)
-chooser_x = SCREEN.OFF_X + (((SCREEN.END_X - SCREEN.OFF_X) - chooser_dx) / 2)
-chooser_y = SCREEN.OFF_Y + (((SCREEN.END_Y - SCREEN.OFF_Y) - chooser_dy) / 2)
-
-chooser = cwindow.new {
-	x = chooser_x,
-	y = chooser_y,
-	dx = chooser_dx,
-	dy = chooser_dy,
-	title = caption,
-	icon = "settings",
-	has_shadow = true,
-	btnRed = get_imagename(1) .. is_active(1),
-	btnGreen = get_imagename(2) .. is_active(2),
-	btnYellow = get_imagename(3) .. is_active(3),
-	btnBlue = get_imagename(4) .. is_active(4)
-}
-chooser_text = ctext.new {
-	parent = chooser,
-	x = OFFSET.INNER_MID,
-	y = OFFSET.INNER_SMALL,
-	dx = chooser_dx - 2*OFFSET.INNER_MID,
-	dy = chooser_dy - chooser:headerHeight() - chooser:footerHeight() - 2*OFFSET.INNER_SMALL,
-	text = locale[lang].current_boot_partition .. get_imagename(current_root) .. locale[lang].choose_partition,
-	font_text = FONT.MENU,
-	mode = "ALIGN_CENTER"
-}
-chooser:paint()
-
-i = 0
-d = 500 -- ms
-t = (timing_menu * 1000) / d
-if t == 0 then
-	t = -1 -- no timeout
-end
-
-colorkey = nil
-repeat
-	i = i + 1
-	msg, data = n:GetInput(d)
-	if (msg == RC['red']) then
-		root = 1
-		colorkey = true
-	elseif (msg == RC['green']) then
-		root = 2
-		colorkey = true
-	elseif (msg == RC['yellow']) then
-		root = 3
-		colorkey = true
-	elseif (msg == RC['blue']) then
-		root = 4
-		colorkey = true
-	end
-until msg == RC['home'] or colorkey or i == t
-chooser:hide()
-
-if colorkey then
-	if isdir("/mnt/" .. devbase .. root) then
-		-- found image folder
-	elseif isdir("/mnt/userdata/" .. devbase .. root) then
-		-- found image folder
+	if isdir("/dev/disk/by-partlabel") then
+		partitions_by_name = "/dev/disk/by-partlabel"
 	else
-		local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].empty_partition };
-		ret:paint();
-		sleep(3)
-		return
+		partitions_by_name = "/dev/block/by-name"
 	end
-	res = messagebox.exec {
-	title = caption,
-	icon = "settings",
-	text = locale[lang].start_partition,
-	timeout = 0,
-	buttons={ "yes", "no" }
-	}
-end
 
-if res == "yes" then
-	local glob = require "posix".glob
-	local startup_lines = {}
-	for _, j in pairs(glob('/boot/*', 0)) do
-		for line in io.lines(j) do
-			if (j ~= bootfile) or (j ~= nil) then
-				if line:match(devbase .. root) then
-					for line in io.lines(j) do
-						table.insert(startup_lines, line)
+	for line in io.lines("/proc/cmdline") do
+		_, j = string.find(line, devbase)
+		if (j ~= nil) then
+			current_root = tonumber(string.sub(line,j+1,j+1))
+		end
+	end
+
+	locale = {}
+	locale["deutsch"] = {
+		current_boot_partition = "Die aktuelle Startpartition ist: ",
+		choose_partition = "\n\nBitte wählen Sie die neue Startpartition aus",
+		start_partition = "Rebooten und die gewählte Partition starten?",
+		empty_partition = "Das gewählte Image ist nicht vorhanden"
+	}
+
+	locale["english"] = {
+		current_boot_partition = "The current boot partition is: ",
+		choose_partition = "\n\nPlease choose the new boot partition",
+		start_partition = "Reboot and start the chosen partition?",
+		empty_partition = "No image available"
+	}
+
+	neutrino_conf = configfile.new()
+	neutrino_conf:loadConfig("/var/tuxbox/config/neutrino.conf")
+	lang = neutrino_conf:getString("language", "english")
+
+	if locale[lang] == nil then
+		lang = "english"
+	end
+
+	mount_filesystems()
+
+	timing_menu = neutrino_conf:getString("timing.menu", "0")
+
+	chooser_dx = n:scale2Res(700)
+	chooser_dy = n:scale2Res(200)
+	chooser_x = SCREEN.OFF_X + (((SCREEN.END_X - SCREEN.OFF_X) - chooser_dx) / 2)
+	chooser_y = SCREEN.OFF_Y + (((SCREEN.END_Y - SCREEN.OFF_Y) - chooser_dy) / 2)
+
+	chooser = cwindow.new {
+		x = chooser_x,
+		y = chooser_y,
+		dx = chooser_dx,
+		dy = chooser_dy,
+		title = caption,
+		icon = "settings",
+		has_shadow = true,
+		btnRed = get_imagename(1) .. is_active(1),
+		btnGreen = get_imagename(2) .. is_active(2),
+		btnYellow = get_imagename(3) .. is_active(3),
+		btnBlue = get_imagename(4) .. is_active(4)
+	}
+	chooser_text = ctext.new {
+		parent = chooser,
+		x = OFFSET.INNER_MID,
+		y = OFFSET.INNER_SMALL,
+		dx = chooser_dx - 2*OFFSET.INNER_MID,
+		dy = chooser_dy - chooser:headerHeight() - chooser:footerHeight() - 2*OFFSET.INNER_SMALL,
+		text = locale[lang].current_boot_partition .. get_imagename(current_root) .. locale[lang].choose_partition,
+		font_text = FONT.MENU,
+		mode = "ALIGN_CENTER"
+	}
+	chooser:paint()
+
+	i = 0
+	d = 500 -- ms
+	t = (timing_menu * 1000) / d
+	if t == 0 then
+		t = -1 -- no timeout
+	end
+
+	colorkey = nil
+	repeat
+		i = i + 1
+		msg, data = n:GetInput(d)
+		if (msg == RC['red']) then
+			root = 1
+			colorkey = true
+		elseif (msg == RC['green']) then
+			root = 2
+			colorkey = true
+		elseif (msg == RC['yellow']) then
+			root = 3
+			colorkey = true
+		elseif (msg == RC['blue']) then
+			root = 4
+			colorkey = true
+		end
+	until msg == RC['home'] or colorkey or i == t
+	chooser:hide()
+
+	if colorkey then
+		if isdir("/tmp/testmount/userdata/" .. devbase .. root) then
+			-- found image folder
+		elseif isdir("/tmp/testmount/" .. devbase) then
+			-- found image folder
+		else
+			local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].empty_partition };
+			ret:paint();
+			sleep(3)
+			umount_filesystems()
+			return
+		end
+		res = messagebox.exec {
+		title = caption,
+		icon = "settings",
+		text = locale[lang].start_partition,
+		timeout = 0,
+		buttons={ "yes", "no" }
+		}
+	end
+
+	if res == "yes" then
+		local glob = require "posix".glob
+		local startup_lines = {}
+		for _, j in pairs(glob('/boot/*', 0)) do
+			for line in io.lines(j) do
+				if (j ~= bootfile) or (j ~= nil) then
+					if line:match(devbase .. root) then
+						for line in io.lines(j) do
+							table.insert(startup_lines, line)
+						end
 					end
 				end
 			end
 		end
+		file = io.open(bootfile, 'w')
+		for _, v in ipairs(startup_lines) do
+			file:write(v, "\n")
+		end
+		file:close()
+		umount_filesystems()
+		reboot()
 	end
-	file = io.open(bootfile, 'w')
-	for i, v in ipairs(startup_lines) do
-		file:write(v, "\n")
-	end
-	file:close()
-	reboot()
+	umount_filesystems()
+	return
 end
 
-return
+main()
