@@ -89,7 +89,9 @@ end
 
 function umount_filesystems()
 	for _,v in ipairs(partlabels) do
-		umount("/tmp/testmount/" .. v)
+		if exists(partitions_by_name .. "/" .. v) then
+			umount("/tmp/testmount/" .. v)
+		end
 		if is_mounted("/tmp/testmount/" .. v) then
 			print("umount failed")
 			return false
