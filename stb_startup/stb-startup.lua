@@ -48,11 +48,19 @@ function rmdir(path)
 end
 
 function mount(dev,destination)
-	os.execute("mount -l " .. dev .. " " .. destination)
+	if exists("/bin/mount.util-linux") then
+		os.execute("mount -l " .. dev .. " " .. destination)
+	else
+		os.execute("mount " .. dev .. " " .. destination)
+	end
 end
 
 function umount(path)
-	os.execute("umount -l " .. path)
+	if exists("/bin/umount.util-linux") then
+		os.execute("umount -l " .. path)
+	else
+		os.execute("umount " .. path)
+	end
 end
 
 function link(source,destination)
@@ -61,7 +69,6 @@ end
 
 function is_mounted(path)
 	for line in io.lines("/proc/self/mountinfo") do
-		_, j = string.find(line, path)
 		if line:match(path) then
 			return true
 		end
@@ -70,8 +77,8 @@ end
 
 function mount_filesystems()
 	for _,v in ipairs(partlabels) do
-		mkdir("/tmp/testmount/" .. v)
 		if exists(partitions_by_name .. "/" .. v) then
+			mkdir("/tmp/testmount/" .. v)
 			mount(partitions_by_name .. "/" .. v,"/tmp/testmount/" .. v)
 		end
 	end
@@ -109,17 +116,27 @@ function basename(str)
 end
 
 function get_value(str,part)
-	for line in io.lines("/tmp/testmount/userdata/linuxrootfs" .. part  .. "/etc/image-version") do
-		if line:match(str .. "=") then
-			local i,j = string.find(line, str .. "=")
-			ret = string.sub(line, j+1, #line)
+	if is_mounted("/tmp/testmount/userdata") then
+		for line in io.lines("/tmp/testmount/userdata/linuxrootfs" .. part  .. "/etc/image-version") do
+			if line:match(str .. "=") then
+				local i,j = string.find(line, str .. "=")
+				ret = string.sub(line, j+1, #line)
+			end
+		end
+	elseif is_mounted("/tmp/testmount/rootfs" .. part) then
+		for line in io.lines("/tmp/testmount/rootfs" .. part  .. "/etc/image-version") do
+			if line:match(str .. "=") then
+				local i,j = string.find(line, str .. "=")
+				ret = string.sub(line, j+1, #line)
+			end
 		end
 	end
 	return ret
 end
 
 function get_imagename(root)
-	if exists("/tmp/testmount/userdata/linuxrootfs" .. root  .. "/etc/image-version") then
+	if exists("/tmp/testmount/userdata/linuxrootfs" .. root  .. "/etc/image-version") or
+	exists("/tmp/testmount/rootfs" .. root  .. "/etc/image-version") then
 		imagename = get_value("distro", root) .. " " .. get_value("imageversion", root)
 	else
 		local glob = require "posix".glob
@@ -147,15 +164,20 @@ end
 
 function main()
 	caption = "STB-Startup"
-	partlabels = {"linuxrootfs","userdata"}
+	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4"}
 	n = neutrino()
-	devbase = "linuxrootfs"
 	bootfile = "/boot/STARTUP"
 
 	if isdir("/dev/disk/by-partlabel") then
 		partitions_by_name = "/dev/disk/by-partlabel"
 	else
 		partitions_by_name = "/dev/block/by-name"
+	end
+
+	if exists(partitions_by_name .. "/linuxrootfs") then
+		devbase = "linuxrootfs"
+	elseif exists(partitions_by_name .. "/rootfs1") then
+		devbase = "/dev/mmcblk0p"
 	end
 
 	for line in io.lines("/proc/cmdline") do
@@ -234,16 +256,32 @@ function main()
 		i = i + 1
 		msg, data = n:GetInput(d)
 		if (msg == RC['red']) then
-			root = 1
+			if (devbase == "linuxrootfs") then
+				root = 1
+			elseif(devbase == "/dev/mmcblk0p") then
+				root = 3
+			end
 			colorkey = true
 		elseif (msg == RC['green']) then
-			root = 2
+			if (devbase == "linuxrootfs") then
+				root = 2
+			elseif(devbase == "/dev/mmcblk0p") then
+				root = 5
+			end
 			colorkey = true
 		elseif (msg == RC['yellow']) then
-			root = 3
+			if (devbase == "linuxrootfs") then
+				root = 3
+			elseif(devbase == "/dev/mmcblk0p") then
+				root = 7
+			end
 			colorkey = true
 		elseif (msg == RC['blue']) then
-			root = 4
+			if (devbase == "linuxrootfs") then
+				root = 4
+			elseif(devbase == "/dev/mmcblk0p") then
+				root = 9
+			end
 			colorkey = true
 		end
 	until msg == RC['home'] or colorkey or i == t
@@ -253,6 +291,8 @@ function main()
 		if isdir("/tmp/testmount/userdata/" .. devbase .. root) then
 			-- found image folder
 		elseif isdir("/tmp/testmount/" .. devbase) then
+			-- found image folder
+		elseif isdir("/tmp/testmount/rootfs" .. root) then
 			-- found image folder
 		else
 			local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].empty_partition };
