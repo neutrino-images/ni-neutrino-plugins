@@ -124,18 +124,18 @@ function get_value(str,part)
 		for line in io.lines("/tmp/testmount/userdata/linuxrootfs" .. part  .. "/etc/image-version") do
 			if line:match(str .. "=") then
 				local i,j = string.find(line, str .. "=")
-				ret = string.sub(line, j+1, #line)
+				value = string.sub(line, j+1, #line)
 			end
 		end
 	elseif is_mounted("/tmp/testmount/rootfs" .. part) then
 		for line in io.lines("/tmp/testmount/rootfs" .. part  .. "/etc/image-version") do
 			if line:match(str .. "=") then
 				local i,j = string.find(line, str .. "=")
-				ret = string.sub(line, j+1, #line)
+				value = string.sub(line, j+1, #line)
 			end
 		end
 	end
-	return ret
+	return value
 end
 
 function get_imagename(root)
@@ -175,50 +175,26 @@ end
 
 function devnum_to_image(root)
 	if (has_gpt_layout()) then
-		if (root == 3) then root = 1 end
-		if (root == 5) then root = 2 end
-		if (root == 7) then root = 3 end
-		if (root == 9) then root = 4 end
+		if (root == 3) then ret = 1 end
+		if (root == 5) then ret = 2 end
+		if (root == 7) then ret = 3 end
+		if (root == 9) then ret = 4 end
+	else
+		ret = root
 	end
-	return root
+	return ret
 end
 
 function image_to_devnum(root)
 	if (has_gpt_layout()) then
-		if (root == 1) then root = 3 end
-		if (root == 2) then root = 5 end
-		if (root == 3) then root = 7 end
-		if (root == 4) then root = 9 end
+		if (root == 1) then ret = 3 end
+		if (root == 2) then ret = 5 end
+		if (root == 3) then ret = 7 end
+		if (root == 4) then ret = 9 end
+	else
+		ret = root
 	end
-	return root
-end
-
-function partitions_by_name()
-	if isdir("/dev/disk/by-partlabel") then
-		partitions_by_name = "/dev/disk/by-partlabel"
-	elseif isdir("/dev/block/by-name") then
-		partitions_by_name = "/dev/block/by-name"
-	end
-	return partitions_by_name
-end
-
-function devbase()
-	if exists(partitions_by_name .. "/linuxrootfs") then
-		devbase = "linuxrootfs"
-	elseif exists(partitions_by_name .. "/rootfs1") then
-		devbase = "/dev/mmcblk0p"
-	end
-	return devbase
-end
-
-function current_root()
-	for line in io.lines("/proc/cmdline") do
-		_, j = string.find(line, devbase)
-		if (j ~= nil) then
-			current_root = devnum_to_image(tonumber(string.sub(line,j+1,j+1)))
-		end
-	end
-	return current_root
+	return ret
 end
 
 function main()
@@ -252,9 +228,25 @@ function main()
 		lang = "english"
 	end
 
-	partitions_by_name()
-	devbase()
-	current_root()
+	if isdir("/dev/disk/by-partlabel") then
+		partitions_by_name = "/dev/disk/by-partlabel"
+	elseif isdir("/dev/block/by-name") then
+		partitions_by_name = "/dev/block/by-name"
+	end
+
+	if exists(partitions_by_name .. "/linuxrootfs") then
+		devbase = "linuxrootfs"
+	elseif exists(partitions_by_name .. "/rootfs1") then
+		devbase = "/dev/mmcblk0p"
+	end
+
+	for line in io.lines("/proc/cmdline") do
+		_, j = string.find(line, devbase)
+		if (j ~= nil) then
+			current_root = devnum_to_image(tonumber(string.sub(line,j+1,j+1)))
+		end
+	end
+
 	mount_filesystems()
 
 	timing_menu = neutrino_conf:getString("timing.menu", "0")
