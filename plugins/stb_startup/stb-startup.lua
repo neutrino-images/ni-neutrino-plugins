@@ -1,7 +1,7 @@
 -- The Tuxbox Copyright
 --
--- Copyright 2018 Markus Volk, Sven Hoefer, Don de Deckelwech
---
+-- Copyright 2018 - 2019 Markus Volk (f_l_k@t-online.de)
+-- Copyright 2018 Sven Hoefer, Don de Deckelwech
 -- Redistribution and use in source and binary forms, with or without modification, 
 -- are permitted provided that the following conditions are met:
 --
@@ -40,15 +40,16 @@ function isdir(path)
 end
 
 function mkdir(path)
-	os.execute("mkdir -p " .. path)
+	fh:mkdir(path)
 end
 
 function rmdir(path)
-	os.execute("rm -rf " .. path)
+	fh:rmdir(path)
 end
 
 function mount(dev,destination)
-	if exists("/bin/mount.util-linux") then
+	local provider = fh:readlink("/bin/mount")
+	if not string.match(provider, "busybox") then
 		os.execute("mount -l " .. dev .. " " .. destination)
 	else
 		os.execute("mount " .. dev .. " " .. destination)
@@ -56,7 +57,8 @@ function mount(dev,destination)
 end
 
 function umount(path)
-	if exists("/bin/umount.util-linux") then
+	local provider = fh:readlink("/bin/umount")
+	if not string.match(provider, "busybox") then
 		os.execute("umount -l " .. path)
 	else
 		os.execute("umount " .. path)
@@ -64,7 +66,7 @@ function umount(path)
 end
 
 function link(source,destination)
-	os.execute("ln -sf " .. source .. " " .. destination)
+	fh:ln(source,destination,"sf")
 end
 
 function is_mounted(path)
@@ -82,7 +84,7 @@ function mount_filesystems()
 			mount(partitions_by_name .. "/" .. v,"/tmp/testmount/" .. v)
 		end
 	end
-	if exists(partitions_by_name .. "/" .. devbase) then
+	if not has_gpt_layout() then
 		link("/tmp/testmount/linuxrootfs/linuxrootfs1","/tmp/testmount/userdata")
 	end
 end
@@ -145,7 +147,7 @@ function get_imagename(root)
 		for _, j in pairs(glob('/boot/*', 0)) do
 			for line in io.lines(j) do
 				if (j ~= bootfile) or (j ~= nil) then
-					if line:match(devbase .. root) then
+					if line:match(devbase .. image_to_devnum(root)) then
 						imagename = basename(j)
 					end
 				end
@@ -164,30 +166,68 @@ function is_active(root)
 	return active
 end
 
-function main()
-	caption = "STB-Startup"
-	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4"}
-	n = neutrino()
-	bootfile = "/boot/STARTUP"
+function has_gpt_layout()
+	if (devbase == "linuxrootfs") then
+		return false
+	end
+	return true
+end
 
+function devnum_to_image(root)
+	if (has_gpt_layout()) then
+		if (root == 3) then root = 1 end
+		if (root == 5) then root = 2 end
+		if (root == 7) then root = 3 end
+		if (root == 9) then root = 4 end
+	end
+	return root
+end
+
+function image_to_devnum(root)
+	if (has_gpt_layout()) then
+		if (root == 1) then root = 3 end
+		if (root == 2) then root = 5 end
+		if (root == 3) then root = 7 end
+		if (root == 4) then root = 9 end
+	end
+	return root
+end
+
+function partitions_by_name()
 	if isdir("/dev/disk/by-partlabel") then
 		partitions_by_name = "/dev/disk/by-partlabel"
-	else
+	elseif isdir("/dev/block/by-name") then
 		partitions_by_name = "/dev/block/by-name"
 	end
+	return partitions_by_name
+end
 
+function devbase()
 	if exists(partitions_by_name .. "/linuxrootfs") then
 		devbase = "linuxrootfs"
 	elseif exists(partitions_by_name .. "/rootfs1") then
 		devbase = "/dev/mmcblk0p"
 	end
+	return devbase
+end
 
+function current_root()
 	for line in io.lines("/proc/cmdline") do
 		_, j = string.find(line, devbase)
 		if (j ~= nil) then
-			current_root = tonumber(string.sub(line,j+1,j+1))
+			current_root = devnum_to_image(tonumber(string.sub(line,j+1,j+1)))
 		end
 	end
+	return current_root
+end
+
+function main()
+	caption = "STB-Startup"
+	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4"}
+	bootfile = "/boot/STARTUP"
+
+	n = neutrino()
+	fh = filehelpers.new()
 
 	locale = {}
 	locale["deutsch"] = {
@@ -212,6 +252,9 @@ function main()
 		lang = "english"
 	end
 
+	partitions_by_name()
+	devbase()
+	current_root()
 	mount_filesystems()
 
 	timing_menu = neutrino_conf:getString("timing.menu", "0")
@@ -234,6 +277,7 @@ function main()
 		btnYellow = get_imagename(3) .. is_active(3),
 		btnBlue = get_imagename(4) .. is_active(4)
 	}
+
 	chooser_text = ctext.new {
 		parent = chooser,
 		x = OFFSET.INNER_MID,
@@ -244,6 +288,7 @@ function main()
 		font_text = FONT.MENU,
 		mode = "ALIGN_CENTER"
 	}
+
 	chooser:paint()
 
 	i = 0
@@ -258,32 +303,16 @@ function main()
 		i = i + 1
 		msg, data = n:GetInput(d)
 		if (msg == RC['red']) then
-			if (devbase == "linuxrootfs") then
 				root = 1
-			elseif(devbase == "/dev/mmcblk0p") then
-				root = 3
-			end
 			colorkey = true
 		elseif (msg == RC['green']) then
-			if (devbase == "linuxrootfs") then
 				root = 2
-			elseif(devbase == "/dev/mmcblk0p") then
-				root = 5
-			end
 			colorkey = true
 		elseif (msg == RC['yellow']) then
-			if (devbase == "linuxrootfs") then
 				root = 3
-			elseif(devbase == "/dev/mmcblk0p") then
-				root = 7
-			end
 			colorkey = true
 		elseif (msg == RC['blue']) then
-			if (devbase == "linuxrootfs") then
 				root = 4
-			elseif(devbase == "/dev/mmcblk0p") then
-				root = 9
-			end
 			colorkey = true
 		end
 	until msg == RC['home'] or colorkey or i == t
@@ -318,7 +347,7 @@ function main()
 		for _, j in pairs(glob('/boot/*', 0)) do
 			for line in io.lines(j) do
 				if (j ~= bootfile) or (j ~= nil) then
-					if line:match(devbase .. root) then
+					if line:match(devbase .. image_to_devnum(root)) then
 						for line in io.lines(j) do
 							table.insert(startup_lines, line)
 						end
