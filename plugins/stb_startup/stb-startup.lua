@@ -315,7 +315,7 @@ function main()
 			-- found image folder
 		elseif isdir("/tmp/testmount/" .. devbase) then
 			-- found image folder
-		elseif isdir("/tmp/testmount/rootfs" .. root) then
+		elseif isdir("/tmp/testmount/rootfs" .. root .. "/usr") then
 			-- found image folder
 		else
 			local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].empty_partition };
