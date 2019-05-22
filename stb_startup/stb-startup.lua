@@ -347,7 +347,7 @@ function main()
 		elseif (msg == RC['blue']) then
 				root = 4
 			colorkey = true
-		elseif (msg == RC['5']) then
+		elseif (msg == RC['1']) then
 			chooser:hide()
 			menu = menu.new{name=locale[lang].options}
 			menu:addItem{type="back"}
@@ -406,7 +406,7 @@ function main()
 				end
 			end
 		end
-		file = io.open(bootfile, 'w+')
+		file = io.open(bootfile, 'w')
 		for _, v in ipairs(startup_lines) do
 			file:write(v, "\n")
 		end
