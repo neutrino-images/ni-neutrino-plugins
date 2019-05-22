@@ -51,8 +51,8 @@ function mount(dev,destination)
 	local provider = fh:readlink("/bin/mount")
 	if not string.match(provider, "busybox") then
 		os.execute("mount -l " .. dev .. " " .. destination)
-	else
-		os.execute("mount " .. dev .. " " .. destination)
+--	else
+--		os.execute("mount " .. dev .. " " .. destination)
 	end
 end
 
@@ -147,7 +147,8 @@ function get_imagename(root)
 		for _, j in pairs(glob('/boot/*', 0)) do
 			for line in io.lines(j) do
 				if (j ~= bootfile) or (j ~= nil) then
-					if line:match(devbase .. image_to_devnum(root)) then
+					if line:match(devbase .. image_to_devnum(root)) and
+					not line:match("boxmode=12") then
 						imagename = basename(j)
 					end
 				end
@@ -337,10 +338,9 @@ function main()
 		for _, j in pairs(glob('/boot/*', 0)) do
 			for line in io.lines(j) do
 				if (j ~= bootfile) or (j ~= nil) then
-					if line:match(devbase .. image_to_devnum(root)) then
-						for line in io.lines(j) do
-							table.insert(startup_lines, line)
-						end
+					if line:match(devbase .. image_to_devnum(root)) and
+					not line:match("boxmode=12") then
+						table.insert(startup_lines, line)
 					end
 				end
 			end
