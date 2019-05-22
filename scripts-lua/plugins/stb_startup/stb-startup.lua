@@ -24,6 +24,8 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
+on = "ein"; off = "aus"
+
 function exists(file)
 	local ok, err, exitcode = os.rename(file, file)
 	if not ok then
@@ -107,6 +109,7 @@ function sleep(n)
 end
 
 function reboot()
+	umount_filesystems()
 	if exists("/bin/systemctl") then
 		local file = assert(io.popen("systemctl reboot"))
 	else
@@ -146,8 +149,9 @@ function get_imagename(root)
 		local glob = require "posix".glob
 		for _, j in pairs(glob('/boot/*', 0)) do
 			for line in io.lines(j) do
-				if (j ~= bootfile) or (j ~= nil) then
-					if line:match(devbase .. image_to_devnum(root)) then
+				if (j ~= bootfile) and (j ~= nil) and not line:match("boxmode=12") then
+					if line:match(devbase .. image_to_devnum(root)) and
+					not line:match("boxmode=12") then
 						imagename = basename(j)
 					end
 				end
@@ -197,11 +201,44 @@ function image_to_devnum(root)
 	return ret
 end
 
+function get_cfg_value(str)
+	for line in io.lines(plugindir .. "/stb-startup.cfg") do
+		if line:match(str .. "=") then
+			local i,j = string.find(line, str .. "=")
+			r = tonumber(string.sub(line, j+1, #line))
+		end
+	end
+	return r
+end
+
+function write_cfg(k, v, str)
+	local a
+	if (v == on) then a = 1 else a = 0 end
+	local cfg_content = {}
+	for line in io.lines(plugindir .. "/stb-startup.cfg") do
+		if line:match(str .. "=") then
+			nline = string.reverse(string.gsub(string.reverse(line), string.sub(string.reverse(line), 1, 1), a, 1))
+			table.insert (cfg_content, nline)
+		else
+			table.insert (cfg_content, line)
+		end
+	end
+	file = io.open(plugindir .. "/stb-startup.cfg", 'w')
+	for i, v in ipairs(cfg_content) do
+		file:write(v, "\n")
+	end
+	io.close(file)
+end
+
+function set(k, v, str)
+	write_cfg(k, v, "boxmode_12")
+end
+
 function main()
 	caption = "STB-Startup"
 	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4"}
 	bootfile = "/boot/STARTUP"
-
+	plugindir = "/var/tuxbox/plugins"
 	n = neutrino()
 	fh = filehelpers.new()
 
@@ -210,14 +247,18 @@ function main()
 		current_boot_partition = "Die aktuelle Startpartition ist: ",
 		choose_partition = "\n\nBitte wählen Sie die neue Startpartition aus",
 		start_partition = "Rebooten und die gewählte Partition starten?",
-		empty_partition = "Das gewählte Image ist nicht vorhanden"
+		empty_partition = "Das gewählte Image ist nicht vorhanden",
+		options = "Einstellungen",
+		boxmode = "Boxmode 12"
 	}
 
 	locale["english"] = {
 		current_boot_partition = "The current boot partition is: ",
 		choose_partition = "\n\nPlease choose the new boot partition",
 		start_partition = "Reboot and start the chosen partition?",
-		empty_partition = "No image available"
+		empty_partition = "No image available",
+		options = "Options",
+		boxmode = "Boxmode 12"
 	}
 
 	neutrino_conf = configfile.new()
@@ -306,6 +347,18 @@ function main()
 		elseif (msg == RC['blue']) then
 				root = 4
 			colorkey = true
+		elseif (msg == RC['1']) then
+			chooser:hide()
+			menu = menu.new{name=locale[lang].options}
+			menu:addItem{type="back"}
+			menu:addItem{type="separatorline"}
+			if (get_cfg_value("boxmode_12") == 1) then
+				menu:addItem{type="chooser", action="set", options={on, off}, icon=menu, directkey=RC["1"], name=locale[lang].boxmode}
+			elseif (get_cfg_value("boxmode_12") == 0) then
+				menu:addItem{type="chooser", action="set", options={off, on}, icon=menu, directkey=RC["1"], name=locale[lang].boxmode}
+			end
+			menu:exec()
+			chooser:paint()
 		end
 	until msg == RC['home'] or colorkey or i == t
 	chooser:hide()
@@ -336,9 +389,17 @@ function main()
 		local startup_lines = {}
 		for _, j in pairs(glob('/boot/*', 0)) do
 			for line in io.lines(j) do
-				if (j ~= bootfile) or (j ~= nil) then
+				if (j ~= bootfile) and (j ~= nil) and not line:match("boxmode=12") then
 					if line:match(devbase .. image_to_devnum(root)) then
-						for line in io.lines(j) do
+						if (get_cfg_value("boxmode_12") == 1) then
+							cmdline1 = line:gsub(" '", " 'brcm_cma=520M@248M brcm_cma=192M@768M ")
+							cmdline2 = cmdline1:gsub("boxmode=1'", "boxmode=12'")
+							table.insert(startup_lines, cmdline2)
+						elseif (get_cfg_value("boxmode_12") == 0) then
+							cmdline1 = line:gsub(" 'brcm_cma=520M@248M brcm_cma=192M@768M "," '")
+							cmdline2 = cmdline1:gsub("boxmode=12'", "boxmode=1'")
+							table.insert(startup_lines, cmdline2)
+						else
 							table.insert(startup_lines, line)
 						end
 					end
@@ -350,10 +411,8 @@ function main()
 			file:write(v, "\n")
 		end
 		file:close()
-		umount_filesystems()
 		reboot()
 	end
-	umount_filesystems()
 	return
 end
 
