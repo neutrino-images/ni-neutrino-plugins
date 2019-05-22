@@ -392,11 +392,11 @@ function main()
 				if (j ~= bootfile) and (j ~= nil) and not line:match("boxmode=12") then
 					if line:match(devbase .. image_to_devnum(root)) then
 						if (get_cfg_value("boxmode_12") == 1) then
-							cmdline1 = line:gsub(" '", " 'brcm_cma=520M@248M ")
+							cmdline1 = line:gsub(" '", " 'brcm_cma=520M@248M brcm_cma=192M@768M ")
 							cmdline2 = cmdline1:gsub("boxmode=1'", "boxmode=12'")
 							table.insert(startup_lines, cmdline2)
 						elseif (get_cfg_value("boxmode_12") == 0) then
-							cmdline1 = line:gsub(" 'brcm_cma=520M@248M "," '")
+							cmdline1 = line:gsub(" 'brcm_cma=520M@248M brcm_cma=192M@768M "," '")
 							cmdline2 = cmdline1:gsub("boxmode=12'", "boxmode=1'")
 							table.insert(startup_lines, cmdline2)
 						else
