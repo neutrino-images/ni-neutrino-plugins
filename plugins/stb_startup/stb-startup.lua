@@ -238,6 +238,7 @@ function main()
 	caption = "STB-Startup"
 	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4"}
 	bootfile = "/boot/STARTUP"
+	plugindir = "/var/tuxbox/plugins"
 	n = neutrino()
 	fh = filehelpers.new()
 
@@ -263,7 +264,6 @@ function main()
 	neutrino_conf = configfile.new()
 	neutrino_conf:loadConfig("/var/tuxbox/config/neutrino.conf")
 	lang = neutrino_conf:getString("language", "english")
-	plugindir = neutrino_conf:getString("plugins_lua", "/usr/share/tuxbox/plugins")
 
 	if locale[lang] == nil then
 		lang = "english"
