@@ -347,15 +347,15 @@ function main()
 		elseif (msg == RC['blue']) then
 				root = 4
 			colorkey = true
-		elseif (msg == RC['1']) then
+		elseif (msg == RC['setup']) then
 			chooser:hide()
 			menu = menu.new{name=locale[lang].options}
 			menu:addItem{type="back"}
 			menu:addItem{type="separatorline"}
 			if (get_cfg_value("boxmode_12") == 1) then
-				menu:addItem{type="chooser", action="set", options={on, off}, icon=menu, directkey=RC["1"], name=locale[lang].boxmode}
+				menu:addItem{type="chooser", action="set", options={on, off}, icon=setup, directkey=RC["setup"], name=locale[lang].boxmode}
 			elseif (get_cfg_value("boxmode_12") == 0) then
-				menu:addItem{type="chooser", action="set", options={off, on}, icon=menu, directkey=RC["1"], name=locale[lang].boxmode}
+				menu:addItem{type="chooser", action="set", options={off, on}, icon=setup, directkey=RC["setup"], name=locale[lang].boxmode}
 			end
 			menu:exec()
 			chooser:paint()
