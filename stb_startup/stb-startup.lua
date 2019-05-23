@@ -124,14 +124,14 @@ end
 
 function get_value(str,part)
 	if is_mounted("/tmp/testmount/userdata") then
-		for line in io.lines("/tmp/testmount/userdata/linuxrootfs" .. part  .. "/etc/image-version") do
+		for line in io.lines("/tmp/testmount/userdata/linuxrootfs" .. part  .. etcdir .. "/image-version") do
 			if line:match(str .. "=") then
 				local i,j = string.find(line, str .. "=")
 				value = string.sub(line, j+1, #line)
 			end
 		end
 	elseif is_mounted("/tmp/testmount/rootfs" .. part) then
-		for line in io.lines("/tmp/testmount/rootfs" .. part  .. "/etc/image-version") do
+		for line in io.lines("/tmp/testmount/rootfs" .. part  .. etcdir .. "/image-version") do
 			if line:match(str .. "=") then
 				local i,j = string.find(line, str .. "=")
 				value = string.sub(line, j+1, #line)
@@ -142,8 +142,8 @@ function get_value(str,part)
 end
 
 function get_imagename(root)
-	if exists("/tmp/testmount/userdata/linuxrootfs" .. root  .. "/etc/image-version") or
-	exists("/tmp/testmount/rootfs" .. root  .. "/etc/image-version") then
+	if exists("/tmp/testmount/userdata/linuxrootfs" .. root  .. etcdir .. "/image-version") or
+	exists("/tmp/testmount/rootfs" .. root  .. etcdir .. "/image-version") then
 		imagename = get_value("distro", root) .. " " .. get_value("imageversion", root)
 	else
 		local glob = require "posix".glob
@@ -283,6 +283,12 @@ function main()
 		devbase = "linuxrootfs"
 	elseif exists(partitions_by_name .. "/rootfs1") then
 		devbase = "/dev/mmcblk0p"
+	end
+
+	if exists("/var/etc/image-version") then
+		etcdir=/var/etc
+	else
+		etcdir=/etc
 	end
 
 	for line in io.lines("/proc/cmdline") do
