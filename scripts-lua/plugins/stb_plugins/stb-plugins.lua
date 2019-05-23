@@ -58,7 +58,7 @@ end
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/etc/neutrino/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
-pluginpath = "/usr/share/tuxbox/plugins/"
+pluginpath = "/var/tuxbox/plugins/"
 
 if locale[lang] == nil then
 	lang = "english"

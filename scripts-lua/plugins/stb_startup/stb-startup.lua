@@ -1,3 +1,4 @@
+
 -- The Tuxbox Copyright
 --
 -- Copyright 2018 - 2019 Markus Volk (f_l_k@t-online.de)
@@ -87,7 +88,7 @@ function mount_filesystems()
 		end
 	end
 	if not has_gpt_layout() then
-		link("/tmp/testmount/linuxrootfs/linuxrootfs1","/tmp/testmount/userdata")
+		link("/tmp/testmount/linuxrootfs/linuxrootfs1","/tmp/testmount/userdata/linuxrootfs1")
 	end
 end
 
@@ -122,16 +123,16 @@ function basename(str)
 	return name
 end
 
-function get_value(str,part)
+function get_value(str,part,etcdir)
 	if is_mounted("/tmp/testmount/userdata") then
-		for line in io.lines("/tmp/testmount/userdata/linuxrootfs" .. part  .. "/etc/image-version") do
+		for line in io.lines("/tmp/testmount/userdata/linuxrootfs" .. part  .. etcdir .. "/image-version") do
 			if line:match(str .. "=") then
 				local i,j = string.find(line, str .. "=")
 				value = string.sub(line, j+1, #line)
 			end
 		end
 	elseif is_mounted("/tmp/testmount/rootfs" .. part) then
-		for line in io.lines("/tmp/testmount/rootfs" .. part  .. "/etc/image-version") do
+		for line in io.lines("/tmp/testmount/rootfs" .. part  .. etcdir .. "/image-version") do
 			if line:match(str .. "=") then
 				local i,j = string.find(line, str .. "=")
 				value = string.sub(line, j+1, #line)
@@ -142,16 +143,18 @@ function get_value(str,part)
 end
 
 function get_imagename(root)
-	if exists("/tmp/testmount/userdata/linuxrootfs" .. root  .. "/etc/image-version") or
+	if exists("/tmp/testmount/userdata/linuxrootfs" .. root .. "/etc/image-version") or
 	exists("/tmp/testmount/rootfs" .. root  .. "/etc/image-version") then
-		imagename = get_value("distro", root) .. " " .. get_value("imageversion", root)
+		imagename = get_value("distro", root, "/etc") .. " " .. get_value("imageversion", root, "/etc")
+	elseif exists("/tmp/testmount/userdata/linuxrootfs" .. root .. "/var/etc/image-version") or
+	exists("/tmp/testmount/rootfs" .. root  .. "/var/etc/image-version") then
+		imagename = get_value("distro", root, "/var/etc") .. " " .. get_value("imageversion", root, "/var/etc")
 	else
 		local glob = require "posix".glob
 		for _, j in pairs(glob('/boot/*', 0)) do
 			for line in io.lines(j) do
 				if (j ~= bootfile) and (j ~= nil) and not line:match("boxmode=12") then
-					if line:match(devbase .. image_to_devnum(root)) and
-					not line:match("boxmode=12") then
+					if line:match(devbase .. image_to_devnum(root)) then
 						imagename = basename(j)
 					end
 				end
@@ -238,7 +241,6 @@ function main()
 	caption = "STB-Startup"
 	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4"}
 	bootfile = "/boot/STARTUP"
-	plugindir = "/var/tuxbox/plugins"
 	n = neutrino()
 	fh = filehelpers.new()
 
@@ -267,6 +269,12 @@ function main()
 
 	if locale[lang] == nil then
 		lang = "english"
+	end
+
+	if exists("/var/tuxbox/plugins/stb-startup.cfg") then
+		plugindir = "/var/tuxbox/plugins"
+	elseif exists("/lib/tuxbox/plugins/stb-startup.cfg") then
+		plugindir = "/lib/tuxbox/plugins"
 	end
 
 	if isdir("/dev/disk/by-partlabel") then
@@ -347,15 +355,15 @@ function main()
 		elseif (msg == RC['blue']) then
 				root = 4
 			colorkey = true
-		elseif (msg == RC['1']) then
+		elseif (msg == RC['setup']) then
 			chooser:hide()
 			menu = menu.new{name=locale[lang].options}
 			menu:addItem{type="back"}
 			menu:addItem{type="separatorline"}
 			if (get_cfg_value("boxmode_12") == 1) then
-				menu:addItem{type="chooser", action="set", options={on, off}, icon=menu, directkey=RC["1"], name=locale[lang].boxmode}
+				menu:addItem{type="chooser", action="set", options={on, off}, icon=setup, directkey=RC["setup"], name=locale[lang].boxmode}
 			elseif (get_cfg_value("boxmode_12") == 0) then
-				menu:addItem{type="chooser", action="set", options={off, on}, icon=menu, directkey=RC["1"], name=locale[lang].boxmode}
+				menu:addItem{type="chooser", action="set", options={off, on}, icon=setup, directkey=RC["setup"], name=locale[lang].boxmode}
 			end
 			menu:exec()
 			chooser:paint()
@@ -371,8 +379,8 @@ function main()
 		else
 			local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].empty_partition };
 			ret:paint();
-			sleep(3)
 			umount_filesystems()
+			sleep(3)
 			return
 		end
 		res = messagebox.exec {
@@ -413,6 +421,7 @@ function main()
 		file:close()
 		reboot()
 	end
+	umount_filesystems()
 	return
 end
 
