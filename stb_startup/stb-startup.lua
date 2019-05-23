@@ -150,8 +150,7 @@ function get_imagename(root)
 		for _, j in pairs(glob('/boot/*', 0)) do
 			for line in io.lines(j) do
 				if (j ~= bootfile) and (j ~= nil) and not line:match("boxmode=12") then
-					if line:match(devbase .. image_to_devnum(root)) and
-					not line:match("boxmode=12") then
+					if line:match(devbase .. image_to_devnum(root)) then
 						imagename = basename(j)
 					end
 				end
@@ -371,8 +370,8 @@ function main()
 		else
 			local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].empty_partition };
 			ret:paint();
-			sleep(3)
 			umount_filesystems()
+			sleep(3)
 			return
 		end
 		res = messagebox.exec {
