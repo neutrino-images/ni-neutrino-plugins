@@ -286,9 +286,9 @@ function main()
 	end
 
 	if exists("/var/etc/image-version") then
-		etcdir="/var/etc"
+		etcdir=/var/etc
 	else
-		etcdir="/etc"
+		etcdir=/etc
 	end
 
 	for line in io.lines("/proc/cmdline") do
