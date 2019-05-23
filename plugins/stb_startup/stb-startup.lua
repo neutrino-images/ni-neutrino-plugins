@@ -237,7 +237,6 @@ function main()
 	caption = "STB-Startup"
 	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4"}
 	bootfile = "/boot/STARTUP"
-	plugindir = "/var/tuxbox/plugins"
 	n = neutrino()
 	fh = filehelpers.new()
 
@@ -266,6 +265,12 @@ function main()
 
 	if locale[lang] == nil then
 		lang = "english"
+	end
+
+	if exists("/var/tuxbox/plugins/stb-startup.cfg") then
+		plugindir = "/var/tuxbox/plugins"
+	elseif exists("/lib/tuxbox/plugins/stb-startup.cfg") then
+		plugindir = "/lib/tuxbox/plugins"
 	end
 
 	if isdir("/dev/disk/by-partlabel") then
