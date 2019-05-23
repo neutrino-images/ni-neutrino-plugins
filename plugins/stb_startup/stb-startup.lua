@@ -1,3 +1,4 @@
+
 -- The Tuxbox Copyright
 --
 -- Copyright 2018 - 2019 Markus Volk (f_l_k@t-online.de)
@@ -87,7 +88,7 @@ function mount_filesystems()
 		end
 	end
 	if not has_gpt_layout() then
-		link("/tmp/testmount/linuxrootfs/linuxrootfs1","/tmp/testmount/userdata")
+		link("/tmp/testmount/linuxrootfs/linuxrootfs1","/tmp/testmount/userdata/linuxrootfs1")
 	end
 end
 
@@ -122,16 +123,16 @@ function basename(str)
 	return name
 end
 
-function get_value(str,part)
+function get_value(str,part,etcdir)
 	if is_mounted("/tmp/testmount/userdata") then
-		for line in io.lines("/tmp/testmount/userdata/linuxrootfs" .. part  .. "/etc/image-version") do
+		for line in io.lines("/tmp/testmount/userdata/linuxrootfs" .. part  .. etcdir .. "/image-version") do
 			if line:match(str .. "=") then
 				local i,j = string.find(line, str .. "=")
 				value = string.sub(line, j+1, #line)
 			end
 		end
 	elseif is_mounted("/tmp/testmount/rootfs" .. part) then
-		for line in io.lines("/tmp/testmount/rootfs" .. part  .. "/etc/image-version") do
+		for line in io.lines("/tmp/testmount/rootfs" .. part  .. etcdir .. "/image-version") do
 			if line:match(str .. "=") then
 				local i,j = string.find(line, str .. "=")
 				value = string.sub(line, j+1, #line)
@@ -142,9 +143,12 @@ function get_value(str,part)
 end
 
 function get_imagename(root)
-	if exists("/tmp/testmount/userdata/linuxrootfs" .. root  .. "/etc/image-version") or
+	if exists("/tmp/testmount/userdata/linuxrootfs" .. root .. "/etc/image-version") or
 	exists("/tmp/testmount/rootfs" .. root  .. "/etc/image-version") then
-		imagename = get_value("distro", root) .. " " .. get_value("imageversion", root)
+		imagename = get_value("distro", root, "/etc") .. " " .. get_value("imageversion", root, "/etc")
+	elseif exists("/tmp/testmount/userdata/linuxrootfs" .. root .. "/var/etc/image-version") or
+	exists("/tmp/testmount/rootfs" .. root  .. "/var/etc/image-version") then
+		imagename = get_value("distro", root, "/var/etc") .. " " .. get_value("imageversion", root, "/var/etc")
 	else
 		local glob = require "posix".glob
 		for _, j in pairs(glob('/boot/*', 0)) do
@@ -417,6 +421,7 @@ function main()
 		file:close()
 		reboot()
 	end
+	umount_filesystems()
 	return
 end
 
