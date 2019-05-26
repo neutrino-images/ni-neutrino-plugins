@@ -113,6 +113,8 @@ function reboot()
 	umount_filesystems()
 	if exists("/bin/systemctl") then
 		local file = assert(io.popen("systemctl reboot"))
+	elseif fh:exist("/sbin/init", "f") then
+		local file = assert(io.popen("sync && init 6"))
 	else
 		local file = assert(io.popen("reboot"))
 	end
