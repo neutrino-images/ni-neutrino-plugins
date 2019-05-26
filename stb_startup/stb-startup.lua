@@ -207,7 +207,7 @@ function image_to_devnum(root)
 end
 
 function get_cfg_value(str)
-	for line in io.lines(plugindir .. "/stb-startup.cfg") do
+	for line in io.lines(tuxbox_config .. "/stb-startup.conf") do
 		if line:match(str .. "=") then
 			local i,j = string.find(line, str .. "=")
 			r = tonumber(string.sub(line, j+1, #line))
@@ -216,11 +216,17 @@ function get_cfg_value(str)
 	return r
 end
 
+function create_cfg()
+	file = io.open(tuxbox_config .. "/stb-startup.conf", "w")
+	file:write("boxmode_12=0", "\n")
+	file:close()
+end
+
 function write_cfg(k, v, str)
 	local a
 	if (v == on) then a = 1 else a = 0 end
 	local cfg_content = {}
-	for line in io.lines(plugindir .. "/stb-startup.cfg") do
+	for line in io.lines(tuxbox_config .. "/stb-startup.conf") do
 		if line:match(str .. "=") then
 			nline = string.reverse(string.gsub(string.reverse(line), string.sub(string.reverse(line), 1, 1), a, 1))
 			table.insert (cfg_content, nline)
@@ -228,7 +234,7 @@ function write_cfg(k, v, str)
 			table.insert (cfg_content, line)
 		end
 	end
-	file = io.open(plugindir .. "/stb-startup.cfg", 'w')
+	file = io.open(tuxbox_config .. "/stb-startup.conf", 'w')
 	for i, v in ipairs(cfg_content) do
 		file:write(v, "\n")
 	end
@@ -265,22 +271,13 @@ function main()
 		boxmode = "Boxmode 12"
 	}
 
+	tuxbox_config = "/var/tuxbox/config"
 	neutrino_conf = configfile.new()
-	neutrino_conf:loadConfig("/var/tuxbox/config/neutrino.conf")
+	neutrino_conf:loadConfig(tuxbox_config .. "/neutrino.conf")
 	lang = neutrino_conf:getString("language", "english")
 
 	if locale[lang] == nil then
 		lang = "english"
-	end
-
-	if exists("/var/tuxbox/plugins/stb-startup.cfg") then
-		plugindir = "/var/tuxbox/plugins"
-	elseif exists("/lib/tuxbox/plugins/stb-startup.cfg") then
-		plugindir = "/lib/tuxbox/plugins"
-	elseif exists("/usr/lib/tuxbox/plugins/stb-startup.cfg") then
-		plugindir = "/usr/lib/tuxbox/plugins"
-	elseif exists("/usr/share/tuxbox/plugins/stb-startup.cfg") then
-		plugindir = "/usr/share/tuxbox/plugins"
 	end
 
 	if isdir("/dev/disk/by-partlabel") then
@@ -300,6 +297,10 @@ function main()
 		if (j ~= nil) then
 			current_root = devnum_to_image(tonumber(string.sub(line,j+1,j+1)))
 		end
+	end
+
+	if (exists(tuxbox_config .. "/stb-startup.conf") ~= true) then
+		create_cfg()
 	end
 
 	mount_filesystems()
