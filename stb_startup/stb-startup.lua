@@ -277,6 +277,10 @@ function main()
 		plugindir = "/var/tuxbox/plugins"
 	elseif exists("/lib/tuxbox/plugins/stb-startup.cfg") then
 		plugindir = "/lib/tuxbox/plugins"
+	elseif exists("/usr/lib/tuxbox/plugins/stb-startup.cfg") then
+		plugindir = "/usr/lib/tuxbox/plugins"
+	elseif exists("/usr/share/tuxbox/plugins/stb-startup.cfg") then
+		plugindir = "/usr/share/tuxbox/plugins"
 	end
 
 	if isdir("/dev/disk/by-partlabel") then
