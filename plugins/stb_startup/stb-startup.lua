@@ -182,6 +182,15 @@ function has_gpt_layout()
 	return true
 end
 
+function has_boxmode()
+	for line in io.lines("/proc/cpuinfo") do
+		if line:match("bigfish") then
+			return false
+		end
+	end
+	return true
+end
+
 function devnum_to_image(root)
 	if (has_gpt_layout()) then
 		if (root == 3) then ret = 1 end
@@ -362,7 +371,7 @@ function main()
 		elseif (msg == RC['blue']) then
 				root = 4
 			colorkey = true
-		elseif (msg == RC['setup']) then
+		elseif has_boxmode() and (msg == RC['setup']) then
 			chooser:hide()
 			menu = menu.new{name=locale[lang].options}
 			menu:addItem{type="back"}
