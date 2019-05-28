@@ -308,7 +308,7 @@ function main()
 		end
 	end
 
-	if (exists(tuxbox_config .. "/stb-startup.conf") ~= true) then
+	if not exists(tuxbox_config .. "/stb-startup.conf") then
 		create_cfg()
 	end
 
@@ -418,10 +418,6 @@ function main()
 						if (get_cfg_value("boxmode_12") == 1) then
 							cmdline1 = line:gsub(" '", " 'brcm_cma=520M@248M brcm_cma=192M@768M ")
 							cmdline2 = cmdline1:gsub("boxmode=1'", "boxmode=12'")
-							table.insert(startup_lines, cmdline2)
-						elseif (get_cfg_value("boxmode_12") == 0) then
-							cmdline1 = line:gsub(" 'brcm_cma=520M@248M brcm_cma=192M@768M "," '")
-							cmdline2 = cmdline1:gsub("boxmode=12'", "boxmode=1'")
 							table.insert(startup_lines, cmdline2)
 						else
 							table.insert(startup_lines, line)
