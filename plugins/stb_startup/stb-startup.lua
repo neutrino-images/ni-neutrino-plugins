@@ -52,7 +52,7 @@ end
 
 function mount(dev,destination)
 	local provider = fh:readlink("/bin/mount")
-	if not string.match(provider, "busybox") then
+	if (provider == nil) or not string.match(provider, "busybox") then
 		os.execute("mount -l " .. dev .. " " .. destination)
 	else
 		os.execute("mount " .. dev .. " " .. destination)
@@ -61,7 +61,7 @@ end
 
 function umount(path)
 	local provider = fh:readlink("/bin/umount")
-	if not string.match(provider, "busybox") then
+	if (provider == nil) or not string.match(provider, "busybox") then
 		os.execute("umount -l " .. path)
 	else
 		os.execute("umount " .. path)
