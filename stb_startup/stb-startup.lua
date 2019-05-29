@@ -415,12 +415,13 @@ function main()
 			for line in io.lines(j) do
 				if (j ~= bootfile) and (j ~= nil) and not line:match("boxmode=12") then
 					if line:match(devbase .. image_to_devnum(root)) then
+						startup_line = line:gsub(" 'brcm_cma=440M@328M brcm_cma=192M@768M ", " '")
 						if (get_cfg_value("boxmode_12") == 1) then
-							cmdline1 = line:gsub(" '", " 'brcm_cma=520M@248M brcm_cma=192M@768M ")
+							cmdline1 = startup_line:gsub(" '", " 'brcm_cma=520M@248M brcm_cma=192M@768M ")
 							cmdline2 = cmdline1:gsub("boxmode=1'", "boxmode=12'")
 							table.insert(startup_lines, cmdline2)
 						else
-							table.insert(startup_lines, line)
+							table.insert(startup_lines, startup_line)
 						end
 					end
 				end
@@ -431,7 +432,7 @@ function main()
 			file:write(v, "\n")
 		end
 		file:close()
-		reboot()
+		--reboot()
 	end
 	umount_filesystems()
 	return
