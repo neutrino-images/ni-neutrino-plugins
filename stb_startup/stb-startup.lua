@@ -184,8 +184,8 @@ end
 
 function has_boxmode()
 	for line in io.lines("/proc/cpuinfo") do
-		if line:match("bigfish") then
-			return false
+		if line:match("Broadcom") then
+			return true
 		end
 	end
 	return false
