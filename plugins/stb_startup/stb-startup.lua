@@ -237,8 +237,7 @@ function write_cfg(k, v, str)
 	local cfg_content = {}
 	for line in io.lines(tuxbox_config .. "/stb-startup.conf") do
 		if line:match(str .. "=") then
-			nline = string.reverse(string.gsub(string.reverse(line), string.sub(string.reverse(line), 1, 1), a, 1))
-			table.insert (cfg_content, nline)
+			table.insert (cfg_content, (string.reverse(string.gsub(string.reverse(line), string.sub(string.reverse(line), 1, 1), a, 1))))
 		else
 			table.insert (cfg_content, line)
 		end
@@ -415,7 +414,7 @@ function main()
 			for line in io.lines(j) do
 				if (j ~= bootfile) and (j ~= nil) and not line:match("boxmode=12") then
 					if line:match(devbase .. image_to_devnum(root)) then
-						startup_line = line:gsub(string.sub(line, string.find(line, " '")+2, string.find(line, "root")-1), "")
+						startup_line = line:gsub(string.sub(line, string.find(line, " '")+2, string.find(line, "root=")-1), "")
 						if (get_cfg_value("boxmode_12") == 1) then
 							table.insert(startup_lines, (startup_line:gsub(" '", " 'brcm_cma=520M@248M brcm_cma=192M@768M "):gsub("boxmode=1'", "boxmode=12'")))
 						else
