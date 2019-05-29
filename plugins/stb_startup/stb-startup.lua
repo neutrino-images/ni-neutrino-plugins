@@ -1,4 +1,3 @@
-
 -- The Tuxbox Copyright
 --
 -- Copyright 2018 - 2019 Markus Volk (f_l_k@t-online.de)
@@ -294,10 +293,10 @@ function main()
 		partitions_by_name = "/dev/block/by-name"
 	end
 
-	if exists(partitions_by_name .. "/linuxrootfs") then
-		devbase = "linuxrootfs"
-	elseif exists(partitions_by_name .. "/rootfs1") then
+	if exists(partitions_by_name .. "/rootfs1") then
 		devbase = "/dev/mmcblk0p"
+	else
+		devbase = "linuxrootfs"
 	end
 
 	for line in io.lines("/proc/cmdline") do
@@ -412,20 +411,21 @@ function main()
 		local startup_lines = {}
 		for _, j in pairs(glob('/boot/*', 0)) do
 			for line in io.lines(j) do
-				if (j ~= bootfile) and (j ~= nil) and not line:match("boxmode=12") then
+				if (j ~= bootfile) and (j ~= nil) and not line:match("boxmode=12") and not line:match("android") then
 					if line:match(devbase .. image_to_devnum(root)) then
-						if has_boxmode() then
-							startup_line = line:gsub(string.sub(line, string.find(line, " '")+2, string.find(line, "root=")-1), "")
-						else
-							startup_line = line
-						end
-						if has_boxmode() and get_cfg_value("boxmode_12") == 1 then
-							table.insert(startup_lines, (startup_line:gsub(" '", " 'brcm_cma=520M@248M brcm_cma=192M@768M "):gsub("boxmode=1'", "boxmode=12'")))
-						else
-							table.insert(startup_lines, startup_line)
-						end
+						startup_file = j
 					end
 				end
+			end
+		end
+		for line in io.lines(startup_file) do
+			if has_boxmode() then
+				line = line:gsub(string.sub(line, string.find(line, " '")+2, string.find(line, "root=")-1), "")
+			end
+			if has_boxmode() and get_cfg_value("boxmode_12") == 1 then
+				table.insert(startup_lines, (line:gsub(" '", " 'brcm_cma=520M@248M brcm_cma=192M@768M "):gsub("boxmode=1'", "boxmode=12'")))
+			else
+				table.insert(startup_lines, line)
 			end
 		end
 		file = io.open(bootfile, 'w')
@@ -433,7 +433,7 @@ function main()
 			file:write(v, "\n")
 		end
 		file:close()
-		reboot()
+--		reboot()
 	end
 	umount_filesystems()
 	return
