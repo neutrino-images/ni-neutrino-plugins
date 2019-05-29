@@ -432,7 +432,7 @@ function main()
 			file:write(v, "\n")
 		end
 		file:close()
-		--reboot()
+		reboot()
 	end
 	umount_filesystems()
 	return
