@@ -307,7 +307,7 @@ function main()
 		end
 	end
 
-	if not exists(tuxbox_config .. "/stb-startup.conf") then
+	if not exists(tuxbox_config .. "/stb-startup.conf") and has_boxmode() then
 		create_cfg()
 	end
 
