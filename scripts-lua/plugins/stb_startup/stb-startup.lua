@@ -1,4 +1,3 @@
-
 -- The Tuxbox Copyright
 --
 -- Copyright 2018 - 2019 Markus Volk (f_l_k@t-online.de)
@@ -184,11 +183,11 @@ end
 
 function has_boxmode()
 	for line in io.lines("/proc/cpuinfo") do
-		if line:match("bigfish") then
-			return false
+		if line:match("Broadcom") then
+			return true
 		end
 	end
-	return true
+	return false
 end
 
 function devnum_to_image(root)
@@ -237,8 +236,7 @@ function write_cfg(k, v, str)
 	local cfg_content = {}
 	for line in io.lines(tuxbox_config .. "/stb-startup.conf") do
 		if line:match(str .. "=") then
-			nline = string.reverse(string.gsub(string.reverse(line), string.sub(string.reverse(line), 1, 1), a, 1))
-			table.insert (cfg_content, nline)
+			table.insert (cfg_content, (string.reverse(string.gsub(string.reverse(line), string.sub(string.reverse(line), 1, 1), a, 1))))
 		else
 			table.insert (cfg_content, line)
 		end
@@ -295,10 +293,10 @@ function main()
 		partitions_by_name = "/dev/block/by-name"
 	end
 
-	if exists(partitions_by_name .. "/linuxrootfs") then
-		devbase = "linuxrootfs"
-	elseif exists(partitions_by_name .. "/rootfs1") then
+	if exists(partitions_by_name .. "/rootfs1") then
 		devbase = "/dev/mmcblk0p"
+	else
+		devbase = "linuxrootfs"
 	end
 
 	for line in io.lines("/proc/cmdline") do
@@ -308,7 +306,7 @@ function main()
 		end
 	end
 
-	if not exists(tuxbox_config .. "/stb-startup.conf") then
+	if not exists(tuxbox_config .. "/stb-startup.conf") and has_boxmode() then
 		create_cfg()
 	end
 
@@ -413,17 +411,21 @@ function main()
 		local startup_lines = {}
 		for _, j in pairs(glob('/boot/*', 0)) do
 			for line in io.lines(j) do
-				if (j ~= bootfile) and (j ~= nil) and not line:match("boxmode=12") then
+				if (j ~= bootfile) and (j ~= nil) and not line:match("boxmode=12") and not line:match("android") then
 					if line:match(devbase .. image_to_devnum(root)) then
-						if (get_cfg_value("boxmode_12") == 1) then
-							cmdline1 = line:gsub(" '", " 'brcm_cma=520M@248M brcm_cma=192M@768M ")
-							cmdline2 = cmdline1:gsub("boxmode=1'", "boxmode=12'")
-							table.insert(startup_lines, cmdline2)
-						else
-							table.insert(startup_lines, line)
-						end
+						startup_file = j
 					end
 				end
+			end
+		end
+		for line in io.lines(startup_file) do
+			if has_boxmode() then
+				line = line:gsub(string.sub(line, string.find(line, " '")+2, string.find(line, "root=")-1), "")
+			end
+			if has_boxmode() and get_cfg_value("boxmode_12") == 1 then
+				table.insert(startup_lines, (line:gsub(" '", " 'brcm_cma=520M@248M brcm_cma=192M@768M "):gsub("boxmode=1'", "boxmode=12'")))
+			else
+				table.insert(startup_lines, line)
 			end
 		end
 		file = io.open(bootfile, 'w')
