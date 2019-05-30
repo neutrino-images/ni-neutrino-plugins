@@ -1,2 +1,2 @@
 #!/bin/sh
-/lib/tuxbox/plugins/pr-auto-timer --menu
+/share/tuxbox/neutrino/plugins/pr-auto-timer --menu

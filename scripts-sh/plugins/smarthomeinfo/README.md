@@ -21,9 +21,9 @@ dann wird das Feld USERNM in der conf leer lassen.
 ### Installation ###
 smarthomeinfo.conf kommt nach /var/tuxbox/config
 
-smarthomeinfo.so kommt nach /lib/tuxbox/plugins (Rechte auf 755)
-smarthomeinfo.cfg kommt nach /lib/tuxbox/plugins
-smarthomeinfo_hint.png kommt nach /lib/tuxbox/plugins
+smarthomeinfo.so kommt nach /share/tuxbox/neutrino/plugins (Rechte auf 755)
+smarthomeinfo.cfg kommt nach /share/tuxbox/neutrino/plugins
+smarthomeinfo_hint.png kommt nach /share/tuxbox/neutrino/plugins
 
-Falls das Plugin nicht unter /lib/tuxbox/plugins, sondern bspw. unter /var/tuxbox/plugins installiert wird, dann muss das in der conf Datei entsprechend angepasst werden.
+Falls das Plugin nicht unter /share/tuxbox/neutrino/plugins, sondern bspw. unter /var/tuxbox/plugins installiert wird, dann muss das in der conf Datei entsprechend angepasst werden.
 

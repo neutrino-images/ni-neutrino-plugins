@@ -1,7 +1,7 @@
 Das Plugin dient zum Aufräumen des Menüs der blauen Taste. Viele dort auswähl-
 bare Scripts oder Binarys werden selten benötigt und verringern nur die Über-
 sichtlichkeit des Menüs. Statt dieser vielen Plugins wird nun das shellexec-
-plugin in den Ordner /lib/tuxbox/plugins kopiert und die anderen Plugins kön-
+plugin in den Ordner /share/tuxbox/neutrino/plugins kopiert und die anderen Plugins kön-
 nen dort gelöscht werden. Die von ihnen aufgerufenen Scripte werden nun in die
 shellexec.conf eingetragen, und stehen nun als eine Art Untermenü unter dem
 in der shellexec.cfg eingetragenen Namen zur Verfügung.
@@ -39,7 +39,7 @@ Wird kein Kommandozeilenparameter angegeben, verwendet das Plugin die Datei
 Installation:
 
 Die Verzeichnis-Struktur gibt den Ort der Dateien im Image eigentlich schon vor,
-also shellexec.cfg und shellexec.so (Rechte auf 755) nach /lib/tuxbox/plugins/.
+also shellexec.cfg und shellexec.so (Rechte auf 755) nach /share/tuxbox/neutrino/plugins/.
 shellexec nach /var/plugins und shellexec.conf nach /var/tuxbox/config. shellexec
 braucht die Rechte 755.
 

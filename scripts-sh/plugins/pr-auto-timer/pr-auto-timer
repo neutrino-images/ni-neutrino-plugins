@@ -24,7 +24,7 @@
 # Related files:
 #	Configuration:		/var/tuxbox/config/pr-auto-timer.conf
 #	Timer rules:		/var/tuxbox/config/pr-auto-timer.rules
-#	Neutrino plugin:	/lib/tuxbox/plugins/pr-auto-timer.{sh,cfg}
+#	Neutrino plugin:	/share/tuxbox/neutrino/plugins/pr-auto-timer.{sh,cfg}
 
 VERSION=0.41a
 
@@ -255,7 +255,7 @@ VERSION=0.41a
 #	-fix function to get channels from bouquet
 #
 # 0.18 by vanhofen (NI-Team)
-#	-move pr-auto-timer from /var/plugins to /lib/tuxbox/plugins
+#	-move pr-auto-timer from /var/plugins to /share/tuxbox/neutrino/plugins
 #	-show pr-auto-timer as a script plugin in neutrino
 #	-reformatting awk-blocks (just for my readability)
 #	-remove variables to binarys
