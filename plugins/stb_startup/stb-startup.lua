@@ -68,7 +68,7 @@ function umount(path)
 end
 
 function link(source,destination)
-	fh:ln(source,destination,"sf")
+	os.execute("ln -sf source destination")
 end
 
 function is_mounted(path)
