@@ -68,7 +68,7 @@ function umount(path)
 end
 
 function link(source,destination)
-	fh:ln(source,destination,"sf")
+	fh:ln(source,destination,"s")
 end
 
 function is_mounted(path)
