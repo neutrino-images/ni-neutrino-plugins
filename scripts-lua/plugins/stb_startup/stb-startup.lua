@@ -87,7 +87,14 @@ function mount_filesystems()
 		end
 	end
 	if not has_gpt_layout() then
-		link("/tmp/testmount/linuxrootfs/linuxrootfs1","/tmp/testmount/userdata/linuxrootfs1")
+		if is_mounted("/tmp/testmount/linuxrootfs") then
+			link("/tmp/testmount/linuxrootfs/linuxrootfs1","/tmp/testmount/linuxrootfs1")
+		else
+			link("/tmp/testmount/userdata/linuxrootfs1","/tmp/testmount/linuxrootfs1")
+		end
+		link("/tmp/testmount/userdata/linuxrootfs2","/tmp/testmount/linuxrootfs2")
+		link("/tmp/testmount/userdata/linuxrootfs3","/tmp/testmount/linuxrootfs3")
+		link("/tmp/testmount/userdata/linuxrootfs4","/tmp/testmount/linuxrootfs4")
 	end
 end
 
@@ -126,7 +133,7 @@ end
 
 function get_value(str,part,etcdir)
 	if is_mounted("/tmp/testmount/userdata") then
-		for line in io.lines("/tmp/testmount/userdata/linuxrootfs" .. part  .. etcdir .. "/image-version") do
+		for line in io.lines("/tmp/testmount/linuxrootfs" .. part  .. etcdir .. "/image-version") do
 			if line:match(str .. "=") then
 				local i,j = string.find(line, str .. "=")
 				value = string.sub(line, j+1, #line)
@@ -144,10 +151,10 @@ function get_value(str,part,etcdir)
 end
 
 function get_imagename(root)
-	if exists("/tmp/testmount/userdata/linuxrootfs" .. root .. "/etc/image-version") or
+	if exists("/tmp/testmount/linuxrootfs" .. root .. "/etc/image-version") or
 	exists("/tmp/testmount/rootfs" .. root  .. "/etc/image-version") then
 		imagename = get_value("distro", root, "/etc") .. " " .. get_value("imageversion", root, "/etc")
-	elseif exists("/tmp/testmount/userdata/linuxrootfs" .. root .. "/var/etc/image-version") or
+	elseif exists("/tmp/testmount/linuxrootfs" .. root .. "/var/etc/image-version") or
 	exists("/tmp/testmount/rootfs" .. root  .. "/var/etc/image-version") then
 		imagename = get_value("distro", root, "/var/etc") .. " " .. get_value("imageversion", root, "/var/etc")
 	else
@@ -386,7 +393,7 @@ function main()
 	chooser:hide()
 
 	if colorkey then
-		if exists("/tmp/testmount/userdata/" .. devbase .. root) then
+		if exists("/tmp/testmount/" .. devbase .. root) then
 			-- found image folder
 		elseif isdir("/tmp/testmount/rootfs" .. root .. "/usr") then
 			-- found image folder
