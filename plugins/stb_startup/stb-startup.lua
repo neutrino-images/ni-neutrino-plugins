@@ -87,7 +87,11 @@ function mount_filesystems()
 		end
 	end
 	if not has_gpt_layout() then
-		link("/tmp/testmount/linuxrootfs/linuxrootfs1","/tmp/testmount/linuxrootfs1")
+		if is_mounted("/tmp/testmount/linuxrootfs") then
+			link("/tmp/testmount/linuxrootfs/linuxrootfs1","/tmp/testmount/linuxrootfs1")
+		else
+			link("/tmp/testmount/userdata/linuxrootfs1","/tmp/testmount/linuxrootfs1")
+		end
 		link("/tmp/testmount/userdata/linuxrootfs2","/tmp/testmount/linuxrootfs2")
 		link("/tmp/testmount/userdata/linuxrootfs3","/tmp/testmount/linuxrootfs3")
 		link("/tmp/testmount/userdata/linuxrootfs4","/tmp/testmount/linuxrootfs4")
