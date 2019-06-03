@@ -159,9 +159,9 @@ function get_imagename(root)
 		imagename = get_value("distro", root, "/var/etc") .. " " .. get_value("imageversion", root, "/var/etc")
 	else
 		local glob = require "posix".glob
-		for _, j in pairs(glob('/boot/*', 0)) do
+		for _, j in pairs(glob(boot .. '/*', 0)) do
 			for line in io.lines(j) do
-				if (j ~= bootfile) and (j ~= nil) and not line:match("boxmode=12") then
+				if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("boxmode=12") then
 					if line:match(devbase .. image_to_devnum(root)) then
 						imagename = basename(j)
 					end
@@ -261,8 +261,7 @@ end
 
 function main()
 	caption = "STB-Startup"
-	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4"}
-	bootfile = "/boot/STARTUP"
+	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4","boot","bootoptions"}
 	n = neutrino()
 	fh = filehelpers.new()
 
@@ -292,6 +291,12 @@ function main()
 
 	if locale[lang] == nil then
 		lang = "english"
+	end
+
+	if has_boxmode() then
+		boot = "/tmp/testmount/boot"
+	else
+		boot = "/tmp/testmount/bootoptions"
 	end
 
 	if isdir("/dev/disk/by-partlabel") then
@@ -332,7 +337,7 @@ function main()
 		dx = chooser_dx,
 		dy = chooser_dy,
 		title = caption,
-		icon = "settings",
+		icon = "hint_settings",
 		has_shadow = true,
 		btnRed = get_imagename(1) .. is_active(1),
 		btnGreen = get_imagename(2) .. is_active(2),
@@ -416,9 +421,9 @@ function main()
 	if res == "yes" then
 		local glob = require "posix".glob
 		local startup_lines = {}
-		for _, j in pairs(glob('/boot/*', 0)) do
+		for _, j in pairs(glob(boot .. '/*', 0)) do
 			for line in io.lines(j) do
-				if (j ~= bootfile) and (j ~= nil) and not line:match("boxmode=12") and not line:match("android") then
+				if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("boxmode=12") and not line:match("android") then
 					if line:match(devbase .. image_to_devnum(root)) then
 						startup_file = j
 					end
@@ -435,7 +440,7 @@ function main()
 				table.insert(startup_lines, line)
 			end
 		end
-		file = io.open(bootfile, 'w')
+		file = io.open(boot .. "/STARTUP", 'w')
 		for _, v in ipairs(startup_lines) do
 			file:write(v, "\n")
 		end
