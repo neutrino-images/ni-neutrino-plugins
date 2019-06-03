@@ -378,13 +378,13 @@ function main()
 			colorkey = true
 		elseif has_boxmode() and (msg == RC['setup']) then
 			chooser:hide()
-			menu = menu.new{name=locale[lang].options}
+			menu = menu.new{icon="settings", name=locale[lang].options}
 			menu:addItem{type="back"}
 			menu:addItem{type="separatorline"}
 			if (get_cfg_value("boxmode_12") == 1) then
-				menu:addItem{type="chooser", action="set", options={on, off}, icon=setup, directkey=RC["setup"], name=locale[lang].boxmode}
+				menu:addItem{type="chooser", action="set", options={on, off}, directkey=RC["setup"], name=locale[lang].boxmode}
 			elseif (get_cfg_value("boxmode_12") == 0) then
-				menu:addItem{type="chooser", action="set", options={off, on}, icon=setup, directkey=RC["setup"], name=locale[lang].boxmode}
+				menu:addItem{type="chooser", action="set", options={off, on}, directkey=RC["setup"], name=locale[lang].boxmode}
 			end
 			menu:exec()
 			chooser:paint()
@@ -393,7 +393,7 @@ function main()
 	chooser:hide()
 
 	if colorkey then
-		if exists("/tmp/testmount/" .. devbase .. root) then
+		if exists("/tmp/testmount/" .. devbase .. root .. "/usr") then
 			-- found image folder
 		elseif isdir("/tmp/testmount/rootfs" .. root .. "/usr") then
 			-- found image folder
