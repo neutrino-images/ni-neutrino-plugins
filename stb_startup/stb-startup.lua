@@ -393,7 +393,7 @@ function main()
 	chooser:hide()
 
 	if colorkey then
-		if exists("/tmp/testmount/" .. devbase .. root) then
+		if exists("/tmp/testmount/" .. devbase .. root .. "/usr") then
 			-- found image folder
 		elseif isdir("/tmp/testmount/rootfs" .. root .. "/usr") then
 			-- found image folder
