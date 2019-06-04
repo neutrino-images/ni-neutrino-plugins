@@ -337,7 +337,7 @@ function main()
 		dx = chooser_dx,
 		dy = chooser_dy,
 		title = caption,
-		icon = "hint_settings",
+		icon = "settings",
 		has_shadow = true,
 		btnRed = get_imagename(1) .. is_active(1),
 		btnGreen = get_imagename(2) .. is_active(2),
