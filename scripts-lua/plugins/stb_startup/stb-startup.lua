@@ -27,18 +27,15 @@
 on = "ein"; off = "aus"
 
 function exists(file)
-	local ok, err, exitcode = os.rename(file, file)
-	if not ok then
-		if exitcode == 13 then
-			-- Permission denied, but it exists
-			return true
-		end
-	end
-	return ok, err
+	return fh:exist(file, "f")
 end
 
 function isdir(path)
-	return exists(path .. "/")
+	return fh:exist(path, "d")
+end
+
+function islink(path)
+	return fh:exist(path, "l")
 end
 
 function mkdir(path)
@@ -81,7 +78,7 @@ end
 
 function mount_filesystems()
 	for _,v in ipairs(partlabels) do
-		if exists(partitions_by_name .. "/" .. v) then
+		if islink(partitions_by_name .. "/" .. v) then
 			mkdir("/tmp/testmount/" .. v)
 			mount(partitions_by_name .. "/" .. v,"/tmp/testmount/" .. v)
 		end
@@ -100,7 +97,7 @@ end
 
 function umount_filesystems()
 	for _,v in ipairs(partlabels) do
-		if exists(partitions_by_name .. "/" .. v) then
+		if islink(partitions_by_name .. "/" .. v) then
 			umount("/tmp/testmount/" .. v)
 		end
 		if is_mounted("/tmp/testmount/" .. v) then
@@ -119,7 +116,7 @@ function reboot()
 	umount_filesystems()
 	if exists("/bin/systemctl") then
 		local file = assert(io.popen("systemctl reboot"))
-	elseif fh:exist("/sbin/init", "f") then
+	elseif exists("/sbin/init") then
 		local file = assert(io.popen("sync && init 6"))
 	else
 		local file = assert(io.popen("reboot"))
@@ -131,16 +128,16 @@ function basename(str)
 	return name
 end
 
-function get_value(str,part,etcdir)
+function get_value(str,root,etcdir)
 	if is_mounted("/tmp/testmount/userdata") then
-		for line in io.lines("/tmp/testmount/linuxrootfs" .. part  .. etcdir .. "/image-version") do
+		for line in io.lines("/tmp/testmount/linuxrootfs" .. root  .. etcdir .. "/image-version") do
 			if line:match(str .. "=") then
 				local i,j = string.find(line, str .. "=")
 				value = string.sub(line, j+1, #line)
 			end
 		end
-	elseif is_mounted("/tmp/testmount/rootfs" .. part) then
-		for line in io.lines("/tmp/testmount/rootfs" .. part  .. etcdir .. "/image-version") do
+	elseif is_mounted("/tmp/testmount/rootfs" .. root) then
+		for line in io.lines("/tmp/testmount/rootfs" .. root  .. etcdir .. "/image-version") do
 			if line:match(str .. "=") then
 				local i,j = string.find(line, str .. "=")
 				value = string.sub(line, j+1, #line)
@@ -151,17 +148,23 @@ function get_value(str,part,etcdir)
 end
 
 function get_imagename(root)
-	if exists("/tmp/testmount/linuxrootfs" .. root .. "/etc/image-version") or
-	exists("/tmp/testmount/rootfs" .. root  .. "/etc/image-version") then
+	local etc_isdir = false
+	if fh:exist("/tmp/testmount/linuxrootfs" .. root .. "/etc", "d") or
+	fh:exist("/tmp/testmount/rootfs" .. root .. "/etc", "d") then
+		etc_isdir = true
+	end
+	if etc_isdir and
+	(exists("/tmp/testmount/linuxrootfs" .. root .. "/etc/image-version") or
+	exists("/tmp/testmount/rootfs" .. root  .. "/etc/image-version")) then
 		imagename = get_value("distro", root, "/etc") .. " " .. get_value("imageversion", root, "/etc")
 	elseif exists("/tmp/testmount/linuxrootfs" .. root .. "/var/etc/image-version") or
 	exists("/tmp/testmount/rootfs" .. root  .. "/var/etc/image-version") then
 		imagename = get_value("distro", root, "/var/etc") .. " " .. get_value("imageversion", root, "/var/etc")
 	else
 		local glob = require "posix".glob
-		for _, j in pairs(glob('/boot/*', 0)) do
+		for _, j in pairs(glob(boot .. '/*', 0)) do
 			for line in io.lines(j) do
-				if (j ~= bootfile) and (j ~= nil) and not line:match("boxmode=12") then
+				if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("boxmode=12") then
 					if line:match(devbase .. image_to_devnum(root)) then
 						imagename = basename(j)
 					end
@@ -261,8 +264,7 @@ end
 
 function main()
 	caption = "STB-Startup"
-	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4"}
-	bootfile = "/boot/STARTUP"
+	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4","boot","bootoptions"}
 	n = neutrino()
 	fh = filehelpers.new()
 
@@ -294,13 +296,19 @@ function main()
 		lang = "english"
 	end
 
+	if has_boxmode() then
+		boot = "/tmp/testmount/boot"
+	else
+		boot = "/tmp/testmount/bootoptions"
+	end
+
 	if isdir("/dev/disk/by-partlabel") then
 		partitions_by_name = "/dev/disk/by-partlabel"
 	elseif isdir("/dev/block/by-name") then
 		partitions_by_name = "/dev/block/by-name"
 	end
 
-	if exists(partitions_by_name .. "/rootfs1") then
+	if islink(partitions_by_name .. "/rootfs1") then
 		devbase = "/dev/mmcblk0p"
 	else
 		devbase = "linuxrootfs"
@@ -393,9 +401,9 @@ function main()
 	chooser:hide()
 
 	if colorkey then
-		if exists("/tmp/testmount/" .. devbase .. root .. "/usr") then
+		if islink("/tmp/testmount/" .. devbase .. root) then
 			-- found image folder
-		elseif isdir("/tmp/testmount/rootfs" .. root .. "/usr") then
+		elseif isdir("/tmp/testmount/rootfs" .. root) then
 			-- found image folder
 		else
 			local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].empty_partition };
@@ -416,9 +424,9 @@ function main()
 	if res == "yes" then
 		local glob = require "posix".glob
 		local startup_lines = {}
-		for _, j in pairs(glob('/boot/*', 0)) do
+		for _, j in pairs(glob(boot .. '/*', 0)) do
 			for line in io.lines(j) do
-				if (j ~= bootfile) and (j ~= nil) and not line:match("boxmode=12") and not line:match("android") then
+				if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("boxmode=12") and not line:match("android") then
 					if line:match(devbase .. image_to_devnum(root)) then
 						startup_file = j
 					end
@@ -435,7 +443,7 @@ function main()
 				table.insert(startup_lines, line)
 			end
 		end
-		file = io.open(bootfile, 'w')
+		file = io.open(boot .. "/STARTUP", 'w')
 		for _, v in ipairs(startup_lines) do
 			file:write(v, "\n")
 		end
