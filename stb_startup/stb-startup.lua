@@ -149,8 +149,8 @@ end
 
 function get_imagename(root)
 	local etc_isdir = false
-	if fh:exist("/tmp/testmount/linuxrootfs" .. root .. "/etc", "d") or
-	fh:exist("/tmp/testmount/rootfs" .. root .. "/etc", "d") then
+	if isdir("/tmp/testmount/linuxrootfs" .. root .. "/etc") or
+	isdir("/tmp/testmount/rootfs" .. root .. "/etc") then
 		etc_isdir = true
 	end
 	if etc_isdir and
