@@ -310,7 +310,7 @@ function main()
 		partitions_by_name = "/dev/block/by-name"
 	end
 
-	if exists(partitions_by_name .. "/rootfs1") then
+	if islink(partitions_by_name .. "/rootfs1") then
 		devbase = "/dev/mmcblk0p"
 	else
 		devbase = "linuxrootfs"
