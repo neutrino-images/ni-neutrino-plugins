@@ -78,8 +78,7 @@ end
 
 function mount_filesystems()
 	for _,v in ipairs(partlabels) do
-		if exists(partitions_by_name .. "/" .. v) or
-		islink(partitions_by_name .. "/" .. v) then
+		if islink(partitions_by_name .. "/" .. v) then
 			mkdir("/tmp/testmount/" .. v)
 			mount(partitions_by_name .. "/" .. v,"/tmp/testmount/" .. v)
 		end
@@ -98,8 +97,7 @@ end
 
 function umount_filesystems()
 	for _,v in ipairs(partlabels) do
-		if exists(partitions_by_name .. "/" .. v) or
-		islink(partitions_by_name .. "/" .. v) then
+		if islink(partitions_by_name .. "/" .. v) then
 			umount("/tmp/testmount/" .. v)
 		end
 		if is_mounted("/tmp/testmount/" .. v) then
