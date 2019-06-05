@@ -150,8 +150,14 @@ function get_value(str,root,etcdir)
 end
 
 function get_imagename(root)
-	if exists("/tmp/testmount/linuxrootfs" .. root .. "/etc/image-version") or
-	exists("/tmp/testmount/rootfs" .. root  .. "/etc/image-version") then
+	local etc_isdir = false
+	if fh:exist("/tmp/testmount/linuxrootfs" .. root .. "/etc", "d") or
+	fh:exist("/tmp/testmount/rootfs" .. root .. "/etc", "d") then
+		etc_isdir = true
+	end
+	if etc_isdir and
+	(exists("/tmp/testmount/linuxrootfs" .. root .. "/etc/image-version") or
+	exists("/tmp/testmount/rootfs" .. root  .. "/etc/image-version")) then
 		imagename = get_value("distro", root, "/etc") .. " " .. get_value("imageversion", root, "/etc")
 	elseif exists("/tmp/testmount/linuxrootfs" .. root .. "/var/etc/image-version") or
 	exists("/tmp/testmount/rootfs" .. root  .. "/var/etc/image-version") then
