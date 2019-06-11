@@ -73,5 +73,9 @@ SUBDIRS += \
 
 SUBDIRS += data
 
+install-data-hook:
+	$(INSTALL) -d $(DESTDIR)$(LUAPLUGINDIR)
+
 uninstall-hook:
 	-rmdir $(DESTDIR)$(PLUGINDIR)
+	-rmdir $(DESTDIR)$(LUAPLUGINDIR)
