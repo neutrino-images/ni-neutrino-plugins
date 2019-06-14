@@ -30,7 +30,8 @@ function hex2char(hex)
   return string.char(tonumber(hex, 16))
 end
 function unescape_uri(url)
-  return url:gsub("%%(%x%x)", hex2char)
+	if url == nil then return nil end
+	return url:gsub("%%(%x%x)", hex2char)
 end
 
 function js_extract(data,patern)
@@ -196,7 +197,7 @@ function getVideoData(yurl)
 						myurl=url:match('url=(.-)$')
 						local myitag = ""
 						if myurl then
-							myitag = myurl:match('itag=(%d+)')
+							myitag = myurl:match('itag=(%d+)') or myurl:match('itag%%3D(%d+)')
 						else
 							myitag = data:match('fmt_list=(%d+)')
 						end
@@ -206,12 +207,15 @@ function getVideoData(yurl)
 							else
 								myurl=url:match('url=(.-)$') .. "&" .. url:match('(.-)url')
 							end
-							local s=myurl:match('s=(%w+.%w+)')
+							local s=myurl:match('s=([%%%-%=%w+_]+)')
 							if s then
+								local s2=unescape_uri(s)
 								local js_url= data:match('<script src="([/%w%p]+base%.js)"')
-								local signature = newsig(s,js_url)
+								local signature = newsig(s2,js_url)
 								if signature then
-									myurl=myurl:gsub('s=' .. s ,'signature=' .. signature)
+									s = s:gsub("[%+%?%-%*%(%)%.%[%]%^%$%%]","%%%1")
+									signature = signature:gsub("[%%]","%%%%")
+									myurl = myurl:gsub('s=' .. s ,'sig=' .. signature)
 								end
 							end
 							myurl=myurl:gsub("itag=" .. myitag, "")
