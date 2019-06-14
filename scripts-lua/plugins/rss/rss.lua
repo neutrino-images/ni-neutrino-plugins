@@ -1016,13 +1016,13 @@ function loadConfig()
 		config:loadConfig(get_confFile())
 		conf.picdir = config:getString("picdir", "/tmp/rssPics")
 		conf.bindir = config:getString("bindir", "/bin")
-		conf.addonsdir = config:getString("addonsdir", "/var/tuxbox/plugins/rss_addon/")
-		conf.linksbrowserdir = config:getString("linksbrowserdir", "/var/tuxbox/plugins/")
+		conf.addonsdir = config:getString("addonsdir", "/share/tuxbox/neutrino/plugins/rss_addon/")
+		conf.linksbrowserdir = config:getString("linksbrowserdir", "/share/tuxbox/neutrino/plugins/")
 		conf.htmlviewer = config:getString("htmlviewer", "nichts")
 		config = nil
 	end
 	local Nconfig	= configfile.new()
-	Nconfig:loadConfig("/var/tuxbox/config/neutrino.conf")
+	Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
 	conf.lang = Nconfig:getString("language", "english")
 	if locale[conf.lang] == nil then
 		conf.lang = "english"
