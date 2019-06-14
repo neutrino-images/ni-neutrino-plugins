@@ -225,6 +225,12 @@ AC_ARG_ENABLE(openvpn-setup,
 	[enable_openvpn_setup="yes"])
 AM_CONDITIONAL(ENABLE_OPENVPN_SETUP, test "$enable_openvpn_setup" = "yes")
 
+AC_ARG_ENABLE(rss,
+	AS_HELP_STRING([--enable-rss], [enable rss-reader @<:@default=yes@:>@]),
+	[enable_rss="$enableval"],
+	[enable_rss="yes"])
+AM_CONDITIONAL(ENABLE_RSS, test "$enable_rss" = "yes")
+
 AC_ARG_ENABLE(stb_startup,
 	AS_HELP_STRING([--enable-stb_startup], [enable stb_startup @<:@default=yes@:>@]),
 	[enable_stb_startup="$enableval"],
@@ -315,6 +321,7 @@ scripts-lua/plugins/mtv/Makefile
 scripts-lua/plugins/netzkino/Makefile
 scripts-lua/plugins/openvpn-setup/Makefile
 scripts-lua/plugins/openvpn-setup/openvpn-setup/Makefile
+scripts-lua/plugins/rss/Makefile
 scripts-lua/plugins/stb_startup/Makefile
 scripts-lua/plugins/userbouquets/Makefile
 scripts-lua/plugins/webradio/Makefile
