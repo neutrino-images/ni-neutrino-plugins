@@ -13,6 +13,7 @@ rss_addon_DATA = \
 	rss_addon/arte.lua \
 	rss_addon/chip.lua \
 	rss_addon/golem.lua \
+	rss_addon/heise.lua \
 	rss_addon/instagram.lua \
 	rss_addon/kingofsat.lua \
 	rss_addon/liveleak.lua \
