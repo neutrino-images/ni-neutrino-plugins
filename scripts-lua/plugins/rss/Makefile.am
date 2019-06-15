@@ -2,7 +2,8 @@ plugindir = $(PLUGINDIR)
 
 plugin_DATA = \
 	rss.cfg \
-	rss.lua
+	rss.lua \
+	rss_hint.png
 
 rss_addondir = $(PLUGINDIR)/rss_addon
 
