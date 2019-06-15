@@ -26,6 +26,3 @@ rss_addon_DATA = \
 	rss_addon/yt.lua \
 	rss_addon/yt_video_url.lua \
 	rss_addon/zdf.lua
-
-uninstall-hook:
-	-rmdir $(DESTDIR)$(PLUGINDIR)/rss_addon
