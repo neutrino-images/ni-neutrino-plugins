@@ -18,7 +18,8 @@ function hex2char(hex)
   return string.char(tonumber(hex, 16))
 end
 function unescape_uri(url)
-  return url:gsub("%%(%x%x)", hex2char)
+	if url == nil then return nil end
+	return url:gsub("%%(%x%x)", hex2char)
 end
 
 function js_extract(data,patern)
@@ -190,12 +191,15 @@ local itags = {[37]='1920x1080',[96]='1920x1080',[22]='1280x720',[95]='1280x720'
 							else
 								myurl=url:match('url=(.-)$') .. "&" .. url:match('(.-)url')
 							end						
-							local s=myurl:match('s=(%w+.%w+)')
+							local s=myurl:match('s=([%%%-%=%w+_]+)')
 							if s then
+								local s2=unescape_uri(s)
 								local js_url= data:match('<script src="([/%w%p]+base%.js)"')
-								local signature = newsig(s,js_url)
+								local signature = newsig(s2,js_url)
 								if signature then
-									myurl=myurl:gsub('s=' .. s ,'signature=' .. signature)
+									s = s:gsub("[%+%?%-%*%(%)%.%[%]%^%$%%]","%%%1")
+									signature = signature:gsub("[%%]","%%%%")
+									myurl = myurl:gsub('s=' .. s ,'sig=' .. signature)
 								end
 							end
 							myurl=myurl:gsub("itag=" .. myitag, "")
