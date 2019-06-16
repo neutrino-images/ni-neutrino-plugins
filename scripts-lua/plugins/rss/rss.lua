@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.80"
+rssReaderVersion="Lua RSS READER v0.81"
 local CONF_PATH = "/var/tuxbox/config/"
 local n = neutrino()
 local FontMenu = FONT.MENU
@@ -32,11 +32,13 @@ local conf = {}
 feedentries = {} --don't make local
 local addon = nil
 local nothing,hva,hvb,hvc,hve,hvf="nichts",nil,nil,nil,nil,"reader"
+local S_Key = {fav_setup=1,fav=2,setup=3}
 local vPlay = nil
 local epgtext = nil
 local epgtitle = nil
 local LinksBrowser = "/links.so"
 local picdir = "/tmp/rssPics"
+
 locale = {}
 locale["english"] = {
 	picdir = "Picture directory: ",
@@ -47,7 +49,12 @@ locale["english"] = {
 	linksbrowserdir = "Links Browser directory: ",
 	linksbrowserdirhint = "In which directory are links browser ?",
 	htmlviewer = "Browser selection",
-	htmlviewerhint = "Browser or HTML viewer selection"
+	htmlviewerhint = "Browser or HTML viewer selection",
+	set_key = "Select Settings Key",
+	set_key_hint = "Set key for Settings",
+	fav_and_setup_key = "Fav and Setup",
+	fav_key = "Fav",
+	setup_key ="Setup"
 }
 locale["deutsch"] = {
 	picdir = "Bildverzeichnis: ",
@@ -58,7 +65,12 @@ locale["deutsch"] = {
 	linksbrowserdir = "Links Browser Verzeichnis: ",
 	linksbrowserdirhint = "In welchem Verzeichnis befinden sich Links Browser ?",
 	htmlviewer = "Browser Auswahl",
-	htmlviewerhint = "Browser oder HTML viewer Auswahl"
+	htmlviewerhint = "Browser oder HTML viewer Auswahl",
+	set_key = "Einstellungen Taste",
+	set_key_hint = "Taste für Einstellungen",
+	fav_and_setup_key = "Fav und Setup",
+	fav_key = "Fav",
+	setup_key ="Setup"
 }
 locale["polski"] = {
 	picdir = "katalog zdjęć: ",
@@ -69,7 +81,12 @@ locale["polski"] = {
 	linksbrowserdir = "Links Browser folder: ",
 	linksbrowserdirhint = "W którym folderze znajduje się Links Browser ?",
 	htmlviewer = "Browser wybór",
-	htmlviewerhint = "Browser albo HTML viewer wybór"
+	htmlviewerhint = "Browser albo HTML viewer wybór",
+	set_key = "Wybierz Klawisz dla ustawień",
+	set_key_hint = "Wybór klawisza dla tego menu",
+	fav_and_setup_key = "Fav i Setup",
+	fav_key = "Fav",
+	setup_key ="Setup"
 }
 
 function get_confFile()
@@ -253,7 +270,7 @@ function removeElemetsbyTagName2(document,tagName,atrName)
 	local t = document:getElementsByTagName(tagName)
 	for i, element in ipairs(t) do
 		local el = element:getAttribute(atrName)
-		if el then 
+		if el then
 			element:remove()
 		end
 	end
@@ -299,7 +316,7 @@ function xml_entities(s)
 	s = s:gsub('&hellip;','…' )
 	s = s:gsub('&lsquo;','‘' )
 	s = s:gsub('&rsquo;','’' )
-	s = s:gsub('&lsaquo;','‹' )	
+	s = s:gsub('&lsaquo;','‹' )
 	s = s:gsub('&rsaquo;','›' )
 	s = s:gsub('&permil;','‰' )
 	s = s:gsub('&egrave;','è' )
@@ -321,7 +338,7 @@ function prepare_text(text)
 	text = text:gsub("\240[\144-\191][\128-\191][\128-\191]","")
 	text = convHTMLentities(text)
 	text = text:gsub("%s+\n", " \n")
- 	text = all_trim(text)
+	text = all_trim(text)
 	text = xml_entities(text)
 	return text
 end
@@ -400,7 +417,7 @@ function paintText(x,y,w,h,picW,picH,CPos,text,window) --ALIGN_AUTO_WIDTH
 			y = math.floor(y)
 		end
 	end
-	return ct,x,y,w,h 
+	return ct,x,y,w,h
 end
 
 function paintWindow(x,y,w,h,CPos,Title,Icon,RedBtn,GreBtn,YelBtn,BluBtn)
@@ -432,7 +449,7 @@ function paintWindow(x,y,w,h,CPos,Title,Icon,RedBtn,GreBtn,YelBtn,BluBtn)
 	end
 -- 		window:setCaption{title=Title, alignment=TEXT_ALIGNMENT.CENTER}
 
- 	return window,x,y,w,h
+	return window,x,y,w,h
 end
 
 function showWindow(title,text,fpic,icon,bRed,bGreen,bYellow,bBlue)
@@ -441,17 +458,17 @@ function showWindow(title,text,fpic,icon,bRed,bGreen,bYellow,bBlue)
 	local maxW = getMaxScreenWidth()
 	local maxH = getMaxScreenHeight()
 	text = prepare_text(text)
-	if fpic then 
+	if fpic then
 		picW,picH = n:GetSize(fpic)
 		if picW and picW > 0 and picH and picH > 0 then
 			local maxPicSizeW,maxPicSizeH = math.floor(maxW/4),math.floor(maxH/2)
-			if #text < 100 then 
-				if #text < 10 then 
+			if #text < 100 then
+				if #text < 10 then
 					maxPicSizeH = maxH
 				else
 					maxPicSizeH = maxH-(5*n:FontHeight(FontMenu))
 				end
-				maxPicSizeW = maxW 
+				maxPicSizeW = maxW
 			end
 			if picH > maxPicSizeH or picW > maxW then
 				picW,picH = rescalePic(picW,picH,maxPicSizeW,maxPicSizeH)
@@ -467,7 +484,7 @@ function showWindow(title,text,fpic,icon,bRed,bGreen,bYellow,bBlue)
 	local wPosition = 3
 	local cw,x,y,w,h = paintWindow(x,y,w,h,-1,title,icon,bRed,bGreen,bYellow,bBlue)
 
- 	local ct,x,y,w,h = paintText(x,y,w,h,picW,picH,wPosition,text,cw)
+	local ct,x,y,w,h = paintText(x,y,w,h,picW,picH,wPosition,text,cw)
 	if fpic and picW > 1 and picH > 1 then
 		if x > 15 then
 			x = x-10
@@ -526,7 +543,7 @@ function getMediUrls(idNr)
 			picUrl[#picUrl+1] =  link.url
 			mediaUrlFound = true
 		end
-		if urlType == 'video/mp4' or  urlType == 'video/mpeg' or  
+		if urlType == 'video/mp4' or  urlType == 'video/mpeg' or
 		   urlType == 'video/x-m4v' or  urlType == 'video/quicktime' then
 			UrlVideo =  link.url
 			mediaUrlFound = true
@@ -593,7 +610,7 @@ function getMediUrls(idNr)
 				if UrlExtra == nil then
 					UrlExtra  = v:match('%w+://[%w+%p]+%.json')
 				end
-			end 
+			end
 		end
 	end
 	if not UrlVideo and not UrlAudio and not UrlExtra and fp.entries[idNr].link:find("www.youtube.com")then
@@ -607,7 +624,7 @@ end
 function html2text(viewer,text)
 	if text == nil then return nil end
 	local tmp_filename = os.tmpname()
- 	local fileout = io.open(tmp_filename, 'w+')
+	local fileout = io.open(tmp_filename, 'w+')
 	if fileout then
 		text = text:gsub("<[sS][cC][rR][iI][pP][tT][^%w%-].-</[sS][cC][rR][iI][pP][tT]%s*>", "")
 		fileout:write(text .. "\n")
@@ -621,14 +638,14 @@ function html2text(viewer,text)
 end
 
 function htmlreader(text)
- 	local text_tmp = text:match("<body.->(.-)</body>")
+	local text_tmp = text:match("<body.->(.-)</body>")
 	local error = "RSS HTML READER ERROR\n"
 	if text == nil then return error .. text end
 	text = text_tmp
 	local patterns = {
 	{'<!%-%-.-%-%->',""},
- 	{'<title>.-</title>',""},
- 	{'<picture>.-</picture>',""},
+	{'<title>.-</title>',""},
+	{'<picture>.-</picture>',""},
 	{'<li>.-</li>',""},
 	{'<style.-</style>',""},
 	{'<header.-</header>',""},
@@ -636,7 +653,7 @@ function htmlreader(text)
 	{'<section.-</section>',""},
 	{'<span.-</span>',""},
 	{'<li.-</li>',""},
- 	{'<strong.-</strong>',""},
+	{'<strong.-</strong>',""},
 	{'<a href .->',""},
 	{'<img .->',""},
 	{'<h2.-</h2>',""},
@@ -714,13 +731,13 @@ function showMenuItem(id)
 			end
 			selected = paintMenuItem(nr)
 		elseif selected == RC.red or selected == RC.green or selected == RC.yellow or selected == RC.blue or selected then
- 			selected = paintMenuItem(nr)
+			selected = paintMenuItem(nr)
 		else
 			stop = true
 		end
 	until stop
 
-end 	
+end
 
 function paintMenuItem(idNr)
 	glob.m:hide()
@@ -874,7 +891,7 @@ function downloadPic(idNr,nr)
 	local picname = string.find(glob.urlPicUrls[nr], "/[^/]*$")
 	if picname then
 		picname = string.sub(glob.urlPicUrls[nr],picname+1,#glob.urlPicUrls[nr])
-		local t = nil 
+		local t = nil
 		if fp.entries[idNr].updated_parsed then
 		      t = os.date("%d%m%H%M%S_",fp.entries[idNr].updated_parsed)
 		end
@@ -989,6 +1006,7 @@ function saveConfig()
 			config:setString("bindir", conf.bindir)
 			config:setString("addonsdir", conf.addonsdir)
 			config:setString("htmlviewer", conf.htmlviewer)
+			config:setInt32("set_key", conf.set_key)
 			config:setString("linksbrowserdir", conf.linksbrowserdir)
 			config:saveConfig(get_confFile())
 			config = nil
@@ -1019,30 +1037,43 @@ function loadConfig()
 		conf.addonsdir = config:getString("addonsdir", "/share/tuxbox/neutrino/plugins/rss_addon/")
 		conf.linksbrowserdir = config:getString("linksbrowserdir", "/share/tuxbox/neutrino/plugins/")
 		conf.htmlviewer = config:getString("htmlviewer", "nichts")
+		conf.set_key = config:getInt32("set_key", 1)
 		config = nil
 	end
+
 	local Nconfig	= configfile.new()
 	Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
 	conf.lang = Nconfig:getString("language", "english")
-	if locale[conf.lang] == nil then
-		conf.lang = "english"
+	LOC = locale[conf.lang]
+	if LOC == nil then
+		LOC = locale["english"]
 	end
 	conf.changed = false
 	checkhtmlviewer()
 end
 
 function set_action(id,value)
-	conf[id]=value
 	conf.changed = true
+	conf[id]=value
+
+	if id == 'set_key' then
+		if LOC.fav_and_setup_key == value then
+			conf.set_key = S_Key.fav_setup
+		elseif LOC.fav_key == value then
+			conf.set_key = S_Key.fav
+		elseif LOC.setup_key == value then
+			conf.set_key = S_Key.setup
+		end
+	end
+
 	if id == 'addonsdir' then
- 		package.path = package.path .. ';' .. conf.addonsdir .. '/?.lua'
+		package.path = package.path .. ';' .. conf.addonsdir .. '/?.lua'
 	end
 	if id == 'linksbrowserdir' or id == 'bindir' then
 		checkhtmlviewer()
 	end
 end
-
-function settings()
+function settings(id,a)
 	glob.sm:hide()
 
 	local d =  1
@@ -1050,27 +1081,31 @@ function settings()
 	glob.settings_menu = menu
 	menu:addItem{type="back"}
 	menu:addItem{type="separatorline"}
-	menu:addItem{ type="filebrowser", dir_mode="1", id="picdir", name= locale[conf.lang].picdir, action="set_action",
+	menu:addItem{ type="filebrowser", dir_mode="1", id="picdir", name= LOC.picdir, action="set_action",
 		   enabled=true,value=conf.picdir,directkey=godirectkey(d),
-		   hint_icon="hint_service",hint= locale[conf.lang].picdirhint
+		   hint_icon="hint_service",hint= LOC.picdirhint
 		 }
 	d=d+1
 	menu:addItem{ type="filebrowser", dir_mode="1", id="bindir", name="HtmlViewer: ", action="set_action",
 		   enabled=true,value=conf.bindir,directkey=godirectkey(d),
-		   hint_icon="hint_service",hint=locale[conf.lang].bindirhint .. "(html2text,w3m,links)"
+		   hint_icon="hint_service",hint=LOC.bindirhint .. "(html2text,w3m,links)"
 		 }
 	d=d+1
-	menu:addItem{ type="filebrowser", dir_mode="1", id="addonsdir", name=locale[conf.lang].addonsdir, action="set_action",
+	menu:addItem{ type="filebrowser", dir_mode="1", id="addonsdir", name=LOC.addonsdir, action="set_action",
 		   enabled=true,value=conf.addonsdir,directkey=godirectkey(d),
-		   hint_icon="hint_service",hint=locale[conf.lang].addonsdirhint
+		   hint_icon="hint_service",hint=LOC.addonsdirhint
 		 }
 	d=d+1
-	menu:addItem{ type="filebrowser", dir_mode="1", id="linksbrowserdir", name=locale[conf.lang].linksbrowserdir, action="set_action",
+	menu:addItem{ type="filebrowser", dir_mode="1", id="linksbrowserdir", name=LOC.linksbrowserdir, action="set_action",
 		   enabled=true,value=conf.linksbrowserdir,directkey=godirectkey(d),
-		   hint_icon="hint_service",hint=locale[conf.lang].linksbrowserdirhint
+		   hint_icon="hint_service",hint=LOC.linksbrowserdirhint
 		}
 	d=d+1
-	menu:addItem{type="chooser", action="set_action", options={ nothing,hva,hvb,hvc,hve,hvf }, id="htmlviewer", value=conf.htmlviewer, name=locale[conf.lang].htmlviewer ,directkey=godirectkey(d),hint_icon="hint_service",hint=locale[conf.lang].htmlviewerhint}
+	menu:addItem{type="chooser", action="set_action", options={ nothing,hva,hvb,hvc,hve,hvf }, id="htmlviewer", value=conf.htmlviewer, name=LOC.htmlviewer ,directkey=godirectkey(d),hint_icon="hint_service",hint=LOC.htmlviewerhint}
+
+	d=d+1
+	local set_key_opt={ LOC.fav_and_setup_key,LOC.fav_key,LOC.setup_key }
+	menu:addItem{type="chooser", action="set_action", options=set_key_opt, id="set_key", value=set_key_opt[conf.set_key], name=LOC.set_key ,directkey=godirectkey(d),hint_icon="hint_service",hint=LOC.set_key_hint}
 
 	menu:exec()
 	menu:hide()
@@ -1080,7 +1115,7 @@ end
 ----
 function rssurlmenu(url)
 	glob.feedpersed = getFeedDataFromUrl(url)
-	if glob.feedpersed == nil then return end 
+	if glob.feedpersed == nil then return end
 	local d = 0 -- directkey
 	local m = menu.new{name=glob.feedpersed.feed.title, icon="icon_blue"}
 	glob.m=m
@@ -1101,7 +1136,7 @@ function rssurlmenu(url)
 			title = xml_entities(title)
 			title = convHTMLentities(title)
 			title = title:gsub("</i>", " ")
-			title = title:gsub("<i>", " ")			
+			title = title:gsub("<i>", " ")
 		else
 			title = title .. " "
 		end
@@ -1139,7 +1174,7 @@ function exec_submenu_grup(id)
 	local subm = menu.new{name=id, icon="icon_yellow"}
 	glob.subm=subm
 	for v, w in ipairs(feedentries) do
-		if w.grup and w.submenu == id  then 
+		if w.grup and w.submenu == id  then
 			if w.exec == "SEPARATOR" then
 				subm:addItem{type="separator"}
 			elseif w.exec == "SEPARATORLINE" then
@@ -1217,7 +1252,14 @@ function start()
 	local d = 0 -- directkey
 	local sm = menu.new{name="Lua RSS READER", icon="icon_blue"}
 	glob.sm=sm
-	sm:addKey{directkey=RC.favorites, id="settings", action="settings"}
+	if S_Key.fav_setup == conf.set_key or S_Key.fav == conf.set_key then
+		sm:addKey{directkey=RC.favorites, id="settings", action="settings"}
+	else
+		sm:addKey{directkey=RC.favorites, id="home", action="home"}
+	end
+	if S_Key.fav_setup == conf.set_key or S_Key.setup == conf.set_key then
+		sm:addKey{directkey=RC.setup, id="settings", action="settings"}
+	end
 	sm:addKey{directkey=RC.home, id="home", action="home"}
 	sm:addKey{directkey=RC.info, id=rssReaderVersion, action="info"}
 -----------------
@@ -1296,6 +1338,6 @@ function main()
 	end
 	start()
 	saveConfig()
- 	fh:rmdir(picdir)
+	fh:rmdir(picdir)
 end
 main()
