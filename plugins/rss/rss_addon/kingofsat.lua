@@ -1,3 +1,5 @@
+-- url for rssreader.conf
+--	{ name = "KingOfSat News",	exec = "http://de.kingofsat.net/rssnews.php",submenu="SatInfo",addon="kingofsat"},
 local media = {}
 function media.getAddonMedia(url)
 	local data = getdata(url)
