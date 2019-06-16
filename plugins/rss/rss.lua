@@ -68,7 +68,7 @@ locale["deutsch"] = {
 	htmlviewerhint = "Browser oder HTML viewer Auswahl",
 	set_key = "Einstellungen Taste",
 	set_key_hint = "Taste für Einstellungen",
-	fav_and_setup_key = "Fav and Setup",
+	fav_and_setup_key = "Fav und Setup",
 	fav_key = "Fav",
 	setup_key ="Setup"
 }
@@ -84,7 +84,7 @@ locale["polski"] = {
 	htmlviewerhint = "Browser albo HTML viewer wybór",
 	set_key = "Wybierz Klawisz dla ustawień",
 	set_key_hint = "Wybór klawisza dla tego menu",
-	fav_and_setup_key = "Fav and Setup",
+	fav_and_setup_key = "Fav i Setup",
 	fav_key = "Fav",
 	setup_key ="Setup"
 }
