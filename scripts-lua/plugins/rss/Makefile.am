@@ -12,6 +12,7 @@ rss_addon_DATA = \
 	rss_addon/ard.lua \
 	rss_addon/arte.lua \
 	rss_addon/chip.lua \
+	rss_addon/ComputerBase.lua \
 	rss_addon/golem.lua \
 	rss_addon/heise.lua \
 	rss_addon/instagram.lua \
