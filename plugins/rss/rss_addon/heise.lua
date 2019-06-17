@@ -63,6 +63,16 @@ function media.getAddonMedia(url,extraUrl)
 				if video_url == nil then video_url = a end
 			end
 		end
+		if video_url == nil then
+			local ytid = data:match('youtube%.%w+/watch%?v=([_%w%-]+)') or data:match('youtube%.%w+/embed/([_%w%-]+)') or data:match('"youtube"%s+video%-id="([_%w%-]+)"')
+			if ytid then
+				local hasaddon,b = pcall(require,"yt_video_url")
+				if hasaddon then
+					b.getVideoUrl('https://youtube.com/watch?v=' .. ytid)
+					video_url = b.VideoUrl
+				end
+			end
+		end
 	end
 
 	if video_url and #video_url > 8 then
