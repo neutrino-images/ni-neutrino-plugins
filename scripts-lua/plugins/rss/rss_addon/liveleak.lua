@@ -1,3 +1,6 @@
+-- url for rssreader.conf
+--	{ name = "Liveleak",		exec = "https://www.liveleak.com/rss?featured=1",grup="Podcast",addon="liveleak"},
+
 local media = {}
 function media.getAddonMedia(url)
 	local video_url = nil

@@ -1,59 +1,75 @@
+-- url for rssreader.conf
+-- 	{ name = "heise.de",		exec = "https://www.heise.de/newsticker/heise-atom.xml",addon="heise", submenu="TechNews"},
+
 local media = {}
+
+function heise_getVideoUrl(m3u8_url)
+	if m3u8_url == nil then return nil end
+	local videoUrl = nil
+	local res = 0
+	local data = getdata(m3u8_url)
+	if data then
+		local host = m3u8_url:match('([%a]+[:]?//[_%w%-%.]+)/')
+		if m3u8_url:find('/master.m3u8') then
+			local lastpos = (m3u8_url:reverse()):find("/")
+			local hosttmp = m3u8_url:sub(1,#m3u8_url-lastpos)
+			if hosttmp then
+				host = hosttmp .."/"
+			end
+		end
+		for band, res1, res2, url in data:gmatch('BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-\n(.-)\n') do
+			if url and res1 then
+				local nr = tonumber(res1)
+				if nr < 2000 and nr > res then
+					res=nr
+					if host and url:sub(1,4) ~= "http" then
+						url = host .. url
+					end
+					videoUrl = url
+				end
+			end
+		end
+	end
+	return videoUrl,res
+end
 
 function media.getAddonMedia(url,extraUrl)
 	local video_url = nil
-	local video_url_iso = nil
 
 	if url == nil then
 		url = extraUrl
 	end
 	if url then
 		local data = getdata(url)
-		if data then
-			local playdata = data:match('<div class="videoplayerjw"(.-)</div>' )
-			if playdata==nil  then
-				local ytdata = data:match('<div class="yt%-video%-container">(.-)</div>')
-				if ytdata then
-					local id=ytdata:match('/([%w%-]+)?')
-					if id == nil then
-						id=ytdata:match('embed/(.*)?')
-					end
-					if id then
-						local hasaddon,b = pcall(require,"yt_video_url")
-						if hasaddon then
-							b.getVideoUrl('https://youtube.com/watch?v=' .. id)
-							video_url = b.VideoUrl
-						end
+			local a = data:match('<script src="(https:.-%d+/.-/%d+)/embedIframeJs')
+			local jsakwaurl = data:match('src="(/%w+/akwa/[%w%d]+/js/akwa.js%?%w+)"')
+			local entry_id = data:match('entry%-id%s-=%s-"(.-)"')
+			if a == nil and jsakwaurl and  entry_id then
+				local host = url:match('([%a]+[:]?//[_%w%-%.]+)/')
+				data = getdata(host .. jsakwaurl)
+				if data then
+					local kultura = data:match('"(//[%w%.]+/%w/.-)/embedIframeJs')
+					local partnerId = data:match('partner%-id%"%)||(%d+)')
+					if kultura and partnerId then
+						a = "https:" .. kultura:gsub('"[%w%+%.]+"',partnerId)
 					end
 				end
 			end
-			data = nil
-			if playdata then
-				local sequenz = playdata:match('sequenz="(%d+)"')
-				local container = playdata:match('container="(%d+)"')
-				local videourls='http://www.heise.de/videout/feed?container=' .. container ..';sequenz=' .. sequenz
-				data = getdata(videourls)
+		if a then
+			a = a .. "/playManifest/entryId"
+			if entry_id then
+				a = a .. "/" .. entry_id .. "/flavorIds/" .. entry_id .. "/format/applehttp/protocol/https/?callback="
+				video_url = heise_getVideoUrl(a)
+				if video_url == nil then video_url = a end
 			end
-
-			if data then
-				local res_tmp = 0
-				local iso_tmp = 0
-				local res = 0
-				for item in data:gmatch('<jwplayer:source(.-)>' ) do
-					local typ = item:match('type="(.-)"')
-					local quali = item:match('label="(%d+)p"')
-					local file = item:match('file="(.-)"')
-					if quali then
-						res=tonumber(quali)
-					end
-					if typ=="video/mp4" and res > res_tmp then
-						video_url= file
-						res_tmp = res
-					elseif typ=="video/ios" and res > iso_tmp then
-						video_url_iso = file
-						iso_tmp = res
-					end
-					res = 0
+		end
+		if video_url == nil then
+			local ytid = data:match('youtube%.%w+/watch%?v=([_%w%-]+)') or data:match('youtube%.%w+/embed/([_%w%-]+)') or data:match('"youtube"%s+video%-id="([_%w%-]+)"')
+			if ytid then
+				local hasaddon,b = pcall(require,"yt_video_url")
+				if hasaddon then
+					b.getVideoUrl('https://youtube.com/watch?v=' .. ytid)
+					video_url = b.VideoUrl
 				end
 			end
 		end
@@ -61,8 +77,6 @@ function media.getAddonMedia(url,extraUrl)
 
 	if video_url and #video_url > 8 then
 		media.VideoUrl=video_url
-	elseif video_url_iso and #video_url_iso > 8 then
-		media.VideoUrl=video_url_iso
 	end
 end
 
