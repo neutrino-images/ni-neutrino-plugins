@@ -26,9 +26,12 @@
 #	Timer rules:		/var/tuxbox/config/pr-auto-timer.rules
 #	Neutrino plugin:	/share/tuxbox/neutrino/plugins/pr-auto-timer.{sh,cfg}
 
-VERSION=0.41a
+VERSION=0.41b
 
 # Changelog:
+#
+# 0.41b by tewsbo (NI-Team)
+#	-more sky exclude channels
 #
 # 0.41a by vanhofen (NI-Team)
 #	-fix "minor format changes in logging" from previous version
