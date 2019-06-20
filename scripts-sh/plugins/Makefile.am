@@ -21,3 +21,6 @@ endif
 if ENABLE_SMARTHOMEINFO
 SUBDIRS += smarthomeinfo
 endif
+if ENABLE_WORTRATEN
+SUBDIRS += wortraten
+endif

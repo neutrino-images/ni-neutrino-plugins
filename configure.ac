@@ -291,6 +291,12 @@ AC_ARG_ENABLE(smarthomeinfo,
 	[enable_smarthomeinfo="yes"])
 AM_CONDITIONAL(ENABLE_SMARTHOMEINFO, test "$enable_smarthomeinfo" = "yes")
 
+AC_ARG_ENABLE(wortraten,
+	AS_HELP_STRING([--enable-wortraten], [enable wortraten @<:@default=no@:>@]),
+	[enable_wortraten="yes"],
+	[enable_wortraten="$enableval"])
+AM_CONDITIONAL(ENABLE_WORTRATEN, test "$enable_wortraten" = "yes")
+
 AC_CONFIG_FILES([
 Makefile
 cooliTSclimax/Makefile
@@ -335,6 +341,7 @@ scripts-sh/plugins/imgbackup-hd51/Makefile
 scripts-sh/plugins/mountpointmanagement/Makefile
 scripts-sh/plugins/pr-auto-timer/Makefile
 scripts-sh/plugins/smarthomeinfo/Makefile
+scripts-sh/plugins/wortraten/Makefile
 shellexec/Makefile
 showiframe/Makefile
 stbup/Makefile
