@@ -1,0 +1,83 @@
+#!/bin/sh
+#["Worte raten" V 0.2c by musicus vom 20.06.2019] 
+#Auswahlliste kopieren nach /var/tuxbox/games/wortraten.list
+
+LINES=$(sed $= -n /var/tuxbox/games/wortraten.list)
+LINE=$(awk "BEGIN{srand();print int($LINES * rand()) + 1;}")
+WORT=$(sed $LINE!d /var/tuxbox/games/wortraten.list | sed 's/ä/ae/g;s/ö/oe/g;s/ü/ue/g;s/Ä/AE/g;s/Ö/OE/g;s/Ü/UE/g;s/ß/ss/g' | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
+WORTNEU=$(echo $WORT | sed 's/[A-Za-z]/_/g')
+INWORT=$(expr index "$WORT" "$BUCHST")
+
+  MANN1=$(echo '    BUCH-  <°)')
+MANN2=$(echo '>8<  STABEN  /\\')
+MANN3=$(echo '    EINGEBEN J L')
+
+
+ratewort ()
+{
+BUCHST=$(input l=" @$MANN1$MANN2$MANN3" c=16 k=1 f=0 t="~G[$FALSCHBUCHST]                             ~B*   ~B*   ~B*    ~S$WORTNEU    ~B*   ~B*   ~B*" | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
+INWORT=$(expr index "$WORT" "$BUCHST")
+OHNEBUCHST=$(expr length "$BUCHST")
+if [ $INWORT -gt 0 ]; then
+RICHTIGBUCHST=$RICHTIGBUCHST$BUCHST
+WORTNEU=$(echo $WORT | sed 's/[^'"$RICHTIGBUCHST"' ]/_/g')
+	elif [ $OHNEBUCHST -eq 0 ]; then
+	exit 0;
+else
+FALSCHBUCHST="$FALSCHBUCHST$BUCHST"
+ZEICHNE=$(expr length "$FALSCHBUCHST")
+case $ZEICHNE in
+1)
+  MANN1=$(echo '    (\(\      ')
+MANN2=$(echo '>7<  (°v° )     ')
+MANN3=$(echo '      /: \      ')
+;;
+2)
+  MANN1=$(echo '   =°)_//     ')
+MANN2=$(echo '>6<   (___/     ')
+MANN3=$(echo '   wwwwwwwwwww  ')
+;;
+3)
+  MANN1=$(echo '    () ()     ')
+MANN2=$(echo '>5<   (°v°)     ')
+MANN3=$(echo '      =)_(=     ')
+;;
+4)
+  MANN1=$(echo '     I///     ')
+MANN2=$(echo '>4<   (o-o)     ')
+MANN3=$(echo ' ..ooO.( ).Ooo..')
+;;
+5)
+  MANN1=$(echo '   _°)        ')
+MANN2=$(echo '>3<    ////     ')
+MANN3=$(echo '  ,,,,(___/>,,, ')
+;;
+6)
+  MANN1=$(echo '   O,,,O      ')
+MANN2=$(echo '>2<  (°o°) *    ')
+MANN3=$(echo '      ]_[ /     ')
+;;
+7)
+  MANN1=$(echo '    \|||/     ')
+MANN2=$(echo '>1<   (O|O)     ')
+MANN3=$(echo '      _)v(_     ')
+;;
+8)
+  MANN1=$(echo ' GAME OVER ³(³')
+MANN2=$(echo '>0<  LÖSUNG:  = ')
+MANN3=$(echo '>'$WORT'>')
+;;
+*)
+exit 0;;
+esac
+fi
+GEWONNEN=$(expr index "$WORTNEU" "_")
+if [ $GEWONNEN -eq 0 ]; then
+  MANN1=$(echo '  oo     oo   ')
+MANN2=$(echo '   `--´   `--´  ')
+MANN3=$(echo 'DU HAST GEWONNEN')
+fi
+ratewort
+}
+
+ratewort
