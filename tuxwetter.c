@@ -45,7 +45,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.28"
+#define P_VERSION "4.29"
 #define S_VERSION ""
 
 
@@ -69,7 +69,8 @@ char CONVERT_LIST[]= CFG_TUXWET "/convert.list";
 static char TCF_FILE[128]="";
 
 #define LIST_STEP 	10
-#define MAX_FUNCS   2+7
+#define MAX_DAYS	7
+#define MAX_COLUMNS	MAX_DAYS + 1		// current day + 7 days
 #define LCD_CPL 	12
 #define LCD_RDIST 	10
 
@@ -1311,16 +1312,14 @@ int col2=((preset)?scale2res(380):scale2res(340));
 
 int wxw=ex-sx-((preset)?scale2res(120):scale2res(30));  //box width
 int wyw=ey-sy-((preset)?scale2res(60):scale2res(20));   //box height
-int nc=7;                   //table columns 10
+int column=MAX_COLUMNS;      //table columns
 int gys=vy;                  //table space top
 int gysf=scale2res(34);      //table space bottom
 int gxs=4*OFFSET_MED;        //table space left
-//int gxw=((wxw-(gxs*2))/nc) * nc;	//table width
-int gicw=((wxw-(gxs*2))/nc); //table data width
-int gxw=gicw*nc;             //table width
+int gicw=((wxw-(gxs*2))/column); //table data width
+int gxw=gicw*column;             //table width
 int gywf=scale2res(100);     //table footer height
 int gyw=wyw-vy-gywf-gysf;    //table height
-//int gicw=gxw/nc;           //table data width
 int vxs=0,wsx,wsy;
 int prelate=0;
 int rcd;
@@ -1334,7 +1333,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 
 	//recalculate wigth
 	gicw += ((gicw%10) > OFFSET_SMALL ? OFFSET_MED-(gicw%10) : -(gicw%10)); //rounded table data width, needing for smoothed curves
-	gxw=gicw*nc;
+	gxw=gicw*column;
 	gxs=(wxw-gxw)/2;
 
 	if (var_screeninfo.xres < 1280)
@@ -1505,16 +1504,16 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 	{
 		if(ix==1)
 		{
-			int i, tmax[nc], tmin[nc], mint=100, maxt=-100, j, pmin, pmax;
-			double tstep=1, garr[nc*10], tv1, tv2, tv3;
+			int i, tmax[column], tmin[column], mint=100, maxt=-100, j, pmin, pmax;
+			double tstep=1, garr[column*10], tv1, tv2, tv3;
 
 			RenderBox(wsx, wsy, wxw, wyw, radius, CMC);
 			RenderBox(wsx, wsy, wxw, scale2res(44), radius, CMH);
-			sprintf(rstr,"%s %d %s",prs_translate("Trend für die kommenden",CONVERT_LIST),nc,prs_translate("Tage",CONVERT_LIST));
+			sprintf(rstr,"%s %d %s",prs_translate("Trend für die kommenden",CONVERT_LIST), MAX_DAYS, prs_translate("Tage",CONVERT_LIST));
 			RenderString(rstr, wsx, wsy+4*OFFSET_MED, wxw, CENTER, FSIZE_BIG, CMHT);
 			RenderLine(gxs,gys,gxs,gys+gyw+gywf,CMCIT);
 			RenderLine(gxs+1,gys,gxs+1,gys+gyw+gywf,CMCIT);
-			for(i=0; i<nc; i++)
+			for(i=0; i<column; i++)
 			{
 				prs_get_val(i, PRE_TEMPH,0,vstr);
 				if(sscanf(vstr,"%d",&tmax[i])!=1)
@@ -1604,7 +1603,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 
 // Geglättete Kurven
 
-			for(i=0; i<nc; i++)
+			for(i=0; i<column; i++)
 			{
 				tv1=tmin[i];
 				tv2=tmin[i+1];
@@ -1628,11 +1627,11 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 					}
 				}
 			}
-			for(i=2; i<nc*10-11; i++)
+			for(i=2; i<column*10-11; i++)
 			{
 				garr[i]=(garr[i-2]+garr[i-1]+garr[i]+garr[i+1]+garr[i+2])/5.0;
 			}
-			for(i=1; i<=nc*10-10; i++)
+			for(i=1; i<=column*10-10; i++)
 			{
 				pmin=(gys+gyw)-(garr[i-1]-mint+1)*tstep-1;
 				pmax=(gys+gyw)-(garr[i]-mint+1)*tstep-1;
@@ -1640,7 +1639,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				RenderLine(gxs+gicw/2+((i-1)*(gicw/10)),pmin+1,gxs+gicw/2+i*(gicw/10),pmax+1,GREEN);
 				RenderLine(gxs+gicw/2+((i-1)*(gicw/10)),pmin+2,gxs+gicw/2+i*(gicw/10),pmax+2,GREEN);
 			}
-			for(i=vxs; i<nc; i++)
+			for(i=vxs; i<column; i++)
 			{
 				tv1=tmax[i];
 				tv2=tmax[i+1];
@@ -1664,11 +1663,11 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 					}
 				}
 			}
-			for(i=2+10*vxs; i<nc*10-11; i++)
+			for(i=2+10*vxs; i<column*10-11; i++)
 			{
 				garr[i]=(garr[i-2]+garr[i-1]+garr[i]+garr[i+1]+garr[i+2])/5.0;
 			}
-			for(i=1+10*vxs; i<=nc*10-10; i++)
+			for(i=1+10*vxs; i<=column*10-10; i++)
 			{
 				pmin=(gys+gyw)-(garr[i-1]-mint+1)*tstep-1;
 				pmax=(gys+gyw)-(garr[i]-mint+1)*tstep-1;
@@ -1680,7 +1679,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 #if 0
 //	Ungeglättete Kurven
 
-			for(i=1; i<nc; i++)
+			for(i=1; i<column; i++)
 			{
 				pmin=(gys+gyw)-(tmin[i-1]-mint+1)*tstep-1;
 				pmax=(gys+gyw)-(tmin[i]-mint+1)*tstep-1;
@@ -1696,7 +1695,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 			if(show_icons)
 			{
 				multiple_pics=1;
-				for(i=0; i<nc; i++)
+				for(i=0; i<column; i++)
 				{
 					prs_get_val(i,PRE_ICON,prelate,vstr);
 #ifdef WWEATHER
@@ -3714,7 +3713,7 @@ PLISTENTRY pl=&epl;
 							}
 							funcs.headertxt[0]=strdup(tstr);
 
-							for(ix=0; ix<MAX_FUNCS; ix++)
+							for(ix=0; ix < funcs.max_entrys; ix++)
 							{
 #ifdef WWEATHER
 								if(ix==2)
@@ -3802,13 +3801,13 @@ PLISTENTRY pl=&epl;
 												case KEY_VOLUMEDOWN:
 													if(--ix < 0)
 													{				
-														ix=menu.num_entrys-1;
+														ix=funcs.max_entrys-1;
 													}
 													break;
 
 												case KEY_DOWN:
 												case KEY_VOLUMEUP:
-													if(++ix>=MAX_FUNCS)
+													if(++ix>=funcs.max_entrys)
 													{
 														ix=0;
 													}

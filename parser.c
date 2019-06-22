@@ -408,7 +408,7 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 #ifdef WWEATHER
 	//FIXME KEY! and CITYCODE
 	//sprintf (url,"http://api.wunderground.com/api/%s/geolookup/conditions/forecast10day/astronomy/lang:DL/pws:0/q/%s.json",key,citycode);
-	sprintf (url,"https://api.darksky.net/forecast/%s/%s?lang=%s&units=%s&exclude=hourly,minutely",key,citycode,(metric)?"de":"en",(metric)?"ca":"us");
+	sprintf (url,"https://api.darksky.net/forecast/%s/%s?lang=%s&units=%s&exclude=minutely,hourly,flags,alerts",key,citycode,(metric)?"de":"en",(metric)?"ca":"us");
 	printf("url:%s\n",url);
 
 	exit_ind=HTTP_downloadFile(url, "/tmp/tuxwettr.tmp", 0, inet, ctmo, 3);
@@ -500,14 +500,16 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 						data[tc][cc]='\0';
 						//printf("tagname[%d] = %s | data = %s\n",tc,tagname,data[tc]);
 						//fix zero precipIntensityMaxTime
+#if 0
 						if(!strcmp(tagname,"precipIntensityMax") && !strcmp(data[tc],"0"))
 						{
 							tc++;
 							strcpy(data[tc], "0");
 							//printf("tagname[%d] = precipIntensityMaxTime | data = %s\n",tc,data[tc]);
 						}
+#endif
 						//fix zero precipType
-						else if(!strcmp(tagname,"precipProbability") && !strcmp(data[tc],"0"))
+						if(!strcmp(tagname,"precipProbability") && !strcmp(data[tc],"0"))
 						{
 							tc++;
 							strcpy(data[tc], "0");
@@ -535,7 +537,8 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 					else
 					{
 						//FIXME optional value
-						if(!strcmp(tagname,"precipAccumulation"))
+						if(!strcmp(tagname,"precipAccumulation") ||
+						   !strcmp(tagname,"nearestStormDistance"))
 						{
 							//printf("tagname[%d] = %s \n",tc, tagname);
 							tagname[0]='\0';
