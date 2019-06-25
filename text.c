@@ -329,23 +329,39 @@ int GetStringLen(int _sx, char *_string, size_t size)
 	if (size)
 			desc.width = desc.height = size;
 
-	while(*string) {
-		switch(*string) {
-		case '~':
-			string++;
-			if(*string=='t')
-				stringlen=desc.width+TABULATOR*((int)(stringlen/TABULATOR)+1);
-			else if(*string=='T' && sscanf(string+1,"%4d",&i)==1) {
-				string+=5;
-				stringlen=scale2res(i)-_sx;
+	while(*string)
+	{
+		switch(*string)
+		{
+			case '~':
+			{
+				++string;
+				switch(*string)
+				{
+					case 'R':
+					case 'G':
+					case 'Y':
+					case 'B':
+					case 'S':
+							string++;
+							break;
+					case 't':
+							stringlen += desc.width+TABULATOR*((int)(stringlen/TABULATOR)+1);
+							string++;
+							break;
+					case 'T':
+						if (sscanf(string+1,"%4d",&i)==1) {
+							stringlen += scale2res(i)-_sx;
+							string += 5;
+						}
+						break;
+				}
 			}
-			break;
-		default:
-			stringlen += RenderChar(UTF8ToUnicode(&string, 1), -1, -1, -1, -1);
-			break;
+			default:
+				stringlen += RenderChar(UTF8ToUnicode(&string, 1), -1, -1, -1, -1);
+				break;
 		}
 	}
-
 	return stringlen;
 }
 
@@ -353,7 +369,7 @@ int GetStringLen(int _sx, char *_string, size_t size)
  * RenderString
  ******************************************************************************/
 
-int RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int size, int color)
+void RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int size, int color)
 {
 	int stringlen, _ex, charwidth,i;
 
@@ -392,10 +408,13 @@ int RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int s
 
 	_ex = _sx + maxwidth;
 
-	while(*rptr) {
-		if(*rptr=='~') {
+	while(*rptr)
+	{
+		if(*rptr=='~')
+		{
 			++rptr;
-			switch(*rptr) {
+			switch(*rptr)
+			{
 				case 'R': varcolor=RED; break;
 				case 'G': varcolor=GREEN; break;
 				case 'Y': varcolor=YELLOW; break;
@@ -407,19 +426,20 @@ int RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int s
 					continue;
 				case 'T':
 					if(sscanf(rptr+1,"%4d",&i)==1) {
-						rptr+=4;
 						_sx=scale2res(i);
+						rptr += 5;
 					}
-					rptr++;
 					continue;
 			}
-			if((charwidth = RenderChar('~', _sx, _sy, _ex, varcolor)) == -1) return _sx; /* string > maxwidth */
-				_sx += charwidth;
+			rptr++;
 		}
-		if((charwidth = RenderChar(UTF8ToUnicode(&rptr, 1), _sx, _sy, _ex, varcolor)) == -1) return _sx; /* string > maxwidth */
+		else
+		{
+			if ((charwidth = RenderChar(UTF8ToUnicode(&rptr, 1), _sx, _sy, _ex, varcolor )) == -1)
+				return; /* string > maxwidth */
 			_sx += charwidth;
+		}
 	}
-	return stringlen;
 }
 
 /******************************************************************************
