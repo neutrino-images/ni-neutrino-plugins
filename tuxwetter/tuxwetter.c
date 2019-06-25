@@ -46,7 +46,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.29"
+#define P_VERSION "4.30"
 #define S_VERSION ""
 
 char CONVERT_LIST[]= CFG_TUXWET "/convert.list";
@@ -2691,7 +2691,7 @@ int pyw=ey-sy-((preset)?scale2res(60):scale2res(20));		//box height old 510
 	{
 		fclose(tfh);
 
-		RenderString("X", psx+pxw/2, psy+pyw/2, scale2res(100), LEFT, FSIZE_SMALL, CMCT);
+		//RenderString("X", psx+pxw/2, psy+pyw/2, scale2res(100), LEFT, FSIZE_SMALL, CMCT);
 		if(fh_php_getsize(name, plain, &x1, &y1))
 		{
 			printf("Tuxwetter <invalid PHP-Format>\n");
@@ -3598,7 +3598,7 @@ PLISTENTRY pl=&epl;
 														cnt=0;
 														fprintf(fh2,"<br>");
 														while(*pt1)
-														{	
+														{
 															if ( *pt1==' ' && cnt > ((preset)?90:40) )
 															{
 																fprintf(fh2,"\n<br>");
