@@ -39,7 +39,6 @@
 #endif
 #define MISS_FILE   CFG_TUXWET "/missing_translations.txt"
 
-//#define WWEATHER
 #define BUFSIZE 	4095
 
 
