@@ -352,8 +352,9 @@ int GetStringLen(int _sx, char *_string, size_t size)
 					case 'T':
 						if (sscanf(string+1,"%4d",&i)==1) {
 							stringlen += scale2res(i)-_sx;
-							string += 5;
+							string += 4;
 						}
+						string++;
 						break;
 				}
 			}
@@ -427,8 +428,9 @@ void RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int 
 				case 'T':
 					if(sscanf(rptr+1,"%4d",&i)==1) {
 						_sx=scale2res(i);
-						rptr += 5;
+						rptr += 4;
 					}
+					rptr++;
 					continue;
 			}
 			rptr++;
