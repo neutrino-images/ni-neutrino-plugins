@@ -17,13 +17,8 @@
 /*
 Interne Variablen Bitte nicht direkt aufrufen!!!
 */
-#ifdef WWEATHER
 #	define MAXITEM	1000
 #	define MAXMEM	300
-#else
-#	define MAXITEM	1000
-#	define MAXMEM	50
-#endif
 char 	data		[MAXITEM][MAXMEM];
 char 	conveng		[500][40]; 
 char	convger		[500][40];
@@ -227,7 +222,6 @@ int z;
 	return (strlen(out)==0);
 }
 
-#ifdef WWEATHER
 int prs_get_val2 (int i, int what, int nacht, char *out)
 {
 	int z;
@@ -250,7 +244,6 @@ int prs_get_val2 (int i, int what, int nacht, char *out)
 	}
 	return (strlen(out)==0);
 }
-#endif
 
 int prs_get_dbl (int i, int what, int nacht, char *out)
 {
@@ -386,15 +379,10 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	char url[512];
 	char debug[505];
 
-#ifdef WWEATHER
 	char tagname[512];
 	int getold=0, skip=1, tag=0, tc=0, tcc=0;
 	extern char key[];
-#else
-	int day_data=PRE_DAY;
-	int previews=9;
-	extern char par[], key[];
-#endif
+
 	memset(data,0,MAXITEM*MAXMEM /* 1000*50 */);
 	memset(conveng,0,500*40); 
 	memset(convger,0,500*40);
@@ -405,10 +393,8 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	t_actday=0;
 	t_actmonth=0;
 
-#ifdef WWEATHER
 	//FIXME KEY! and CITYCODE
-	//sprintf (url,"http://api.wunderground.com/api/%s/geolookup/conditions/forecast10day/astronomy/lang:DL/pws:0/q/%s.json",key,citycode);
-	sprintf (url,"https://api.darksky.net/forecast/%s/%s?lang=%s&units=%s&exclude=hourly,minutely",key,citycode,(metric)?"de":"en",(metric)?"ca":"us");
+	sprintf (url,"https://api.darksky.net/forecast/%s/%s?lang=%s&units=%s&exclude=minutely,hourly,flags,alerts",key,citycode,(metric)?"de":"en",(metric)?"ca":"us");
 	printf("url:%s\n",url);
 
 	exit_ind=HTTP_downloadFile(url, "/tmp/tuxwettr.tmp", 0, inet, ctmo, 3);
@@ -500,14 +486,16 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 						data[tc][cc]='\0';
 						//printf("tagname[%d] = %s | data = %s\n",tc,tagname,data[tc]);
 						//fix zero precipIntensityMaxTime
+#if 0
 						if(!strcmp(tagname,"precipIntensityMax") && !strcmp(data[tc],"0"))
 						{
 							tc++;
 							strcpy(data[tc], "0");
 							//printf("tagname[%d] = precipIntensityMaxTime | data = %s\n",tc,data[tc]);
 						}
+#endif
 						//fix zero precipType
-						else if(!strcmp(tagname,"precipProbability") && !strcmp(data[tc],"0"))
+						if(!strcmp(tagname,"precipProbability") && !strcmp(data[tc],"0"))
 						{
 							tc++;
 							strcpy(data[tc], "0");
@@ -535,7 +523,8 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 					else
 					{
 						//FIXME optional value
-						if(!strcmp(tagname,"precipAccumulation"))
+						if(!strcmp(tagname,"precipAccumulation") ||
+						   !strcmp(tagname,"nearestStormDistance"))
 						{
 							//printf("tagname[%d] = %s \n",tc, tagname);
 							tagname[0]='\0';
@@ -556,101 +545,6 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	fclose(wxfile);
 
 	exit_ind=1;
-#else
-/*	sprintf (url,"http://xoap.weather.com/weather/local/%s?cc=*&dayf=%d&prod=xoap&unit=%c&par=1005530704&key=a9c95f7636ad307b",citycode,previews,(metric)?'m':'u');
-	exit_ind=HTTP_downloadFile(url, "/tmp/tuxwettr.tmp", 0, inet, ctmo, 3);
-*/
-	sprintf (url,"wget -q -O /tmp/tuxwettr.tmp http://xoap.weather.com/weather/local/%s?unit=%c\\&dayf=%d\\&cc=*\\&prod=xoap\\&link=xoap\\&par=%s\\&key=%s",citycode,(metric)?'m':'u',previews,par,key);
-	exit_ind=system(url);
-	sleep(1);
-	if(exit_ind != 0)
-	{
-		printf("Tuxwetter <Download data from server failed. Errorcode: %d>\n",exit_ind);
-		exit_ind=-1;
-		return exit_ind;
-	}
-	exit_ind=-1;
-	system("sed -i /'prmo'/,/'\\/lnks'/d /tmp/tuxwettr.tmp");
-	if ((wxfile = fopen("/tmp/tuxwettr.tmp","r"))==NULL)
-	{
-		printf("Tuxwetter <Missing tuxwettr.tmp File>\n");
-		return exit_ind;
-	}
-	else
-	{
-	bc=1;
-		fgets(debug,500,wxfile);
-//		printf("%s",debug);
-		fgets(debug,5,wxfile);
-//		printf("%s",debug);
-		if((debug[0] != 60)||(debug[1] != 33)||(debug[2] != 45)||(debug[3] != 45))
-		{
-			fclose(wxfile);
-			return exit_ind;
-		}
-		else {
-		fclose(wxfile);
-		wxfile = fopen("/tmp/tuxwettr.tmp","r");
-		while (!feof(wxfile))
-		{
-			gettemp=fgetc(wxfile);
-			if ((gettemp >=97) && (gettemp <=122)) gettemp = gettemp -32;
-			if (gettemp == 13) gettemp=0; 
-			if (bc == day_data)
-			{
-				
-				if (gettemp == 62) 
-				{
-					rec = 0;
-				}
-				if (rec == 1)
-				{
-					data[bc][cc] = gettemp;
-					cc++;
-				}
-				if (gettemp == 60) rec = 1;
-				if (gettemp == 13) data[bc][cc+1] =0;
-				if (gettemp == 10) 
-				{
-					bc++;
-					cc = 0;
-					rec = 0;
-					flag=1;
-					prev_count++;
-				}
-			}
-			else
-			{
-				if (gettemp == 60) rec = 0;
-				if (rec == 1)
-				{
-					data[bc][cc] = gettemp;
-					cc++;
-				}
-				if (gettemp == 62) rec = 1;
-				if (gettemp == 13) data[bc][cc] =0;
-				if (gettemp == 10) 
-				{
-					bc++;
-					cc = 0;
-					rec = 0;
-				}
-			}
-			if ((flag==1) && (gettemp == 0))
-			{
-				day_data=day_data+PRE_STEP;
-				flag=0;
-			}
-		}
-		}
-		fclose(wxfile);
-	}
-	if (prev_count > 0) prev_count=prev_count-1;
-	if (prev_count > 0) prev_count=prev_count-1;
-	cc=0;
-
-	exit_ind=1;
-#endif
 
 //*** Übersetzungs File ***
 	

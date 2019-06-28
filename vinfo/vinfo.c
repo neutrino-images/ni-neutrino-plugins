@@ -48,7 +48,6 @@ void Usage()
 	printf("   NEWCS\n");
 	printf("   MGCAMD\n");
 	printf("   GBOX.NET\n");
-	printf("   OSEMU\n");
 	printf("   OSCAM\n");
 	printf("   OSMOD\n");
 	printf("   NCAM\n");
@@ -316,8 +315,6 @@ int main(int argc, char **argv)
 				MgcamdHandling(argv[2], searchstring);
 			else if (strstr(argv[1], "NEWCS"))
 				Emu(argv[2], searchstring, NEWCS);
-			else if (strstr(argv[1], "OSEMU"))
-				strcpy(version, "n/a");
 			else if (strstr(argv[1], "OSCAM"))
 				Emu(argv[2], searchstring, OSCAM_VERSION);
 			else if (strstr(argv[1], "OSMOD"))
