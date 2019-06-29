@@ -5,11 +5,28 @@
 #define SUPPORT "www.neutrino-images.de"
 #define COPYRIGHT "luke777, FlatTV"
 
-enum {false, true};
+enum {
+	false,
+	true
+};
 
-enum {CCCAM, DOSCAM, MGCAMD, NEWCS, OSCAM_VERSION, OSCAM_VERSION_NEW, OSCAM_BUILD, OSCAM_BUILD_NEW, OSMOD, GBOX, GBOX_GIT, MD5EMU};
+enum {
+	CCCAM,
+	DOSCAM,
+	MGCAMD,
+	NEWCS,
+	OSCAM_VERSION,
+	OSCAM_VERSION_NEW,
+	OSCAM_BUILD,
+	OSCAM_BUILD_NEW,
+	OSMOD,
+	GBOX,
+	GBOX_GIT,
+	MD5EMU
+};
 
-typedef struct _s_string {
+typedef struct _s_string
+{
 	char *str;
 	int offset;
 } s_string;
@@ -34,11 +51,12 @@ const char COMPILE_STRING_NOSPACE[] = "%[0-9.a-zA-Z]";
 void Usage();
 FILE *OpenBinFile(char *file);
 long Search(FILE *fh, s_string *string, int emu);
-void Emu (char *file, s_string *search, int emu);
+void Emu(char *file, s_string *search, int emu);
 void GBoxHandling(char *file, s_string *search);
 void MgcamdHandling(char *file, s_string *search);
 int OscamHandling(char *file);
 void md5emuHandling(char *file, s_string *search);
+
 // MD5 Funktionsdeklaration
 int mdfile(FILE *fp, unsigned char *digest);
 int ret_md5_sum(int emu);
