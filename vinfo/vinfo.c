@@ -30,7 +30,7 @@ s_string searchstring[] = {
 	{ "cardserver %s, version", 23 },	// oscam version new
 	{ "svn, build #", 12 },			// oscam build
 	{ "svn, build r", 12 },			// oscam build new
-	{ "Schimmelreiter, build r",23 },	// osmod
+	{ "version smod, build r", 21},	// osmod
 	{ "EMU: ", 5 },				// doscam
 	{ "svn", 31 },				// gbox svn
 	//{ "gbox_cfg, trace", -27 },		// gbox git - old function
@@ -357,7 +357,7 @@ int main(int argc, char **argv)
 #endif
 	if (strstr(argv[1], "OSMOD"))
 	{
-		printf("Schmmelreiter, build r%s\n", version);
+		printf("osmod, build r%s\n", version);
 	}
 	else if (strstr(argv[1], "OSCAM"))
 	{
