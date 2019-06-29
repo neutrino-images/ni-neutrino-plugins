@@ -35,8 +35,7 @@ s_string searchstring[] =
 	{ "svn, build r", 12 },			// oscam build new
 	{ "version smod, build r", 21},		// osmod
 	{ "svn", 31 },				// gbox svn
-	//{ "gbox_cfg, trace", -27 },		// gbox git - old function
-	{ "Linux@ARM", 55 },			// gbox git
+	{ "gbox.net ", 65 },			// gbox.net
 };
 
 void Usage()
@@ -239,16 +238,12 @@ void GBoxHandling(char *file, s_string *search)
 		printf("%s ", version);
 	}
 
-	Emu(file, search, GBOX);
+	Emu(file, search, GBOX_GIT);
 
 	if (strstr(version, "keine Informationen gefunden"))
 	{
-		Emu(file, search, GBOX_GIT);
-		printf("GIT #");
-	}
-	else
-	{
-		printf("SVN #");
+		Emu(file, search, GBOX);
+		printf("svn #");
 	}
 }
 
