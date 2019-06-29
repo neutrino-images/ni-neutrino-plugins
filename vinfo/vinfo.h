@@ -1,13 +1,13 @@
 #ifndef VINFO_H_
 #define VINFO_H_
 
-#define VERSION "vinfo Version 3.28"
+#define VERSION "vinfo Version 3.29"
 #define SUPPORT "www.neutrino-images.de"
 #define COPYRIGHT "luke777, FlatTV"
 
 enum {false, true};
 
-enum {MGCAMD, NEWCS, OSCAM_VERSION, OSCAM_VERSION_NEW, OSCAM_BUILD, OSCAM_BUILD_NEW, OSMOD, DOSCAM, GBOX, GBOX_GIT, MD5EMU};
+enum {CCCAM, DOSCAM, MGCAMD, NEWCS, OSCAM_VERSION, OSCAM_VERSION_NEW, OSCAM_BUILD, OSCAM_BUILD_NEW, OSMOD, GBOX, GBOX_GIT, MD5EMU};
 
 typedef struct _s_string {
 	char *str;

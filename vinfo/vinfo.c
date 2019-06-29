@@ -24,6 +24,8 @@ static struct mgcamd mgcamd_versions[] =
 };
 
 s_string searchstring[] = {
+	{ "CCcam ", 6 },			// cccam
+	{ "EMU: ", 5 },				// doscam
 	{ "compiled %s %s)", 17 },		// mgcamd
 	{ "Butter-team", 15 },			// newcs
 	{ "started version", 16 },		// oscam version old
@@ -31,7 +33,6 @@ s_string searchstring[] = {
 	{ "svn, build #", 12 },			// oscam build
 	{ "svn, build r", 12 },			// oscam build new
 	{ "version smod, build r", 21},	// osmod
-	{ "EMU: ", 5 },				// doscam
 	{ "svn", 31 },				// gbox svn
 	//{ "gbox_cfg, trace", -27 },		// gbox git - old function
 	{ "Linux@ARM", 55 },			// gbox git
@@ -45,13 +46,13 @@ void Usage()
 	printf("\tSupportboard: %s\n", SUPPORT);
 	printf("\tCopyright: %s\n\n", COPYRIGHT);
 	printf("<CAM-Code> (Supported Binarys):\n");
-	printf("   NEWCS\n");
+	printf("   CCCAM\n");
+	printf("   DOSCAM\n");
 	printf("   MGCAMD\n");
-	printf("   GBOX.NET\n");
+	printf("   NEWCS\n");
 	printf("   OSCAM\n");
 	printf("   OSMOD\n");
-	printf("   NCAM\n");
-	printf("   DOSCAM\n");
+	printf("   GBOX.NET\n");
 	printf("   CS2GBOX\n");
 }
 
@@ -311,15 +312,15 @@ int main(int argc, char **argv)
 	switch (argc)
 	{
 		case 3:
-			if (strstr(argv[1], "MGCAMD"))
+			if (strstr(argv[1], "CCCAM"))
+				Emu(argv[2], searchstring, CCCAM);
+			else if (strstr(argv[1], "MGCAMD"))
 				MgcamdHandling(argv[2], searchstring);
 			else if (strstr(argv[1], "NEWCS"))
 				Emu(argv[2], searchstring, NEWCS);
 			else if (strstr(argv[1], "OSCAM"))
 				Emu(argv[2], searchstring, OSCAM_VERSION);
 			else if (strstr(argv[1], "OSMOD"))
-				Emu(argv[2], searchstring, OSMOD);
-			else if (strstr(argv[1], "NCAM"))
 				Emu(argv[2], searchstring, OSCAM_VERSION_NEW);
 			else if (strstr(argv[1], "CS2GBOX"))
 				md5emuHandling(argv[2], searchstring);
