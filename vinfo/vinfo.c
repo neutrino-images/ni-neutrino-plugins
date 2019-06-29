@@ -32,7 +32,7 @@ s_string searchstring[] = {
 	{ "cardserver %s, version", 23 },	// oscam version new
 	{ "svn, build #", 12 },			// oscam build
 	{ "svn, build r", 12 },			// oscam build new
-	{ "version smod, build r", 21},	// osmod
+	{ "version smod, build r", 21},		// osmod
 	{ "svn", 31 },				// gbox svn
 	//{ "gbox_cfg, trace", -27 },		// gbox git - old function
 	{ "Linux@ARM", 55 },			// gbox git
@@ -52,6 +52,7 @@ void Usage()
 	printf("   NEWCS\n");
 	printf("   OSCAM\n");
 	printf("   OSMOD\n");
+	printf("   NCAM\n");
 	printf("   GBOX.NET\n");
 	printf("   CS2GBOX\n");
 }
@@ -321,6 +322,8 @@ int main(int argc, char **argv)
 			else if (strstr(argv[1], "OSCAM"))
 				Emu(argv[2], searchstring, OSCAM_VERSION);
 			else if (strstr(argv[1], "OSMOD"))
+				Emu(argv[2], searchstring, OSMOD);
+			else if (strstr(argv[1], "NCAM"))
 				Emu(argv[2], searchstring, OSCAM_VERSION_NEW);
 			else if (strstr(argv[1], "CS2GBOX"))
 				md5emuHandling(argv[2], searchstring);
@@ -358,7 +361,7 @@ int main(int argc, char **argv)
 #endif
 	if (strstr(argv[1], "OSMOD"))
 	{
-		printf("osmod, build r%s\n", version);
+		printf("oscam-smod, build r%s\n", version);
 	}
 	else if (strstr(argv[1], "OSCAM"))
 	{
