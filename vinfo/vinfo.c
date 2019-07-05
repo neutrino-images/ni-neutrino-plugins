@@ -26,11 +26,11 @@ static struct mgcamd mgcamd_versions[] =
 s_string searchstring[] =
 {
 	{ "CCcam ", 6 },			// cccam
-	{ "EMU: ", 5 },				// doscam
+	{ "DOSCam << %s, ", 14 },		// doscam
 	{ "compiled %s %s)", 17 },		// mgcamd
 	{ "Butter-team", 15 },			// newcs
 	{ "started version", 16 },		// oscam version old
-	{ "cardserver %s, version", 23 },	// oscam version new
+	{ "%s, version ", 12 },	// oscam version new
 	{ "svn, build #", 12 },			// oscam build
 	{ "svn, build r", 12 },			// oscam build new
 	{ "version smod, build r", 21},		// osmod
@@ -317,6 +317,8 @@ int main(int argc, char **argv)
 				MgcamdHandling(argv[2], searchstring);
 			else if (strstr(argv[1], "NEWCS"))
 				Emu(argv[2], searchstring, NEWCS);
+			else if (strstr(argv[1], "DOSCAM"))
+				Emu(argv[2], searchstring, DOSCAM);
 			else if (strstr(argv[1], "OSCAM"))
 				Emu(argv[2], searchstring, OSCAM_VERSION);
 			else if (strstr(argv[1], "OSMOD"))
@@ -335,30 +337,26 @@ int main(int argc, char **argv)
 			exit(1);
 	}
 
-	if (strstr(argv[1], "OSMOD"))
+	if (strstr(argv[1], "OSCAM") || strstr(argv[1], "DOSCAM") || strstr(argv[1], "OSMOD"))
 	{
-		printf("oscam-smod, build r%s\n", version);
-	}
-	else if (strstr(argv[1], "OSCAM"))
-	{
-		int doscam = 0;
-
-		if (strstr(version, "keine Informationen gefunden"))
-			Emu(argv[2], searchstring, OSCAM_VERSION_NEW);
-
-		if (!strstr(version, "keine Informationen gefunden"))
-			printf("%s", version);
-
-		Emu(argv[2], searchstring, DOSCAM);
-		if (strstr(version, "Key"))
-			doscam = 1;
+		if (strncmp(argv[1], "OSCAM", 5) == 0)
+		{
+			if (!strstr(version, "keine Informationen gefunden"))
+				printf("%s", version);
+			else
+			{
+				Emu(argv[2], searchstring, OSCAM_VERSION_NEW);
+				if (!strstr(version, "keine Informationen gefunden") && !strstr(version, "smod"))
+					printf("%s ", version);
+ 			}
+ 		}
 
 		Emu(argv[2], searchstring, OSCAM_BUILD);
 		if (strstr(version, "keine Informationen gefunden"))
 			Emu(argv[2], searchstring, OSCAM_BUILD_NEW);
 
 		if (!strstr(version, "keine Informationen gefunden"))
-			printf(" SVN #%s %s\n", version, (doscam ? "(DOSCam)" : ""));
+			printf("SVN #%s\n", version);
 		else
 			OscamHandling(argv[2]);
 	}

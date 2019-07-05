@@ -1,7 +1,7 @@
 #ifndef VINFO_H_
 #define VINFO_H_
 
-#define VERSION "vinfo Version 3.29"
+#define VERSION "vinfo Version 3.30"
 #define SUPPORT "www.neutrino-images.de"
 #define COPYRIGHT "luke777, FlatTV"
 
