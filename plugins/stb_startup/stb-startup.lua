@@ -129,6 +129,7 @@ function basename(str)
 end
 
 function get_value(str,root,etcdir)
+	local value = ""
 	if is_mounted("/tmp/testmount/userdata") then
 		for line in io.lines("/tmp/testmount/linuxrootfs" .. root  .. etcdir .. "/image-version") do
 			if line:match(str .. "=") then
@@ -149,6 +150,7 @@ end
 
 function get_imagename(root)
 	local etc_isdir = false
+	local imagename = " "
 	if isdir("/tmp/testmount/linuxrootfs" .. root .. "/etc") or
 	isdir("/tmp/testmount/rootfs" .. root .. "/etc") then
 		etc_isdir = true
@@ -160,7 +162,8 @@ function get_imagename(root)
 	elseif exists("/tmp/testmount/linuxrootfs" .. root .. "/var/etc/image-version") or
 	exists("/tmp/testmount/rootfs" .. root  .. "/var/etc/image-version") then
 		imagename = get_value("distro", root, "/var/etc") .. " " .. get_value("imageversion", root, "/var/etc")
-	else
+	end
+	if imagename == " " then
 		local glob = require "posix".glob
 		for _, j in pairs(glob(boot .. '/*', 0)) do
 			for line in io.lines(j) do
