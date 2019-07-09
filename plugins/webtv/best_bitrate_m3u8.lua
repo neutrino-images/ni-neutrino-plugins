@@ -27,12 +27,10 @@ function getVideoUrl(m3u8_url)
 	local data = getdata(m3u8_url)
 	if data then
 		local host = m3u8_url:match('([%a]+[:]?//[_%w%-%.]+)/')
-		if m3u8_url:find('/master.m3u8') then
-			local lastpos = (m3u8_url:reverse()):find("/")
-			local hosttmp = m3u8_url:sub(1,#m3u8_url-lastpos)
-			if hosttmp then
-				host = hosttmp .."/"
-			end
+		local lastpos = (m3u8_url:reverse()):find("/")
+		local hosttmp = m3u8_url:sub(1,#m3u8_url-lastpos)
+		if hosttmp then
+			host = hosttmp .."/"
 		end
 		for band, res1, res2, url in data:gmatch('BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-\n(.-)\n') do
 			if url and res1 then
