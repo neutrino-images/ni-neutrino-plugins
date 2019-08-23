@@ -307,7 +307,7 @@ AC_ARG_WITH(boxtype,
 
 AC_ARG_WITH(boxmodel,
 	AS_HELP_STRING([--with-boxmodel], [valid for coolstream: hd1, hd2])
-AS_HELP_STRING([], [valid for armbox: hd51, hd60, vusolo4k, bre2ze4k])
+AS_HELP_STRING([], [valid for armbox: hd51, hd60, bre2ze4k, vusolo4k, vuzero4k])
 AS_HELP_STRING([], [valid for generic: raspi])
 AS_HELP_STRING([], [valid for mipsbox: vuduo]),
 	[case "${withval}" in
@@ -330,7 +330,7 @@ AS_HELP_STRING([], [valid for mipsbox: vuduo]),
 				AC_MSG_ERROR([unknown model $withval for boxtype $BOXTYPE])
 			fi
 		;;
-		hd51|hd60|vusolo4k|bre2ze4k)
+		hd51|hd60|bre2ze4k|vusolo4k|vuzero4k)
 			if test "$BOXTYPE" = "armbox"; then
 				BOXMODEL="$withval"
 			else
@@ -394,10 +394,12 @@ elif test "$BOXMODEL" = "hd51"; then
 	AC_DEFINE(BOXMODEL_HD51, 1, [hd51])
 elif test "$BOXMODEL" = "hd60"; then
 	AC_DEFINE(BOXMODEL_HD60, 1, [hd60])
-elif test "$BOXMODEL" = "vusolo4k"; then
-	AC_DEFINE(BOXMODEL_VUSOLO4K, 1, [vusolo4k])
 elif test "$BOXMODEL" = "bre2ze4k"; then
 	AC_DEFINE(BOXMODEL_BRE2ZE4K, 1, [bre2ze4k])
+elif test "$BOXMODEL" = "vusolo4k"; then
+	AC_DEFINE(BOXMODEL_VUSOLO4K, 1, [vusolo4k])
+elif test "$BOXMODEL" = "vuzero4k"; then
+	AC_DEFINE(BOXMODEL_VUZERO4K, 1, [vuzero4k])
 elif test "$BOXMODEL" = "vuduo"; then
 	AC_DEFINE(BOXMODEL_VUDUO, 1, [vuduo])
 elif test "$BOXMODEL" = "raspi"; then
