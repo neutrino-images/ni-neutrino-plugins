@@ -61,6 +61,10 @@ if BOXMODEL_VUSOLO4K
 SUBDIRS += vu-initfb
 SUBDIRS += vu-turnoff_power
 endif
+if BOXMODEL_VUDUO4K
+SUBDIRS += vu-initfb
+SUBDIRS += vu-turnoff_power
+endif
 if BOXMODEL_VUZERO4K
 SUBDIRS += vu-initfb
 SUBDIRS += vu-turnoff_power
