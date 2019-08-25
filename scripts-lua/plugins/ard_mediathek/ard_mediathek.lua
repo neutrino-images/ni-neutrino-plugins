@@ -111,9 +111,9 @@ function init()
 	os.execute("mkdir -p " .. tmpPath)
 	user_agent 			= "\"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:31.0) Gecko/20100101 Firefox/31.0\""
 	if debugmode >= 1 then
-		wget_cmd = "wget -U " .. user_agent .. " -O "
+		wget_cmd = "wget -U " .. user_agent .. " --no-check-certificate -O "
 	else
-		wget_cmd = "wget -q -U " .. user_agent .. " -O "
+		wget_cmd = "wget -q -U " .. user_agent .. " --no-check-certificate -O "
 	end
 	pluginIcon			= decodeImage("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA8dJREFUeNrsV21IU1EYPufc25y6qegsCCTDUMzEjNA+tMylRIUlFmYlUUIfv4ISIgm3O6WghPoXBRFlJX1QlM5+SdqXLZKCvjaxMq0fFWbprW1u957OXTq3u4977yz608su527n7H2e857347xQV9kEZIjB590osdZ3npFSTMsENwL5Il7LRErAEEKhEgtIWoOWuWtFZh0XGEQPI4dAMHBGwRF41yIEIc/jetEm/HRRMfNKQ4ELY6dCcD/B2PN/QHjcwwAsJ69F41NdXpJhwJmmGr0pUvCrB8tnTOyYx7geTm7E6BtVKJSCusqlsPZMB1YCam6oStpftrBMp41urjjYctpsqkrwWsPzCe2EfrtflpViOnz5gSxwy4kaeLPbVtj20FqiP3A+nx11ZNFqFYyPUTmiaModxDeMvv5Ai8FpgE13Xw5Kgh+tKS5st/Tp5+85XfzDbs+iaApp1GqUrIsDLo7DFPE+QUI4qJdEQBS4AQwJfm5fWebFOy+2PH41kLej6VbaNJpK1cSqQZJa6/E47HE8LDw8iUIXhNIWlMyEV+o2zGzttq40W/rWl9W3ZGMKzomOmgaSErTEuydB/bxfgd/QYs/3naxeka1fU3t2px1RCzUxUbqkRK1GUM9xwgYFcKgQLvAYULiVn0Z/TLdTKFcXH63ieA58GR4FrH2MJBiCT7AxxGCqEvYIEE9c4rud+4aotzmpusHVizI6Rn4640/dfno8NoomJFAkFvDHCDeZHBc7uLs839DeuHnb+yF260lzz9nMlGSrg1jBY33wly3Q3Pn8ERkeXet54/1tjONVAjgEf0YQ+MfynwAS5QGDdI0dv2pgsRNC7zdIYlTITTwJVIn7hpFWztmT9vjfHKCXC/TUfeKkbh6MjDh4NYV75RhYMQEIsYsMLE+UIyQUWQhcbg6MOkhoOt39ukTNUMWS9PuVxdnXSususHIIBC2TYSi4IYKskAVZ1gnsTjfQxqisJTlpT0pzZ3UdufqwvfP1ByA8UuafKMdBy+Ta/AxTm8UWkGmcLk6Fh1k8RtO2rNTpfRsL5rbpF8x+sOrQpa89fR/lXu+9dSfkIQng1cXzYGB2jB7YvrGg1txYtan/8/ddx653twrgkUYBFHVGYpawfHF6w43uXi5iAAiN4+XaEKzqim/FE7fVoonH+mEIJ6hV9w3VRajj2TteUYxDyBBwg89t2Ch1LReT8IwON4cJ+DLhfe+6vC6LLfxZk3NbIazFgT0lI3UEf7o1A1KRRcvpcMK0aXIaVWaqiYiZggUku6pfAgwAu5p23B5ofWAAAAAASUVORK5CYII=", tmpPath)
 
