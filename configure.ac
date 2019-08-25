@@ -353,6 +353,7 @@ tuxmail/daemon/Makefile
 tuxwetter/Makefile
 vinfo/Makefile
 vu-initfb/Makefile
+vu-oled_ctrl/Makefile
 vu-turnoff_power/Makefile
 ])
 
