@@ -294,9 +294,9 @@ _TUXBOX_APPS_LIB_PKGCONFIG($1,$2)
 
 AC_DEFUN([TUXBOX_BOXTYPE], [
 AC_ARG_WITH(boxtype,
-	AS_HELP_STRING([--with-boxtype], [valid values: coolstream, generic, armbox, mipsbox]),
+	AS_HELP_STRING([--with-boxtype], [valid values: generic, coolstream, armbox, mipsbox]),
 	[case "${withval}" in
-		coolstream|generic|armbox|mipsbox)
+		generic|coolstream|armbox|mipsbox)
 			BOXTYPE="$withval"
 		;;
 		*)
@@ -306,11 +306,18 @@ AC_ARG_WITH(boxtype,
 	[BOXTYPE="generic"])
 
 AC_ARG_WITH(boxmodel,
-	AS_HELP_STRING([--with-boxmodel], [valid for coolstream: hd1, hd2])
+	AS_HELP_STRING([--with-boxmodel], [valid for generic: generic, raspi])
+AS_HELP_STRING([], [valid for coolstream: hd1, hd2])
 AS_HELP_STRING([], [valid for armbox: hd51, hd60, bre2ze4k, vusolo4k, vuduo4k, vuzero4k])
-AS_HELP_STRING([], [valid for generic: generic, raspi])
 AS_HELP_STRING([], [valid for mipsbox: vuduo]),
 	[case "${withval}" in
+		generic|raspi)
+			if test "$BOXTYPE" = "generic"; then
+				BOXMODEL="$withval"
+			else
+				AC_MSG_ERROR([unknown model $withval for boxtype $BOXTYPE])
+			fi
+		;;
 		hd1|hd2)
 			if test "$BOXTYPE" = "coolstream"; then
 				BOXMODEL="$withval"
@@ -344,13 +351,6 @@ AS_HELP_STRING([], [valid for mipsbox: vuduo]),
 				AC_MSG_ERROR([unknown model $withval for boxtype $BOXTYPE])
 			fi
 		;;
-		generic|raspi)
-			if test "$BOXTYPE" = "generic"; then
-				BOXMODEL="$withval"
-			else
-				AC_MSG_ERROR([unknown model $withval for boxtype $BOXTYPE])
-			fi
-		;;
 		*)
 			AC_MSG_ERROR([unsupported value $withval for --with-boxmodel])
 		;;
@@ -360,29 +360,34 @@ AS_HELP_STRING([], [valid for mipsbox: vuduo]),
 AC_SUBST(BOXTYPE)
 AC_SUBST(BOXMODEL)
 
-AM_CONDITIONAL(BOXTYPE_COOL, test "$BOXTYPE" = "coolstream")
 AM_CONDITIONAL(BOXTYPE_GENERIC, test "$BOXTYPE" = "generic")
+AM_CONDITIONAL(BOXTYPE_COOL, test "$BOXTYPE" = "coolstream")
 AM_CONDITIONAL(BOXTYPE_ARMBOX, test "$BOXTYPE" = "armbox")
 AM_CONDITIONAL(BOXTYPE_MIPSBOX, test "$BOXTYPE" = "mipsbox")
 
+# generic
+AM_CONDITIONAL(BOXMODEL_GENERIC, test "$BOXMODEL" = "generic")
+AM_CONDITIONAL(BOXMODEL_RASPI, test "$BOXMODEL" = "raspi")
+
+# coolstream
 AM_CONDITIONAL(BOXMODEL_CS_HD1, test "$BOXMODEL" = "hd1")
 AM_CONDITIONAL(BOXMODEL_CS_HD2, test "$BOXMODEL" = "hd2")
 
+# armbox
 AM_CONDITIONAL(BOXMODEL_HD51, test "$BOXMODEL" = "hd51")
 AM_CONDITIONAL(BOXMODEL_HD60, test "$BOXMODEL" = "hd60")
 AM_CONDITIONAL(BOXMODEL_BRE2ZE4K, test "$BOXMODEL" = "bre2ze4k")
 AM_CONDITIONAL(BOXMODEL_VUSOLO4K, test "$BOXMODEL" = "vusolo4k")
 AM_CONDITIONAL(BOXMODEL_VUDUO4K, test "$BOXMODEL" = "vuduo4k")
 AM_CONDITIONAL(BOXMODEL_VUZERO4K, test "$BOXMODEL" = "vuzero4k")
+
+# mipsbox
 AM_CONDITIONAL(BOXMODEL_VUDUO, test "$BOXMODEL" = "vuduo")
 
-AM_CONDITIONAL(BOXMODEL_GENERIC, test "$BOXMODEL" = "generic")
-AM_CONDITIONAL(BOXMODEL_RASPI, test "$BOXMODEL" = "raspi")
-
-if test "$BOXTYPE" = "coolstream"; then
-	AC_DEFINE(HAVE_COOL_HARDWARE, 1, [building for a coolstream])
-elif test "$BOXTYPE" = "generic"; then
+if test "$BOXTYPE" = "generic"; then
 	AC_DEFINE(HAVE_GENERIC_HARDWARE, 1, [building for a generic device like a standard PC])
+elif test "$BOXTYPE" = "coolstream"; then
+	AC_DEFINE(HAVE_COOL_HARDWARE, 1, [building for a coolstream])
 elif test "$BOXTYPE" = "armbox"; then
 	AC_DEFINE(HAVE_ARM_HARDWARE, 1, [building for an armbox])
 elif test "$BOXTYPE" = "mipsbox"; then
@@ -390,7 +395,11 @@ elif test "$BOXTYPE" = "mipsbox"; then
 fi
 
 # TODO: do we need more defines?
-if test "$BOXMODEL" = "hd1"; then
+if test "$BOXMODEL" = "generic"; then
+	AC_DEFINE(BOXMODEL_GENERIC, 1, [generic pc])
+elif test "$BOXMODEL" = "raspi"; then
+	AC_DEFINE(BOXMODEL_RASPI, 1, [raspberry pi])
+elif test "$BOXMODEL" = "hd1"; then
 	AC_DEFINE(BOXMODEL_CS_HD1, 1, [coolstream hd1/neo/neo2/zee])
 elif test "$BOXMODEL" = "hd2"; then
 	AC_DEFINE(BOXMODEL_CS_HD2, 1, [coolstream tank/trinity/trinity v2/trinity duo/zee2/link])
@@ -408,10 +417,6 @@ elif test "$BOXMODEL" = "vuzero4k"; then
 	AC_DEFINE(BOXMODEL_VUZERO4K, 1, [vuzero4k])
 elif test "$BOXMODEL" = "vuduo"; then
 	AC_DEFINE(BOXMODEL_VUDUO, 1, [vuduo])
-elif test "$BOXMODEL" = "generic"; then
-	AC_DEFINE(BOXMODEL_GENERIC, 1, [generic pc])
-elif test "$BOXMODEL" = "raspi"; then
-	AC_DEFINE(BOXMODEL_RASPI, 1, [raspberry pi])
 fi
 ])
 
