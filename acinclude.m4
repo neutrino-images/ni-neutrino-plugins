@@ -308,7 +308,7 @@ AC_ARG_WITH(boxtype,
 AC_ARG_WITH(boxmodel,
 	AS_HELP_STRING([--with-boxmodel], [valid for coolstream: hd1, hd2])
 AS_HELP_STRING([], [valid for armbox: hd51, hd60, bre2ze4k, vusolo4k, vuduo4k, vuzero4k])
-AS_HELP_STRING([], [valid for generic: raspi])
+AS_HELP_STRING([], [valid for generic: generic, raspi])
 AS_HELP_STRING([], [valid for mipsbox: vuduo]),
 	[case "${withval}" in
 		hd1|hd2)
@@ -344,7 +344,7 @@ AS_HELP_STRING([], [valid for mipsbox: vuduo]),
 				AC_MSG_ERROR([unknown model $withval for boxtype $BOXTYPE])
 			fi
 		;;
-		raspi)
+		generic|raspi)
 			if test "$BOXTYPE" = "generic"; then
 				BOXMODEL="$withval"
 			else
@@ -354,7 +354,8 @@ AS_HELP_STRING([], [valid for mipsbox: vuduo]),
 		*)
 			AC_MSG_ERROR([unsupported value $withval for --with-boxmodel])
 		;;
-	esac])
+	esac],
+	[BOXMODEL="generic"])
 
 AC_SUBST(BOXTYPE)
 AC_SUBST(BOXMODEL)
@@ -375,6 +376,7 @@ AM_CONDITIONAL(BOXMODEL_VUDUO4K, test "$BOXMODEL" = "vuduo4k")
 AM_CONDITIONAL(BOXMODEL_VUZERO4K, test "$BOXMODEL" = "vuzero4k")
 AM_CONDITIONAL(BOXMODEL_VUDUO, test "$BOXMODEL" = "vuduo")
 
+AM_CONDITIONAL(BOXMODEL_GENERIC, test "$BOXMODEL" = "generic")
 AM_CONDITIONAL(BOXMODEL_RASPI, test "$BOXMODEL" = "raspi")
 
 if test "$BOXTYPE" = "coolstream"; then
@@ -406,6 +408,8 @@ elif test "$BOXMODEL" = "vuzero4k"; then
 	AC_DEFINE(BOXMODEL_VUZERO4K, 1, [vuzero4k])
 elif test "$BOXMODEL" = "vuduo"; then
 	AC_DEFINE(BOXMODEL_VUDUO, 1, [vuduo])
+elif test "$BOXMODEL" = "generic"; then
+	AC_DEFINE(BOXMODEL_GENERIC, 1, [generic pc])
 elif test "$BOXMODEL" = "raspi"; then
 	AC_DEFINE(BOXMODEL_RASPI, 1, [raspberry pi])
 fi
