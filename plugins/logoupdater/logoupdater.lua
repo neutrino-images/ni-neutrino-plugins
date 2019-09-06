@@ -120,9 +120,9 @@ function get_cfg_value(str)
 end
 
 if (get_cfg_value("use_git") == 1) then
-	logo_url = "https://bitbucket.org/neutrino-images/ni-logo-stuff"
+	logo_url = "https://github.com/neutrino-images/ni-logo-stuff"
 else
-	logo_url = "https://bitbucket.org/neutrino-images/ni-logo-stuff/get/HEAD.zip"
+	logo_url = "https://codeload.github.com/neutrino-images/ni-logo-stuff/zip/master"
 end
 
 function nconf_value(str)
