@@ -2341,7 +2341,7 @@ parse_sky_cinema() {
 	end_ifs_block
 
 	sky_start_sec_add=0
-	sky_exclude_channels="Active Action Comedy Emotion Family Hits Nostalgie Uno Stars Romance Suspense Drama Due"
+	sky_exclude_channels="Active Action Comedy Emotion Family Hits Nostalgie Uno Stars Romance Suspense Drama Due Special"
 
 	case $(echo $sky_cinema | awk '{print toupper($0)}') in
 		SD)
