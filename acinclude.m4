@@ -308,7 +308,7 @@ AC_ARG_WITH(boxtype,
 AC_ARG_WITH(boxmodel,
 	AS_HELP_STRING([--with-boxmodel], [valid for generic: generic, raspi])
 AS_HELP_STRING([], [valid for coolstream: hd1, hd2])
-AS_HELP_STRING([], [valid for armbox: hd51, hd60, bre2ze4k, vusolo4k, vuduo4k, vuultimo4k, vuuno4k, vuzero4k])
+AS_HELP_STRING([], [valid for armbox: hd51, hd60, bre2ze4k, vusolo4k, vuduo4k, vuultimo4k, vuuno4k, vuuno4kse, vuzero4k])
 AS_HELP_STRING([], [valid for mipsbox: vuduo]),
 	[case "${withval}" in
 		generic|raspi)
@@ -337,7 +337,7 @@ AS_HELP_STRING([], [valid for mipsbox: vuduo]),
 				AC_MSG_ERROR([unknown model $withval for boxtype $BOXTYPE])
 			fi
 		;;
-		hd51|hd60|bre2ze4k|vusolo4k|vuduo4k|vuultimo4k|vuuno4k|vuzero4k)
+		hd51|hd60|bre2ze4k|vusolo4k|vuduo4k|vuultimo4k|vuuno4k|vuuno4kse|vuzero4k)
 			if test "$BOXTYPE" = "armbox"; then
 				BOXMODEL="$withval"
 			else
@@ -381,6 +381,7 @@ AM_CONDITIONAL(BOXMODEL_VUSOLO4K, test "$BOXMODEL" = "vusolo4k")
 AM_CONDITIONAL(BOXMODEL_VUDUO4K, test "$BOXMODEL" = "vuduo4k")
 AM_CONDITIONAL(BOXMODEL_VUULTIMO4K, test "$BOXMODEL" = "vuultimo4k")
 AM_CONDITIONAL(BOXMODEL_VUUNO4K, test "$BOXMODEL" = "vuuno4k")
+AM_CONDITIONAL(BOXMODEL_VUUNO4KSE, test "$BOXMODEL" = "vuuno4kse")
 AM_CONDITIONAL(BOXMODEL_VUZERO4K, test "$BOXMODEL" = "vuzero4k")
 
 # mipsbox
@@ -419,6 +420,8 @@ elif test "$BOXMODEL" = "vuultimo4k"; then
 	AC_DEFINE(BOXMODEL_VUULTIMO4K, 1, [vuultimo4k])
 elif test "$BOXMODEL" = "vuuno4k"; then
 	AC_DEFINE(BOXMODEL_VUUNO4K, 1, [vuuno4k])
+elif test "$BOXMODEL" = "vuuno4kse"; then
+	AC_DEFINE(BOXMODEL_VUUNO4KSE, 1, [vuuno4kse])
 elif test "$BOXMODEL" = "vuzero4k"; then
 	AC_DEFINE(BOXMODEL_VUZERO4K, 1, [vuzero4k])
 elif test "$BOXMODEL" = "vuduo"; then
