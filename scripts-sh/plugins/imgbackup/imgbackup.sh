@@ -2,7 +2,7 @@
 # Script for complete image backup
 # (C) 2018-2019 DboxOldie / BPanther
 # License: GPLv2 or later
-Version="1.12a vom 19.10.2019"
+Version="1.12c vom 23.10.2019"
 #
 file=$0
 model=`cat /proc/stb/info/model`
@@ -23,11 +23,11 @@ bz2=$(which bzip2)
 hexd=$(which hexdump)
 xxdmp=$(which xxd)
 new_layout=0
-magic_number="0x016f2818" # HD51 / VUSOLO4K / VUDUO4K / VUZERO4K / UTLIMATE4K / UNO4K / UNO4KSE
+magic_number="0x016f2818" # HD51 / VUSOLO4K / VUDUO4K / VUZERO4K / UTLIMATE4K / UNO4K / UNO4KSE / ZGEMMA H7
 dtb_magic_number="0xd00dfeed"
 
 #
-# Subroutine für hd51
+# Subroutine für hd51 / Zgemma H7
 #
 read_bootargs()
 {
@@ -45,7 +45,7 @@ read_bootargs()
 #
 # Root und Kernel Partition bestimmen
 #
-if [ "$model" == "hd51" ]; then
+if [ "$model" == "hd51" -o "$model" == "h7" ]; then
 	read_bootargs
 else
 	rootmtd=`readlink /dev/root`
@@ -54,9 +54,9 @@ rootnumber=`echo ${rootmtd:8:2}`
 mmcprefix=`echo ${rootmtd:0:8}`
 
 echo "  Image Backup (Version: $Version) - (C) 2018-2019 DboxOldie / BPanther"
-echo "  AX HD51 4K, VU+ DUO 4K, VU+ UNO 4K, VU+ UNO 4K SE, VU+ ZERO 4K, VU+ ULTIMO 4K und VU+ SOLO 4K"
+echo "  AX HD51 4K, VU+ DUO 4K, VU+ UNO 4K, VU+ UNO 4K SE, VU+ ZERO 4K, VU+ ULTIMO 4K und VU+ SOLO 4K ZGEMMA H7"
 echo
-if [ "$model" == "hd51" ]; then
+if [ "$model" == "hd51" -o "$model" == "h7"  ]; then
 	echo "  Image Backup für Boxmodel '$model' startet..."
 	[ $new_layout == 0 ] && kernelnumber=$((rootnumber - 1))
 elif [ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ]; then
