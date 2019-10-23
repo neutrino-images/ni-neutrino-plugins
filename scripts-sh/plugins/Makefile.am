@@ -9,8 +9,8 @@ endif
 if ENABLE_EPGSCAN
 SUBDIRS += EPGscan
 endif
-if ENABLE_IMGBACKUP_HD51
-SUBDIRS += imgbackup-hd51
+if ENABLE_IMGBACKUP
+SUBDIRS += imgbackup
 endif
 if ENABLE_MOUNTPOINTMANAGEMENT
 SUBDIRS += mountpointmanagement

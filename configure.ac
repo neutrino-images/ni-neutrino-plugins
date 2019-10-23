@@ -267,11 +267,11 @@ AC_ARG_ENABLE(epgscan,
 	[enable_epgscan="yes"])
 AM_CONDITIONAL(ENABLE_EPGSCAN, test "$enable_epgscan" = "yes")
 
-AC_ARG_ENABLE(imgbackup-hd51,
-	AS_HELP_STRING([--enable-imgbackup-hd51], [enable imgbackup-hd51 @<:@default=yes@:>@]),
-	[enable_imgbackup_hd51="$enableval"],
-	[enable_imgbackup_hd51="yes"])
-AM_CONDITIONAL(ENABLE_IMGBACKUP_HD51, test "$enable_imgbackup_hd51" = "yes")
+AC_ARG_ENABLE(imgbackup,
+	AS_HELP_STRING([--enable-imgbackup], [enable imgbackup @<:@default=yes@:>@]),
+	[enable_imgbackup="$enableval"],
+	[enable_imgbackup="yes"])
+AM_CONDITIONAL(ENABLE_IMGBACKUP, test "$enable_imgbackup" = "yes")
 
 AC_ARG_ENABLE(mountpointmanagement,
 	AS_HELP_STRING([--enable-mountpointmanagement], [enable mountpointmanagement @<:@default=yes@:>@]),
@@ -337,7 +337,7 @@ scripts-sh/plugins/Makefile
 scripts-sh/plugins/autoreboot/Makefile
 scripts-sh/plugins/dropbox_uploader/Makefile
 scripts-sh/plugins/EPGscan/Makefile
-scripts-sh/plugins/imgbackup-hd51/Makefile
+scripts-sh/plugins/imgbackup/Makefile
 scripts-sh/plugins/mountpointmanagement/Makefile
 scripts-sh/plugins/pr-auto-timer/Makefile
 scripts-sh/plugins/smarthomeinfo/Makefile

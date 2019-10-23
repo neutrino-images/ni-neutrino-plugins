@@ -1,7 +1,7 @@
 plugindir = $(PLUGINDIR)
 
 plugin_DATA = \
-	imgbackup-hd51.cfg
+	imgbackup.cfg
 
 plugin_SCRIPTS = \
-	imgbackup-hd51.sh
+	imgbackup.sh
