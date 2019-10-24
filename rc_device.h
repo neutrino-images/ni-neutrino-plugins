@@ -2,20 +2,28 @@
 #include <config.h>
 #endif
 
-#if HAVE_COOL_HARDWARE
+#ifdef HAVE_COOL_HARDWARE
 #define RC_DEVICE "/dev/input/nevis_ir"
 #define RC_DEVICE_FALLBACK "/dev/input/event0"
+#endif
 
-#elif HAVE_SPARK_HARDWARE
+#ifdef HAVE_SPARK_HARDWARE
 #define RC_DEVICE "/dev/input/nevis_ir"
 #define RC_DEVICE_FALLBACK "/dev/input/event1"
+#endif
 
-#elif HAVE_DUCKBOX_HARDWARE
-#define RC_DEVICE "/dev/input/event0"
-#define RC_DEVICE_FALLBACK "/dev/input/event1"
+#ifdef HAVE_DUCKBOX_HARDWARE
+ #define RC_DEVICE "/dev/input/event0"
+ #define RC_DEVICE_FALLBACK "/dev/input/event1"
+#endif
+
+#ifdef HAVE_ARM_HARDWARE
+#if BOXMODEL_H7
+#define RC_DEVICE "/dev/input/event2"
+#define RC_DEVICE_FALLBACK "/dev/input/event0"
 #else
 #define RC_DEVICE "/dev/input/event1"
 #define RC_DEVICE_FALLBACK "/dev/input/event0"
-
+#endif
 #endif
 
