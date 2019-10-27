@@ -1,29 +1,24 @@
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+/*
+	License: GPL
 
-#ifdef HAVE_COOL_HARDWARE
-#define RC_DEVICE "/dev/input/nevis_ir"
-#define RC_DEVICE_FALLBACK "/dev/input/event0"
-#endif
+	This program is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
 
-#ifdef HAVE_SPARK_HARDWARE
-#define RC_DEVICE "/dev/input/nevis_ir"
-#define RC_DEVICE_FALLBACK "/dev/input/event1"
-#endif
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-#ifdef HAVE_DUCKBOX_HARDWARE
- #define RC_DEVICE "/dev/input/event0"
- #define RC_DEVICE_FALLBACK "/dev/input/event1"
-#endif
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+*/
 
-#ifdef HAVE_ARM_HARDWARE
-#if BOXMODEL_H7
-#define RC_DEVICE "/dev/input/event2"
-#define RC_DEVICE_FALLBACK "/dev/input/event0"
-#else
-#define RC_DEVICE "/dev/input/event1"
-#define RC_DEVICE_FALLBACK "/dev/input/event0"
-#endif
-#endif
+#ifndef __RC_DEVICE_H__
+#define __RC_DEVICE_H__
 
+void get_rc_device(char *rc_device);
+
+#endif
