@@ -8,14 +8,15 @@ shellexec_LDADD = \
 	@FREETYPE_LIBS@
 
 shellexec_SOURCES = \
- shellexec.c \
- io.c \
- text.c \
- gfx.c \
- fb_display.c \
- resize.c \
- pngw.cpp \
- png_helper.cpp
+	shellexec.c \
+	io.c \
+	text.c \
+	gfx.c \
+	fb_display.c \
+	rc_device.c \
+	resize.c \
+	pngw.cpp \
+	png_helper.cpp
 
 noinst_LTLIBRARIES = shellexec.la
 
