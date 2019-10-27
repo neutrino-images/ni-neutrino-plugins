@@ -7,7 +7,9 @@ noinst_PROGRAMS = tuxcom
 
 #tuxcom_la_CFLAGS = -DDREAMBOX 
 
-tuxcom_SOURCES = tuxcom.c
+tuxcom_SOURCES = \
+	tuxcom.c \
+	rc_device.c
 
 tuxcom_LDADD = \
 	 @FREETYPE_LIBS@
