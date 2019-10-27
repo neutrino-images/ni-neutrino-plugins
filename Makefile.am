@@ -10,7 +10,9 @@ AM_CPPFLAGS = \
 
 noinst_LTLIBRARIES = tuxmail.la
 
-tuxmail_la_SOURCES = tuxmail.c
+tuxmail_la_SOURCES = \
+	tuxmail.c \
+	rc_device.c
 
 tuxmail_la_LIBADD = \
 	@FREETYPE_LIBS@
