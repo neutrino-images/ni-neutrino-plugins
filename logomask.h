@@ -2,6 +2,7 @@
 
 #define __logomask_H__
 
+#include <config.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>

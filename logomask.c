@@ -29,6 +29,7 @@
   SIGUSR1:         Toggles debug mode
 */
 
+#include <config.h>
 #include <string.h>
 #include <time.h>
 #include <signal.h>
