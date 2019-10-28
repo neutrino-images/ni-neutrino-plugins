@@ -19,6 +19,7 @@
  ******************************************************************************/
 // lots of code is from the tuxmail-project
 
+#include <config.h>
 #include "tuxcal.h"
 #include "rc_device.h"
 //#include <stdio.h>

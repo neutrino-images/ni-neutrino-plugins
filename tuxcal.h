@@ -4,7 +4,7 @@
  *
  ******************************************************************************/
 
-//#include "config.h"
+#include "config.h"
 #define _GNU_SOURCE
 #include <errno.h>
 #include <fcntl.h>
