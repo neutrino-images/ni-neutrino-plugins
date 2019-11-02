@@ -428,7 +428,7 @@ int RenderString(char *string, int _sx, int _sy, int maxwidth, int layout, int s
 
 	_ex = _sx + maxwidth;
 
-	while(*rptr != '\0')
+	while(*rptr)
 	{
 		if(*rptr=='~')
 		{
