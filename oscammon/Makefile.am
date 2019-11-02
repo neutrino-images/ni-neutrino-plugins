@@ -7,7 +7,8 @@ plugindir = $(PLUGINDIR)
 plugin_PROGRAMS = oscammon.so
 
 oscammon_so_SOURCES = \
-	oscammon.c
+	oscammon.c \
+	rc_device.c
 
 oscammon_so_LDADD = \
 	@FREETYPE_LIBS@ \

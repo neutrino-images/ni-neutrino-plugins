@@ -2,7 +2,7 @@
 #include <fcntl.h>
 
 #include <fb_device.h>
-#include <rc_device.h>
+#include "rc_device.h"
 
 #include "oscammon.h"
 
@@ -1495,9 +1495,12 @@ static int csmon_init()
 	fb=open(FB_DEVICE, O_RDWR);
       
 	// open Remote Control
-	rc = open(RC_DEVICE, O_RDONLY | O_CLOEXEC);
-	if(rc == -1)
-		rc = open(RC_DEVICE_FALLBACK, O_RDONLY | O_CLOEXEC);
+	char rc_device[32];
+	get_rc_device(rc_device);
+//	activate only for debug
+//	printf("rc_device: using %s\n", rc_device);
+
+	rc = open(rc_device, O_RDONLY);
 	if(rc == -1) {
 		csmon_log("error open remote control\n");
 		exit(1);
