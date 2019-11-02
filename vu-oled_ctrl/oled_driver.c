@@ -315,7 +315,7 @@ void lcd_write_text(const char* text)
 
 int lcd_ioctl(const char *io_ctl)
 {
-        if (ioctl(fd, io_ctl) < 0)
+        if (ioctl(fd, (int)io_ctl) < 0)
         {
                 printf("%s: command %s failed\n", __FUNCTION__, io_ctl);
                 return -1;
