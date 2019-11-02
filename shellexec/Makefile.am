@@ -12,6 +12,7 @@ shellexec_so_SOURCES = \
 	text.c \
 	gfx.c \
 	fb_display.c \
+	rc_device.c \
 	resize.c \
 	pngw.cpp \
 	png_helper.cpp

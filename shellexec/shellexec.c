@@ -12,7 +12,7 @@
 #include "gfx.h"
 #include "pngw.h"
 
-#define SH_VERSION 2.15
+#define SH_VERSION 2.16
 
 #ifndef CONFIGDIR
 #define CONFIGDIR "/var/tuxbox/config"
