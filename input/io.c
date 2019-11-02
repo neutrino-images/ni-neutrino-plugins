@@ -19,7 +19,7 @@
 
 #include "current.h"
 #include "io.h"
-#include <rc_device.h>
+#include "rc_device.h"
 
 extern int instance;
 extern int get_instance(void);

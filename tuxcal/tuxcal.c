@@ -21,6 +21,7 @@
 
 #include <config.h>
 #include "tuxcal.h"
+#include "rc_device.h"
 #include <fb_device.h>
 
 void read_neutrino_osd_conf(int *Ex,int *Sx,int *Ey, int *Sy)

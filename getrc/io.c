@@ -17,7 +17,7 @@
 #include <linux/input.h>
 
 #include "io.h"
-#include <rc_device.h>
+#include "rc_device.h"
 
 struct input_event ev;
 static unsigned short rccode=-1;

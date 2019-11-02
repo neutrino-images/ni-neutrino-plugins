@@ -34,7 +34,6 @@
 #define FONTDIR	"/share/fonts"
 #endif
 
-
 #define SCKFILE "/tmp/tuxmaild.socket"
 #define LCKFILE "/tmp/lcd.locked"
 #define RUNFILE "/var/etc/.tuxmaild"

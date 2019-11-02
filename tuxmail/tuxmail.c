@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "tuxmail.h"
+#include "rc_device.h"
 #include <fb_device.h>
 
 void read_neutrino_osd_conf ( int *ex,int *sx,int *ey, int *sy, int *preset)

@@ -26,6 +26,7 @@ plugin_PROGRAMS += logoset.so
 
 logoset_so_SOURCES = \
 	logoset.c \
+	rc_device.c \
 	io.c \
 	text.c\
 	gfx.c

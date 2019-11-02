@@ -19,7 +19,7 @@
 
 #include "io.h"
 #include "tuxwetter.h"
-#include <rc_device.h>
+#include "rc_device.h"
 
 extern int instance;
 struct input_event ev;

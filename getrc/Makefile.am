@@ -6,6 +6,7 @@ bin_PROGRAMS = getrc
 
 getrc_SOURCES = \
 	getrc.c \
+	rc_device.c \
 	io.c
 
 getrc_LDADD = \

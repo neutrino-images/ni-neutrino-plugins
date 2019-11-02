@@ -9,7 +9,8 @@ plugindir = $(PLUGINDIR)
 plugin_PROGRAMS = tuxcal.so
 
 tuxcal_so_SOURCES = \
-	tuxcal.c
+	tuxcal.c \
+	rc_device.c
 
 tuxcal_so_LDADD = \
 	@FREETYPE_LIBS@ \
