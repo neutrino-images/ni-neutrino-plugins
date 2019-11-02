@@ -9,7 +9,8 @@ plugindir = $(PLUGINDIR)
 plugin_PROGRAMS = tuxmail.so
 
 tuxmail_so_SOURCES = \
-	tuxmail.c
+	tuxmail.c \
+	rc_device.c
 
 tuxmail_so_LDADD = \
 	@FREETYPE_LIBS@
