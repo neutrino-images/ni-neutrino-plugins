@@ -202,7 +202,7 @@ int GetStringLen(char *string, size_t size)
 		default:    desc.width = desc.height = size; break;
 	}
 
-	while(*string != '\0')
+	while(*string)
 	{
 		stringlen += RenderChar(*string, -1, -1, -1, -1);
 		string++;
@@ -275,7 +275,7 @@ int varcolor=color;
 
 	_ex = _sx + maxwidth;
 
-	while(*rptr != '\0')
+	while(*rptr)
 	{
 		if(*rptr=='~')
 		{
