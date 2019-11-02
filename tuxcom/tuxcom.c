@@ -24,9 +24,9 @@
 	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA
 */
 
+#include <config.h>
 #include "tuxcom.h"
 #include <fb_device.h>
-#include <rc_device.h>
 
 #define DEFAULT_XRES 1280
 #define DEFAULT_YRES 720
@@ -903,9 +903,11 @@ int main()
 	}
 
 	/* open Remote Control */
-	rc = open(RC_DEVICE, O_RDONLY | O_CLOEXEC);
-	if(rc == -1)
-		rc = open(RC_DEVICE_FALLBACK, O_RDONLY | O_CLOEXEC);
+	char rc_device[32];
+	get_rc_device(rc_device);
+	printf("rc_device: using %s\n", rc_device);
+
+	rc = open(rc_device, O_RDONLY | O_CLOEXEC);
 	if(rc == -1) {
 		perror("TuxCom <open remote control>");
 		exit(1);

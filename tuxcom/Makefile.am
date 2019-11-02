@@ -7,7 +7,8 @@ plugindir = $(PLUGINDIR)
 plugin_PROGRAMS = tuxcom.so
 
 tuxcom_so_SOURCES = \
-	tuxcom.c
+	tuxcom.c \
+	rc_device.c
 
 tuxcom_so_LDADD = \
 	@FREETYPE_LIBS@
