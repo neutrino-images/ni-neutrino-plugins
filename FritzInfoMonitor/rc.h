@@ -9,8 +9,6 @@
 //rc stuff
 #include <linux/input.h>
 
-#include <rc_device.h>
-
 class Crc
 {
 	public:
@@ -24,6 +22,7 @@ class Crc
 		int	rc;
 		struct input_event ev;
 
+		void GetRCDevice(char *rc_device);
 		int GetRCCode();
 };
 #endif

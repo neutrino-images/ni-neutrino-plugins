@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <cstdio> 
 #include <cstdlib>
+#include <string.h>
 
 #include "globals.h"
 
@@ -20,10 +21,12 @@ Crc::Crc()
 {
 	rc = -1;
 
-	/* open Remote Control */
-	rc = open(RC_DEVICE, O_RDONLY | O_CLOEXEC);
-	if ( rc == -1 )
-		rc = open(RC_DEVICE_FALLBACK, O_RDONLY | O_CLOEXEC);
+	char rc_device[32];
+	GetRCDevice(rc_device);
+//	activate only for debug
+//	printf("rc_device: using %s\n", rc_device);
+
+	rc = open(rc_device, O_RDONLY);
 	if ( rc == -1 )
 	{
 		perror ( "<open remote control>" );
@@ -59,6 +62,43 @@ long Crc::getrc()
 		return(GetRCCode());
 	else
 		return(-1);
+}
+
+void Crc::GetRCDevice(char *rc_device)
+{
+	char line[128];
+	char event[10];
+	FILE *f;
+
+	rc_device[0] = '\0';
+
+	if(access("/dev/input/nevis_ir", F_OK) == 0)
+	{
+		sprintf(rc_device, "%s", "/dev/input/nevis_ir");
+		return;
+	}
+
+	if((f = fopen("/proc/bus/input/devices", "r")))
+	{
+		while (fgets(line, sizeof(line), f))
+		{
+			if (strstr(line, "advanced remote control"))
+			{
+				while (fgets(line, sizeof(line), f))
+				{
+					if (strstr(line, "Handlers=")) {
+						sscanf(line, "%*s %*s %s", event);
+						sprintf(rc_device, "%s%s", "/dev/input/", event);
+						break;
+					}
+				}
+				break;
+			}
+		}
+		fclose(f);
+	}
+	if(rc_device[0] == '\0')
+		sprintf(rc_device, "%s", "/dev/input/event0");
 }
 
 int Crc::GetRCCode()
