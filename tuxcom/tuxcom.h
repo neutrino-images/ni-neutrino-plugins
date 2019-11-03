@@ -403,7 +403,7 @@ enum {INFO_COPY     ,
       INFO_DATETIME };
 
 
-char *numberchars[] = {  "0#!$%&?*()@\\",
+char *numberchars[] = {  "0 #!$%&?*()@\\",
                  		 "1/=<>+-_,.;:" ,
                  		 "abc2",
                  		 "def3",
