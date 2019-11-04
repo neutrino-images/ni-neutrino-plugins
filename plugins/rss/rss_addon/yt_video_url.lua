@@ -84,7 +84,6 @@ function js_descramble( sig, js )
 	if missing then
 		print( "Couldn't process youtube video URL, please check for updates to this script" )
 	end
-	print('signature=' .. sig)
 	return sig
 end
 
@@ -103,11 +102,28 @@ end
 
 local media = {}
 function media.getVideoUrl(yurl)
-local itags = {[37]='1920x1080',[96]='1920x1080',[22]='1280x720',[95]='1280x720',[136]='1280x720',[94]='854x480',[35]='854x480',[135]='854x480',
-		[18]='640x360',[93]='640x360',[34]='640x360',[134]='640x360',[5]='400x240',[6]='450x270',[133]='426x240',[36]='320x240',
-		[92]='320x240',[132]='320x240',[17]='176x144',[13]='176x144',[151]='128x72',
+	local itags = {[37]='1920x1080',[96]='1920x1080',[22]='1280x720',[95]='1280x720',[94]='854x480',[35]='854x480',
+		[18]='640x360',[93]='640x360',[34]='640x360',[5]='400x240',[6]='450x270',[36]='320x240',
+		[92]='320x240',[17]='176x144',[13]='176x144',
 		[85]='1920x1080p',[84]='1280x720',[83]='854x480',[82]='640x360'
 	}
+
+	local itags_audio = {[140]='m4a',[251]='opus',[250]='opus',[249]='opus'} -- 251,250,249 opus, bad audio sync
+	local itags_vp9_60 = {[315]='3840x2160',[308]='2560x1440',[303]='1920x1080',[302]='1280x720'}
+	local itags_vp9_30 = {[313]='3840x2160',[271]='2560x1440',[248]='1920x1080',[247]='1280x720',[244]='854x480'}
+	local itags_vp9_HDR = {[337]='3840x2160',[336]='2560x1440',[335]='1920x1080',[334]='1280x720',[333]='854x480'}
+	local itags_avc1_60 = {[299]='1920x1080',[298]='1280x720'}
+	local itags_avc1_30 = {[137]='1920x1080',[136]='1280x720',[135]='854x480'}
+	local itags_av01 = {[401]='3840x2160',[400]='2560x1440',[399]='1920x1080',[398]='1280x720',[397]='854x480'}
+	-- disable or enable format
+	local vp9_60 = true --webm
+	local vp9_30 = true --webm
+	local vp9_HDR = false --webm, HDR dont work on HD51
+	local avc1_60 = true -- mp4
+	local avc1_30 = true -- mp4
+	local video_url = nil
+	media.VideoUrl = nil
+
 	if yurl == nil then return end
 
 	if yurl:find("www.youtube.com/user/") then --check user link
@@ -118,7 +134,13 @@ local itags = {[37]='1920x1080',[96]='1920x1080',[22]='1280x720',[95]='1280x720'
 		yurl = 'https://www.youtube.com' .. youtube_live_url
 	end
 
-	local video_url = nil
+	local revision = 0
+	if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
+		M = misc.new()
+		revision = M:GetRevision()
+	end
+	local count = 0
+	local urls = {}
 	for i = 1,6 do
 		local data = getdata(yurl)
 		if data:find('player%-age%-gate%-content') then
@@ -154,45 +176,49 @@ local itags = {[37]='1920x1080',[96]='1920x1080',[22]='1280x720',[95]='1280x720'
 						end
 					end
 				end
-			end
-			if video_url and #video_url > 8 then
-				media.VideoUrl=video_url
-			end
-			if video_url then return end
-
-			local fmt_list=data:match('"fmt_list":"(.-)",')
-			local myitag = nil
-			local myurl = nil
-			if fmt_list then
-				for itag in fmt_list:gmatch("(%d+)\\/[^,]+" ) do
-					if itag then
-						if itags[tonumber(itag)] then
-							myitag=itag
-							break
-						end
-					end
+				if video_url and #video_url > 8 then
+					media.VideoUrl=video_url
 				end
+				if video_url then return end
 			end
-			if not myitag then myitag =data:match('fmt_list=(%d+)') end
-			if not myitag then return end
-
-			local url_map = data:match('"url_encoded_fmt_stream_map":"(.-)"' )
+			local myurl = nil
+			local url_map = data:match('"url_encoded_fmt_stream_map":"(.-)<div' ) or data:match('"url_encoded_fmt_stream_map":"(.-)"' )
 			if url_map == nil then
 				url_map = data:match('url_encoded_fmt_stream_map=(.-)$' )
 				url_map=unescape_uri(url_map)
 			end
 			if url_map then
+				url_map=url_map:gsub('"adaptive_fmts":"',"")
 				for url in url_map:gmatch( "[^,]+" ) do
-					if url and url:find('itag=' .. myitag) then
-						myurl=url:match('url=(.-)$')
-						if myurl then
+					if url and #url > 100 and url:find("itag") and url:find("url=") then
+						local have_itag = false
+						local itagnum = 0
+						local myitag = nil
+						myitag = url:match('itag=(%d+)') or url:match('itag%%3D(%d+)')
+						url=url:gsub('xtags=',"")
+						url=url:gsub('fps=%d+',"")
+						if myitag ~= nil then
+							itagnum = tonumber(myitag)
+							if itags[itagnum] then
+								have_itag = true
+							elseif revision == 1 and
+									((vp9_30 and itags_vp9_30[itagnum]) or (vp9_60 and itags_vp9_60[itagnum])
+							         or (avc1_60 and itags_avc1_60[itagnum]) or (avc1_30 and itags_avc1_30[itagnum])
+							        or (vp9_HDR and itags_vp9_HDR[itagnum])) or itags_audio[itagnum] then
+								have_itag = true
+							end
+						end
+						if have_itag then
 							if url:sub(1, 4) == 'url=' then
 								myurl=url:match('url=(.-)$')
 							else
-								myurl=url:match('url=(.-)$') .. "&" .. url:match('(.-)url')
-							end						
-							local s=myurl:match('s=([%%%-%=%w+_]+)')
-							if s then
+								local tmp = url:match('(s=.-)url') or url:match('(.-)url')
+								if tmp == nil then tmp = "" end
+								local tmp_url = url:match('url=(.-)$')
+								myurl= tmp_url .. "&" .. tmp
+							end
+							local s=myurl:match('6s=([%%%-%=%w+_]+)') or myurl:match('&s=([%%%-%=%w+_]+)') or myurl:match('s=([%%%-%=%w+_]+)')
+							if s and #s > 90 and #s < 130 then
 								local s2=unescape_uri(s)
 								local js_url= data:match('<script src="([/%w%p]+base%.js)"')
 								local signature = newsig(s2,js_url)
@@ -205,15 +231,79 @@ local itags = {[37]='1920x1080',[96]='1920x1080',[22]='1280x720',[95]='1280x720'
 							myurl=myurl:gsub("itag=" .. myitag, "")
 							myurl=myurl:gsub("\\u0026", "&")
 							myurl=myurl:gsub("&&", "&")
-							video_url=unescape_uri(myurl)
-							break
+							myurl=unescape_uri(myurl)
+
+							myurl=myurl:gsub("\\", "")
+							myurl=myurl:gsub('"', "")
+							myurl=myurl:gsub('}', "")
+							myurl=myurl:gsub(']', "")
+							if select(2,myurl:gsub('&lmt=%d+', "")) == 2 then myurl=myurl:gsub('&lmt=%d+', "",1) end
+							if select(2,myurl:gsub('&clen=%d+', "")) == 2 then myurl=myurl:gsub('&clen=%d+', "",1) end
+
+							urls[itagnum] = myurl
 						end
 					end
 				end
 			end
 		end
-		if video_url then
-			print("TRY",i)
+		local res = 0
+		local tmp_res = 0
+		for k, video in pairs(urls) do
+			if tmp_res == 1920 then count = 100 break end
+			if itags[k] then
+				tmp_res = tonumber(itags[k]:match('(%d+)x'))
+				if tmp_res > res then
+					count = count + 1
+					video_url = video
+					res = tmp_res
+					media.UrlVideoAudio = ""
+				end
+			elseif avc1_30 and itags_avc1_30[k] then
+				tmp_res = tonumber(itags_avc1_30[k]:match('(%d+)x'))
+				if tmp_res > res then
+					count = count + 1
+					video_url = video
+					res = tmp_res
+					media.UrlVideoAudio = urls[140] or urls[251] or urls[250] or urls[249]
+				end
+			elseif avc1_60 and itags_avc1_60[k] then
+				tmp_res = tonumber(itags_avc1_60[k]:match('(%d+)x'))
+				if tmp_res > res then
+					count = count + 1
+					video_url = video
+					res = tmp_res
+					media.UrlVideoAudio = urls[140] or urls[251] or urls[250] or urls[249]
+				end
+			elseif vp9_30 and itags_vp9_30[k] then
+				tmp_res = tonumber(itags_vp9_30[k]:match('(%d+)x'))
+				if tmp_res > res then
+					count = count + 1
+					video_url = video
+					res = tmp_res
+					media.UrlVideoAudio = urls[140] or urls[251] or urls[250] or urls[249]
+				end
+			elseif vp9_60 and itags_vp9_60[k] then
+				tmp_res = tonumber(itags_vp9_60[k]:match('(%d+)x'))
+				if tmp_res > res then
+					count = count + 1
+					video_url = video
+					res = tmp_res
+					media.UrlVideoAudio = urls[140] or urls[251] or urls[250] or urls[249]
+				end
+			elseif vp9_HDR and itags_vp9_HDR[k] then
+				tmp_res = tonumber(itags_vp9_HDR[k]:match('(%d+)x'))
+				if tmp_res > res then
+					count = count + 1
+					video_url = video
+					res = tmp_res
+					media.UrlVideoAudio = urls[140] or urls[251] or urls[250] or urls[249]
+				end
+			end
+		end
+		local mini = 3
+		if  revision == 1 then mini = 3 end
+		if count > mini then
+			print("TRY",i,count)
 			break
 		end
 	end

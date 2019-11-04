@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.81"
+rssReaderVersion="Lua RSS READER v0.82"
 local CONF_PATH = "/var/tuxbox/config/"
 local n = neutrino()
 local FontMenu = FONT.MENU
@@ -738,25 +738,40 @@ function showMenuItem(id)
 	until stop
 
 end
-
+local tmpUrlLink,tmpUrlVideo,tmpUrlAudio,tmpUrlExtra,tmpUrlVideoAudio,tmpText = nil,nil,nil,nil,nil,nil
 function paintMenuItem(idNr)
 	glob.m:hide()
-	glob.urlPicUrls  = {}
 	local title    = fp.entries[idNr].title
 	if title then
 		title = title:gsub("\n", " ")
 	end
 	local text    = fp.entries[idNr].summary
 	local UrlLink = fp.entries[idNr].link
+	local UrlVideo,UrlAudio,UrlExtra,UrlVideoAudio = nil,nil,nil,nil
+	local cal = false
+	if UrlLink ~= tmpUrlLink then
+		glob.urlPicUrls  = {}
+		tmpUrlLink,tmpUrlVideo,tmpUrlAudio,tmpUrlExtra,tmpUrlVideoAudio,tmpText = nil,nil,nil,nil,nil,nil
+		UrlVideo,UrlAudio,UrlExtra = getMediUrls(idNr)
+		cal = true
+	else
+		UrlVideo,UrlAudio,UrlExtra,UrlVideoAudio,text = tmpUrlVideo,tmpUrlAudio,tmpUrlExtra,tmpUrlVideoAudio,tmpText
+	end
 	local fpic = nil
-	local UrlVideo,UrlAudio,UrlExtra = getMediUrls(idNr)
-	if addon and UrlLink then
+	if cal and addon and UrlLink then
 		local hasaddon,a = pcall(require,addon)
 		if hasaddon then
+			a.VideoUrl = nil
+			a.UrlVideoAudio = nil
+			a.AudioUrl = nil
 			a.getAddonMedia(UrlLink,UrlExtra)
 			if a.VideoUrl then
 				UrlVideo = a.VideoUrl
 				a.VideoUrl = nil
+			end
+			if a.UrlVideoAudio then
+				UrlVideoAudio = a.UrlVideoAudio
+				a.UrlVideoAudio = nil
 			end
 			if a.AudioUrl then
 				UrlAudio = a.AudioUrl
@@ -792,6 +807,7 @@ function paintMenuItem(idNr)
 			info( addon .. errMsg ,"ADDON: Error")
 		end
 	end
+	if UrlLink then tmpUrlLink,tmpUrlVideo,tmpUrlAudio,tmpUrlExtra,tmpUrlVideoAudio,tmpText = UrlLink,UrlVideo,UrlAudio,UrlExtra,UrlVideoAudio,text end
 	if  not vPlay  and (UrlVideo or UrlAudio) then
 		vPlay  =  video.new()
 	end
@@ -825,7 +841,11 @@ function paintMenuItem(idNr)
 
 	if text == nil then
 		if vPlay and UrlVideo then
-			vPlay:PlayFile(title,UrlVideo,UrlVideo)
+if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
+		vPlay:PlayFile(title,UrlVideo,UrlVideo,"",UrlVideoAudio or "")
+else
+		vPlay:PlayFile(title,UrlVideo,UrlVideo)
+end
 		elseif vPlay and UrlAudio then
 			vPlay:PlayFile(title,UrlAudio,UrlAudio)
 -- 			vPlay:PlayAudioFile(UrlAudio)
@@ -849,7 +869,11 @@ function paintMenuItem(idNr)
 	cw = nil
 
 	if selected == RC.red and vPlay and UrlVideo then
+if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
+		vPlay:PlayFile(title,UrlVideo,UrlVideo,"",UrlVideoAudio or "")
+else
 		vPlay:PlayFile(title,UrlVideo,UrlVideo)
+end
 	elseif checkHaveViewer() and selected == RC.green and UrlLink then
 	if hva == conf.htmlviewer and UrlLink then
 		os.execute(conf.linksbrowserdir .. LinksBrowser .. " -g " .. UrlLink)
@@ -1316,8 +1340,6 @@ function main()
 			{ name = "ARTE : TV-Programm",	exec = "http://www.arte.tv/papi/tvguide-flow/feeds/program/de.xml?currentWeek=0", submenu="Podcast",addon="arte"},
 			{ name = "TecTime TV",	exec = "https://www.youtube.com/feeds/videos.xml?user=DrDishTelevision", submenu="Youtube", addon="yt" },
 			{ name = "KingOfSat News",	exec = "http://de.kingofsat.net/rssnews.php",submenu="SatInfo",addon="kingofsat"},
-			{ name = "DB2W Forum",		exec = "https://dbox2world.net/board-feed/"},
-
 		}
 	else
 		dofile(config)
