@@ -1,10 +1,12 @@
 local media = {}
 
 function media.getAddonMedia(url,extraUrl)
+	local json = require "json"
 	local video_url = nil
 	local newText = nil
-	local json = require "json"
 	media.PicUrl={}
+	media.VideoUrl = nil
+	media.UrlVideoAudio = nil
 	if extraUrl == nil then
 		extraUrl = url
 	end
@@ -27,6 +29,10 @@ function media.getAddonMedia(url,extraUrl)
 	if hasaddon then
 		b.getVideoUrl(extraUrl)
 		video_url = b.VideoUrl
+		if b.UrlVideoAudio then
+			media.UrlVideoAudio = b.UrlVideoAudio
+			b.UrlVideoAudio = nil
+		end
 	end
 	if video_url and #video_url > 8 then
 		media.VideoUrl=video_url
