@@ -239,7 +239,7 @@ function getVideoData(yurl)
 								local tmp_url = url:match('url=(.-)$')
 								myurl= tmp_url .. "&" .. tmp
 							end
-							local s=myurl:match('6s=([%%%-%=%w+_]+)') or myurl:match('s=([%%%-%=%w+_]+)')
+							local s=myurl:match('6s=([%%%-%=%w+_]+)') or myurl:match('&s=([%%%-%=%w+_]+)') or myurl:match('s=([%%%-%=%w+_]+)')
 							if s and #s > 90 and #s < 130 then
 								local s2=unescape_uri(s)
 								local js_url= data:match('<script src="([/%w%p]+base%.js)"')
