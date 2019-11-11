@@ -139,6 +139,11 @@ function media.getVideoUrl(yurl)
 		M = misc.new()
 		revision = M:GetRevision()
 	end
+
+	local CONF_PATH = "/var/tuxbox/config/"
+	local Nconfig	= configfile.new()
+	Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
+	local maxRes = Nconfig:getInt32("livestreamResolution", 1270)
 	local count = 0
 	local urls = {}
 	for i = 1,6 do
@@ -169,7 +174,7 @@ function media.getVideoUrl(yurl)
 				for band, res1, res2, url in videodata:gmatch('#EXT.X.STREAM.INF.BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-(http.-)\n') do
 					if url and res1 then
 						local nr = tonumber(res1)
-						if nr < 2000 and nr > res then
+						if nr <= maxRes and nr > res then
 							res=nr
 							url = url:gsub("/keepalive/yes","")--fix for new ffmpeg
 							video_url = url
@@ -249,7 +254,7 @@ function media.getVideoUrl(yurl)
 		local res = 0
 		local tmp_res = 0
 		for k, video in pairs(urls) do
-			if tmp_res == 1920 then count = 100 break end
+			if tmp_res >= maxRes then count = 100 break end
 			if itags[k] then
 				tmp_res = tonumber(itags[k]:match('(%d+)x'))
 				if tmp_res > res then
