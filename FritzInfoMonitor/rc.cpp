@@ -67,7 +67,7 @@ long Crc::getrc()
 void Crc::GetRCDevice(char *rc_device)
 {
 	char line[128];
-	char event[10];
+	int event;
 	FILE *f;
 
 	rc_device[0] = '\0';
@@ -87,8 +87,9 @@ void Crc::GetRCDevice(char *rc_device)
 				while (fgets(line, sizeof(line), f))
 				{
 					if (strstr(line, "Handlers=")) {
-						sscanf(line, "%*s %*s %s", event);
-						sprintf(rc_device, "%s%s", "/dev/input/", event);
+						sscanf(line, "%*sevent%d", &event);
+						//printf("using: event%d\n", event);
+						sprintf(rc_device, "%s%d", "/dev/input/event", event);
 						break;
 					}
 				}
