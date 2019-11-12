@@ -92,8 +92,8 @@ function reboot()
 	file:close()
 	if running_init == "/bin/systemctl" then
 		local file = assert(io.popen("systemctl reboot"))
-	elseif exists("/sbin/init") then
-		local file = assert(io.popen("sync && init 6"))
+--	elseif exists("/sbin/init") then
+--		local file = assert(io.popen("sync && init 6"))
 	else
 		local file = assert(io.popen("reboot -f"))
 	end
