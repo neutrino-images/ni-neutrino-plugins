@@ -27,8 +27,7 @@ int InitRC(void)
 {
 	char rc_device[32];
 	get_rc_device(rc_device);
-//	activate only for debug
-//	printf("rc_device: using %s\n", rc_device);
+	//printf("rc_device: using %s\n", rc_device);
 
 	rc = open(rc_device, O_RDONLY);
 	if(rc == -1) 

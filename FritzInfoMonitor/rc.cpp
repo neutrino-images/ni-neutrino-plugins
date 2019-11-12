@@ -86,7 +86,8 @@ void Crc::GetRCDevice(char *rc_device)
 			{
 				while (fgets(line, sizeof(line), f))
 				{
-					if (strstr(line, "Handlers=")) {
+					if (strstr(line, "Handlers=") && strstr(line, "event"))
+					{
 						sscanf(line, "%*sevent%d", &event);
 						//printf("using: event%d\n", event);
 						sprintf(rc_device, "%s%d", "/dev/input/event", event);
