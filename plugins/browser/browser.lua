@@ -40,10 +40,6 @@ locale_3sat = "3sat Mediathek",
 locale_youtube = "Youtube"
 }
 
-function sleep(n)
-	os.execute("sleep " .. tonumber(n))
-end
-
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/etc/neutrino/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
@@ -51,16 +47,15 @@ lang = neutrino_conf:getString("language", "english")
 if locale[lang] == nil then lang = "deutsch" end
 
 function main()
-	m:addItem{type="back"}
-	m:addItem{type="separatorline"}
-	m:addItem{type="forwarder", name=locale[lang].locale_browser, icon="1", action="start_browser", directkey=RC["1"]};
-	m:addItem{type="forwarder", name=locale[lang].locale_netflix, icon="2", action="start_netflix", directkey=RC["2"]};
-	m:addItem{type="forwarder", name=locale[lang].locale_ard, icon="3", action="start_ardmediathek", directkey=RC["3"]};
-	m:addItem{type="forwarder", name=locale[lang].locale_zdf, icon="4", action="start_zdfmediathek", directkey=RC["4"]};
-	m:addItem{type="forwarder", name=locale[lang].locale_arte, icon="5", action="start_artemediathek", directkey=RC["5"]};
+        m:addItem{type="back"}m:addItem{type="separatorline"}
+        m:addItem{type="forwarder", name=locale[lang].locale_browser, icon="1", action="start_browser", directkey=RC["1"]};
+        m:addItem{type="forwarder", name=locale[lang].locale_netflix, icon="2", action="start_netflix", directkey=RC["2"]};
+        m:addItem{type="forwarder", name=locale[lang].locale_ard, icon="3", action="start_ardmediathek", directkey=RC["3"]};
+        m:addItem{type="forwarder", name=locale[lang].locale_zdf, icon="4", action="start_zdfmediathek", directkey=RC["4"]};
+        m:addItem{type="forwarder", name=locale[lang].locale_arte, icon="5", action="start_artemediathek", directkey=RC["5"]};
         m:addItem{type="forwarder", name=locale[lang].locale_3sat, icon="6", action="start_3satmediathek", directkey=RC["6"]};
         m:addItem{type="forwarder", name=locale[lang].locale_youtube, icon="7", action="start_youtube", directkey=RC["7"]};
-	m:exec()
+        m:exec()
 end
 
 function start_browser()
@@ -72,19 +67,19 @@ end
 function start_netflix()
         m:hide()
         os.execute("systemctl start qtwebflix")
-	os_exit()
+        os_exit()
 end
 
 function start_ardmediathek()
         m:hide()
         os.execute("systemctl start ardmediathek")
-	os_exit()
+        os_exit()
 end
 
 function start_zdfmediathek()
         m:hide()
         os.execute("systemctl start zdfmediathek")
-	os_exit()
+        os_exit()
 end
 
 function start_artemediathek()
@@ -96,13 +91,13 @@ end
 function start_3satmediathek()
         m:hide()
         os.execute("systemctl start 3satmediathek")
-	os_exit()
+        os_exit()
 end
 
 function start_youtube()
         m:hide()
         os.execute("systemctl start youtube")
-	os_exit()
+        os_exit()
 end
 
 main()
