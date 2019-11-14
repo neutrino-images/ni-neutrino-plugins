@@ -61,43 +61,36 @@ end
 function start_browser()
 	m:hide()
 	os.execute("systemctl start browser")
-	os_exit()
 end
 
 function start_netflix()
         m:hide()
         os.execute("systemctl start qtwebflix")
-        os_exit()
 end
 
 function start_ardmediathek()
         m:hide()
         os.execute("systemctl start ardmediathek")
-        os_exit()
 end
 
 function start_zdfmediathek()
         m:hide()
         os.execute("systemctl start zdfmediathek")
-        os_exit()
 end
 
 function start_artemediathek()
         m:hide()
         os.execute("systemctl start artemediathek")
-        os_exit()
 end
 
 function start_3satmediathek()
         m:hide()
         os.execute("systemctl start 3satmediathek")
-        os_exit()
 end
 
 function start_youtube()
         m:hide()
         os.execute("systemctl start youtube")
-        os_exit()
 end
 
 main()
