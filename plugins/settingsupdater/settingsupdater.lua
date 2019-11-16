@@ -212,50 +212,47 @@ function start_update()
 	ret:paint();
 	local positions ={}
 	table.insert (positions, "start")
-	if (get_cfg_value("28.2E") == 1) then table.insert (positions, "28.2E") end
-	if (get_cfg_value("26.0E") == 1) then table.insert (positions, "26.0E") end
-	if (get_cfg_value("23.5E") == 1) then table.insert (positions, "23.5E") end
-	if (get_cfg_value("19.2E") == 1) then table.insert (positions, "19.2E") end
-	if (get_cfg_value("16.0E") == 1) then table.insert (positions, "16.0E") end
-	if (get_cfg_value("13.0E") == 1) then table.insert (positions, "13.0E") end
-	if (get_cfg_value("9.0E") == 1) then table.insert (positions, "9.0E") end
-	if (get_cfg_value("7.0E") == 1) then table.insert (positions, "7.0E") end
-	if (get_cfg_value("4.8E") == 1) then table.insert (positions, "4.8E") end
-	if (get_cfg_value("0.8W") == 1) then table.insert (positions, "0.8W") end
-	if (get_cfg_value("UnityMedia") == 1) then table.insert (positions, "UnityMedia") end
+	if (get_cfg_value("28.2E") == 1) then table.insert (positions, "28.2E"); have_sat = 1 end
+	if (get_cfg_value("26.0E") == 1) then table.insert (positions, "26.0E"); have_sat = 1 end
+	if (get_cfg_value("23.5E") == 1) then table.insert (positions, "23.5E"); have_sat = 1 end
+	if (get_cfg_value("19.2E") == 1) then table.insert (positions, "19.2E"); have_sat = 1 end
+	if (get_cfg_value("16.0E") == 1) then table.insert (positions, "16.0E"); have_sat = 1 end
+	if (get_cfg_value("13.0E") == 1) then table.insert (positions, "13.0E"); have_sat = 1 end
+	if (get_cfg_value("9.0E") == 1) then table.insert (positions, "9.0E"); have_sat = 1 end
+	if (get_cfg_value("7.0E") == 1) then table.insert (positions, "7.0E"); have_sat = 1 end
+	if (get_cfg_value("4.8E") == 1) then table.insert (positions, "4.8E"); have_sat = 1 end
+	if (get_cfg_value("0.8W") == 1) then table.insert (positions, "0.8W"); have_sat = 1 end
+	if (get_cfg_value("UnityMedia") == 1) then table.insert (positions, "UnityMedia"); have_cable = 1 end
 	table.insert (positions, "end")
 
 	bouquets = io.open(zapitdir .. "/bouquets.xml", 'w')
+	services = io.open(zapitdir .. "/services.xml", 'w')
+ 	if have_sat == 1 then satellites = io.open(neutrino_conf_base .. "/satellites.xml", 'w') end
+	if have_cable == 1 then cables = io.open(neutrino_conf_base .. "/cables.xml", 'w') end
+
 	for i, v in ipairs(positions) do
 		for line in io.lines(tmp .. "/" .. v .. "/bouquets.xml") do
 			bouquets:write(line, "\n")
 		end
-	end
-
-	services = io.open(zapitdir .. "/services.xml", 'w')
-	for i, v in ipairs(positions) do
 		for line in io.lines(tmp .. "/" .. v .. "/services.xml") do
 			services:write(line, "\n")
 		end
-	end
-
-	satellites = io.open(neutrino_conf_base .. "/satellites.xml", 'w')
-	for i, v in ipairs(positions) do
-		for line in io.lines(tmp .. "/" .. v .. "/satellites.xml") do
-			satellites:write(line, "\n")
+		if exists(tmp .. "/" .. v .. "/satellites.xml") and have_sat == 1 then
+			for line in io.lines(tmp .. "/" .. v .. "/satellites.xml") do
+				satellites:write(line, "\n")
+			end
+		end
+		if exists(tmp .. "/" .. v .. "/cables.xml") and have_cable == 1 then
+			for line in io.lines(tmp .. "/" .. v .. "/cables.xml") do
+				cables:write(line, "\n")
+			end
 		end
 	end
 
-	cables = io.open(neutrino_conf_base .. "/cables.xml", 'w')
-	for i, v in ipairs(positions) do
-		for line in io.lines(tmp .. "/" .. v .. "/cables.xml") do
-			cables:write(line, "\n")
-		end
-	end
 	bouquets:close()
 	services:close()
-	satellites:close()
-    cables:close()
+	if have_sat == 1 then satellites:close() end
+	if have_cable == 1 then cables:close() end
 	os.execute("pzapit -c ")
 	sleep(1)
 	ret:hide()
@@ -453,3 +450,4 @@ function main()
 end
 
 main()
+
