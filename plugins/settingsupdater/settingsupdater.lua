@@ -239,18 +239,18 @@ function start_update()
 		end
 	end
 
+	satellites = io.open(neutrino_conf_base .. "/satellites.xml", 'w')
 	for i, v in ipairs(positions) do
 		if exists(tmp .. "/" .. v .. "/satellites.xml") then
-			satellites = io.open(neutrino_conf_base .. "/satellites.xml", 'w')
 			for line in io.lines(tmp .. "/" .. v .. "/satellites.xml") do
 				satellites:write(line, "\n")
 			end
 		end
 	end
 
+	cables = io.open(neutrino_conf_base .. "/cables.xml", 'w')
 	for i, v in ipairs(positions) do
 		if exists(tmp .. "/" .. v .. "/cables.xml") then
-			cables = io.open(neutrino_conf_base .. "/cables.xml", 'w')
 			for line in io.lines(tmp .. "/" .. v .. "/cables.xml") do
 				cables:write(line, "\n")
 			end
@@ -457,3 +457,4 @@ function main()
 end
 
 main()
+
