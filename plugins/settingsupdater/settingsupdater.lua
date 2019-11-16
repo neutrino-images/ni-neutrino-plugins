@@ -92,6 +92,7 @@ function create_settingupdater_cfg()
 	file:write("7.0E=0", "\n")
 	file:write("4.8E=0", "\n")
 	file:write("0.8W=0", "\n")
+	file:write("UnityMedia=0", "\n")
 	file:write("use_git=0", "\n")
 	file:close()
 end
@@ -221,6 +222,7 @@ function start_update()
 	if (get_cfg_value("7.0E") == 1) then table.insert (positions, "7.0E") end
 	if (get_cfg_value("4.8E") == 1) then table.insert (positions, "4.8E") end
 	if (get_cfg_value("0.8W") == 1) then table.insert (positions, "0.8W") end
+	if (get_cfg_value("UnityMedia") == 1) then table.insert (positions, "UnityMedia") end
 	table.insert (positions, "end")
 
 	bouquets = io.open(zapitdir .. "/bouquets.xml", 'w')
@@ -237,15 +239,27 @@ function start_update()
 		end
 	end
 
-	satellites = io.open(neutrino_conf_base .. "/satellites.xml", 'w')
 	for i, v in ipairs(positions) do
-		for line in io.lines(tmp .. "/" .. v .. "/satellites.xml") do
-			satellites:write(line, "\n")
+		if exists(tmp .. "/" .. v .. "/satellites.xml") then
+			satellites = io.open(neutrino_conf_base .. "/satellites.xml", 'w')
+			for line in io.lines(tmp .. "/" .. v .. "/satellites.xml") do
+				satellites:write(line, "\n")
+			end
+		end
+	end
+
+	for i, v in ipairs(positions) do
+		if exists(tmp .. "/" .. v .. "/cables.xml") then
+			cables = io.open(neutrino_conf_base .. "/cables.xml", 'w')
+			for line in io.lines(tmp .. "/" .. v .. "/cables.xml") do
+				cables:write(line, "\n")
+			end
 		end
 	end
 	bouquets:close()
 	services:close()
 	satellites:close()
+	cables:close()
 	os.execute("pzapit -c ")
 	sleep(1)
 	ret:hide()
@@ -320,6 +334,10 @@ function thor_cfg(k, v, str)
 	write_cfg(k, v, "0.8W")
 end
 
+function um_cfg(k, v, str)
+	write_cfg(k, v, "UnityMedia")
+end
+
 function use_git_cfg(k, v, str)
 	write_cfg(k, v, "use_git")
 end
@@ -378,6 +396,11 @@ function options ()
 		menu:addItem{type="chooser", action="thor_cfg", options={on, off}, icon=0, directkey=RC["0"], name=locale[lang].cfg_install_a .. " 0.8W " .. locale[lang].cfg_install_b}
 	elseif (get_cfg_value("0.8W") == 0) then
 		menu:addItem{type="chooser", action="thor_cfg", options={off, on}, icon=0, directkey=RC["0"], name=locale[lang].cfg_install_a .. " 0.8W " .. locale[lang].cfg_install_b}
+	end
+	if (get_cfg_value("UnityMedia") == 1) then
+		menu:addItem{type="chooser", action="um_cfg", options={on, off}, icon=0, directkey=RC["0"], name=locale[lang].cfg_install_a .. " UnityMedia " .. locale[lang].cfg_install_b}
+	elseif (get_cfg_value("UnityMedia") == 0) then
+		menu:addItem{type="chooser", action="um_cfg", options={off, on}, icon=0, directkey=RC["0"], name=locale[lang].cfg_install_a .. " UnityMedia " .. locale[lang].cfg_install_b}
 	end
 	if (get_cfg_value("use_git") == 1) then
 		menu:addItem{type="chooser", action="use_git_cfg", options={on, off}, name=locale[lang].cfg_git}
