@@ -241,25 +241,21 @@ function start_update()
 
 	satellites = io.open(neutrino_conf_base .. "/satellites.xml", 'w')
 	for i, v in ipairs(positions) do
-		if exists(tmp .. "/" .. v .. "/satellites.xml") then
-			for line in io.lines(tmp .. "/" .. v .. "/satellites.xml") do
-				satellites:write(line, "\n")
-			end
+		for line in io.lines(tmp .. "/" .. v .. "/satellites.xml") do
+			satellites:write(line, "\n")
 		end
 	end
 
 	cables = io.open(neutrino_conf_base .. "/cables.xml", 'w')
 	for i, v in ipairs(positions) do
-		if exists(tmp .. "/" .. v .. "/cables.xml") then
-			for line in io.lines(tmp .. "/" .. v .. "/cables.xml") do
-				cables:write(line, "\n")
-			end
+		for line in io.lines(tmp .. "/" .. v .. "/cables.xml") do
+			cables:write(line, "\n")
 		end
 	end
 	bouquets:close()
 	services:close()
 	satellites:close()
-	cables:close()
+    cables:close()
 	os.execute("pzapit -c ")
 	sleep(1)
 	ret:hide()
@@ -457,4 +453,3 @@ function main()
 end
 
 main()
-
