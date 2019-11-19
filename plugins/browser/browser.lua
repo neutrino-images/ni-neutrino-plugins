@@ -40,8 +40,21 @@ locale["deutsch"] = {
         options = "Einstellungen",
         resolution = "Auflösung ändern",
         scale = "Skalierung ändern",
-        language = "Sprache ändern",
         keymap = "Tastaturlayout ändern"
+}
+
+locale["english"] = {
+        browser = "Browser",
+        netflix = "Netflix",
+        ard = "ARD Media library",
+        zdf = "ZDF Media library",
+        arte = "arte Media library",
+        dreisat = "3sat Media library",
+        youtube = "Youtube",
+        options = "Options",
+        resolution = "Change Resolution",
+        scale = "Change scale",
+        keymap = "Change keymap"
 }
 
 o = menu.new{name="Einstellungen", icon="settings"}
