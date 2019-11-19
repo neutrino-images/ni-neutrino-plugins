@@ -93,6 +93,7 @@ function create_settingupdater_cfg()
 	file:write("4.8E=0", "\n")
 	file:write("0.8W=0", "\n")
 	file:write("UnityMedia=0", "\n")
+	file:write("KDV=0", "\n")
 	file:write("use_git=0", "\n")
 	file:close()
 end
@@ -223,6 +224,7 @@ function start_update()
 	if (get_cfg_value("4.8E") == 1) then table.insert (positions, "4.8E"); have_sat = 1 end
 	if (get_cfg_value("0.8W") == 1) then table.insert (positions, "0.8W"); have_sat = 1 end
 	if (get_cfg_value("UnityMedia") == 1) then table.insert (positions, "UnityMedia"); have_cable = 1 end
+	if (get_cfg_value("KDV") == 1) then table.insert (positions, "KDV"); have_cable = 1 end
 	table.insert (positions, "end")
 
 	bouquets = io.open(zapitdir .. "/bouquets.xml", 'w')
@@ -331,6 +333,10 @@ function um_cfg(k, v, str)
 	write_cfg(k, v, "UnityMedia")
 end
 
+function kdv_cfg(k, v, str)
+	write_cfg(k, v, "KDV")
+end
+
 function use_git_cfg(k, v, str)
 	write_cfg(k, v, "use_git")
 end
@@ -395,6 +401,11 @@ function options ()
 	elseif (get_cfg_value("UnityMedia") == 0) then
 		menu:addItem{type="chooser", action="um_cfg", options={off, on}, icon=0, directkey=RC["0"], name=locale[lang].cfg_install_a .. " UnityMedia " .. locale[lang].cfg_install_b}
 	end
+	if (get_cfg_value("KDV") == 1) then
+		menu:addItem{type="chooser", action="kdv_cfg", options={on, off}, icon=0, directkey=RC["0"], name=locale[lang].cfg_install_a .. " KDV " .. locale[lang].cfg_install_b}
+	elseif (get_cfg_value("KDV") == 0) then
+		menu:addItem{type="chooser", action="kdv_cfg", options={off, on}, icon=0, directkey=RC["0"], name=locale[lang].cfg_install_a .. " KDV " .. locale[lang].cfg_install_b}
+	end
 	if (get_cfg_value("use_git") == 1) then
 		menu:addItem{type="chooser", action="use_git_cfg", options={on, off}, name=locale[lang].cfg_git}
 	elseif (get_cfg_value("use_git") == 0) then
@@ -450,4 +461,3 @@ function main()
 end
 
 main()
-
