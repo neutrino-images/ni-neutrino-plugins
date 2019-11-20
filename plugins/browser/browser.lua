@@ -65,7 +65,6 @@ lang = neutrino_conf:getString("language", "english")
 if locale[lang] == nil then lang = "deutsch" end
 
 function main()
-        o:hide()
         m:addItem{type="back"}
         m:addItem{type="separatorline"}
         m:addItem{type="forwarder", name=locale[lang].browser, icon="1", action="start_browser", directkey=RC["1"]};
@@ -77,6 +76,10 @@ function main()
         m:addItem{type="forwarder", name=locale[lang].youtube, icon="7", action="start_youtube", directkey=RC["7"]};
         m:addItem{type="separatorline"};
         m:addItem{type="forwarder", name=locale[lang].options, icon="menu", action="start_options", directkey=RC["setup"]};
+        o:addItem{type="back"}
+        o:addItem{type="chooser", name=locale[lang].resolution, icon="1", action="change_resolution", value=get_resolution(), options={"1080p", "720p", "480p"}, directkey=RC["1"]};
+        o:addItem{type="chooser", name=locale[lang].scale, icon="2", action="change_scale", value=get_value("QT_SCALE_FACTOR"), options={"0.5", "1", "1.5", "2"}, directkey=RC["2"]};
+        o:addItem{type="chooser", name=locale[lang].keymap, icon="3", action="change_keymap", value=get_value("XKB_DEFAULT_LAYOUT"), options={"de", "us", "fr", "ru", "cz", "pl", "nl"}, directkey=RC["3"]};
         m:exec()
 end
 
@@ -126,7 +129,7 @@ function get_value(str)
 end
 
 function change_resolution(k,v)
-	local env_lines = {}
+        local env_lines = {}
         for line in io.lines("/etc/environment") do
                 if v == "1080p" then
                         if string.find(line, "QT_QPA_EGLFS_WIDTH=") then
@@ -240,11 +243,8 @@ end
 
 function start_options()
         m:hide()
-        o:addItem{type="back"}
-        o:addItem{type="chooser", name=locale[lang].resolution, icon="1", action="change_resolution", value=get_resolution(), options={"1080p", "720p", "480p"}, directkey=RC["1"]};
-        o:addItem{type="chooser", name=locale[lang].scale, icon="2", action="change_scale", value=get_value("QT_SCALE_FACTOR"), options={"0.5", "1", "1.5", "2"}, directkey=RC["2"]};
-        o:addItem{type="chooser", name=locale[lang].keymap, icon="3", action="change_keymap", value=get_value("XKB_DEFAULT_LAYOUT"), options={"de", "us", "fr", "ru", "cz", "pl", "nl"}, directkey=RC["3"]};
         o:exec()
+        o:hide()
 end
 
 main()
