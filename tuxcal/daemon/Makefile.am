@@ -15,13 +15,5 @@ tuxcald_LDADD = \
 install-exec-local:
 	install -D -m 0755 $(srcdir)/tuxcald.init $(DESTDIR)$(sysconfdir)/init.d/tuxcald
 
-install-exec-hook:
-	set -e; cd $(DESTDIR)$(sysconfdir)/init.d; \
-		ln -sf tuxcald S99tuxcald; \
-		ln -sf tuxcald K01tuxcald
-
 uninstall-hook:
-	set -e; cd $(DESTDIR)$(sysconfdir)/init.d; \
-		rm -f tuxcald; \
-		rm -f S99tuxcald; \
-		rm -f K01tuxcald
+	rm -f $(DESTDIR)$(sysconfdir)/init.d/tuxcald

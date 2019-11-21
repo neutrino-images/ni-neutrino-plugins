@@ -12,10 +12,12 @@ conf_base	= "/var/etc/openvpn"
 init_base	= "/etc/init.d"
 
 init_script	= init_base .. "/ovpn"
+--[[
 init_links	= {
 	start	= init_base .. "/S99ovpn",
 	stop	= init_base .. "/K01ovpn"
 }
+]]
 
 conf_server	= conf_base .. "/server.conf"
 conf_client	= conf_base .. "/client.conf"

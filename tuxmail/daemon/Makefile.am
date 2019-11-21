@@ -15,13 +15,5 @@ tuxmaild_LDADD = \
 install-exec-local:
 	install -D -m 0755 $(srcdir)/tuxmaild.init $(DESTDIR)$(sysconfdir)/init.d/tuxmaild
 
-install-exec-hook:
-	set -e; cd $(DESTDIR)$(sysconfdir)/init.d; \
-		ln -sf tuxmaild S99tuxmaild; \
-		ln -sf tuxmaild K01tuxmaild
-
 uninstall-hook:
-	set -e; cd $(DESTDIR)$(sysconfdir)/init.d; \
-		rm -f tuxmaild; \
-		rm -f S99tuxmaild; \
-		rm -f K01tuxmaild
+	rm -f $(DESTDIR)$(sysconfdir)/init.d/tuxmaild
