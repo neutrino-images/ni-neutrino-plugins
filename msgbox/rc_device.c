@@ -3,8 +3,13 @@
 #include <unistd.h>
 #include "rc_device.h"
 
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <rc_device_hardcoded.h>
+
 void get_rc_device(char *rc_device)
 {
+#if 0
 	char line[128];
 	int event;
 	FILE *f;
@@ -40,4 +45,21 @@ void get_rc_device(char *rc_device)
 	}
 	if(rc_device[0] == '\0')
 		sprintf(rc_device, "%s", "/dev/input/event0");
+#else
+	rc_device[0] = '\0';
+
+	int rc = open(RC_DEVICE, O_RDONLY | O_CLOEXEC);
+	if (rc != -1)
+		sprintf(rc_device, "%s", RC_DEVICE);
+	else
+	{
+		rc = open(RC_DEVICE_FALLBACK, O_RDONLY | O_CLOEXEC);
+		if (rc != -1)
+			sprintf(rc_device, "%s", RC_DEVICE_FALLBACK);
+	}
+	close(rc);
+
+	if (rc_device[0] == '\0')
+		sprintf(rc_device, "%s", "/dev/input/event0");
+#endif
 }
