@@ -26,9 +26,9 @@
 
 caption = "Browser"
 
-n = neutrino()
-m = menu.new{name="Chromium Webengine", icon="multimedia"}
-locale = {}
+locale = {
+}
+
 locale["deutsch"] = {
         browser = "Browser",
         netflix = "Netflix",
@@ -40,7 +40,8 @@ locale["deutsch"] = {
         options = "Einstellungen",
         resolution = "Auflösung ändern",
         scale = "Skalierung ändern",
-        keymap = "Tastaturlayout ändern"
+        keymap = "Tastaturlayout ändern",
+	settings = "Einstellungen"
 }
 
 locale["english"] = {
@@ -54,13 +55,16 @@ locale["english"] = {
         options = "Options",
         resolution = "Change Resolution",
         scale = "Change scale",
-        keymap = "Change keymap"
+        keymap = "Change keymap",
+	settings = "Settings"
 }
 
-o = menu.new{name="Einstellungen", icon="settings"}
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/etc/neutrino/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
+n = neutrino()
+m = menu.new{name="Chromium Webengine", icon="multimedia"}
+o = menu.new{name=locale[lang].settings, icon="settings"}
 
 if locale[lang] == nil then lang = "deutsch" end
 
@@ -77,7 +81,7 @@ function main()
         m:addItem{type="separatorline"};
         m:addItem{type="forwarder", name=locale[lang].options, icon="menu", action="start_options", directkey=RC["setup"]};
         o:addItem{type="back"}
-        o:addItem{type="chooser", name=locale[lang].resolution, icon="1", action="change_resolution", value=get_resolution(), options={"1080p", "720p", "480p"}, directkey=RC["1"]};
+        o:addItem{type="chooser", name=locale[lang].resolution, icon="1", action="change_resolution", value=get_resolution(), options={"1080p", "720p", "576p", "480p"}, directkey=RC["1"]};
         o:addItem{type="chooser", name=locale[lang].scale, icon="2", action="change_scale", value=get_value("QT_SCALE_FACTOR"), options={"0.5", "1", "1.5", "2"}, directkey=RC["2"]};
         o:addItem{type="chooser", name=locale[lang].keymap, icon="3", action="change_keymap", value=get_value("XKB_DEFAULT_LAYOUT"), options={"de", "us", "fr", "ru", "cz", "pl", "nl"}, directkey=RC["3"]};
         m:exec()
@@ -142,6 +146,12 @@ function change_resolution(k,v)
                                 line = line:gsub(get_value("QT_QPA_EGLFS_WIDTH"), "1280")
                         elseif string.find(line, "QT_QPA_EGLFS_HEIGHT=") then
                                 line = line:gsub(get_value("QT_QPA_EGLFS_HEIGHT"), "720")
+                        end
+                elseif v == "576p" then
+                        if string.find(line, "QT_QPA_EGLFS_WIDTH=") then
+                                line = line:gsub(get_value("QT_QPA_EGLFS_WIDTH"), "720")
+                        elseif string.find(line, "QT_QPA_EGLFS_HEIGHT=") then
+                                line = line:gsub(get_value("QT_QPA_EGLFS_HEIGHT"), "576")
                         end
                 elseif v == "480p" then
                         if string.find(line, "QT_QPA_EGLFS_WIDTH=") then
@@ -236,6 +246,7 @@ for line in io.lines("/etc/environment") do
                 value = tonumber((string.sub(line, j+1, #line)))
                 if value == 1920 then return "1080p" end
                 if value == 1280 then return "720p" end
+		if value == 720 then return "576p" end
                 if value == 640 then return "480p" end
                 end
         end

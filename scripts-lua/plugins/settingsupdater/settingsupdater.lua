@@ -103,12 +103,12 @@ if (exists(settingupdater_cfg) ~= true) then
 end
 
 function last_updated()
-	if exists(neutrino_conf_base .. "/services.xml") then
-		for line in io.lines(neutrino_conf_base .. "/services.xml") do
+	if exists(zapitdir .. "/services.xml") then
+		for line in io.lines(zapitdir .. "/services.xml") do
 			if line:match(",") and line:match(":") then
 				local _,mark_begin = string.find(line, ",")
 				local _,mark_end = string.find(line, ":")
-				date = string.sub(line,mark_begin+2, mark_end-3)
+				date = string.sub(line,mark_begin+6, mark_end-3)
 				found = true
 			end
 		end
@@ -124,7 +124,7 @@ function check_for_update()
 		if line:match(",") and line:match(":") then
 			local _,mark_begin = string.find(line, ",")
 			local _,mark_end = string.find(line, ":")
-			online_date = string.sub(line,mark_begin+2, mark_end-3)
+			online_date = string.sub(line,mark_begin+6, mark_end-3)
  		end
 	end
 	if last_updated() ~= online_date then
