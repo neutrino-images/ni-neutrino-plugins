@@ -26,10 +26,6 @@
 
 caption = "Browser"
 
-n = neutrino()
-m = menu.new{name="Chromium Webengine", icon="multimedia"}
-o = menu.new{name="Einstellungen", icon="settings"}
-
 locale = {}
 locale["deutsch"] = {
         browser = "Browser",
@@ -42,7 +38,8 @@ locale["deutsch"] = {
         options = "Einstellungen",
         resolution = "Auflösung ändern",
         scale = "Skalierung ändern",
-        keymap = "Tastaturlayout ändern"
+        keymap = "Tastaturlayout ändern",
+	settings = "Einstellungen"
 }
 
 locale["english"] = {
@@ -56,9 +53,13 @@ locale["english"] = {
         options = "Options",
         resolution = "Change Resolution",
         scale = "Change scale",
-        keymap = "Change keymap"
+        keymap = "Change keymap",
+	settings = "Settings"
 }
 
+n = neutrino()
+m = menu.new{name="Chromium Webengine", icon="multimedia"}
+o = menu.new{name=locale[lang].settings, icon="settings"}
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/etc/neutrino/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
