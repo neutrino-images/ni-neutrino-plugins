@@ -26,7 +26,9 @@
 
 caption = "Browser"
 
-locale = {}
+locale = {
+}
+
 locale["deutsch"] = {
         browser = "Browser",
         netflix = "Netflix",
@@ -57,12 +59,12 @@ locale["english"] = {
 	settings = "Settings"
 }
 
-n = neutrino()
-m = menu.new{name="Chromium Webengine", icon="multimedia"}
-o = menu.new{name=locale[lang].settings, icon="settings"}
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/etc/neutrino/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
+n = neutrino()
+m = menu.new{name="Chromium Webengine", icon="multimedia"}
+o = menu.new{name=locale[lang].settings, icon="settings"}
 
 if locale[lang] == nil then lang = "deutsch" end
 
