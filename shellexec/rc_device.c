@@ -48,12 +48,12 @@ void get_rc_device(char *rc_device)
 #else
 	rc_device[0] = '\0';
 
-	int rc = open(RC_DEVICE, O_RDONLY | O_CLOEXEC);
+	int rc = open(RC_DEVICE, O_RDONLY);
 	if (rc != -1)
 		sprintf(rc_device, "%s", RC_DEVICE);
 	else
 	{
-		rc = open(RC_DEVICE_FALLBACK, O_RDONLY | O_CLOEXEC);
+		rc = open(RC_DEVICE_FALLBACK, O_RDONLY);
 		if (rc != -1)
 			sprintf(rc_device, "%s", RC_DEVICE_FALLBACK);
 	}
