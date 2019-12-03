@@ -4,7 +4,7 @@ der Ausgewählten Fernbedienung. Damit nach Neustart die Auswahl beibehalten wir
 in eine der Startdateien erfolgen.
 
 z.b. wie folgt in der rcS, rcS.local, start_neutrino  oder monolithisch in der init.d (S99_rcu oder ähnlich)
-
+```
 if [ -e /var/etc/rccode ]; then
 	case `cat /var/etc/rccode` in
 		4) echo 4 > /proc/stb/ir/rc/type;;
@@ -20,3 +20,4 @@ if [ -e /var/etc/rccode ]; then
 		* ) exit;;
 	esac
 fi
+```
