@@ -1,4 +1,4 @@
-RCU-Switcher / Fernbedienungsauswahl
+# RCU-Switcher / Fernbedienungsauswahl
 damit kann definiert werden welche Fernbedienung man verwenden möchte. Die Bestätigung erfolgt mit
 der Ausgewählten Fernbedienung. Damit nach Neustart die Auswahl beibehalten wird, muss eine Erweiterung
 in eine der Startdateien erfolgen.
@@ -6,7 +6,12 @@ in eine der Startdateien erfolgen.
 z.b. wie folgt in der rcS, rcS.local, start_neutrino  oder monolithisch in der init.d (S99_rcu oder ähnlich)
 ```
 if [ -e /var/etc/rccode ]; then
-	case `cat /var/etc/rccode` in
+	RC_CFG="/var/etc/rccode"
+else
+	RC_CFG="/etc/rccode"
+fi
+if [ -e $RC_CFG ]; then
+	case `cat $RC_CFG` in
 		4) echo 4 > /proc/stb/ir/rc/type;;
 		5) echo 5 > /proc/stb/ir/rc/type;;
 		7) echo 7 > /proc/stb/ir/rc/type;;
@@ -17,7 +22,7 @@ if [ -e /var/etc/rccode ]; then
 		16) echo 16 > /proc/stb/ir/rc/type;;
 		21) echo 21 > /proc/stb/ir/rc/type;;
 		23) echo 23 > /proc/stb/ir/rc/type;;
-		* ) exit;;
+		* ) echo "[rcu_switcher] unknown rcu code";;
 	esac
 fi
 ```
