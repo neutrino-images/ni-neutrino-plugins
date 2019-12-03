@@ -40,6 +40,9 @@ endif
 if ENABLE_OPENVPN_SETUP
 SUBDIRS += openvpn-setup
 endif
+if ENABLE_RCU_SWITCHER
+SUBDIRS += rcu_switcher
+endif
 if ENABLE_RSS
 SUBDIRS += rss
 endif
