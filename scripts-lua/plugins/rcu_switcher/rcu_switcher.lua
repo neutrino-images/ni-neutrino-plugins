@@ -1,9 +1,11 @@
 --[[
-	RCU Switcher Plugin lua v0.9
+	RCU Switcher Plugin lua v0.91
 	Based on Switch RC by BPanther, 02-Sep-2019
 	Mod by TangoCash, 28-Nov-2019
-	
-	Copyright 2019 - ported to Lua by GetAway, 01-Dec-2019, Icon from Bazi98
+	Mod, Icon and add english language texts by Bazi98, 04-Dec-2019
+
+	Copyright 2009 - for the Base64 encoder/decoder function by Alex Kloss
+	Copyright 2019 - ported to Lua by GetAway
 
 	License: GPL
 
@@ -22,6 +24,28 @@
 	Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
 	Boston, MA  02110-1301, USA.
 ]]
+
+local locale = {}
+locale["deutsch"] = {
+	title = "Fernbedienung umschalten",
+	text = "Definieren Sie in der folgenden Auswahl die Fernbedienung\nwelche Sie verwendet möchten.\n\nDie Bestätigung erfolgt mit der Ausgewählten!",
+	reset = "Originale Fernbedienung wiederhergestellt.",
+	question = "Funktioniert die gewählte Fernbedienung?",
+	err   = "Fehler beim Senden des Codes",
+	hint1 = "Mit der Auswahl ",
+	hint2 = " wird der Fernbedienung-Code ",
+	hint3 = " aktiviert!",
+}
+locale["english"] = {
+	title = "Switch remote control",
+	text = "In the following selection,\ndefine the remote control you want to use.\n\nConfirmation is made with the selected one!",
+	reset = "Original remote control restored.",
+	question = "Does the selected remote control work?",
+	err   = "Failed to send the code",
+	hint1 = "The selection ",
+	hint2 = " activates the remote control code ",
+	hint3 = " !",
+}
 
 local posix = require "posix"
 
@@ -93,7 +117,7 @@ function rc_select_menu(code)
 	rc_code, index = 0, 1
 	found = false
 
-	m = menu.new{name="Wähle eine Fernbedienung", icon=rcu}
+	m = menu.new{name=locale[lang].title, icon=rcu}
 	m:addKey{directkey=RC["home"], id="home", action="key_home"}
 	m:addKey{directkey=RC["setup"], id="setup", action="key_setup"}
 	m:addItem{type="separator"}
@@ -103,7 +127,7 @@ function rc_select_menu(code)
 
 	for i = 1,#sortLookup do
 	    local entry = rc_list[sortLookup[i]]
-		m:addItem{type="forwarder", action="set_rc", id=entry.code, name=entry.name}
+		m:addItem{type="forwarder", action="set_rc", id=entry.code, name=entry.name, hint=locale[lang].hint1 .. entry.name .. locale[lang].hint2 .. entry.code .. locale[lang].hint3, hint_icon=rcu}
 		if entry.code == tonumber(code) then
 			found = true
 		end
@@ -137,14 +161,14 @@ function checkCode(oldcode, newcode)
 		isSend = send_code(newcode)
 		if isSend == true then
 			res = messagebox.exec {
-				title = "Fernbedienung umschalten",
+				title = locale[lang].title,
 				icon = rcu,
-				text = "Funktioniert die gewählte Fernbedienung?",
+				text = locale[lang].question,
 				timeout = 15,
 				buttons={ "yes", "no" }
 			}
 		else
-			local hint = hintbox.new { title = "Fernbedienung umschalten", icon = "error", text = "Fehler beim Senden des Codes" };
+			local hint = hintbox.new { title = "Error", icon = "error", text = locale[lang].err }
 			hint:paint();
 			sleep(3)
 		end
@@ -154,14 +178,14 @@ function checkCode(oldcode, newcode)
 		else
 			print("set old code: ", oldcode)
 			send_code(oldcode)
-			local h = hintbox.new { title = "Fernbedienung umschalten", icon = "info", text = "Originale Fernbedienung wiederhergestellt." };
+			local h = hintbox.new { title = "Info", icon = rcu, text = locale[lang].reset };
 			h:paint();
 			sleep(3)
 		end
 	end
 end
 
--- decode base 64-- function from http://lua-users.org/wiki/BaseSixtyFour
+-- Base64 encoder/decoder function
 -- character table string
 local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
@@ -201,9 +225,14 @@ function init()
 	fh = filehelpers.new()
 	procfile      = "/proc/stb/ir/rc/type"
 	tuxbox_config = "/var/tuxbox/config"
+	rcu = decodeImage("data:image/png;base64,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")
+
 	neutrino_conf = configfile.new()
 	neutrino_conf:loadConfig(tuxbox_config .. "/neutrino.conf")
-	rcu = decodeImage("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwQAADsEBuJFr7QAAABh0RVh0U29mdHdhcmUAcGFpbnQubmV0IDQuMS4xYyqcSwAABbJJREFUSEvVlmtMU2cYx9nmYrLs4z75YTOoiTKcWK4RkaKgICIURIGKWu6slKuAXKSgtlIuk7ZQLFB64fTeAq2IuswgF3UDN4xuogMmF1lkXzRmyaJT/js9HkkI9MvUZPslT/rmnPf9/8/zvO/7pC7/K/h8/oe8UN5qAB/Qj94far788yMe8TNGse5lfljWwytEbxf96v1wKqH8xbMnzzA1PYO+gesQ5ArB8Yirn5ub+4ye8u44c7Siv0dlx9OnT6FR69GhNkCnM8Nk7UZNsgCZ2zmu9NS35zvD5SjZ8Qa8XHgFosMIibARqduOITucCy1hAqExQJAnXGjhNz+ml/x7wMcnHM8EvPjrOS7YL0GrNUOj0qMwIgfp/hyY1d2wEnZ06nrQVqNEXjD3Lr3UOb46v9usfhYODxxGfH88EvoTwO5ngz3ARoB8OybujKOvb5DKTph/FjUltTCSpWwzq7FFuAXuzV/Cv9MfEfZ9KBdXouJQ6X1a2jkb9n81UfOg5u+asVrUjNVQIR2XItIaifn5P6BW6cjSGZERkASiXkMZO8qpU5uwOc0dDD0DXbPdaJ9TIjRsNxzXh5Z2zsmfTj4RjYlQe78WdffrIJ1oRLAmmMqsgzRzHJTWRiXqK85R+5bHysE35Jh1Mga+Zj94q3xgn7sAwR0BaEnnbBUyUHy3GKJ7Ikh+laJ5shkN4w1gtjOpTHh7vyYzU+FMrgA6ch8dH5EVlIayg0VoF6vBq8iBh2QLTDNm9M73Yk3OmkFaejmuha4bskayEDMUg4LbBUj9NhWJF49AMaUgDYMoQ+nZJhzzZiNnHxeqNoLKVK3QIj0wiczeAL3WgojkSGinteh51IPIoagxWn45W4s9/jx44yBirscg7mY8Uv2PYWjgJrKVedip2UUZUsefzMoRaQEcKAQtjquw+E6vtyCDmQz1tAbWGSsqf65c2dBL5cVn2oLAGiJP6feJiJaxMPFgkhIx6jth6LBSY4PRSpk5xtJqGVXKMk7Ja0OyAQh4Qrgnuz/XzehgnjYjdSR9ZUOPdo/S6BvR2D8YgbjROFwWX0S7ooPqIuWcMjSclqChSoyC6FzIJW2UgcPYbLGjWl9H7ed5cRtKQ4/PJY4mgpgiYJm1YLN+s3PD8IFwhF0Lg4/ZBzZDLyWqN1jRUtWMzlYTjsfkYnhwGNzQjNcZkWEmbGCc34ryCj7y9nAX2Do2z/bIDsWkAprfNVi1aZWKtlgKo51RGjIQgtD+UHiZPGHXkt2EFlW2EqgtqyfL2YlzZJaNItliWR2GTCsTB3oPYOcXO1hRP7ImhfeEkI/LUXK1BKtdXNbSFktZr1zvF9AbgOBrwfDt8EWyIgWis/XQEWbwM/g4l1uLHLJnZu5KhYZsXRJh06JhoDkQhaOFyL6ZjcpfKpE7mgv9rB4bea4/0PLLURW1VPmU+CG4LxjeWm/kDuSB2RAEmaIVBrKsKduOICOI/IgiEZJ8EyE+LaWy1LWawbQwkTaShpThFGTcygT3FhesK1GvaOmViV0XWWqzXUKgLRChg6HwaPCg7pVD9E353vy+CR15BYojChByIQTJI8lUcIY5KLtTjg0H1r0kG77ztpbodiChUdCEqjoBdrfsgafdE4eJRKTkp8Om7wVBLDVzhIDsNvXsalN4Tzjkv8nRNCkj26CU6kznZ+UL4bVhzi+9A96OtKsNZ6SwGu2QaGSI64jHIUMc9mr2wkR0LRo5zJUtHTgRVUCVzdvk3b2xbWO3W5vbkmBoGN1eai+CEndGT3v34/KkslcrZUSZOfaNvJvpAZyFxhP16+llb0e679G1snwJtYfLTLUmnOKegkagMNHT3w3k37+P2W4xImG2EEZL1+Lhaf6mBUXhOVP0tHdPv+VqNXdX2rxCpkZbkxKZO1LmHt59uIl+/X4IDAxcFesW+6mYJwqKdYn9iH78X8fF5R+9DBt0KVflwAAAAABJRU5ErkJggg==")
+	lang = neutrino_conf:getString("language", "english")
+	if locale[lang] == nil then
+		lang = "english"
+	end
 
 	local req_major = 1
 	local req_minor = 84
@@ -239,9 +268,9 @@ function main()
 	end
 
 	res = messagebox.exec {
-		title = "Fernbedienung umschalten",
+		title = locale[lang].title,
 		icon = rcu,
-		text = "Definieren Sie in der folgenden Auswahl die Fernbedienung\nwelche Sie verwendet möchten.\n\nDie Bestätigung erfolgt mit der Ausgewählten!",
+		text = locale[lang].text,
 		timeout = 0,
 		buttons={ "ok" }
 	}
