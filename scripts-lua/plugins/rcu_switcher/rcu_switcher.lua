@@ -1,5 +1,5 @@
 --[[
-	RCU Switcher Plugin lua v0.91
+	RCU Switcher Plugin lua v0.92
 	Based on Switch RC by BPanther, 02-Sep-2019
 	Mod by TangoCash, 28-Nov-2019
 	Mod, Icon and add english language texts by Bazi98, 04-Dec-2019
@@ -157,7 +157,7 @@ end
 -- 
 function checkCode(oldcode, newcode)
 
-	if tonumber(newcode) ~= tonumber(oldcode) then
+	if tonumber(newcode) ~= tonumber(oldcode) and newcode ~= nil then
 		isSend = send_code(newcode)
 		if isSend == true then
 			res = messagebox.exec {
