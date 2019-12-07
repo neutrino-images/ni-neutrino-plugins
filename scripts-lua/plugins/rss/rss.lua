@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.82"
+rssReaderVersion="Lua RSS READER v0.83"
 local CONF_PATH = "/var/tuxbox/config/"
 local n = neutrino()
 local FontMenu = FONT.MENU
@@ -29,15 +29,15 @@ local FontTitle = FONT.MENU_TITLE
 
 local glob = {}
 local conf = {}
-feedentries = {} --don't make local
-local addon = nil
-local nothing,hva,hvb,hvc,hve,hvf="nichts",nil,nil,nil,nil,"reader"
+feedentries = {} --don't make local,nil,"reader"
 local S_Key = {fav_setup=1,fav=2,setup=3}
-local vPlay = nil
+local addon = nil
+local nothing,hva,hvb,hvc,hve,hvf="nichts",nil,nil,nil
+local picdir = "/tmp/rssPics"local vPlay = nil
 local epgtext = nil
 local epgtitle = nil
 local LinksBrowser = "/links.so"
-local picdir = "/tmp/rssPics"
+
 
 locale = {}
 locale["english"] = {
@@ -54,30 +54,34 @@ locale["english"] = {
 	set_key_hint = "Set key for Settings",
 	fav_and_setup_key = "Fav and Setup",
 	fav_key = "Fav",
-	setup_key ="Setup"
+	setup_key ="Setup",
+	curlTimeout="Connect Timeout",
+	curlTimeouthint="Internet connect timeout (min/max) 1...99 seconds"
 }
 locale["deutsch"] = {
 	picdir = "Bildverzeichnis: ",
-	picdirhint = "In welchem Verzeichnis soll das Bilder gespeichert werden ?",
+	picdirhint = "In welchem Verzeichnis sollen die Bilder gespeichert werden ?",
 	bindirhint = "In welchem Verzeichnis befinden sich HTML viewer ?",
 	addonsdir = "Addons Verzeichnis: ",
 	addonsdirhint = "In welchem Verzeichnis befinden sich rss addons ?",
 	linksbrowserdir = "Links Browser Verzeichnis: ",
-	linksbrowserdirhint = "In welchem Verzeichnis befinden sich Links Browser ?",
+	linksbrowserdirhint = "In welchem Verzeichnis befindet sich Links Browser ?",
 	htmlviewer = "Browser Auswahl",
 	htmlviewerhint = "Browser oder HTML viewer Auswahl",
 	set_key = "Einstellungen Taste",
 	set_key_hint = "Taste für Einstellungen",
 	fav_and_setup_key = "Fav und Setup",
 	fav_key = "Fav",
-	setup_key ="Setup"
+	setup_key ="Setup",
+	curlTimeout="Zeitüberschreitung der Internetverbindung nach",
+	curlTimeouthint="Zeitüberschreitung der Internetverbindung (min/max) 1...99 sekunden"
 }
 locale["polski"] = {
 	picdir = "katalog zdjęć: ",
 	picdirhint = "W którym folderze obrazy mają być zapisane ?",
-	bindirhint = "W którym folderze znajduje się przeglądarkę HTML?",
+	bindirhint = "W którym folderze znajduje się przeglądarka HTML?",
 	addonsdir = "Addons folder: ",
-	addonsdirhint = "W którym folderze znajduje się rss addons ?",
+	addonsdirhint = "W którym folderze znajdują się rss addons ?",
 	linksbrowserdir = "Links Browser folder: ",
 	linksbrowserdirhint = "W którym folderze znajduje się Links Browser ?",
 	htmlviewer = "Browser wybór",
@@ -86,7 +90,9 @@ locale["polski"] = {
 	set_key_hint = "Wybór klawisza dla tego menu",
 	fav_and_setup_key = "Fav i Setup",
 	fav_key = "Fav",
-	setup_key ="Setup"
+	setup_key ="Setup",
+	curlTimeout="Limit czasu połączenia z Internetem",
+	curlTimeouthint="Limit czasu połączenia z Internetem (min/max) 1...99 sekund"
 }
 
 function get_confFile()
@@ -112,8 +118,9 @@ function getdata(Url,outputfile)
 	if Url:sub(1, 2) == '//' then
 		Url =  'http:' .. Url
 	end
+	if 1 > conf.ctimeout then conf.ctimeout=1 end
 
-	local ret, data = Curl:download{url=Url,A="Mozilla/5.0;",connectTimeout=5,maxRedirs=5,followRedir=true,o=outputfile }
+	local ret, data = Curl:download{url=Url,A="Mozilla/5.0;",connectTimeout=conf.ctimeout,maxRedirs=5,followRedir=true,o=outputfile }
 	if ret == CURL.OK then
 		if outputfile then
 			return 1
@@ -125,7 +132,14 @@ function getdata(Url,outputfile)
 end
 
 function getFeedDataFromUrl(url)
+	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
+	if h then
+		h:paint()
+	end
 	local data = getdata(url)
+	if h then
+		h:hide()
+	end
 	if data then
 --		fix for >>> couldn't parse xml. lxp says: junk after document element 
 		local nB, nE = data:find("</rss>")
@@ -1031,6 +1045,7 @@ function saveConfig()
 			config:setString("addonsdir", conf.addonsdir)
 			config:setString("htmlviewer", conf.htmlviewer)
 			config:setInt32("set_key", conf.set_key)
+			config:setInt32("ctimeout", conf.ctimeout)
 			config:setString("linksbrowserdir", conf.linksbrowserdir)
 			config:saveConfig(get_confFile())
 			config = nil
@@ -1062,6 +1077,7 @@ function loadConfig()
 		conf.linksbrowserdir = config:getString("linksbrowserdir", "/share/tuxbox/neutrino/plugins/")
 		conf.htmlviewer = config:getString("htmlviewer", "nichts")
 		conf.set_key = config:getInt32("set_key", 1)
+		conf.ctimeout = config:getInt32("ctimeout", 5)
 		config = nil
 	end
 
@@ -1077,6 +1093,11 @@ function loadConfig()
 end
 
 function set_action(id,value)
+
+	if id == "ctimeout" then
+		value = tonumber(value)
+	end
+
 	conf.changed = true
 	conf[id]=value
 
@@ -1130,6 +1151,8 @@ function settings(id,a)
 	d=d+1
 	local set_key_opt={ LOC.fav_and_setup_key,LOC.fav_key,LOC.setup_key }
 	menu:addItem{type="chooser", action="set_action", options=set_key_opt, id="set_key", value=set_key_opt[conf.set_key], name=LOC.set_key ,directkey=godirectkey(d),hint_icon="hint_service",hint=LOC.set_key_hint}
+
+	menu:addItem{type="stringinput", action="set_action", id="ctimeout", name=LOC.curlTimeout, value=conf.ctimeout, valid_chars="0123456789",size=2,hint_icon="hint_service",hint=LOC.curlTimeouthint}
 
 	menu:exec()
 	menu:hide()
