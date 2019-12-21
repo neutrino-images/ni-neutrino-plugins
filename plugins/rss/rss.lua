@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.83"
+rssReaderVersion="Lua RSS READER v0.84"
 local CONF_PATH = "/var/tuxbox/config/"
 local n = neutrino()
 local FontMenu = FONT.MENU
@@ -839,7 +839,7 @@ function paintMenuItem(idNr)
 	if UrlLink and UrlLink:sub(1, 4) ~= 'http' then
 		UrlLink = nil
 	end
-	if #glob.urlPicUrls > 0 then
+	if glob.urlPicUrls and #glob.urlPicUrls > 0 then
 		fpic=downloadPic(idNr,1)
 	end
 
@@ -871,7 +871,7 @@ end
 	local bRed,bGreen,bYellow,bBlue =  nil,nil,nil,nil
 	if UrlVideo then bRed = "Play Video" end
 	if UrlLink and checkHaveViewer() then bGreen = "Read Seite" end
-	if #glob.urlPicUrls > 0 then
+	if glob.urlPicUrls and #glob.urlPicUrls > 0 then
 		bYellow = "Show Pic"
 		if #glob.urlPicUrls > 1 then
 			bYellow = bYellow .. "s"
@@ -910,13 +910,12 @@ end
 	end
 	epgtext = nil
 	epgtitle = nil
-	if #glob.urlPicUrls > 0 and conf.picdir == picdir then
+	if glob.urlPicUrls and #glob.urlPicUrls > 0 and conf.picdir == picdir then
 		local fh = filehelpers.new()
 		if fh then
 			fh:rmdir(picdir)
 			fh:mkdir(picdir)
 		end
-		glob.urlPicUrls = nil
 		fh = nil
 	end
 	collectgarbage()
