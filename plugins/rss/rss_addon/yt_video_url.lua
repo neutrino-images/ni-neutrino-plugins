@@ -225,7 +225,11 @@ function media.getVideoUrl(yurl)
 							if purl.itag and have_itags[purl.itag] ~= true then
 								have_itags[purl.itag] = true
 								ucount = ucount + 1
-								map_urls[ucount]=purl.cipher
+								if purl.cipher then
+									map_urls[ucount] = purl.cipher
+								elseif purl.url then
+									map_urls[ucount] = "url=" .. purl.url
+								end
 							end
 						end
 					end
@@ -234,7 +238,11 @@ function media.getVideoUrl(yurl)
 							if purl.itag and have_itags[purl.itag] ~= true then
 								have_itags[purl.itag] = true
 								ucount = ucount + 1
-								map_urls[ucount]=purl.cipher
+								if purl.cipher then
+									map_urls[ucount] = purl.cipher
+								elseif purl.url then
+									map_urls[ucount] = "url=" .. purl.url
+								end
 							end
 						end
 					end
@@ -281,7 +289,7 @@ function media.getVideoUrl(yurl)
 						myurl= tmp_url .. "&" .. tmp
 					end
 					local s=myurl:match('6s=([%%%-%=%w+_]+)') or myurl:match('&s=([%%%-%=%w+_]+)') or myurl:match('s=([%%%-%=%w+_]+)')
-					if s and #s > 90 and #s < 130 then
+					if s and (#s > 99 and #s < 130) then
 						local s2=unescape_uri(s)
 						local js_url= data:match('<script src="([/%w%p]+base%.js)"')
 						local signature = newsig(s2,js_url)
@@ -290,8 +298,8 @@ function media.getVideoUrl(yurl)
 							signature = signature:gsub("[%%]","%%%%")
 							myurl = myurl:gsub('s=' .. s ,'sig=' .. signature)
 						end
+						myurl=myurl:gsub("itag=" .. myitag, "")
 					end
-					myurl=myurl:gsub("itag=" .. myitag, "")
 					myurl=myurl:gsub("\\u0026", "&")
 					myurl=myurl:gsub("&&", "&")
 					myurl=unescape_uri(myurl)
