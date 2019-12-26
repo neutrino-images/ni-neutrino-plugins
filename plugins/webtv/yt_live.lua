@@ -158,12 +158,13 @@ function getVideoData(yurl)
 		revision = M:GetRevision()
 		if revision == 1 then maxRes = 3840 end
 	end
-	local count = 0
+	local count,countx = 0,0
 	local tmp_res = 0
 	local stop = false
 	local urls = {}
 	local have_itags = {}
 	for i = 1,6 do
+		countx = 0
 		local data = getdata(yurl)
 		if data:find('player%-age%-gate%-content') then
 			local id = yurl:match("/watch%?v=([%w+%p+]+)")
@@ -318,6 +319,7 @@ function getVideoData(yurl)
 					if select(2,myurl:gsub('&clen=%d+', "")) == 2 then myurl=myurl:gsub('&clen=%d+', "",1) end
 
 					urls[itagnum] = myurl
+					countx = countx + 1
 				end
 			end
 		end
@@ -363,7 +365,7 @@ function getVideoData(yurl)
 			end
 			if maxRes > 1920 and tmp_res == 1920 then stop2 = true end
 		end
-		if stop or stop2 then
+		if stop or stop2 or (countx==0 and i>2) then
 			print("TRY",i,count,tmp_res)
 			break
 		end
