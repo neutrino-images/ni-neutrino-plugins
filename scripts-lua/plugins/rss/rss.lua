@@ -21,18 +21,19 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.84"
+rssReaderVersion="Lua RSS READER v0.86"
 local CONF_PATH = "/var/tuxbox/config/"
 local n = neutrino()
 local FontMenu = FONT.MENU
 local FontTitle = FONT.MENU_TITLE
+local revision = 0
 
 local glob = {}
 local conf = {}
-feedentries = {} --don't make local,nil,"reader"
+feedentries = {} --don't make
 local S_Key = {fav_setup=1,fav=2,setup=3}
 local addon = nil
-local nothing,hva,hvb,hvc,hve,hvf="nichts",nil,nil,nil
+local nothing,hva,hvb,hvc,hve,hvf="nichts",nil,nil,nil,nil,"reader"
 local picdir = "/tmp/rssPics"local vPlay = nil
 local epgtext = nil
 local epgtitle = nil
@@ -54,9 +55,11 @@ locale["english"] = {
 	set_key_hint = "Set key for Settings",
 	fav_and_setup_key = "Fav and Setup",
 	fav_key = "Fav",
-	setup_key ="Setup",
-	curlTimeout="Connect Timeout",
-	curlTimeouthint="Internet connect timeout (min/max) 1...99 seconds"
+	setup_key = "Setup",
+	curlTimeout= "Connect Timeout",
+	curlTimeouthint = "Internet connect timeout (min/max) 1...99 seconds",
+	maxRes = "Max. Resolution",
+	maxReshint = "Max. Resolution für Youtube Video"
 }
 locale["deutsch"] = {
 	picdir = "Bildverzeichnis: ",
@@ -74,7 +77,9 @@ locale["deutsch"] = {
 	fav_key = "Fav",
 	setup_key ="Setup",
 	curlTimeout="Zeitüberschreitung der Internetverbindung nach",
-	curlTimeouthint="Zeitüberschreitung der Internetverbindung (min/max) 1...99 sekunden"
+	curlTimeouthint="Zeitüberschreitung der Internetverbindung (min/max) 1...99 sekunden",
+	maxRes = "Max. Auflösung",
+	maxReshint = "Max. Auflösung für Youtube Video"
 }
 locale["polski"] = {
 	picdir = "katalog zdjęć: ",
@@ -92,7 +97,9 @@ locale["polski"] = {
 	fav_key = "Fav",
 	setup_key ="Setup",
 	curlTimeout="Limit czasu połączenia z Internetem",
-	curlTimeouthint="Limit czasu połączenia z Internetem (min/max) 1...99 sekund"
+	curlTimeouthint="Limit czasu połączenia z Internetem (min/max) 1...99 sekund",
+	maxRes = "Max. rozdzielczość",
+	maxReshint = "Maksymalna rozdzielczość dla Youtube Video"
 }
 
 function get_confFile()
@@ -559,6 +566,10 @@ function getMediUrls(idNr)
 		end
 		if urlType == 'video/mp4' or  urlType == 'video/mpeg' or
 		   urlType == 'video/x-m4v' or  urlType == 'video/quicktime' then
+			UrlVideo =  link.url
+			mediaUrlFound = true
+		end
+		if revision == 1 and urlType == 'video/webm' then
 			UrlVideo =  link.url
 			mediaUrlFound = true
 		end
@@ -1043,6 +1054,7 @@ function saveConfig()
 			config:setString("bindir", conf.bindir)
 			config:setString("addonsdir", conf.addonsdir)
 			config:setString("htmlviewer", conf.htmlviewer)
+			config:setString("maxRes", conf.maxRes)
 			config:setInt32("set_key", conf.set_key)
 			config:setInt32("ctimeout", conf.ctimeout)
 			config:setString("linksbrowserdir", conf.linksbrowserdir)
@@ -1075,6 +1087,7 @@ function loadConfig()
 		conf.addonsdir = config:getString("addonsdir", "/share/tuxbox/neutrino/plugins/rss_addon/")
 		conf.linksbrowserdir = config:getString("linksbrowserdir", "/share/tuxbox/neutrino/plugins/")
 		conf.htmlviewer = config:getString("htmlviewer", "nichts")
+		conf.maxRes = config:getString("maxRes", "1280x720")
 		conf.set_key = config:getInt32("set_key", 1)
 		conf.ctimeout = config:getInt32("ctimeout", 5)
 		config = nil
@@ -1092,13 +1105,9 @@ function loadConfig()
 end
 
 function set_action(id,value)
-
 	if id == "ctimeout" then
 		value = tonumber(value)
 	end
-
-	conf.changed = true
-	conf[id]=value
 
 	if id == 'set_key' then
 		if LOC.fav_and_setup_key == value then
@@ -1108,8 +1117,15 @@ function set_action(id,value)
 		elseif LOC.setup_key == value then
 			conf.set_key = S_Key.setup
 		end
+		return
 	end
+	conf.changed = true
+	conf[id]=value
 
+	if id == "maxRes" then
+		saveConfig()
+		tmpUrlLink,tmpUrlVideo,tmpUrlAudio,tmpUrlExtra,tmpUrlVideoAudio,tmpText = nil,nil,nil,nil,nil,nil
+	end
 	if id == 'addonsdir' then
 		package.path = package.path .. ';' .. conf.addonsdir .. '/?.lua'
 	end
@@ -1151,7 +1167,12 @@ function settings(id,a)
 	local set_key_opt={ LOC.fav_and_setup_key,LOC.fav_key,LOC.setup_key }
 	menu:addItem{type="chooser", action="set_action", options=set_key_opt, id="set_key", value=set_key_opt[conf.set_key], name=LOC.set_key ,directkey=godirectkey(d),hint_icon="hint_service",hint=LOC.set_key_hint}
 
+	d=d+1
 	menu:addItem{type="stringinput", action="set_action", id="ctimeout", name=LOC.curlTimeout, value=conf.ctimeout, valid_chars="0123456789",size=2,hint_icon="hint_service",hint=LOC.curlTimeouthint}
+
+	d=d+1
+	local res_opt={ '3840x2160','2560x1440','1920x1080','1280x720','854x480','640x360' }
+	menu:addItem{type="chooser", action="set_action", options=res_opt, id="maxRes", value=conf.maxRes, name=LOC.maxRes ,directkey=godirectkey(d),hint_icon="hint_service",hint=LOC.maxReshint}
 
 	menu:exec()
 	menu:hide()
@@ -1380,6 +1401,12 @@ function main()
 		print("failed while loading " .. config)
 		return
 	end
+
+	if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
+		M = misc.new()
+		revision = M:GetRevision()
+	end
+
 	start()
 	saveConfig()
 	fh:rmdir(picdir)

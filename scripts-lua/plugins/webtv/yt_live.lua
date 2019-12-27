@@ -152,13 +152,19 @@ function getVideoData(yurl)
 	end
 
 	local revision = 0
+	local maxRes = 1280
 	if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
 		M = misc.new()
 		revision = M:GetRevision()
+		if revision == 1 then maxRes = 3840 end
 	end
-	local count = 0
+	local count,countx = 0,0
+	local tmp_res = 0
+	local stop = false
 	local urls = {}
+	local have_itags = {}
 	for i = 1,6 do
+		countx = 0
 		local data = getdata(yurl)
 		if data:find('player%-age%-gate%-content') then
 			local id = yurl:match("/watch%?v=([%w+%p+]+)")
@@ -186,19 +192,22 @@ function getVideoData(yurl)
 				local videodata = getdata(m3u_url)
 				for band, res1, res2, url in videodata:gmatch('#EXT.X.STREAM.INF.BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-(http.-)\n') do
 					if url and res1 then
-						url = url:gsub("/keepalive/yes","")--fix for new ffmpeg
-						entry = {}
-						entry['url']  = url
-						entry['band'] = band
-						entry['res1'] = res1
-						entry['res2'] = res2
-						entry['name'] = ""
-						if newname then
-							entry['name'] = newname
+						local nr = tonumber(res1)
+						if nr <= maxRes then
+							url = url:gsub("/keepalive/yes","")--fix for new ffmpeg
+							entry = {}
+							entry['url']  = url
+							entry['band'] = band
+							entry['res1'] = res1
+							entry['res2'] = res2
+							entry['name'] = ""
+							if newname then
+								entry['name'] = newname
+							end
+							count = count + 1
+							ret[count] = {}
+							ret[count] = entry
 						end
-						count = count + 1
-						ret[count] = {}
-						ret[count] = entry
 					end
 				end
 				if count > 0 then return count end
@@ -208,86 +217,156 @@ function getVideoData(yurl)
 			local url_map = data:match('"url_encoded_fmt_stream_map":"(.-)<div' ) or data:match('"url_encoded_fmt_stream_map":"(.-)"' )
 			if url_map == nil then
 				url_map = data:match('url_encoded_fmt_stream_map=(.-)$' )
-				url_map=unescape_uri(url_map)
+				if url_map then url_map=unescape_uri(url_map) end
 			end
-			if url_map then
-				url_map=url_map:gsub('"adaptive_fmts":"',"")
-				for url in url_map:gmatch( "[^,]+" ) do
-					if url and #url > 100 and url:find("itag") and url:find("url=") then
-						local have_itag = false
-						local itagnum = 0
-						local myitag = nil
-						myitag = url:match('itag=(%d+)') or url:match('itag%%3D(%d+)')
-						url=url:gsub('xtags=',"")
-						if myitag ~= nil then
-							itagnum = tonumber(myitag)
-							if itags[itagnum] then
-								have_itag = true
-							elseif revision == 1 and
-									((vp9_30 and itags_vp9_30[itagnum]) or (vp9_60 and itags_vp9_60[itagnum])
-							         or (avc1_60 and itags_avc1_60[itagnum]) or (avc1_30 and itags_avc1_30[itagnum])
-							        or (vp9_HDR and itags_vp9_HDR[itagnum])) or itags_audio[itagnum] then
-								have_itag = true
-							end
-						end
-						if have_itag then
-							if url:sub(1, 4) == 'url=' then
-								myurl=url:match('url=(.-)$')
-							else
-								local tmp = url:match('(s=.-)url') or url:match('(.-)url')
-								if tmp == nil then tmp = "" end
-								local tmp_url = url:match('url=(.-)$')
-								myurl= tmp_url .. "&" .. tmp
-							end
-							local s=myurl:match('6s=([%%%-%=%w+_]+)') or myurl:match('&s=([%%%-%=%w+_]+)') or myurl:match('s=([%%%-%=%w+_]+)')
-							if s and #s > 90 and #s < 130 then
-								local s2=unescape_uri(s)
-								local js_url= data:match('<script src="([/%w%p]+base%.js)"')
-								local signature = newsig(s2,js_url)
-								if signature then
-									s = s:gsub("[%+%?%-%*%(%)%.%[%]%^%$%%]","%%%1")
-									signature = signature:gsub("[%%]","%%%%")
-									myurl = myurl:gsub('s=' .. s ,'sig=' .. signature)
+			local map_urls = {}
+			local player_map = data:match("ytplayer.config%s+=%s+({.-});")
+			local ucount = 0
+			if player_map then
+				local pm1 = nil
+				local pm2 = nil
+				local pm1 = json:decode (player_map)
+				if pm1 and pm1.args and pm1.args.player_response then
+					pm2 = json:decode(pm1.args.player_response)
+					if pm2 and pm2.streamingData and pm2.streamingData.formats then
+						for k, purl in pairs(pm2.streamingData.formats) do
+							if purl.itag and have_itags[purl.itag] ~= true then
+								have_itags[purl.itag] = true
+								ucount = ucount + 1
+								if purl.cipher then
+									map_urls[ucount] = purl.cipher
+								elseif purl.url then
+									map_urls[ucount] = "url=" .. purl.url
 								end
 							end
-							myurl=myurl:gsub("itag=" .. myitag, "")
-							myurl=myurl:gsub("\\u0026", "&")
-							myurl=myurl:gsub("&&", "&")
-							myurl=unescape_uri(myurl)
-
-							myurl=myurl:gsub("\\", "")
-							myurl=myurl:gsub('"', "")
-							myurl=myurl:gsub('}', "")
-							myurl=myurl:gsub(']', "")
-							if select(2,myurl:gsub('&lmt=%d+', "")) == 2 then myurl=myurl:gsub('&lmt=%d+', "",1) end
-							if select(2,myurl:gsub('&clen=%d+', "")) == 2 then myurl=myurl:gsub('&clen=%d+', "",1) end
-
-							urls[itagnum] = myurl
+						end
+					end
+					if pm2 and pm2.streamingData and pm2.streamingData.adaptiveFormats then
+						for k, purl in pairs(pm2.streamingData.adaptiveFormats) do
+							if purl.itag and have_itags[purl.itag] ~= true then
+								have_itags[purl.itag] = true
+								ucount = ucount + 1
+								if purl.cipher then
+									map_urls[ucount] = purl.cipher
+								elseif purl.url then
+									map_urls[ucount] = "url=" .. purl.url
+								end
+							end
 						end
 					end
 				end
 			end
-		end
-		local audio = urls[140] or urls[251] or urls[250] or urls[249]
-		for k, video in pairs(urls) do
-			if itags[k] then
-				count = add_entry(video,nil,itags[k]:match('(%d+)x'),itags[k]:match('x(%d+)'),newname,count)
-			elseif avc1_30 and itags_avc1_30[k] then
-				count = add_entry(video,audio,itags_avc1_30[k]:match('(%d+)x'),itags_avc1_30[k]:match('x(%d+)'),newname,count)
-			elseif avc1_60 and itags_avc1_60[k] then
-				count = add_entry(video,audio,itags_avc1_60[k]:match('(%d+)x'),itags_avc1_60[k]:match('x(%d+)'),newname,count)
-			elseif vp9_30 and itags_vp9_30[k] then
-				count = add_entry(video,audio,itags_vp9_30[k]:match('(%d+)x'),itags_vp9_30[k]:match('x(%d+)'),newname,count)
-			elseif vp9_60 and itags_vp9_60[k] then
-				count = add_entry(video,audio,itags_vp9_60[k]:match('(%d+)x'),itags_vp9_60[k]:match('x(%d+)'),newname,count)
-			elseif vp9_HDR and itags_vp9_HDR[k] then
-				count = add_entry(video,audio,itags_vp9_HDR[k]:match('(%d+)x'),itags_vp9_HDR[k]:match('x(%d+)'),newname,count)
+			if url_map then
+				url_map=url_map:gsub('"adaptive_fmts":"',"")
+				for murl in url_map:gmatch( "[^,]+" ) do
+					if murl and #murl > 100 and murl:find("itag") and murl:find("url=") then
+						local itag = murl:match('itag=(%d+)') or murl:match('itag%%3D(%d+)')
+						if itag and have_itags[itag] ~= true then
+							have_itags[itag] = true
+							ucount = ucount + 1
+							map_urls[ucount]=murl
+						end
+					end
+				end
+			end
+			for k, url in pairs(map_urls) do
+				local have_itag = false
+				local itagnum = 0
+				local myitag = nil
+				myitag = url:match('itag=(%d+)') or url:match('itag%%3D(%d+)')
+				url=url:gsub('xtags=',"")
+				if myitag ~= nil then
+					itagnum = tonumber(myitag)
+					if itags[itagnum] then
+						have_itag = true
+					elseif revision == 1 and
+							((vp9_30 and itags_vp9_30[itagnum]) or (vp9_60 and itags_vp9_60[itagnum])
+					         or (avc1_60 and itags_avc1_60[itagnum]) or (avc1_30 and itags_avc1_30[itagnum])
+					        or (vp9_HDR and itags_vp9_HDR[itagnum])) or itags_audio[itagnum] then
+						have_itag = true
+					end
+				end
+				if have_itag then
+					if url:sub(1, 4) == 'url=' then
+						myurl=url:match('url=(.-)$')
+					else
+						local tmp = url:match('(s=.-)url') or url:match('(.-)url')
+						if tmp == nil then tmp = "" end
+						local tmp_url = url:match('url=(.-)$')
+						myurl= tmp_url .. "&" .. tmp
+					end
+					local s=myurl:match('6s=([%%%-%=%w+_]+)') or myurl:match('&s=([%%%-%=%w+_]+)') or myurl:match('s=([%%%-%=%w+_]+)')
+					if s and (#s > 99 and #s < 130) then
+						local s2=unescape_uri(s)
+						local js_url= data:match('<script src="([/%w%p]+base%.js)"')
+						local signature = newsig(s2,js_url)
+						if signature then
+							s = s:gsub("[%+%?%-%*%(%)%.%[%]%^%$%%]","%%%1")
+							signature = signature:gsub("[%%]","%%%%")
+							myurl = myurl:gsub('s=' .. s ,'sig=' .. signature)
+						end
+						myurl=myurl:gsub("itag=" .. myitag, "")
+					end
+					myurl=myurl:gsub("\\u0026", "&")
+					myurl=myurl:gsub("&&", "&")
+					myurl=unescape_uri(myurl)
+
+					myurl=myurl:gsub("\\", "")
+					myurl=myurl:gsub('"', "")
+					myurl=myurl:gsub('}', "")
+					myurl=myurl:gsub(']', "")
+					if select(2,myurl:gsub('&lmt=%d+', "")) == 2 then myurl=myurl:gsub('&lmt=%d+', "",1) end
+					if select(2,myurl:gsub('&clen=%d+', "")) == 2 then myurl=myurl:gsub('&clen=%d+', "",1) end
+
+					urls[itagnum] = myurl
+					countx = countx + 1
+				end
 			end
 		end
-		local mini = 3
-		if  revision == 1 then mini = 3 end
-		if count > mini then
-			print("TRY",i,count)
+		local audio = urls[140] or urls[251] or urls[250] or urls[249]
+		local res = 0
+		for k, video in pairs(urls) do
+			if itags[k] then
+				tmp_res = tonumber(itags[k]:match('(%d+)x'))
+				if tmp_res > res and tmp_res <= maxRes then
+					count = add_entry(video,nil,itags[k]:match('(%d+)x'),itags[k]:match('x(%d+)'),newname,count)
+					res = tmp_res
+				end
+			elseif avc1_30 and itags_avc1_30[k] then
+				tmp_res = tonumber(itags_avc1_30[k]:match('(%d+)x'))
+				if tmp_res > res and tmp_res <= maxRes then
+					count = add_entry(video,audio,itags_avc1_30[k]:match('(%d+)x'),itags_avc1_30[k]:match('x(%d+)'),newname,count)
+					res = tmp_res
+				end
+			elseif avc1_60 and itags_avc1_60[k] then
+				tmp_res = tonumber(itags_avc1_60[k]:match('(%d+)x'))
+				if tmp_res > res and tmp_res <= maxRes then
+					count = add_entry(video,audio,itags_avc1_60[k]:match('(%d+)x'),itags_avc1_60[k]:match('x(%d+)'),newname,count)
+					res = tmp_res
+				end
+			elseif vp9_30 and itags_vp9_30[k] then
+				tmp_res = tonumber(itags_vp9_30[k]:match('(%d+)x'))
+				if tmp_res > res and tmp_res <= maxRes then
+					count = add_entry(video,audio,itags_vp9_30[k]:match('(%d+)x'),itags_vp9_30[k]:match('x(%d+)'),newname,count)
+					res = tmp_res
+				end
+			elseif vp9_60 and itags_vp9_60[k] then
+				tmp_res = tonumber(itags_vp9_60[k]:match('(%d+)x'))
+				if tmp_res > res and tmp_res <= maxRes then
+					count = add_entry(video,audio,itags_vp9_60[k]:match('(%d+)x'),itags_vp9_60[k]:match('x(%d+)'),newname,count)
+					res = tmp_res
+				end
+			elseif vp9_HDR and itags_vp9_HDR[k] then
+				tmp_res = tonumber(itags_vp9_HDR[k]:match('(%d+)x'))
+				if tmp_res > res and tmp_res <= maxRes then
+					count = add_entry(video,audio,itags_vp9_HDR[k]:match('(%d+)x'),itags_vp9_HDR[k]:match('x(%d+)'),newname,count)
+					res = tmp_res
+				end
+			end
+			if maxRes > 1920 and tmp_res == 1920 then stop2 = true end
+		end
+		if stop or stop2 or (countx==0 and i>2) then
+			print("TRY",i,count,tmp_res)
 			break
 		end
 	end
