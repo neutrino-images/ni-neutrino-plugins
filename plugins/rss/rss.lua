@@ -21,11 +21,12 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.85"
+rssReaderVersion="Lua RSS READER v0.86"
 local CONF_PATH = "/var/tuxbox/config/"
 local n = neutrino()
 local FontMenu = FONT.MENU
 local FontTitle = FONT.MENU_TITLE
+local revision = 0
 
 local glob = {}
 local conf = {}
@@ -565,6 +566,10 @@ function getMediUrls(idNr)
 		end
 		if urlType == 'video/mp4' or  urlType == 'video/mpeg' or
 		   urlType == 'video/x-m4v' or  urlType == 'video/quicktime' then
+			UrlVideo =  link.url
+			mediaUrlFound = true
+		end
+		if revision == 1 and urlType == 'video/webm' then
 			UrlVideo =  link.url
 			mediaUrlFound = true
 		end
@@ -1396,6 +1401,12 @@ function main()
 		print("failed while loading " .. config)
 		return
 	end
+
+	if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
+		M = misc.new()
+		revision = M:GetRevision()
+	end
+
 	start()
 	saveConfig()
 	fh:rmdir(picdir)
