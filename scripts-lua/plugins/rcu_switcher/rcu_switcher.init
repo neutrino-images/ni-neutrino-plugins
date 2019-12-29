@@ -2,27 +2,52 @@
 
 . /etc/init.d/globals
 
+if [ -e /proc/stb/info/vumodel ]; then
+	vumodel=$(cat /proc/stb/info/vumodel)
+
+	case $vumodel in
+		duo4k|solo4k|ultimo4k|uno4k|uno4kse|zero4k)
+			vuplus="true"
+		;;
+		*)
+			vuplus="false"
+		;;
+	esac
+fi
+
+if [ vuplus == "true" ]; then
+	procfile=/proc/stb/fp/remote_code
+else
+	procfile=/proc/stb/ir/rc/type
+fi
+
 case $1 in
 	start)
 		if [ -e /var/etc/rccode ]; then
-			RCCODE="/var/etc/rccode"
+			rccode="/var/etc/rccode"
 		else
-			RCCODE="/etc/rccode"
+			rccode="/etc/rccode"
 		fi
-		if [ -e $RCCODE ]; then
-			case $(cat $RCCODE) in
-				4) echo 4 > /proc/stb/ir/rc/type ;;
-				5) echo 5 > /proc/stb/ir/rc/type ;;
-				7) echo 7 > /proc/stb/ir/rc/type ;;
-				8) echo 8 > /proc/stb/ir/rc/type ;;
-				9) echo 9 > /proc/stb/ir/rc/type ;;
-				11) echo 11 > /proc/stb/ir/rc/type ;;
-				13) echo 13 > /proc/stb/ir/rc/type ;;
-				16) echo 16 > /proc/stb/ir/rc/type ;;
-				21) echo 21 > /proc/stb/ir/rc/type ;;
-				23) echo 23 > /proc/stb/ir/rc/type ;;
-				* ) echo "[${BASENAME}] unknown rc type" ;;
-			esac
+		if [ -e $rccode ]; then
+			code=$(cat $rccode)
+			if [ vuplus == "true" ]; then
+				case $code in
+					1|2|3|4)
+						echo $code > $procfile
+					;;
+					*)
+						echo "[${BASENAME}] unknown rc type"
+					;;
+			else
+				case $code in
+					4|5|7|8|9|11|13|16|21|23)
+						echo $code > $procfile
+					;;
+					*)
+						echo "[${BASENAME}] unknown rc type"
+					;;
+				esac
+			fi
 		fi
 	;;
 	*)

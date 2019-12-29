@@ -28,20 +28,20 @@
 local locale = {}
 locale["deutsch"] = {
 	title = "Fernbedienung umschalten",
-	text = "Definieren Sie in der folgenden Auswahl die Fernbedienung\nwelche Sie verwendet möchten.\n\nDie Bestätigung erfolgt mit der Ausgewählten!",
+	text = "Definieren Sie in der folgenden Auswahl die Fernbedienung,\ndie Sie verwendet möchten.\n\nDie Bestätigung erfolgt mit der neu ausgewählten Fernbedienung.",
 	reset = "Originale Fernbedienung wiederhergestellt.",
 	question = "Funktioniert die gewählte Fernbedienung?",
-	err   = "Fehler beim Senden des Codes",
+	err = "Fehler beim Senden des Codes",
 	hint1 = "Mit der Auswahl ",
-	hint2 = " wird der Fernbedienung-Code ",
+	hint2 = " wird der Fernbedienungs-Code ",
 	hint3 = " aktiviert!",
 }
 locale["english"] = {
 	title = "Switch remote control",
-	text = "In the following selection,\ndefine the remote control you want to use.\n\nConfirmation is made with the selected one!",
+	text = "In the following selection,\ndefine the remote control you want to use.\n\nThe confirmation is made with the newly selected remote control.",
 	reset = "Original remote control restored.",
 	question = "Does the selected remote control work?",
-	err   = "Failed to send the code",
+	err = "Failed to send the code",
 	hint1 = "The selection ",
 	hint2 = " activates the remote control code ",
 	hint3 = " !",
@@ -50,6 +50,7 @@ locale["english"] = {
 local posix = require "posix"
 
 ret = nil -- global return value
+
 function key_home(a)
 	ret = MENU_RETURN["EXIT"]
 	return ret
@@ -65,12 +66,12 @@ function exists(file)
 end
 
 function isdir(fn)
-    return (posix.stat(fn, "type") == 'directory')
+	return (posix.stat(fn, "type") == 'directory')
 end
 
 function send_code(code)
 	if os.execute("echo " .. code .. " > " .. procfile) == true then
-	    return true
+		return true
 	else
 		return false
 	end
@@ -104,13 +105,13 @@ function sleep(n)
 end
 
 function buildSortLookup( contentTab, sortKey )
-    local lookup = {}
-    for k, _ in pairs(contentTab) do
-        lookup[#lookup+1] = k
-    end
+	local lookup = {}
+	for k, _ in pairs(contentTab) do
+		lookup[#lookup+1] = k
+	end
  
-    table.sort( lookup, function(a, b ) return contentTab[a][sortKey] < contentTab[b][sortKey] end )
-    return lookup
+	table.sort( lookup, function(a, b ) return contentTab[a][sortKey] < contentTab[b][sortKey] end )
+	return lookup
 end
 
 function rc_select_menu(code)
@@ -126,7 +127,7 @@ function rc_select_menu(code)
 	local sortLookup = sortByName
 
 	for i = 1,#sortLookup do
-	    local entry = rc_list[sortLookup[i]]
+		local entry = rc_list[sortLookup[i]]
 		m:addItem{type="forwarder", action="set_rc", id=entry.code, name=entry.name, hint=locale[lang].hint1 .. entry.name .. locale[lang].hint2 .. entry.code .. locale[lang].hint3, hint_icon=rcu}
 		if entry.code == tonumber(code) then
 			found = true
@@ -156,7 +157,6 @@ end
 
 -- 
 function checkCode(oldcode, newcode)
-
 	if tonumber(newcode) ~= tonumber(oldcode) and newcode ~= nil then
 		isSend = send_code(newcode)
 		if isSend == true then
@@ -223,7 +223,22 @@ end
 function init()
 	n = neutrino()
 	fh = filehelpers.new()
-	procfile      = "/proc/stb/ir/rc/type"
+	vuplus = proc_get("/proc/stb/info/vumodel")
+	if (
+		   vuplus == "duo4k"
+		or vuplus == "solo4k"
+		or vuplus == "ultimo4k"
+		or vuplus == "uno4k"
+		or vuplus == "uno4kse"
+		or vuplus == "zero4k"
+	) then
+		vuplus = true
+	end
+	if vuplus == true then
+		procfile = "/proc/stb/fp/remote_code"
+	else
+		procfile = "/proc/stb/ir/rc/type"
+	end
 	tuxbox_config = "/var/tuxbox/config"
 	rcu = decodeImage("data:image/png;base64,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")
 
@@ -245,18 +260,27 @@ function init()
 		rc_config = "/etc/rccode"
 	end
 
-	rc_list = {
-		[4]  = {code = 4,  name = "Dreambox"         			},
-		[5]  = {code = 5,  name = "ET 9000"           			},
-		[7]  = {code = 7,  name = "ET 5000 / ET 6000" 			},
-		[8]  = {code = 8,  name = "VU+ (Code 0001)"   			},
-		[9]  = {code = 9,  name = "ET 6500 / 8000 / 9500 / 10000"},
-		[11] = {code = 11, name = "ET 9200"        				},
-		[13] = {code = 13, name = "ET 4000"        				},
-		[16] = {code = 16, name = "ET 7000 / 7500 / 8500 / HD51" },
-		[21] = {code = 21, name = "Zgemma H7"      				},
-		[23] = {code = 23, name = "Bre2ze 4K"      				}
-	}
+	if vuplus == true then
+		rc_list = {
+			[1]  = { code = 1,  name = "VU+ (Code 0001)"			},
+			[2]  = { code = 2,  name = "VU+ (Code 0002)"			},
+			[3]  = { code = 3,  name = "VU+ (Code 0003)"			},
+			[4]  = { code = 4,  name = "VU+ (Code 0004)"			}
+		}
+	else
+		rc_list = {
+			[4]  = { code = 4,  name = "Dreambox"				},
+			[5]  = { code = 5,  name = "ET 9000"				},
+			[7]  = { code = 7,  name = "ET 5000 / ET 6000"			},
+			[8]  = { code = 8,  name = "VU+ (Code 0001)"			},
+			[9]  = { code = 9,  name = "ET 6500 / 8000 / 9500 / 10000"	},
+			[11] = { code = 11, name = "ET 9200"				},
+			[13] = { code = 13, name = "ET 4000"				},
+			[16] = { code = 16, name = "HD51, ET 7000 / 7500 / 8500"	},
+			[21] = { code = 21, name = "Zgemma H7"				},
+			[23] = { code = 23, name = "Bre2ze 4K"				}
+		}
+	end
 end
 
 function main()
