@@ -2,6 +2,7 @@
 -- Attention!!! Adult only      *
 -- 18+                          *
 -- ******************************
+-- 06.01.2020
 cfg.user_age=18
 cfg.youporn_max_pages=5
 
@@ -162,6 +163,7 @@ function youporn_sendurl(youporn_url,range)
 
 	if url then
 		url=string.gsub(url,'&amp;','&')
+		url=string.gsub(url,'u0026','&')
 		url=string.gsub(url,'\\','')
 		if cfg.debug>0 then print('Real URL: '..url) end
 		plugin_sendurl(youporn_url,url,range)
