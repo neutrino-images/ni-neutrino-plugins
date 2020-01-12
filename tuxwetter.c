@@ -1318,6 +1318,7 @@ void clear_screen(void)
 void show_data(int ix)
 {
 char vstr[512]={0},v2str[512]={0},rstr[512]={0},tstr[512]={0},icon[200]={0};
+char timebuf[30]={0};
 int col1=scale2res(40), vy=scale2res(70);
 int col2=((preset)?scale2res(380):scale2res(340));
 
@@ -1788,8 +1789,8 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
 				prs_get_val(0, ACT_UPTIME, 0, vstr);
-				convertUnixTime(vstr, rstr, metric);
-				sprintf(rstr,"%s %s",rstr,cun);
+				convertUnixTime(vstr, timebuf, metric);
+				sprintf(rstr, "%s %s", timebuf, cun);
 
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
@@ -1892,8 +1893,8 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
 				prs_get_val(0, ACT_SUNR, 0, vstr);
-				convertUnixTime(vstr, rstr, metric);
-				sprintf(rstr,"%s %s",rstr,cun);
+				convertUnixTime(vstr, timebuf, metric);
+				sprintf(rstr, "%s %s", timebuf, cun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
@@ -1901,8 +1902,8 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
 				prs_get_val(0, ACT_SUNS, 0, vstr);
-				convertUnixTime(vstr, rstr, metric);
-				sprintf(rstr,"%s %s",rstr,cun);
+				convertUnixTime(vstr, timebuf , metric);
+				sprintf(rstr, "%s %s", timebuf, cun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
@@ -2028,8 +2029,8 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
 				prs_get_val(ix-1, PRE_SUNR, 0, vstr);
-				convertUnixTime(vstr, rstr, metric);
-				sprintf(rstr,"%s %s",rstr,cun);
+				convertUnixTime(vstr, timebuf, metric);
+				sprintf(rstr, "%s %s", timebuf, cun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
@@ -2037,8 +2038,8 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				RenderString(rstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
 				prs_get_val(ix-1, PRE_SUNS, 0, vstr);
-				convertUnixTime(vstr, rstr, metric);
-				sprintf(rstr,"%s %s",rstr,cun);
+				convertUnixTime(vstr, timebuf, metric);
+				sprintf(rstr, "%s %s", timebuf, cun);
 				RenderString(rstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=(1.5*(double)dy);
 
