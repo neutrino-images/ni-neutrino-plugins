@@ -197,6 +197,24 @@ void put_instance(int pval)
 	}
 }
 
+void safe_strncpy(char *dest, const char *src, size_t num)
+{
+	if(!src)
+	{
+		dest[0] = '\0';
+		return;
+	}
+
+	uint32_t l, size = strlen(src);
+	if(size > num - 1)
+		l = num - 1;
+	else
+		l = size;
+
+	memcpy(dest, src, l);
+	dest[l] = '\0';
+}
+
 static void quit_signal(int sig)
 {
 	char *txt=NULL;
@@ -364,7 +382,7 @@ int ReadConf(char *iscmd)
 				}
 			if(weatherkey!=1 && strstr(line_buffer,"LicenseKey") == line_buffer)
 				{
-					strncpy(key,cptr+1,sizeof(key)-1);
+					safe_strncpy(key,cptr+1,sizeof(key));
 					if (key[0] != 0)
 					{
 						TrimString(key);
@@ -1271,10 +1289,8 @@ int res;
 			ShowMessage(prs_translate("Bitte warten",CONVERT_LIST),0);
 		}
 		cpos=(tptr-menu.list[menu.act_entry]->entry);
-		strncpy(city_code,++tptr,len-cpos-1);
-		strncpy(city_name,menu.list[menu.act_entry]->entry,cpos);
-		city_name[cpos]=0;
-		city_code[len-cpos-1]=0;
+		safe_strncpy(city_code, ++tptr, len-cpos);
+		safe_strncpy(city_name, menu.list[menu.act_entry]->entry, cpos+1);
 		printf("Tuxwetter <Citycode %s selected>\n",city_code);
 		if((res=parser(city_code,CONVERT_LIST,metric,intype,ctmo))!=0)
 		{
@@ -1359,7 +1375,8 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 		}
 	}
 
-	strncpy(cun, prs_translate("Uhr",CONVERT_LIST), sizeof(cun)/sizeof(cun[0]));
+	safe_strncpy(cun, prs_translate("Uhr",CONVERT_LIST), sizeof(cun));
+
 	if(!metric)
 	{
 		snprintf(tun, sizeof(tun)/sizeof(tun[0]), "°F");     // Fahrenheit
@@ -3460,7 +3477,7 @@ PLISTENTRY pl=&epl;
 									
 									if(cindex!=-98)
 									{
-										strncpy(lastpicture,line_buffer,BUFSIZE-1);
+										safe_strncpy(lastpicture, line_buffer, BUFSIZE);
 	
 										ix=menu.act_entry;
 										switch(tret)

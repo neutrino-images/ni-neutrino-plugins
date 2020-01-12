@@ -166,16 +166,19 @@ extern uint32_t bgra[];
 extern int stride;
 extern int swidth;
 extern uint32_t *lfb, *lbb;
-
 extern char *proxyadress, *proxyuserpwd;
+
+extern int instance;
+
 struct fb_fix_screeninfo fix_screeninfo;
 struct fb_var_screeninfo var_screeninfo;
 
 int startx, starty, sx, ex, sy, ey, preset;
-extern int instance;
+
 int get_instance(void);
 void put_instance(int pval);
 int PaintWideString(int dy, const char *string, int sx, int sy, int maxwidth, int layout, int size, int color);
+void safe_strncpy(char *dest, const char *src, size_t num);
 
 #endif
 
