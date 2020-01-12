@@ -1317,7 +1317,8 @@ void clear_screen(void)
 
 void show_data(int ix)
 {
-char vstr[512]={0},v2str[512]={0},rstr[512]={0},tstr[512]={0},icon[200]={0};
+char vstr[512]={0},v2str[512]={0},rstr[512]={0},tstr[512]={0};
+char iconUrl[255]={0}, iconName[64]={0};
 char timebuf[30]={0};
 int col1=scale2res(40), vy=scale2res(70);
 int col2=((preset)?scale2res(380):scale2res(340));
@@ -1701,14 +1702,14 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				multiple_pics=1;
 				for(i=0; i<column; i++)
 				{
-					prs_get_val(i,PRE_ICON,prelate,vstr);
+					prs_get_val(i,PRE_ICON,prelate, iconName);
 
-					snprintf(icon, sizeof(icon), "https://darksky.net/images/weather-icons/%s.png",vstr);
+					snprintf(iconUrl, sizeof(iconUrl), "https://darksky.net/images/weather-icons/%s.png", iconName);
 
-					if (HTTP_downloadFile(icon, ICON_FILE, 0, intype, ctmo, 2) == 0)
+					if (HTTP_downloadFile(iconUrl, ICON_FILE, 0, intype, ctmo, 2) == 0)
 					{
 						int picx=scale2res(80),picy=scale2res(80);
-						png_on_data(icon,sx+gxs+(i*gicw)+((gicw/2)-(picx/2)),sy+gys+gyw+((gywf/2)-(picy/2)), picx, picy, 5, (i)?((i==4)?1:0):2, 0, 0);
+						png_on_data(iconUrl, sx+gxs+(i*gicw)+((gicw/2)-(picx/2)),sy+gys+gyw+((gywf/2)-(picy/2)), picx, picy, 5, (i)?((i==4)?1:0):2, 0, 0);
 					}
 
 					prs_get_timeWday(i, PRE_DAY,vstr);
@@ -1729,7 +1730,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				vy-=scale2res(2);
 
 				// show icon
-				prs_get_val(0, ACT_ICON, 0, vstr);
+				prs_get_val(0, ACT_ICON, 0, iconName);
 #if 0
 				sprintf (rstr,"%s.bmp",vstr);
 				bmp2lcd (rstr);
@@ -1738,9 +1739,9 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				{
 					xremove(ICON_FILE);
 
-					snprintf(icon, sizeof(icon), "https://darksky.net/images/weather-icons/%s.png",vstr);
+					snprintf(iconUrl, sizeof(iconUrl), "https://darksky.net/images/weather-icons/%s.png", iconName);
 
-					if (HTTP_downloadFile(icon, ICON_FILE, 0, intype, ctmo, 2) != 0)
+					if (HTTP_downloadFile(iconUrl, ICON_FILE, 0, intype, ctmo, 2) != 0)
 					{
 						printf("Tuxwetter <unable to get icon>\n");
 					}
@@ -1952,9 +1953,9 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 						pic_on_data(icon,col2+200, wsy+115, 80, 80, 5, 3, 0, 0);
 */
 					if(!slim)
-						png_on_data(icon,scale2res(800), scale2res(270), scale2res(100), scale2res(100), 5, 3, 0, 0);
+						png_on_data(iconUrl, scale2res(800), scale2res(270), scale2res(100), scale2res(100), 5, 3, 0, 0);
 					else
-						png_on_data(icon,540, 115, 80, 80, 5, 3, 0, 0);
+						png_on_data(iconUrl, 540, 115, 80, 80, 5, 3, 0, 0);
 				}
 				blit();
 			}
@@ -1973,7 +1974,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 
 
 				// show icon
-				prs_get_val(ix-1,PRE_ICON,prelate,vstr);
+				prs_get_val(ix-1, PRE_ICON, prelate, iconName);
 #if 0
 				sprintf (rstr,"%s.bmp",vstr);
 				bmp2lcd (rstr);
@@ -1982,9 +1983,9 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				{
 					xremove(ICON_FILE);
 
-					snprintf(icon, sizeof(icon), "https://darksky.net/images/weather-icons/%s.png",vstr);
+					snprintf(iconUrl, sizeof(iconUrl), "https://darksky.net/images/weather-icons/%s.png", iconName);
 
-					if (HTTP_downloadFile(icon, ICON_FILE,0,intype,ctmo,2) != 0)
+					if (HTTP_downloadFile(iconUrl, ICON_FILE,0,intype,ctmo,2) != 0)
 
 					{
 						printf("Tuxwetter <unable to get icon file \n");
@@ -2150,7 +2151,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				if(show_icons)
 				{
 					//pic_on_data(icon, 540, 115, 100, 100, 5, 3, 0, 0);
-					png_on_data(icon,slim?540:scale2res(700), scale2res(115), scale2res(100), scale2res(100), 5, 3, 0, 0);
+					png_on_data(iconUrl, slim?540:scale2res(700), scale2res(115), scale2res(100), scale2res(100), 5, 3, 0, 0);
 				}
 				blit();
 			}
