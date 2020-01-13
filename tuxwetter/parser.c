@@ -348,9 +348,7 @@ int prs_get_dwday(int i, int what, char *out)
 
 int prs_get_timeWday(int i, int what, char *out)
 {
-	int ret=1;
 	*out=0;
-	struct tm ts;
 	char buffer [80];
 
 	strcpy(out,data[(what & ~TRANSLATION)+(i*PRE_STEP)]);
@@ -372,15 +370,15 @@ int prs_get_timeWday(int i, int what, char *out)
 
 int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 {
-	int  rec=0, flag=0, next=0, windspeed=1;
-	int cc=0, bc=1, exit_ind=-1;
+	int rec=0, flag=0, windspeed=1;
+	int cc=0, exit_ind=-1;
 	char gettemp;
 	FILE *wxfile=NULL;
 	char url[512];
 	char debug[505];
 
 	char tagname[512];
-	int getold=0, skip=1, tag=0, tc=0, tcc=0;
+	int tag=0, tc=0, tcc=0;
 	extern char key[];
 
 	memset(data,0,MAXITEM*MAXMEM /* 1000*50 */);
@@ -475,8 +473,8 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 
 				if(rec==1)
 				{
-					if(tag==1)
-						tag==0;
+					//if(tag==1)
+					//	tag==0; // whats this?
 
 					if(gettemp=='}' || gettemp==']')
 						continue;
