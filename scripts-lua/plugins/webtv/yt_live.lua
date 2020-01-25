@@ -59,7 +59,7 @@ end
 
 --- vlc youtube.lua code
 function js_descramble( sig, js )
-	local descrambler = js_extract( js, "%.set%([^,]-%.sp,[^;]-%((..)%(" )
+	local descrambler = js_extract( js, "[=%(,&|](..)%(decodeURIComponent%(.%.s%)%)" )
 	if descrambler == nil then return sig end
 	local rules = js_extract( js, descrambler.."=function%([^)]*%){(.-)};" )
 	if rules == nil then return sig end
