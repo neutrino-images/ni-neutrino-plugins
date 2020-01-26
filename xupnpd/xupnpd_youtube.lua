@@ -30,6 +30,8 @@
 -- added vlc descrambler
 -- added youtube_preferred_resolution parameter
 
+-- 202001226
+-- fix sig
 -- README
 -- This is YouTube api v3 plugin for xupnpd.
 -- For now only search username supported.
@@ -68,180 +70,173 @@ function read_file(filename)
 end
 
 function youtube_updatefeed(feed,friendly_name)
+	local function isempty(s)
+		return s == nil or s == ''
+	end
 
-  local function isempty(s)
-    return s == nil or s == ''
-  end
+	local rc=false
 
-  local rc=false
+	local feed_url=nil
+	local feed_urn=nil
 
-  local feed_url=nil
-  local feed_urn=nil
+	local tfeed=split_string(feed,'/')
 
-  local tfeed=split_string(feed,'/')
+	local feed_name='youtube_'..string.lower(string.gsub(feed,"[/ :\'\"]",'_'))
 
-  local feed_name='youtube_'..string.lower(string.gsub(feed,"[/ :\'\"]",'_'))
+	local feed_m3u_path=cfg.feeds_path..feed_name..'.m3u'
+	local tmp_m3u_path=cfg.tmp_path..feed_name..'.m3u'
 
-  local feed_m3u_path=cfg.feeds_path..feed_name..'.m3u'
-  local tmp_m3u_path=cfg.tmp_path..feed_name..'.m3u'
+	local dfd=io.open(tmp_m3u_path,'w+')
 
-  local dfd=io.open(tmp_m3u_path,'w+')
+	if dfd then
+		dfd:write('#EXTM3U name=\"',friendly_name or feed_name,'\" type=mp4 plugin=youtube\n')
+		--------------------------------------------------------------------------------------------------
+		--local getopt = '/mnt/sda1/iptv/curl/curl -k '
+		local count = 0
+		local totalres = 0
+		local numA = 50 -- show 50 videos per page 0..50 from youtube api v3
+		local pagetokenA = ''
+		local nextpageA = ''
+		local allpages = math.ceil(cfg.youtube_video_count/numA) -- check how much pages per 50 videos there can be
+		local lastpage = allpages - 1
+		local maxA = '&maxResults=' .. numA
+		if cfg.youtube_video_count < numA then
+			maxA = '&maxResults=' .. cfg.youtube_video_count
+			numA = cfg.youtube_video_count
+		end
 
-  if dfd then
-    dfd:write('#EXTM3U name=\"',friendly_name or feed_name,'\" type=mp4 plugin=youtube\n')
+		local keyA = '&key=***' -- change *** to your youtube api key from: https://console.developers.google.com
+		if keyA == '&key=***' then
+			local keydata = read_file("/var/tuxbox/config/neutrino.conf") --file with key
+			keyA = "&key=" .. keydata:match("youtube_dev_id=(.-)\n")
+		end
+		local cA = ''
+		local iA = ''
+		local userA = tfeed[1]
+		local uploads = ''
+		local region = ''
+		local enough = false
+		-- Get what exactly user wants to get.
+		if tfeed[1]=='channel' and tfeed[2]=='mostpopular' then
+			if cfg.youtube_region and cfg.youtube_region~='*' then uploads='&regionCode='..cfg.youtube_region end
+			iA = youtube_api_url..'videos?part=snippet&chart=mostPopular'
+		elseif tfeed[1]=='favorites' then
+			cA = youtube_api_url..'channels?part=contentDetails&forUsername='
+			iA = youtube_api_url..'playlistItems?part=snippet&playlistId='
+			userA = tfeed[2]
+			local jsonA = cA .. userA .. keyA
+			--local url_data = io.popen(getopt .. jsonA)
+			--local user_data = url_data:read('*all')
+			--url_data:close()
+			local user_data = http.download(jsonA)
+			local x=json.decode(user_data)
+			if x and x.items and #x.items > 0 then
+				uploads = x['items'][1]['contentDetails']['relatedPlaylists']['favorites']
+			end
+			x=nil
+		elseif tfeed[1]=='playlist' then
+			uploads = tfeed[2]
+			iA = youtube_api_url..'playlistItems?part=snippet&playlistId='
+		elseif tfeed[1]=='channel' then
+			cA = youtube_api_url..'channels?part=contentDetails&id='
+			iA = youtube_api_url..'playlistItems?part=snippet&playlistId='
+			local channel_id = tfeed[2]
+			local jsonA = cA .. channel_id .. keyA
+			--local url_data = io.popen(getopt .. jsonA)
+			--local user_data = url_data:read('*all')
+			--url_data:close()
+			local user_data = http.download(jsonA)
+			local x=json.decode(user_data)
+			if x and x.items and #x.items > 0 then
+				uploads = x['items'][1]['contentDetails']['relatedPlaylists']['uploads']
+			end
+			x=nil
+		elseif tfeed[1]=='search' then
+			-- feed_urn='videos?vq='..util.urlencode(tfeed[2])..'&alt=json'
+			if cfg.youtube_region and cfg.youtube_region~='*' then region='&regionCode='..cfg.youtube_region end
+			iA = youtube_api_url..'search?type=video&part=snippet&order=date&q=' .. util.urlencode(tfeed[2]) .. '&videoDefinition=high&videoDimension=2d' .. region
+			uploads = ''
+		else
+			cA = youtube_api_url..'channels?part=contentDetails&forUsername='
+			iA = youtube_api_url..'playlistItems?part=snippet&playlistId='
+			userA = tfeed[1]
+			local jsonA = cA .. userA .. keyA
+			--local url_data = io.popen(getopt .. jsonA)
+			--local user_data = url_data:read('*all')
+			--url_data:close()
+			local user_data = http.download(jsonA)
+			local x=json.decode(user_data)
+			if x and x.items and #x.items > 0 then
+				uploads = x['items'][1]['contentDetails']['relatedPlaylists']['uploads']
+			end
+			x=nil
+		end
+		while true do
+			local jsonA = iA .. uploads .. maxA .. pagetokenA .. keyA
+			--local url_data = io.popen(getopt .. jsonA)
+			--local item_data = url_data:read('*all')
+			--url_data:close()
+			local item_data = http.download(jsonA)
+			if item_data == nil then
+				if cfg.debug>0 then print('YouTube feed \''..feed_name..'\' NOT updated') end
+					return rc
+				end
+			local x=json.decode(item_data)
+			if isempty(x['pageInfo']) then
+				break
+			end
+			totalres = x['pageInfo']['totalResults']
+			local realpages = math.ceil(totalres/numA)
+			local prelastpage = realpages - 1
 
-    --------------------------------------------------------------------------------------------------
-    --local getopt = '/mnt/sda1/iptv/curl/curl -k '
-    local count = 0
-    local totalres = 0
-    local numA = 50 -- show 50 videos per page 0..50 from youtube api v3
-    local pagetokenA = ''
-    local nextpageA = ''
-    local allpages = math.ceil(cfg.youtube_video_count/numA) -- check how much pages per 50 videos there can be
-    local lastpage = allpages - 1
-    local maxA = '&maxResults=' .. numA
-    if cfg.youtube_video_count < numA then
-      maxA = '&maxResults=' .. cfg.youtube_video_count
-      numA = cfg.youtube_video_count
-    end
+			local items = nil
+			local title = nil
+			local url = nil
+			local img = nil
+			local countx = 0
 
-    local keyA = '&key=***' -- change *** to your youtube api key from: https://console.developers.google.com
-    if keyA == '&key=***' then
-	local keydata = read_file("/var/tuxbox/config/neutrino.conf") --file with key
-	keyA = "&key=" .. keydata:match("youtube_dev_id=(.-)\n")
-    end
-    local cA = ''
-    local iA = ''
-    local userA = tfeed[1]
-    local uploads = ''
-    local region = ''
-    local enough = false
-    
-    -- Get what exactly user wants to get.
-    if tfeed[1]=='channel' and tfeed[2]=='mostpopular' then
-            if cfg.youtube_region and cfg.youtube_region~='*' then uploads='&regionCode='..cfg.youtube_region end
-            iA = youtube_api_url..'videos?part=snippet&chart=mostPopular'
+			for key,value in pairs(x['items']) do
+				count = count + 1
+				if count > cfg.youtube_video_count then
+					enough = true
+					break
+				end
+				if tfeed[1]=='channel' and tfeed[2]=='mostpopular' then
+					items = value['id']
+				elseif tfeed[1]=='search' then
+					items = value['id']['videoId']
+				else
+					items = value['snippet']['resourceId']['videoId']
+				end
+				title = value['snippet']['title']
+				url = 'https://www.youtube.com/watch?v=' .. items .. '&feature=youtube_gdata'
+				img = 'http://i.ytimg.com/vi/' .. items .. '/mqdefault.jpg'
+				dfd:write('#EXTINF:0 logo=',img,' ,',title,'\n',url,'\n')
+			end
 
-    elseif tfeed[1]=='favorites' then
-            cA = youtube_api_url..'channels?part=contentDetails&forUsername='
-            iA = youtube_api_url..'playlistItems?part=snippet&playlistId='
-            userA = tfeed[2]
-            local jsonA = cA .. userA .. keyA
-	    --local url_data = io.popen(getopt .. jsonA)
-	    --local user_data = url_data:read('*all')
-	    --url_data:close()
-        local user_data = http.download(jsonA)
-	    local x=json.decode(user_data)
-	    uploads = x['items'][1]['contentDetails']['relatedPlaylists']['favorites']
-	    x=nil
-
-    elseif tfeed[1]=='playlist' then
-            uploads = tfeed[2]
-            iA = youtube_api_url..'playlistItems?part=snippet&playlistId='
-
-    elseif tfeed[1]=='channel' then
-            cA = youtube_api_url..'channels?part=contentDetails&id='
-            iA = youtube_api_url..'playlistItems?part=snippet&playlistId='
-            local channel_id = tfeed[2]
-            local jsonA = cA .. channel_id .. keyA
-	    --local url_data = io.popen(getopt .. jsonA)
-	    --local user_data = url_data:read('*all')
-	    --url_data:close()
-        local user_data = http.download(jsonA)
-	    local x=json.decode(user_data)
-	    uploads = x['items'][1]['contentDetails']['relatedPlaylists']['uploads']
-	    x=nil
-
-    elseif tfeed[1]=='search' then
-            -- feed_urn='videos?vq='..util.urlencode(tfeed[2])..'&alt=json'
-            if cfg.youtube_region and cfg.youtube_region~='*' then region='&regionCode='..cfg.youtube_region end
-            iA = youtube_api_url..'search?type=video&part=snippet&order=date&q=' .. util.urlencode(tfeed[2]) .. '&videoDefinition=high&videoDimension=2d' .. region
-            uploads = ''
-
-    else
-            cA = youtube_api_url..'channels?part=contentDetails&forUsername='
-            iA = youtube_api_url..'playlistItems?part=snippet&playlistId='
-            userA = tfeed[1]
-            local jsonA = cA .. userA .. keyA
-	    --local url_data = io.popen(getopt .. jsonA)
-	    --local user_data = url_data:read('*all')
-	    --url_data:close()
-        local user_data = http.download(jsonA)
-	    local x=json.decode(user_data)
-	    uploads = x['items'][1]['contentDetails']['relatedPlaylists']['uploads']
-	    x=nil
-    end
-
-
-
-    while true do
-      local jsonA = iA .. uploads .. maxA .. pagetokenA .. keyA
-      --local url_data = io.popen(getopt .. jsonA)
-      --local item_data = url_data:read('*all')
-      --url_data:close()
-      local item_data = http.download(jsonA)
-      if item_data == nil then
-          if cfg.debug>0 then print('YouTube feed \''..feed_name..'\' NOT updated') end
-          return rc
-      end
-      local x=json.decode(item_data)
-      if isempty(x['pageInfo']) then
-        break
-      end
-      totalres = x['pageInfo']['totalResults']
-      local realpages = math.ceil(totalres/numA)
-      local prelastpage = realpages - 1
-
-      local items = nil
-      local title = nil
-      local url = nil
-      local img = nil
-      local countx = 0
-
-      for key,value in pairs(x['items']) do
-        count = count + 1
-        if count > cfg.youtube_video_count then 
-          enough = true
-          break
-        end
-    	    if tfeed[1]=='channel' and tfeed[2]=='mostpopular' then
-    		    items = value['id']
-    		elseif tfeed[1]=='search' then
-    		    items = value['id']['videoId']
-        	else
-    		    items = value['snippet']['resourceId']['videoId']
-    	    end
-        title = value['snippet']['title']
-        url = 'https://www.youtube.com/watch?v=' .. items .. '&feature=youtube_gdata'
-        img = 'http://i.ytimg.com/vi/' .. items .. '/mqdefault.jpg'
-        dfd:write('#EXTINF:0 logo=',img,' ,',title,'\n',url,'\n')
-      end
-
-      if isempty(x['nextPageToken']) or enough then
-        break 
-      else
-        nextpageA = x['nextPageToken']
-        pagetokenA = '&pageToken=' .. nextpageA
-      end
-      x=nil
---    enough=nil
-    end
-    
-    
-    dfd:close()
+			if isempty(x['nextPageToken']) or enough then
+				break
+			else
+				nextpageA = x['nextPageToken']
+				pagetokenA = '&pageToken=' .. nextpageA
+			end
+			x=nil
+--	    	enough=nil
+		end
+		dfd:close()
     ---------------------------------------------------------------------------------------------------------
 
-    if util.md5(tmp_m3u_path)~=util.md5(feed_m3u_path) then
-      if os.execute(string.format('mv %s %s',tmp_m3u_path,feed_m3u_path))==0 then
-        if cfg.debug>0 then print('YouTube feed \''..feed_name..'\' updated') end
-        rc=true
-      end
-    else
-      util.unlink(tmp_m3u_path)
-    end
-  end
+		if util.md5(tmp_m3u_path)~=util.md5(feed_m3u_path) then
+			if os.execute(string.format('mv %s %s',tmp_m3u_path,feed_m3u_path))==0 then
+				if cfg.debug>0 then print('YouTube feed \''..feed_name..'\' updated') end
+				rc=true
+			end
+		else
+			util.unlink(tmp_m3u_path)
+		end
+	end
 
-  return rc
+	return rc
 end
 
 function youtube_sendurl(youtube_url,range)
@@ -289,7 +284,7 @@ function js_descramble( sig, js_url )
 
     -- Look for the descrambler function's name
     -- c&&a.set("signature",br(c));
-    local descrambler = js_extract( js, "%.set%([^,]-%.sp,[^;]-%((..)%(" )
+    local descrambler = js_extract( js, "[=%(,&|](..)%(decodeURIComponent%(.%.s%)%)" )
 --print("Youtube.js_descramble descrambler = "..descrambler)
     if not descrambler then
         if cfg.debug>0 then print ( "Youtube.js_descramble. ("..js.."). Couldn't extract youtube video URL signature descrambling function name" ) end
@@ -378,205 +373,214 @@ end
 
 -- decode URL
 function unescape (s)
-    s = string.gsub(s,"%%(%x%x)", function (h)
-          return string.char(tonumber(h, 16))
-        end)
-    return s
+	s = string.gsub(s,"%%(%x%x)", function (h)
+		return string.char(tonumber(h, 16))
+		end)
+	return s
 end
 
 -- Parse and pick our video URL
 function pick_url( url_map, fmt, js_url )
-    local path = nil
-    for stream in string.gmatch( url_map, "[^,]+" ) do
-        -- Apparently formats are listed in quality order,
-        -- so we can afford to simply take the first one
-        local itag = string.match( stream, "itag=(%d+)" )
-        if not fmt or not itag or tonumber( itag ) == tonumber( fmt ) then
-            local url = string.match( stream, "url=([^&,]+)" )
-            if url then
---                url = vlc.strings.decode_uri( url )
-                url = unescape (url)
+	local path = nil
+	for stream in string.gmatch( url_map, "[^,]+" ) do
+		-- Apparently formats are listed in quality order,
+		-- so we can afford to simply take the first one
+		local itag = string.match( stream, "itag=(%d+)" )
+		if not fmt or not itag or tonumber( itag ) == tonumber( fmt ) then
+			local url = string.match( stream, "url=([^&,]+)" )
+			if url then
+--              url = vlc.strings.decode_uri( url )
+				url = unescape (url)
 --print( "Youtube.pick_url  unescape url="..url)
 
-                local sig = string.match( stream, "sig=([^&,]+)" )
-                if not sig then
+				local sig = string.match( stream, "sig=([^&,]+)" )
+				if not sig then
                     -- Scrambled signature
-                    sig = string.match( stream, "s=([^&,]+)" )
-                    if sig then
-                        if cfg.debug>0 then print( "Youtube.pick_url Found "..string.len( sig ).."-character scrambled signature for youtube video URL, attempting to descramble... " ) end
-                        if js_url then
-                            sig = js_descramble( sig, js_url )
-                        else
-                            if cfg.debug>0 then print("Youtube.pick_url "..js_url..". Couldn't process youtube video URL" ) end
-                        end
-                    end
-                end
-                local signature = ""
-                if sig then
-                    signature = "&signature="..sig
-                end
+					sig = string.match( stream, "s=([^&,]+)" )
+					if sig then
+						if cfg.debug>0 then print( "Youtube.pick_url Found "..string.len( sig ).."-character scrambled signature for youtube video URL, attempting to descramble... " ) end
+						if js_url then
+							sig = js_descramble( sig, js_url )
+						else
+							if cfg.debug>0 then print("Youtube.pick_url "..js_url..". Couldn't process youtube video URL" ) end
+						end
+					end
+				end
+				local signature = ""
+				if sig then
+					signature = "&signature="..sig
+				end
 
 --print( "Youtube.pick_url signature="..signature)
-                path = url..signature
+				path = url..signature
 --print( "Youtube.pick_url path="..path)
-                break
-            end
-        end
-    end
-    return path
+				break
+			end
+		end
+	end
+	return path
 end
 
 function youtube_get_best_fmt(urls,fmt)
-  if fmt>81 and fmt<86 then -- 3d
-    local i=fmt while(i>81) do
-    if urls[i] then return urls[i] end
-    i=i-1
-  end
+	if fmt>81 and fmt<86 then -- 3d
+		local i=fmt while(i>81) do
+		if urls[i] then return urls[i] end
+			i=i-1
+		end
+		local t={ [82]=18, [83]=18, [84]=22, [85]=37 }
+		fmt=t[fmt]
+	end
+	local t={ 37,22,18 }
+	local t2={ [18]=true, [22]=true, [37]=true }
 
-  local t={ [82]=18, [83]=18, [84]=22, [85]=37 }
-
-  fmt=t[fmt]
-end
-
-local t={ 37,22,18 }
-local t2={ [18]=true, [22]=true, [37]=true }
-
-for i=1,3,1 do
-  local u=urls[ t[i] ]
-
-  if u and t2[fmt] and t[i]<=fmt then return u end
-end
-
+	for i=1,3,1 do
+		local u=urls[ t[i] ]
+		if u and t2[fmt] and t[i]<=fmt then return u end
+	end
 return urls[18]
 end
 
 -- Pick the most suited format available
 function get_fmt( fmt_list )
+	local prefres = cfg.youtube_preferred_resolution
+	if prefres < 0 then
+		return nil
+	end
 
-    local prefres = cfg.youtube_preferred_resolution
-    if prefres < 0 then
-        return nil
-    end
+	local fmt = nil
+	for itag,height in string.gmatch( fmt_list, "(%d+)/%d+x(%d+)/[^,]+" ) do
+		-- Apparently formats are listed in quality
+		-- order, so we take the first one that works,
+		-- or fallback to the lowest quality
+		fmt = itag
+		-- remove WebM itag=43
+		if tonumber(height) <= prefres and fmt~='43' then
+			break
+		end
+	end
+	return fmt
+end
 
-    local fmt = nil
-    for itag,height in string.gmatch( fmt_list, "(%d+)/%d+x(%d+)/[^,]+" ) do
-        -- Apparently formats are listed in quality
-        -- order, so we take the first one that works,
-        -- or fallback to the lowest quality
-        fmt = itag
-        -- remove WebM itag=43
-        if tonumber(height) <= prefres and fmt~='43' then
-            break
-        end
-    end
-    return fmt
+function getSig(video_url,js_url)
+	local sig=video_url:match('6s=([%%%-%=%w+_]+)') or video_url:match('&s=([%%%-%=%w+_]+)') or video_url:match('^s=([%%%-%=%w+_]+)')
+	if sig and (#sig > 99 and #sig < 160) then
+		if js_url then
+			local s2=unescape(sig)
+			local signature = js_descramble( s2, js_url )
+			if signature then
+				sig = sig:gsub("[%+%?%-%*%(%)%.%[%]%^%$%%]","%%%1")
+				signature = signature:gsub("[%%]","%%%%")
+				video_url = video_url:gsub('s=' .. sig ,"")
+				video_url = video_url .. '&sig=' .. signature
+			end
+		end
+	end
+	return video_url
+end
+
+function getPlayerMapUrl(player_map, js_url)
+
+	local itags = {	[37]='1920x1080',[96]='1920x1080',[85]='1920x1080p',[22]='1280x720',[95]='1280x720',[94]='854x480',[35]='854x480',
+					[18]='640x360',[93]='640x360',[34]='640x360',[5]='400x240',[6]='450x270',[36]='320x240',
+					[92]='320x240',[17]='176x144',[13]='176x144',
+					[84]='1280x720',[83]='854x480',[82]='640x360'	}
+	local res = 0
+	local video_url = nil
+	if player_map then
+		local pm1 = nil
+		local pm2 = nil
+		local pm1 = json.decode (player_map)
+		if pm1 and pm1.args and pm1.args.player_response then
+			pm2 = json.decode(pm1.args.player_response)
+			if pm2 and pm2.streamingData and pm2.streamingData.formats then
+				for k, purl in pairs(pm2.streamingData.formats) do
+					if purl.itag and itags[purl.itag] then
+						print(itags[purl.itag])
+						tmp_res = tonumber(itags[purl.itag]:match('(%d+)x'))
+						if tmp_res > res then
+							if purl.cipher then
+								res = tmp_res
+								video_url = purl.cipher:gsub("url=","")
+							elseif purl.url then
+								res = tmp_res
+								video_url = purl.url
+							end
+						end
+					end
+				end
+			end
+			if pm2 and pm2.streamingData and pm2.streamingData.adaptiveFormats then
+				for k, purl in pairs(pm2.streamingData.adaptiveFormats) do
+					if purl.itag and itags[purl.itag] then
+						tmp_res = tonumber(itags[purl.itag]:match('(%d+)x'))
+						if tmp_res > res then
+						print(itags[purl.itag])
+							if purl.cipher then
+								res = tmp_res
+								video_url = purl.cipher:gsub("url=","")
+							elseif purl.url then
+								res = tmp_res
+								video_url = purl.url
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	video_url = getSig(video_url,js_url)
+	video_url = video_url:gsub("\\u0026", "&")
+	video_url = unescape(video_url)
+	video_url = video_url:gsub("&&", "&")
+	video_url = video_url:match( "(http.*)" )
+	return video_url
 end
 
 function youtube_get_video_url(youtube_url)
-    local clip_page=plugin_download(youtube_url)
-    if clip_page then
-        local line=string.match(clip_page,'ytplayer.config%s*=%s*({.-});')
-        clip_page=nil
-                local js_url = string.match( line, "\"js\": *\"(.-)\"" )
-                if js_url then
-                    js_url = string.gsub( js_url, "\\/", "/" )
-                    -- Resolve JS URL
-                    if string.match( js_url, "^/[^/]" ) then
-                        local authority = string.match( youtube_url, "://([^/]*)/" )
-                        js_url = "//"..authority..js_url
-                    end
-                    js_url = string.gsub( js_url, "^//", string.match( youtube_url, ".-://" ) )
-                end
-                    fmt_list = string.match( line, "\"fmt_list\": *\"(.-)\"" )
-                    if fmt_list then
-                        fmt_list = string.gsub( fmt_list, "\\/", "/" )
-                        fmt = get_fmt( fmt_list )
-                    end
+	local clip_page=plugin_download(youtube_url)
+	if clip_page then
+		local line=string.match(clip_page,'ytplayer.config%s*=%s*({.-});')
+		clip_page=nil
+		local js_url = string.match( line, "\"js\": *\"(.-)\"" )
+		if js_url then
+			js_url = string.gsub( js_url, "\\/", "/" )
+			-- Resolve JS URL
+			if string.match( js_url, "^/[^/]" ) then
+				local authority = string.match( youtube_url, "://([^/]*)/" )
+				js_url = "//".. authority ..js_url
+			end
+			js_url = string.gsub( js_url, "^//", string.match( youtube_url, ".-://" ) )
+		end
+		fmt_list = string.match( line, "\"fmt_list\": *\"(.-)\"" )
+		if fmt_list then
+			fmt_list = string.gsub( fmt_list, "\\/", "/" )
+			fmt = get_fmt( fmt_list )
+		end
+		url_map = string.match( line, "\"url_encoded_fmt_stream_map\": *\"(.-)\"" )
+		if url_map then
+			-- FIXME: do this properly
+			url_map = string.gsub( url_map, "\\u0026", "&" )
+			path = pick_url( url_map, fmt, js_url )
+		else
+			path = getPlayerMapUrl(line,js_url)
+		end
 
---    print ("fmt\r\n"..fmt)
-                url_map = string.match( line, "\"url_encoded_fmt_stream_map\": *\"(.-)\"" )
-                if url_map then
-                    -- FIXME: do this properly
-                    url_map = string.gsub( url_map, "\\u0026", "&" )
-                    path = pick_url( url_map, fmt, js_url )
-                end
---    print ("path\r\n"..path)
-
-                if not path then
-                    -- If this is a live stream, the URL map will be empty
-                    -- and we get the URL from this field instead
-                    local hlsvp = string.match( line, "\"hlsvp\": *\"(.-)\"" )
-                    if hlsvp then
-                        hlsvp = string.gsub( hlsvp, "\\/", "/" )
-                        path = hlsvp
-                    end
-                end
-    else
-        if cfg.debug>0 then print('YouTube clip is not found') end
-        return nil
-    end
-    return path;
+		if not path then
+			-- If this is a live stream, the URL map will be empty
+			-- and we get the URL from this field instead
+			local hlsvp = string.match( line, "\"hlsvp\": *\"(.-)\"" )
+			if hlsvp then
+				hlsvp = string.gsub( hlsvp, "\\/", "/" )
+				path = hlsvp
+			end
+		end
+	else
+		if cfg.debug>0 then print('YouTube clip is not found') end
+		return nil
+	end
+	return path;
 end
 
-function youtube_old_get_video_url(youtube_url)
-  local url=nil
-
-  local clip_page=plugin_download(youtube_url)
-  if clip_page then
-    local s=json.decode(string.match(clip_page,'ytplayer.config%s*=%s*({.-});'))
-
-    clip_page=nil
-
-    local stream_map=nil
-
-    -- s.args.adaptive_fmts
-    -- itag 137: 1080p
-    -- itag 136: 720p
-    -- itag 135: 480p
-    -- itag 134: 360p
-    -- itag 133: 240p
-    -- itag 160: 144
-
-    --        local player_url=nil if s.assets then player_url=s.assets.js end if player_url and string.sub(player_url,1,2)=='//' then player_url='http:'..player_url end
-
-    if s.args then stream_map=s.args.url_encoded_fmt_stream_map end
-
-    local fmt=string.match(youtube_url,'&fmt=(%w+)$')
-
-    if not fmt then fmt=cfg.youtube_fmt end
-
-    if stream_map then
-      local urls={}
-
-      for i in string.gmatch(stream_map,'([^,]+)') do
-        local item={}
-        for j in string.gmatch(i,'([^&]+)') do
-          local name,value=string.match(j,'(%w+)=(.+)')
-          if name then
-            --print(name,util.urldecode(value))
-            item[name]=util.urldecode(value)
-          end
-        end
-
-        local sig=item['sig'] or item['s']
-        local u=item['url']
-        if sig then u=u..'&signature='..sig end
-        --print(item['itag'],u)
-        urls[tonumber(item['itag'])]=u
-
-        --print('\n')
-      end
-
-      url=youtube_get_best_fmt(urls,tonumber(fmt))
-      --print('old url='..url)
-    end
-
-    return url
-  else
-    if cfg.debug>0 then print('YouTube clip is not found') end
-    return nil
-  end
-end
 
 plugins['youtube']={}
 plugins.youtube.name="YouTube"
