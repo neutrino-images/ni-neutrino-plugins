@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.86"
+rssReaderVersion="Lua RSS READER v0.87"
 local CONF_PATH = "/var/tuxbox/config/"
 local n = neutrino()
 local FontMenu = FONT.MENU
@@ -663,9 +663,10 @@ function html2text(viewer,text)
 end
 
 function htmlreader(text)
+	if text == nil then return "" end
 	local text_tmp = text:match("<body.->(.-)</body>")
 	local error = "RSS HTML READER ERROR\n"
-	if text == nil then return error .. text end
+	if text_tmp == nil then return error end
 	text = text_tmp
 	local patterns = {
 	{'<!%-%-.-%-%->',""},
@@ -692,9 +693,11 @@ function htmlreader(text)
 	{'[\n]+', "\n"},
 	{'\n*$', ""},
 	}
+	if text == nil then return "" end
 	for _,v in ipairs(patterns) do
 		text = text:gsub( v[1], v[2],v[3] )
 	end
+	if text == nil then return "" end
 	return text
 end
 
