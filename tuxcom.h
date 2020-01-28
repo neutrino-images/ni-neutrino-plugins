@@ -24,7 +24,9 @@
 
 #include <config.h>
 #define _FILE_OFFSET_BITS 64
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <errno.h>
 #include <locale.h>
 #include <fcntl.h>
