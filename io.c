@@ -195,6 +195,7 @@ int GetRCCode(int timeout_in_ms)
 			switch(poll(&pfd, 1, timeout_in_ms)) {
 				case -1:
 					perror("GetRCCode: poll() failed");
+					/* fall through */
 				case 0:
 					return -1;
 				default:

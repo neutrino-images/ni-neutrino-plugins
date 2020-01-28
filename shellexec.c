@@ -907,6 +907,7 @@ int Get_Selection(MENU *m)
 					break;
 				}
 				rv=RC_HOME;
+				/* fall through */
 			case RC_HOME:
 				rv=0;
 				mloop=0;
@@ -993,6 +994,7 @@ int AddListEntry(MENU *m, char *line, int pos)
 					case '&': entr->stay=1; break;
 					case 0302: if (*(ptr2 + 1) != 0247) break; // UTF-8 value of paragraph symbol
 						ptr2++;
+						/* fall through */
 					case 0247: entr->stay=2; break;
 				}
 				while(*(++ptr2))
