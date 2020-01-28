@@ -2300,9 +2300,9 @@ int ShowProperties()
 	RenderBox(bstartx, bstarty, bendx, bendy, GRID, WHITE);
 	RenderString(pfe->name, sstartx, sstarty + FONTHEIGHT_BIG, swidth, CENTER, BIG, WHITE);
 
-	char sizeString[200];
-	GetSizeString(sizeString,pfe->fentry.st_size,1);
-	sprintf(sizeString,"%s byte(s)",sizeString);
+	char sizeString[200], buf[200];
+	GetSizeString(buf,pfe->fentry.st_size,1);
+	sprintf(sizeString, "%s byte(s)", buf);
 
 	RenderString(sizeString, sstartx, sstarty + 2 * FONTHEIGHT_BIG, wi, CENTER, BIG, WHITE);
 
