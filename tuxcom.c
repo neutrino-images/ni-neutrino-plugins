@@ -1125,6 +1125,7 @@ int main()
 			}
 		}
 #endif
+		int len = 0;
 		switch(rccode)
 		{
 				case RC_HELP:
@@ -1150,12 +1151,14 @@ int main()
 							if (finfo[curframe].zipfile[0] != 0x00)
 							{
 								strncat(finfo[curframe].zippath,pfe->name,256);
-								strncat(finfo[curframe].zippath,"/",1);
+								len = FILENAME_MAX - strlen(finfo[curframe].zippath) - 1;
+								strncat(finfo[curframe].zippath,"/",len);
 							}
 							else
 							{
 								strncat(finfo[curframe].path,pfe->name,256);
-								strncat(finfo[curframe].path,"/",1);
+								len = FILENAME_MAX - strlen(finfo[curframe].path) - 1;
+								strncat(finfo[curframe].path,"/",len);
 							}
 							finfo[curframe].selected =1;
 							finfo[curframe].first    =0;
@@ -1173,7 +1176,8 @@ int main()
 						if (S_ISDIR(fs.st_mode))
 						{
 							strncat(finfo[curframe].path,pfe->name,256);
-							strncat(finfo[curframe].path,"/",1);
+							len = FILENAME_MAX - strlen(finfo[curframe].path) - 1;
+							strncat(finfo[curframe].path,"/",len);
 							finfo[curframe].selected =0;
 							finfo[curframe].first    =0;
 							ClearMarker(curframe);
@@ -3480,7 +3484,7 @@ void FillDir(int frame, int selmode)
 	*selentry = 0x00;
 	char szSel[256];
 	*szSel = 0x00;
-	int npos = 0;
+	int npos = 0, len = 0;
 	struct fileentry* pfe = NULL;
 	if (finfo[frame].selected > 0)
 	{
@@ -3493,7 +3497,8 @@ void FillDir(int frame, int selmode)
 			if (strcmp(finfo[frame].zippath,"/") == 0)
 			{
 				strncat(finfo[curframe].path,finfo[frame].zipfile,256);
-				strncat(finfo[curframe].path,"/",1);
+				len = FILENAME_MAX - strlen(finfo[curframe].path) - 1;
+				strncat(finfo[curframe].path,"/",len);
 				ClearZipEntries(frame);
 			}
 		}
