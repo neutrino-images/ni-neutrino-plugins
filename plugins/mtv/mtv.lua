@@ -22,7 +22,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.de Version 0.31" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.32" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -317,9 +317,6 @@ function getvideourl(url,vidname,hls)
 				end
 			end
 		end
-	end
-	if video_url and video_url:sub(1,5) == "rtmpe" then
-		video_url = "rtmp" .. video_url:sub(6,#video_url)
 	end
 	local x = nil
 	if video_url then
