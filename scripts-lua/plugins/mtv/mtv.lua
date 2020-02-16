@@ -1,7 +1,7 @@
 --[[
 	mtv.ch
-	Copyright (C) 2015,2019  Jacek Jendrzej 'satbaby'
-	With Help from: Thomas(2015,2016,2017,2018,2019),Dosik7(2017),BPanther(2018)
+	Copyright (C) 2015,2019,2020  Jacek Jendrzej 'satbaby'
+	With Help from: Thomas(2015,2016,2017,2018,2019,2020),Dosik7(2017),BPanther(2018)
 
 	License: GPL
 
@@ -22,7 +22,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.de Version 0.32" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.33" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -137,7 +137,22 @@ function init()
 			{name = "MTV Unplugged",url="http://www.mtv.de/shows/w2nofb/mtv-unplugged",fav=false},
 			{name = "Hitlist Germany - Top100",url="http://www.mtv.de/shows/fdc2nt/mtv-top-100",fav=false},
 			{name = "MTV Shows",url="http://www.mtv.de/shows",fav=false},
-			{name = "MTV Buzz",url="http://www.mtv.de/buzz",fav=false}
+			{name = "MTV Buzz",url="http://www.mtv.de/buzz",fav=false},
+			--{name = "MTV PUSH",url="http://www.mtv.de/shows/z4pet5/mtv-push",fav=false},
+			{name = "MTV PLAYLIST",url="http://www.mtv.de/playlists",fav=false},
+			{name = "ALLE MUSIKVIDEOS",url="http://www.mtv.de/musik",fav=false},
+			{name = "Singel Top 100",url="http://www.mtv.de/charts/c6mc86/single-top-100",fav=false},
+			--{name = "Album Top 100",url="http://www.mtv.de/charts/70tgrf/album-top-100",fav=false},
+			{name = "Midweek Singel Top100",url="http://www.mtv.de/charts/n91ory/midweek-single-top-100",fav=false},
+			--{name = "Midweek Album Top100",url="http://www.mtv.de/charts/ew735d/midweek-album-top-100",fav=false},
+			{name = "Singel Trending",url="http://www.mtv.de/charts/9gtiy5/single-trending",fav=false},
+			{name = "Top100 Musik Streaming",url="http://www.mtv.de/charts/h4oi23/top100-music-streaming",fav=false},
+			{name = "Download Charts Singel",url="http://www.mtv.de/charts/pcbqpc/downloads-charts-single",fav=false},
+			--{name = "Download Charts Album",url="http://www.mtv.de/charts/ha7dbg/downloads-charts-album",fav=false},
+			{name = "Top15 deutsche Singel",url="http://www.mtv.de/charts/jlyhaa/top-15-deutschsprachige-single-charts",fav=false},
+			--{name = "Top15 deutsche Alben",url="http://www.mtv.de/charts/wp4sh5/top-15-deutschsprachige-alben-charts",fav=false},
+			--{name = "Hip Hop",url="http://www.mtv.de/charts/vh9pco/hip-hop-charts",fav=false},
+			{name = "Dance Charts",url="http://www.mtv.de/charts/2ny5w9/dance-charts",fav=false},
 	}
 
 	local url = "http://www.mtv.de/charts"
