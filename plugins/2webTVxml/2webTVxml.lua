@@ -200,7 +200,7 @@ function basename(str)
 end
 
 function info(captxt,infotxt, sleep)
-	if captxt == mtv_version and infotxt==nil then
+	if captxt == version and infotxt==nil then
 		infotxt=captxt
 		captxt="Information"
 	end
@@ -373,7 +373,7 @@ function main_menu()
 	local menu = glob.main_menu
 	local d = 1 -- directkey
 
-	menu:addKey{directkey=RC["info"], id=mtv_version, action="info"}
+	menu:addKey{directkey=RC["info"], id=version, action="info"}
 	menu:addItem{type="back"}
 	menu:addItem{type="separatorline"}
 	menu:addItem{ type="filebrowser", dir_mode="0", id="file", name=loc.file, action="setvar",enabled=true,value=conf.file,directkey=godirectkey(d),
