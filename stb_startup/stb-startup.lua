@@ -312,7 +312,12 @@ function main()
 	end
 
 	if islink(partitions_by_name .. "/rootfs1") then
-		devbase = "/dev/" .. string.sub(fh:readlink(partitions_by_name .. "/" .. "rootfs1"), 7, 14)
+		for line in io.lines("/proc/cmdline") do
+			if line:match("root=") then
+				local _,j = string.find(line, "root=")
+				devbase = string.sub(line, j+1, j+13)
+			end
+		end
 	else
 		devbase = "linuxrootfs"
 	end
