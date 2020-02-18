@@ -299,7 +299,7 @@ function main()
 		lang = "english"
 	end
 
-	if has_boxmode() then
+	if has_gpt_layout() then
 		boot = "/tmp/testmount/boot"
 	else
 		boot = "/tmp/testmount/bootoptions"
@@ -312,7 +312,7 @@ function main()
 	end
 
 	if islink(partitions_by_name .. "/rootfs1") then
-		devbase = "/dev/mmcblk0p"
+		devbase = "/dev/" .. string.sub(fh:readlink(partitions_by_name .. "/" .. "rootfs1"), 7, 14)
 	else
 		devbase = "linuxrootfs"
 	end
