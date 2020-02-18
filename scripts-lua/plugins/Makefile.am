@@ -1,5 +1,8 @@
 SUBDIRS =
 
+if ENABLE_2WEBTVXML
+SUBDIRS += 2webTVxml
+endif
 if ENABLE_ADD_LOCALE
 SUBDIRS += add-locale
 endif

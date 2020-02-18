@@ -153,6 +153,12 @@ AC_ARG_ENABLE(vinfo,
 	[enable_vinfo="yes"])
 AM_CONDITIONAL(ENABLE_VINFO, test "$enable_vinfo" = "yes")
 
+AC_ARG_ENABLE(2webtvxml,
+	AS_HELP_STRING([--enable-2webtvxml], [enable 2webTVxml @<:@default=yes@:>@]),
+	[enable_2webtvxml="$enableval"],
+	[enable_2webtvxml="yes"])
+AM_CONDITIONAL(ENABLE_2WEBTVXML, test "$enable_2webtvxml" = "yes")
+
 AC_ARG_ENABLE(add-locale,
 	AS_HELP_STRING([--enable-add-locale], [enable add-locale @<:@default=yes@:>@]),
 	[enable_add_locale="$enableval"],
@@ -320,6 +326,7 @@ oscammon/Makefile
 satfind/Makefile
 scripts-lua/Makefile
 scripts-lua/plugins/Makefile
+scripts-lua/plugins/2webTVxml/Makefile
 scripts-lua/plugins/add-locale/Makefile
 scripts-lua/plugins/ard_mediathek/Makefile
 scripts-lua/plugins/epgfilter/Makefile
