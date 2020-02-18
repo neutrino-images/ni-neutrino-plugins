@@ -285,7 +285,7 @@ function saveXml(filename,name,xmliste,ext)
 		file:close()
 		sleep (1)
 		pw:hide()
-	endc
+	end
 end
 
 function m3u2xml(filename)
