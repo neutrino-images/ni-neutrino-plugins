@@ -299,7 +299,7 @@ function main()
 		lang = "english"
 	end
 
-	if has_boxmode() then
+	if has_gpt_layout() then
 		boot = "/tmp/testmount/boot"
 	else
 		boot = "/tmp/testmount/bootoptions"
@@ -312,7 +312,12 @@ function main()
 	end
 
 	if islink(partitions_by_name .. "/rootfs1") then
-		devbase = "/dev/mmcblk0p"
+		for line in io.lines("/proc/cmdline") do
+			if line:match("root=") then
+				local _,j = string.find(line, "root=")
+				devbase = string.sub(line, j+1, j+13)
+			end
+		end
 	else
 		devbase = "linuxrootfs"
 	end
