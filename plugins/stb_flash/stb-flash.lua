@@ -31,8 +31,6 @@ n = neutrino()
 fh = filehelpers.new()
 
 bootfile = "/boot/STARTUP"
-imageversion_source = "https://tuxbox-images.de/images/osmio4kplus/imageversion"
-
 locale = {}
 
 locale["deutsch"] = {
@@ -76,7 +74,7 @@ locale["english"] = {
 
 function islink(path)
 	return fh:exist(path, "l")
-end
+end   
 
 function has_gpt_layout()
 	if islink("/dev/disk/by-partlabel/linuxrootfs") then
@@ -183,6 +181,8 @@ function is_active(root)
 	return active
 end
 
+imageversion_source = "https://tuxbox-images.de/images/" .. get_value("machine", current_root) .. "
+    /imageversion"
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/etc/neutrino/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
