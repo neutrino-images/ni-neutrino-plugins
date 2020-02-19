@@ -31,10 +31,6 @@ n = neutrino()
 fh = filehelpers.new()
 
 bootfile = "/boot/STARTUP"
-devbase = "linuxrootfs"
-
-imageversion_source = "https://tuxbox-images.de/images/hd51/imageversion"
-
 locale = {}
 
 locale["deutsch"] = {
@@ -76,6 +72,53 @@ locale["english"] = {
 	prepare_system = "System is getting prepared ... please stand by",
 }
 
+function islink(path)
+	return fh:exist(path, "l")
+end
+
+function has_gpt_layout()
+	if islink("/dev/disk/by-partlabel/linuxrootfs") then
+		return false
+	end
+	return true
+end
+
+if has_gpt_layout() then
+	devpath = "/mnt/"
+	devbase = "rootfs"
+else
+	devpath = "/mnt/userdata/"
+	devbase = "linuxrootfs"
+end
+
+function devnum_to_image(root)
+	if (has_gpt_layout()) then
+		if (root == 3) then ret = 1 end
+		if (root == 5) then ret = 2 end
+		if (root == 7) then ret = 3 end
+		if (root == 9) then ret = 4 end
+	else
+		ret = root
+	end
+	return ret
+end
+
+for line in io.lines(bootfile) do
+	if not has_gpt_layout() then
+		_, j = string.find(line, devbase)
+		if (j ~= nil) then
+			current_root = tonumber(string.sub(line,j+1,j+1))
+		end
+	else
+		for line in io.lines("/proc/cmdline") do
+			if line:match("root=") then
+				local _,j = string.find(line, "root=")
+				current_root = devnum_to_image(tonumber(string.sub(line, j+14, j+14)))
+			end
+		end
+	end
+end
+
 function sleep(n)
 	os.execute("sleep " .. tonumber(n))
 end
@@ -100,10 +143,10 @@ function isdir(path)
 	return exists(path .. "/")
 end
 
-function get_value(str,part)
-	for line in io.lines("mnt/userdata/linuxrootfs" .. part  .. "/etc/image-version") do
+function get_value(str,root)
+	for line in io.lines(devpath .. devbase  .. root  .. "/etc/image-version") do
 		if line:match(str .. "=") then
-			local i,j = string.find(line, str .. "=")
+			local _,j = string.find(line, str .. "=")
 			ret = string.sub(line, j+1, #line)
 		end
 	end
@@ -111,20 +154,20 @@ function get_value(str,part)
 end
 
 function get_imagename(root)
-	if exists("mnt/userdata/linuxrootfs" .. root  .. "/etc/image-version") then
-		imagename = get_value("distro", root) .. " " .. get_value("imageversion", root)
-	else
-		local glob = require "posix".glob
-		for _, j in pairs(glob('/boot/*', 0)) do
-			for line in io.lines(j) do
-				if (j ~= bootfile) or (j ~= nil) then
-					if line:match(devbase .. root) then
-						imagename = basename(j)
+		if exists(devpath .. devbase .. root  .. "/etc/image-version") then
+			imagename = get_value("distro", root) .. " " .. get_value("imageversion", root)
+		else
+			local glob = require "posix".glob
+			for _, j in pairs(glob('/boot/*', 0)) do
+				for line in io.lines(j) do
+					if (j ~= bootfile) or (j ~= nil) then
+						if line:match(devbase .. root) then
+							imagename = basename(j)
+						end
 					end
 				end
 			end
 		end
-	end
 	return imagename
 end
 
@@ -138,6 +181,7 @@ function is_active(root)
 	return active
 end
 
+imageversion_source = "https://tuxbox-images.de/images/" .. get_value("machine", current_root) .. "/imageversion"
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/etc/neutrino/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
@@ -147,13 +191,6 @@ if locale[lang] == nil then
 end
 
 timing_menu = neutrino_conf:getString("timing.menu", "0")
-
-for line in io.lines(bootfile) do
-	i, j = string.find(line, devbase)
-	if (j ~= nil) then
-		current_root = tonumber(string.sub(line,j+1,j+1))
-	end
-end
 
 chooser_dx = n:scale2Res(700)
 chooser_dy = n:scale2Res(200)
@@ -257,3 +294,4 @@ if colorkey then
 		return
 	end
 end
+
