@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local version="2webTVxml Version 0.4"
+local version="2webTVxml Version 0.5"
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -316,11 +316,10 @@ function tv2xml(filename)
 		local saveUrl = true
 		local name = data:match("#NAME%s+::(.-):")
 		name = name or "e2tv"
-		for url,des,des2 in data:gmatch('#SERVICE .-:0:0:0:(http.-)[:\n](.-)#DESCRIPTION%s+(.-)\n') do
+		for url,des in data:gmatch('#SERVICE .-:0:0:0:(http.-)[:\n].-#DESCRIPTION%s+(.-)\n') do
 			if urls[url] ~= true then
 				urls[url] = true
 				local gen = "IPTV"
-				if #des < 1 then des = des2 end
 				local tag = "e2tv"
 				table.insert(xmliste,{xgen=gen,xtitle=des,xurl=url,xtag=tag})
 			end
