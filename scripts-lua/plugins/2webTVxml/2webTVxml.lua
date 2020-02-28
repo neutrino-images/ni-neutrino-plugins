@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local version="2webTVxml Version 0.3"
+local version="2webTVxml Version 0.4"
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -230,6 +230,7 @@ function xmlentity(str)
 	ustr = ustr:gsub('>',"&qt")
 	ustr = ustr:gsub("&","&amp;")
 	ustr = ustr:gsub("\r","")
+	ustr = ustr:gsub("\n","")
 	return ustr
 end
 
@@ -315,7 +316,7 @@ function tv2xml(filename)
 		local saveUrl = true
 		local name = data:match("#NAME%s+::(.-):")
 		name = name or "e2tv"
-		for url,des,des2 in data:gmatch('#SERVICE .-:0:0:0:(http.-):(.-)\n#DESCRIPTION%s+(.-)\n') do
+		for url,des,des2 in data:gmatch('#SERVICE .-:0:0:0:(http.-)[:\n](.-)#DESCRIPTION%s+(.-)\n') do
 			if urls[url] ~= true then
 				urls[url] = true
 				local gen = "IPTV"
