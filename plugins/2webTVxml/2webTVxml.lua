@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local version="2webTVxml Version 0.5"
+local version="2webTVxml Version 0.6"
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -35,6 +35,8 @@ locale["deutsch"] = {
 	converthint = "tv oder m3u in xml-format konvertieren",
 	checkonline = "Online prüfen",
 	checkonlinehint = "Wird geprüft , ob ein Stream online ist.",
+	udp = "Ignorieren udp",
+	udphint = "Überspringen url mit udp Protokoll.",
 	defpathon = "Standardpfad verwenden",
 	defpathonhint = "Standardpfad verwenden?",
 	defdir = "Verzeichnis: ",
@@ -48,6 +50,8 @@ locale["english"] = {
 	converthint = "convert tv or m3u to xml format",
 	checkonline = "Check  online",
 	checkonlinehint = "Checks whether a stream is online.",
+	udp = "Ignore udp",
+	udphint = "Skip url with udp protokol.",
 	defpathon = "Use default Path",
 	defpathonhint = "Use default Path?",
 	defdir = "Directory: ",
@@ -102,6 +106,7 @@ function saveConfig()
 		local config	= configfile.new()
 		config:setString("file", conf.file)
 		config:setBool  ("checkonline",conf.checkonline)
+		config:setBool  ("udp",conf.udp)
 		config:setBool  ("defpathon",conf.defpathon)
 		config:setString("path", conf.path)
 		config:saveConfig(get_confFile())
@@ -114,6 +119,7 @@ function loadConfig()
 	config:loadConfig(get_confFile())
 	conf.path = config:getString("path", "/tmp")
 	conf.checkonline = config:getBool("checkonline", false)
+	conf.udp = config:getBool("udp", false)
 	conf.defpathon = config:getBool("defpathon", false)
 	conf.file = config:getString("file", "/tmp/test.tv")
 
@@ -242,6 +248,8 @@ function checkOnline(url)
 				return true
 			end
 		end
+	elseif url:match("^udp.*") or url:match("^rtp.*") or url:match("^rtmp.*") or url:match("^mms.*") or url:match("^rtsp.*") then
+			return true
 	elseif conf.ffprobe then
 		local output = pop("ffprobe '" .. url .. "' 2>&1")
 		if output:find("Stream") then
@@ -294,8 +302,10 @@ function m3u2xml(filename)
 	local xmliste = {}
 	local data = read_file(filename)
 	if data then
-		for name,url in data:gmatch('#EXTINF.-,(.-)\n(http.-)\n') do
-			if urls[url] ~= true then
+		for name,url in data:gmatch('#EXTINF.-,(.-)\n(%a+://.-)\n') do
+			if conf.udp and url:match("^udp://.*") then
+-- 				print("skip: " .. url)
+			elseif urls[url] ~= true then
 				urls[url] = true
 				local gen = "IPTV"
 				local tag = "m3u"
@@ -303,7 +313,7 @@ function m3u2xml(filename)
 			end
 		end
 		if #xmliste > 0 then
-			saveXml(filename,"EXTM3U",xmliste,-4)--m3u
+			saveXml(filename,"EXTM3U-" .. filename:match("/(%w+)%.m3u"),xmliste,-4)--m3u
 		end
 	end
 end
@@ -315,9 +325,12 @@ function tv2xml(filename)
 	if data then
 		local saveUrl = true
 		local name = data:match("#NAME%s+::(.-):")
-		name = name or "e2tv"
-		for url,des in data:gmatch('#SERVICE .-:0:0:0:(http.-)[:\n].-#DESCRIPTION%s+(.-)\n') do
-			if urls[url] ~= true then
+		name = name or "e2tv-" .. filename:match("/(%w+)%.tv")
+		for url,des in data:gmatch('#SERVICE .-:0:0:0:(%a+%%3a//.-\n)#DESCRIPTION%s+(.-)\n') do
+			url = url:match("(.-)[:\n]")
+			if conf.udp and url:match("^udp%%3a//.*") then
+-- 				print("skip: " .. url)
+			elseif urls[url] ~= true then
 				urls[url] = true
 				local gen = "IPTV"
 				local tag = "e2tv"
@@ -384,6 +397,8 @@ function main_menu()
 	d=d+1
 	menu:addItem{type="separatorline"}
 	menu:addItem{type="chooser", action="set_option", options={ on, off }, id="checkonline", value=bool2onoff(conf.checkonline), directkey=godirectkey(d), name=loc.checkonline,hint_icon="hint_service",hint=loc.checkonlinehint}
+	d=d+1
+	menu:addItem{type="chooser", action="set_option", options={ on, off }, id="udp", value=bool2onoff(conf.udp), directkey=godirectkey(d), name=loc.udp,hint_icon="hint_service",hint=loc.udphint}
 	d=d+1
 	menu:addItem{type="chooser", action="set_option", options={ on, off }, id="defpathon", value=bool2onoff(conf.defpathon), directkey=godirectkey(d), name=loc.defpathon,hint_icon="hint_service",hint=loc.defpathonhint}
 	d=d+1
