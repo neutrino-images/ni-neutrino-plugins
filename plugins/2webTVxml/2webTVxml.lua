@@ -21,11 +21,12 @@
 ]]
 
 local glob = {}
-local version="2webTVxml Version 0.9"
+local version="2webTVxml Version 0.10"
 local n = neutrino()
 local conf = {}
 local on="ein"
 local off="aus"
+local mact = {}
 local loc = nil
 locale = {}
 locale["deutsch"] = {
@@ -45,7 +46,8 @@ locale["deutsch"] = {
 	defdirhint = "In welchem Verzeichnis soll Datei (xml) gespeichert werden?",
 	infohint = "Nicht unterstütztes Format",
 	info2hint = "Liste",
-	info3hint = "ist leer oder kein url gefunden."
+	info3hint = "ist leer oder kein url gefunden.",
+	dlerror = "Download fehlgeschlagen"
 }
 locale["english"] = {
 	file = "Select file",
@@ -64,11 +66,15 @@ locale["english"] = {
 	defdirhint = "In which directory should file (xml) be saved?",
 	infohint = "Not supported format",
 	info2hint = "List",
-	info3hint = "is empty or no url found."
+	info3hint = "is empty or no url found.",
+	dlerror = "Download failed"
 }
 
 function get_confFile()
 	return "/var/tuxbox/config/2webTVxml.conf"
+end
+function get_conf_onlineFile()
+	return "/var/tuxbox/config/2webTVxmlUrls.conf"
 end
 
 function hideMenu(menu)
@@ -145,6 +151,21 @@ function loadConfig()
 	end
 	loc = locale[conf.lang]
 
+	local onlineconf = get_conf_onlineFile()
+	local havefile = file_exists(onlineconf)
+	glob.onlineUrls = {}
+	if havefile == true then
+		local confdata = read_file(onlineconf)
+		if havefile ~= nil then
+			for _line in confdata:gmatch('(name.-)\n') do
+				local _name = _line:match('name="(.-)"')
+				local _url = _line:match('url="(.-)"')
+				local _agent = _line:match('agent="(.-)"')
+				table.insert(glob.onlineUrls,{name=_name, url=_url,agent=_agent})
+			end
+		end
+	end
+
 end
 
 function which(bin_name)
@@ -169,8 +190,9 @@ function getdata(Url,outputfile)
 	if Curl == nil then
 		Curl = curl.new()
 	end
+	if glob.agent == nil then agent = "Mozilla/5.0;" else agent = glob.agent end
 
-	local ret, data = Curl:download{url=Url,A="Mozilla/5.0;",connectTimeout=conf.ctimeout,maxRedirs=5,followRedir=true,o=outputfile }
+	local ret, data = Curl:download{url=Url,A=agent,connectTimeout=conf.ctimeout,maxRedirs=5,followRedir=true,o=outputfile }
 	if ret == CURL.OK then
 		if outputfile then
 			return 1
@@ -211,6 +233,7 @@ function unescape_uri(url)
 end
 
 function basename(str)
+	if str == nil then return str end
 	local name = string.gsub(str, "(.*/)(.*)", "%2")
 	return name
 end
@@ -307,11 +330,10 @@ function saveXml(filename,name,xmliste,ext)
 	end
 end
 
-function m3u2xml(filename)
-	local urls = {}
-	local xmliste = {}
-	local data = read_file(filename)
+function m3u2xml(data,filename)
 	if data then
+		local urls = {}
+		local xmliste = {}
 		for name,url in data:gmatch('#EXTINF.-,(.-)\n(%a+://.-)\n') do
 			if conf.udp and url:match("^udp://.*") then
 -- 				print("skip: " .. url)
@@ -334,11 +356,10 @@ function m3u2xml(filename)
 	end
 end
 
-function tv2xml(filename)
-	local urls = {}
-	local xmliste = {}
-	local data = read_file(filename)
+function tv2xml(data,filename)
 	if data then
+		local urls = {}
+		local xmliste = {}
 		local saveUrl = true
 		local name = data:match("#NAME%s+::(.-):")
 		local fname = basename(filename)
@@ -373,14 +394,32 @@ function getExt(filename)
 	return ""
 end
 
-function convert2xml()
+function convert2xml(id)
 	hideMenu(glob.main_menu)
-	local filename = conf.file
+	local filename = id
+	local data = nil
+
+	if id  == "file" then
+		filename = conf.file
+		data = read_file(filename)
+	else
+		for i, v in ipairs(glob.onlineUrls) do
+			if id == v.url then
+				glob.agent = v.agent
+				filename = v.url:match("%a+:/(/.*)")
+				data = getdata(v.url)
+				if data == nil then info(loc.dlerror,v.url,2) end
+				glob.agent = nil
+				break
+			end
+		end
+	end
+
 	local ext = getExt(filename)
 	if ext == "tv" then
-		tv2xml(filename)
+		tv2xml(data,filename)
 	elseif ext == "m3u" then
-		m3u2xml(filename)
+		m3u2xml(data,filename)
 	else
 		info("  " .. ext, loc.infohint,2)
 	end
@@ -394,6 +433,9 @@ function set_option(k, v)
 	end
 	if k == "defpathon" then
 		glob.main_menu:setActive{item=m1, activ=conf[k]}
+		for i, v in ipairs(glob.onlineUrls) do
+			glob.main_menu:setActive{item=mact[i], activ=conf[k]}
+		end
 	end
 	conf.changed = true
 end
@@ -415,7 +457,7 @@ function main_menu()
 		   hint_icon="hint_service",hint=loc.filehint
 		 }
 	d=d+1
-	menu:addItem{type="forwarder", name=loc.convert, action="convert2xml", enabled=true,id="dummy"..d, directkey=godirectkey(d),hint=loc.converthint}
+	menu:addItem{type="forwarder", name=loc.convert, action="convert2xml", enabled=true,id="file", directkey=godirectkey(d),hint=loc.converthint}
 	d=d+1
 	menu:addItem{type="separatorline"}
 	menu:addItem{type="chooser", action="set_option", options={ on, off }, id="checkonline", value=bool2onoff(conf.checkonline), directkey=godirectkey(d), name=loc.checkonline,hint_icon="hint_service",hint=loc.checkonlinehint}
@@ -430,6 +472,12 @@ function main_menu()
 			hint_icon="hint_service",hint=loc.defdirhint
 		 }
 	menu:setActive{item=m1, activ=conf.defpathon}
+	menu:addItem{type="separatorline"}
+	for i, v in ipairs(glob.onlineUrls) do
+		d = d + 1
+		mact[i] = menu:addItem{type="forwarder", name=v.name , action="convert2xml", enabled=true,id=v.url, directkey=godirectkey(d),hint=loc.converthint}
+		menu:setActive{item=mact[i], activ=conf.defpathon}
+	end
 
 	menu:exec()
 end
