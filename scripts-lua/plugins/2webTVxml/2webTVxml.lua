@@ -21,11 +21,12 @@
 ]]
 
 local glob = {}
-local version="2webTVxml Version 0.5"
+local version="2webTVxml Version 0.10"
 local n = neutrino()
 local conf = {}
 local on="ein"
 local off="aus"
+local mact = {}
 local loc = nil
 locale = {}
 locale["deutsch"] = {
@@ -35,11 +36,18 @@ locale["deutsch"] = {
 	converthint = "tv oder m3u in xml-format konvertieren",
 	checkonline = "Online prüfen",
 	checkonlinehint = "Wird geprüft , ob ein Stream online ist.",
+	udp = "Ignorieren udp",
+	udphint = "Überspringen url mit udp Protokoll.",
+	rtp = "Ignorieren rtp",
+	rtphint = "Überspringen url mit rtp Protokoll.",
 	defpathon = "Standardpfad verwenden",
 	defpathonhint = "Standardpfad verwenden?",
 	defdir = "Verzeichnis: ",
 	defdirhint = "In welchem Verzeichnis soll Datei (xml) gespeichert werden?",
-	infohint = "Nicht unterstütztes Format"
+	infohint = "Nicht unterstütztes Format",
+	info2hint = "Liste",
+	info3hint = "ist leer oder kein url gefunden.",
+	dlerror = "Download fehlgeschlagen"
 }
 locale["english"] = {
 	file = "Select file",
@@ -48,15 +56,25 @@ locale["english"] = {
 	converthint = "convert tv or m3u to xml format",
 	checkonline = "Check  online",
 	checkonlinehint = "Checks whether a stream is online.",
+	udp = "Ignore udp",
+	udphint = "Skip url with udp protokol.",
+	rtp = "Ignore rtp",
+	rtphint = "Skip url with rtp protokol.",
 	defpathon = "Use default Path",
 	defpathonhint = "Use default Path?",
 	defdir = "Directory: ",
 	defdirhint = "In which directory should file (xml) be saved?",
-	infohint = "Not supported format"
+	infohint = "Not supported format",
+	info2hint = "List",
+	info3hint = "is empty or no url found.",
+	dlerror = "Download failed"
 }
 
 function get_confFile()
 	return "/var/tuxbox/config/2webTVxml.conf"
+end
+function get_conf_onlineFile()
+	return "/var/tuxbox/config/2webTVxmlUrls.conf"
 end
 
 function hideMenu(menu)
@@ -102,6 +120,8 @@ function saveConfig()
 		local config	= configfile.new()
 		config:setString("file", conf.file)
 		config:setBool  ("checkonline",conf.checkonline)
+		config:setBool  ("udp",conf.udp)
+		config:setBool  ("rtp",conf.rtp)
 		config:setBool  ("defpathon",conf.defpathon)
 		config:setString("path", conf.path)
 		config:saveConfig(get_confFile())
@@ -114,6 +134,8 @@ function loadConfig()
 	config:loadConfig(get_confFile())
 	conf.path = config:getString("path", "/tmp")
 	conf.checkonline = config:getBool("checkonline", false)
+	conf.udp = config:getBool("udp", false)
+	conf.rtp = config:getBool("rtp", false)
 	conf.defpathon = config:getBool("defpathon", false)
 	conf.file = config:getString("file", "/tmp/test.tv")
 
@@ -128,6 +150,21 @@ function loadConfig()
 		conf.lang = "english"
 	end
 	loc = locale[conf.lang]
+
+	local onlineconf = get_conf_onlineFile()
+	local havefile = file_exists(onlineconf)
+	glob.onlineUrls = {}
+	if havefile == true then
+		local confdata = read_file(onlineconf)
+		if havefile ~= nil then
+			for _line in confdata:gmatch('(name.-)\n') do
+				local _name = _line:match('name="(.-)"')
+				local _url = _line:match('url="(.-)"')
+				local _agent = _line:match('agent="(.-)"')
+				table.insert(glob.onlineUrls,{name=_name, url=_url,agent=_agent})
+			end
+		end
+	end
 
 end
 
@@ -153,8 +190,9 @@ function getdata(Url,outputfile)
 	if Curl == nil then
 		Curl = curl.new()
 	end
+	if glob.agent == nil then agent = "Mozilla/5.0;" else agent = glob.agent end
 
-	local ret, data = Curl:download{url=Url,A="Mozilla/5.0;",connectTimeout=conf.ctimeout,maxRedirs=5,followRedir=true,o=outputfile }
+	local ret, data = Curl:download{url=Url,A=agent,connectTimeout=conf.ctimeout,maxRedirs=5,followRedir=true,o=outputfile }
 	if ret == CURL.OK then
 		if outputfile then
 			return 1
@@ -195,6 +233,7 @@ function unescape_uri(url)
 end
 
 function basename(str)
+	if str == nil then return str end
 	local name = string.gsub(str, "(.*/)(.*)", "%2")
 	return name
 end
@@ -242,6 +281,8 @@ function checkOnline(url)
 				return true
 			end
 		end
+	elseif url:match("^udp.*") or url:match("^rtp.*") or url:match("^rtmp.*") or url:match("^mms.*") or url:match("^rtsp.*") then
+			return true
 	elseif conf.ffprobe then
 		local output = pop("ffprobe '" .. url .. "' 2>&1")
 		if output:find("Stream") then
@@ -289,35 +330,48 @@ function saveXml(filename,name,xmliste,ext)
 	end
 end
 
-function m3u2xml(filename)
-	local urls = {}
-	local xmliste = {}
-	local data = read_file(filename)
+function m3u2xml(data,filename)
 	if data then
-		for name,url in data:gmatch('#EXTINF.-,(.-)\n(http.-)\n') do
-			if urls[url] ~= true then
+		local urls = {}
+		local xmliste = {}
+		for name,url in data:gmatch('#EXTINF.-,(.-)\n(%a+://.-)\n') do
+			if conf.udp and url:match("^udp://.*") then
+-- 				print("skip: " .. url)
+			elseif conf.rtp and url:match("^rtp://.*") then
+-- 				print("skip: " .. url)
+			elseif urls[url] ~= true then
 				urls[url] = true
 				local gen = "IPTV"
 				local tag = "m3u"
 				table.insert(xmliste,{xgen=gen,xtitle=name,xurl=url,xtag=tag})
 			end
 		end
+		local fname = basename(filename)
+		fname = fname:match("(.*)%.m3u") or ""
 		if #xmliste > 0 then
-			saveXml(filename,"EXTM3U",xmliste,-4)--m3u
+			saveXml(filename,"EXTM3U-" .. fname,xmliste,-4)--m3u
+		else
+			info(loc.info2hint .. "  " .. fname, loc.info3hint,2)
 		end
 	end
 end
 
-function tv2xml(filename)
-	local urls = {}
-	local xmliste = {}
-	local data = read_file(filename)
+function tv2xml(data,filename)
 	if data then
+		local urls = {}
+		local xmliste = {}
 		local saveUrl = true
 		local name = data:match("#NAME%s+::(.-):")
-		name = name or "e2tv"
-		for url,des in data:gmatch('#SERVICE .-:0:0:0:(http.-)[:\n].-#DESCRIPTION%s+(.-)\n') do
-			if urls[url] ~= true then
+		local fname = basename(filename)
+		fname = fname:match("(.*)%.tv") or ""
+		name = name or "e2tv-" .. 	fname
+		for url,des in data:gmatch('#SERVICE .-:0:0:0:(%a+%%3a//.-\n)#DESCRIPTION%s+(.-)\n') do
+			url = url:match("(.-)[:\n]")
+			if conf.udp and url:match("^udp%%3a//.*") then
+-- 				print("skip: " .. url)
+			elseif conf.rtp and url:match("^rtp%%3a//.*") then
+-- 				print("skip: " .. url)
+			elseif urls[url] ~= true then
 				urls[url] = true
 				local gen = "IPTV"
 				local tag = "e2tv"
@@ -326,6 +380,8 @@ function tv2xml(filename)
 		end
 		if #xmliste > 0 then
 			saveXml(filename,name,xmliste,-3)--tv
+		else
+			info(loc.info2hint .. "  " .. fname, loc.info3hint,2)
 		end
 	end
 end
@@ -338,14 +394,32 @@ function getExt(filename)
 	return ""
 end
 
-function convert2xml()
+function convert2xml(id)
 	hideMenu(glob.main_menu)
-	local filename = conf.file
+	local filename = id
+	local data = nil
+
+	if id  == "file" then
+		filename = conf.file
+		data = read_file(filename)
+	else
+		for i, v in ipairs(glob.onlineUrls) do
+			if id == v.url then
+				glob.agent = v.agent
+				filename = v.url:match("%a+:/(/.*)")
+				data = getdata(v.url)
+				if data == nil then info(loc.dlerror,v.url,2) end
+				glob.agent = nil
+				break
+			end
+		end
+	end
+
 	local ext = getExt(filename)
 	if ext == "tv" then
-		tv2xml(filename)
+		tv2xml(data,filename)
 	elseif ext == "m3u" then
-		m3u2xml(filename)
+		m3u2xml(data,filename)
 	else
 		info("  " .. ext, loc.infohint,2)
 	end
@@ -359,6 +433,9 @@ function set_option(k, v)
 	end
 	if k == "defpathon" then
 		glob.main_menu:setActive{item=m1, activ=conf[k]}
+		for i, v in ipairs(glob.onlineUrls) do
+			glob.main_menu:setActive{item=mact[i], activ=conf[k]}
+		end
 	end
 	conf.changed = true
 end
@@ -374,16 +451,21 @@ function main_menu()
 	local d = 1 -- directkey
 
 	menu:addKey{directkey=RC["info"], id=version, action="info"}
+	menu:addKey{directkey=RC["help"], id=version, action="info"}
 	menu:addItem{type="back"}
 	menu:addItem{type="separatorline"}
 	menu:addItem{ type="filebrowser", dir_mode="0", id="file", name=loc.file, action="setvar",enabled=true,value=conf.file,directkey=godirectkey(d),
 		   hint_icon="hint_service",hint=loc.filehint
 		 }
 	d=d+1
-	menu:addItem{type="forwarder", name=loc.convert, action="convert2xml", enabled=true,id="dummy"..d, directkey=godirectkey(d),hint=loc.converthint}
+	menu:addItem{type="forwarder", name=loc.convert, action="convert2xml", enabled=true,id="file", directkey=godirectkey(d),hint=loc.converthint}
 	d=d+1
 	menu:addItem{type="separatorline"}
 	menu:addItem{type="chooser", action="set_option", options={ on, off }, id="checkonline", value=bool2onoff(conf.checkonline), directkey=godirectkey(d), name=loc.checkonline,hint_icon="hint_service",hint=loc.checkonlinehint}
+	d=d+1
+	menu:addItem{type="chooser", action="set_option", options={ on, off }, id="udp", value=bool2onoff(conf.udp), directkey=godirectkey(d), name=loc.udp,hint_icon="hint_service",hint=loc.udphint}
+	d=d+1
+	menu:addItem{type="chooser", action="set_option", options={ on, off }, id="rtp", value=bool2onoff(conf.rtp), directkey=godirectkey(d), name=loc.rtp,hint_icon="hint_service",hint=loc.rtphint}
 	d=d+1
 	menu:addItem{type="chooser", action="set_option", options={ on, off }, id="defpathon", value=bool2onoff(conf.defpathon), directkey=godirectkey(d), name=loc.defpathon,hint_icon="hint_service",hint=loc.defpathonhint}
 	d=d+1
@@ -391,6 +473,12 @@ function main_menu()
 			hint_icon="hint_service",hint=loc.defdirhint
 		 }
 	menu:setActive{item=m1, activ=conf.defpathon}
+	menu:addItem{type="separatorline"}
+	for i, v in ipairs(glob.onlineUrls) do
+		d = d + 1
+		mact[i] = menu:addItem{type="forwarder", name=v.name , action="convert2xml", enabled=true,id=v.url, directkey=godirectkey(d),hint=loc.converthint}
+		menu:setActive{item=mact[i], activ=conf.defpathon}
+	end
 
 	menu:exec()
 end
