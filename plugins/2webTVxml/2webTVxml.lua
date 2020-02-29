@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local version="2webTVxml Version 0.7"
+local version="2webTVxml Version 0.8"
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -41,7 +41,9 @@ locale["deutsch"] = {
 	defpathonhint = "Standardpfad verwenden?",
 	defdir = "Verzeichnis: ",
 	defdirhint = "In welchem Verzeichnis soll Datei (xml) gespeichert werden?",
-	infohint = "Nicht unterstütztes Format"
+	infohint = "Nicht unterstütztes Format",
+	info2hint = "Liste",
+	info3hint = "ist leer oder kein url gefunden."
 }
 locale["english"] = {
 	file = "Select file",
@@ -56,7 +58,9 @@ locale["english"] = {
 	defpathonhint = "Use default Path?",
 	defdir = "Directory: ",
 	defdirhint = "In which directory should file (xml) be saved?",
-	infohint = "Not supported format"
+	infohint = "Not supported format",
+	info2hint = "List",
+	info3hint = "is empty or no url found."
 }
 
 function get_confFile()
@@ -312,9 +316,11 @@ function m3u2xml(filename)
 				table.insert(xmliste,{xgen=gen,xtitle=name,xurl=url,xtag=tag})
 			end
 		end
+		local fname = filename:match("/([%-%w+_]+)%.m3u") or ""
 		if #xmliste > 0 then
-			local fname = filename:match("/([%-%w+_]+)%.m3u") or ""
 			saveXml(filename,"EXTM3U-" .. fname,xmliste,-4)--m3u
+		else
+			info(loc.info2hint .. "  " .. fname, loc.info3hint,2)
 		end
 	end
 end
@@ -341,6 +347,8 @@ function tv2xml(filename)
 		end
 		if #xmliste > 0 then
 			saveXml(filename,name,xmliste,-3)--tv
+		else
+			info(loc.info2hint .. "  " .. fname, loc.info3hint,2)
 		end
 	end
 end
