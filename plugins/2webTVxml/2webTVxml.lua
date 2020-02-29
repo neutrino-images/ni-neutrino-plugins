@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local version="2webTVxml Version 0.6"
+local version="2webTVxml Version 0.7"
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -313,7 +313,8 @@ function m3u2xml(filename)
 			end
 		end
 		if #xmliste > 0 then
-			saveXml(filename,"EXTM3U-" .. filename:match("/(%w+)%.m3u"),xmliste,-4)--m3u
+			local fname = filename:match("/([%-%w+_]+)%.m3u") or ""
+			saveXml(filename,"EXTM3U-" .. fname,xmliste,-4)--m3u
 		end
 	end
 end
@@ -325,7 +326,8 @@ function tv2xml(filename)
 	if data then
 		local saveUrl = true
 		local name = data:match("#NAME%s+::(.-):")
-		name = name or "e2tv-" .. filename:match("/(%w+)%.tv")
+		local fname = filename:match("/([%-%w+_]+)%.tv") or ""
+		name = name or "e2tv-" .. 	fname
 		for url,des in data:gmatch('#SERVICE .-:0:0:0:(%a+%%3a//.-\n)#DESCRIPTION%s+(.-)\n') do
 			url = url:match("(.-)[:\n]")
 			if conf.udp and url:match("^udp%%3a//.*") then
