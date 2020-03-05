@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local version="2webTVxml Version 0.10"
+local version="2webTVxml Version 0.11"
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -275,11 +275,15 @@ end
 
 function checkOnline(url)
 	if url:find("%.m3u8") then
+		local agent = url:match("User%-Agent=(.*)")
+		if agent then glob.agent = agent end
 		local data = getdata(url)
+		glob.agent = nil
 		if data then
 			if data:match("#EXTM3U") then
 				return true
 			end
+			return false
 		end
 	elseif url:match("^udp.*") or url:match("^rtp.*") or url:match("^rtmp.*") or url:match("^mms.*") or url:match("^rtsp.*") then
 			return true
