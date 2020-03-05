@@ -1,8 +1,9 @@
 #!/bin/sh
 # Script for complete image backup
-# (C) 2018-2019 DboxOldie / BPanther
 # License: GPLv2 or later
-Version="1.12c vom 23.10.2019"
+Version="1.16 vom 05.03.2020"
+Copyright="(C) 2018-2020 DboxOldie / BPanther / Frankenstone / Fritz"
+
 #
 file=$0
 model=`cat /proc/stb/info/model`
@@ -13,8 +14,9 @@ model=`cat /proc/stb/info/model`
 [ "$model" == "dm8000" ] && [ "$vumodel" == "ultimo4k" ] && model=$vumodel
 [ "$model" == "dm8000" ] && [ "$vumodel" == "uno4k" ] && model=$vumodel
 [ "$model" == "dm8000" ] && [ "$vumodel" == "uno4kse" ] && model=$vumodel
-save_path="/tmp/imgbackup"
+save_path="/tmp"
 tmproot="/tmp/buroot"
+multiroot="/tmp/multiroot"
 destname="imgbackup-${model}_$(date +%d.%m.%Y-%H.%M)"
 archive="tgz"
 knl=0
@@ -23,11 +25,12 @@ bz2=$(which bzip2)
 hexd=$(which hexdump)
 xxdmp=$(which xxd)
 new_layout=0
-magic_number="0x016f2818" # HD51 / VUSOLO4K / VUDUO4K / VUZERO4K / UTLIMATE4K / UNO4K / UNO4KSE / ZGEMMA H7
+multi=0
+magic_number="0x016f2818" # HD51 / BRE2ZE4K / ZGEMMA H7 / VUSOLO4K / VUDUO4K / VUZERO4K / UTLIMATE4K / UNO4K / UNO4KSE
 dtb_magic_number="0xd00dfeed"
 
 #
-# Subroutine für hd51 / Zgemma H7
+# Subroutine für AX HD51 / Bre2ze 4K / Zgemma H7
 #
 read_bootargs()
 {
@@ -45,18 +48,61 @@ read_bootargs()
 #
 # Root und Kernel Partition bestimmen
 #
-if [ "$model" == "hd51" -o "$model" == "h7" ]; then
+if [ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ]; then
 	read_bootargs
 else
 	rootmtd=`readlink /dev/root`
 fi
+
+#
+# Parameter auslesen
+#
+while [ $# -gt 0 ]
+do
+	parm=$1
+	[ "$parm" == "none" ] && archive=$parm
+	[ "$(echo ${parm:0:1})" == "/" ] && save_path=$parm
+	if [ "$parm" == "-m1" ]; then
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 0 ] && rootmtd=mmcblk0p3 && multi=1
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 1 ] && kernelnumber=2 && rootsubdir="linuxrootfs1" && rootmtd=mmcblk0p3 && multi=1
+		[ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ] && rootmtd=mmcblk0p5 && multi=1
+		[ "$model" == "zero4k" ] && rootmtd=mmcblk0p8 && multi=1
+		[ "$model" == "duo4k" ] && rootmtd=mmcblk0p10 && multi=1
+		destname="$(echo ${parm:1:2})-"$destname
+	elif [ "$parm" == "-m2" ]; then
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 0 ] && rootmtd=mmcblk0p5 && multi=1
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 1 ] && kernelnumber=4 && rootsubdir="linuxrootfs2" && rootmtd=mmcblk0p7 && multi=1
+		[ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ] && rootmtd=mmcblk0p7 && multi=1
+		[ "$model" == "zero4k" ] && rootmtd=mmcblk0p10 && multi=1
+		[ "$model" == "duo4k" ] && rootmtd=mmcblk0p12 && multi=1
+		destname="$(echo ${parm:1:2})-"$destname
+	elif [ "$parm" == "-m3" ]; then
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 0 ] && rootmtd=mmcblk0p7 && multi=1
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 1 ] && kernelnumber=5 && rootsubdir="linuxrootfs3" && rootmtd=mmcblk0p7 && multi=1
+		[ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ] && rootmtd=mmcblk0p9 && multi=1
+		[ "$model" == "zero4k" ] && rootmtd=mmcblk0p12 && multi=1
+		[ "$model" == "duo4k" ] && rootmtd=mmcblk0p14 && multi=1
+		destname="$(echo ${parm:1:2})-"$destname
+	elif [ "$parm" == "-m4" ]; then
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 0 ] && rootmtd=mmcblk0p9 && multi=1
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 1 ] && kernelnumber=6 && rootsubdir="linuxrootfs4" && rootmtd=mmcblk0p7 && multi=1
+		[ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ] && rootmtd=mmcblk0p11 && multi=1
+		[ "$model" == "zero4k" ] && rootmtd=mmcblk0p14 && multi=1
+		[ "$model" == "duo4k" ] && rootmtd=mmcblk0p16 && multi=1
+		destname="$(echo ${parm:1:2})-"$destname
+	fi
+	shift
+done
+
+[ "$archive" == "none" ] && save_path="$save_path/$destname"
+
 rootnumber=`echo ${rootmtd:8:2}`
 mmcprefix=`echo ${rootmtd:0:8}`
 
-echo "  Image Backup (Version: $Version) - (C) 2018-2019 DboxOldie / BPanther"
-echo "  AX HD51 4K, VU+ DUO 4K, VU+ UNO 4K, VU+ UNO 4K SE, VU+ ZERO 4K, VU+ ULTIMO 4K und VU+ SOLO 4K ZGEMMA H7"
+echo "  Image Backup (Version: $Version) - $Copyright"
+echo "  AX HD51 4K, Bre2ze 4K, ZGEMMA H7, VU+ DUO 4K, VU+ UNO 4K, VU+ UNO 4K SE, VU+ ZERO 4K, VU+ ULTIMO 4K und VU+ SOLO 4K"
 echo
-if [ "$model" == "hd51" -o "$model" == "h7"  ]; then
+if [ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ]; then
 	echo "  Image Backup für Boxmodel '$model' startet..."
 	[ $new_layout == 0 ] && kernelnumber=$((rootnumber - 1))
 elif [ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ]; then
@@ -140,19 +186,6 @@ else
 	echo "  Abbruch!"
 	exit 0
 fi
-
-#
-# Parameter auslesen
-#
-while [ $# -gt 0 ]
-do
-	parm=$1
-	[ "$parm" == "none" ] && archive=$parm
-	[ "$(echo ${parm:0:1})" == "/" ] && save_path=$parm
-	shift
-done
-
-[ "$archive" == "none" ] && save_path="$save_path/$destname"
 
 k_backup()
 {
@@ -266,7 +299,19 @@ k_read()
 r_backup()
 {
 	mkdir -p $tmproot
-	mount --bind / $tmproot
+	if [ $multi == 1 ]; then
+		if [ $new_layout == 1 ]; then
+			mkdir -p $multiroot
+			mount /dev/$rootmtd $multiroot
+			mount --bind $multiroot/$rootsubdir $tmproot
+			umount -f $multiroot
+			[ -z "$(mount | grep $multiroot)" ] && rmdir $multiroot
+		else
+			mount /dev/$rootmtd $tmproot
+		fi
+	else
+		mount --bind / $tmproot
+	fi
 
 	echo
 	echo "  Erstelle 'rootfs${multipart}.tar'..."
