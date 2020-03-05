@@ -7,12 +7,13 @@ local _url = arg[1]
 local Curl = nil
 local ret = {}
 
-function getdata(Url)
+function getdata(Url,Agent)
 	if Url == nil then return nil end
 	if Curl == nil then
 		Curl = curl.new()
 	end
-	local ret, data = Curl:download{ url=Url, A="Mozilla/5.0",connectTimeout=5,maxRedirs=5,followRedir=true}
+	if Agent == nil then Agent = "Mozilla/5.0" end
+	local ret, data = Curl:download{ url=Url, A=Agent,connectTimeout=5,maxRedirs=5,followRedir=true}
 	if ret == CURL.OK then
 		return data
 	else
@@ -23,7 +24,8 @@ end
 function getVideoUrl(m3u8_url)
 	if m3u8_url == nil then return nil end
 	local res = 0
-	local data = getdata(m3u8_url)
+	local agent = m3u8_url:match("User%-Agent=(.*)")
+	local data = getdata(m3u8_url,agent)
 	if data then
 		local host = m3u8_url:match('([%a]+[:]?//[_%w%-%.]+)/')
 		local lastpos = (m3u8_url:reverse()):find("/")
@@ -86,6 +88,7 @@ function getVideoUrl(m3u8_url)
 					entry = {}
 					entry['url']  = url
 					if audio_url then entry['url2']  = audio_url end
+					if agent then entry['header']  = agent end
 					entry['band'] = band
 					entry['res1'] = res1
 					entry['res2'] = res2

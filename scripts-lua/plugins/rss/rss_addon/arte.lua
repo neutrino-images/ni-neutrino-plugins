@@ -33,6 +33,7 @@ function media.getAddonMedia(url,extraUrl)
 				jsonurl = playerdata:match('json_url=(.-)"')
 			end
 			if jsonurl == nil then return end
+			jsonurl = jsonurl:gsub("player/v2","player/v1")
 			jsonurl=jsonurl:gsub('&amp;','&')
 			jsonurl = decodeURI(jsonurl)
 			data = getdata(jsonurl)
