@@ -5,7 +5,7 @@
 # Copyright (C) 2012-2013  Patrick Reinhardt, pr-cs <at> reinhardtweb.de
 #               2013-2014  nadine
 #                    2014  LtCmdrLuke
-#               2013-2018  NI-Team
+#               2013-2020  NI-Team
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,9 +26,14 @@
 #	Timer rules:		/var/tuxbox/config/pr-auto-timer.rules
 #	Neutrino plugin:	/share/tuxbox/neutrino/plugins/pr-auto-timer.{sh,cfg}
 
-VERSION=0.41b
+VERSION=0.42
 
 # Changelog:
+#
+# 0.42 by tewsbo (NI-Team)
+#	-align to new sky channels
+#	-more sky exclude channels
+#	-fix parsing moviepilot website
 #
 # 0.41b by tewsbo (NI-Team)
 #	-more sky exclude channels
@@ -2261,7 +2266,7 @@ get_sky_moviedata() {
 
 				#	  YYMMDDhhmm
 				#date	= 9912312313
-				date	= $6$5$4$7$8;
+				date	= $4$3$2$5$6;
 			}
 			if ( found == "movie" ) {
 				gsub (/^[[:space:]]*/, "");
@@ -2302,7 +2307,7 @@ get_sky_cinema_channel() {
 	if [ ! -e "$temp_file" ]; then
 		wget -qO "$temp_file" "$webserver_url/control/channellist"
 	fi
-	sky_cinema_channels=$(grep -iE "Sky.*Cinema.*" $temp_file | cut -d" " -f2- | sort -u )
+	sky_cinema_channels=$(grep -iE "Sky.*Cinema.*Premieren.*" $temp_file | cut -d" " -f2- | sort -u )
 	echo "$sky_cinema_channels" | \
 	while read channel; do
 		echo "$channel" | awk '{print tolower($0)}' | grep -qE "($include)"
@@ -2342,28 +2347,21 @@ parse_sky_cinema() {
 
 	sky_start_sec_add=0
 	sky_exclude_channels="Active Action Comedy Emotion Family Hits Nostalgie Uno Stars Romance Suspense Drama Due Special"
+	sky_exclude_channels="Active Action Adventure Best Comedy Drama Due Emotion Family Hits Nostalgie Romance Special Stars Suspense Uno"
 
 	case $(echo $sky_cinema | awk '{print toupper($0)}') in
 		SD)
-			sky_cinema=$(get_sky_cinema_channel "Sky Cinema" "+1 +24 HD $sky_exclude_channels")
+			sky_cinema=$(get_sky_cinema_channel "Sky Cinema Premieren" "+24 HD $sky_exclude_channels")
 		;;
 		HD)
-			sky_cinema=$(get_sky_cinema_channel "Sky Cinema HD" "+1 +24 $sky_exclude_channels")
-		;;
-		1)
-			sky_cinema=$(get_sky_cinema_channel "Sky Cinema +1" "+24 HD $sky_exclude_channels")
-			sky_start_sec_add=$((60 \* 60))
-		;;
-		1HD)
-			sky_cinema=$(get_sky_cinema_channel "Sky Cinema +1 HD" "+24 $sky_exclude_channels")
-			sky_start_sec_add=$((60 \* 60))
+			sky_cinema=$(get_sky_cinema_channel "Sky Cinema Premieren HD" "+24 $sky_exclude_channels")
 		;;
 		24)
-			sky_cinema=$(get_sky_cinema_channel "Sky Cinema +24" "+1 HD $sky_exclude_channels")
+			sky_cinema=$(get_sky_cinema_channel "Sky Cinema Premieren +24" "HD $sky_exclude_channels")
 			sky_start_sec_add=$((60 \* 60 \* 24))
 		;;
 		24HD)
-			sky_cinema=$(get_sky_cinema_channel "Sky Cinema +24 HD" "+1 $sky_exclude_channels")
+			sky_cinema=$(get_sky_cinema_channel "Sky Cinema Premieren +24 HD" "$sky_exclude_channels")
 			sky_start_sec_add=$((60 \* 60 \* 24))
 		;;
 		*)
