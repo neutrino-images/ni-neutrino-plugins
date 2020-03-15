@@ -243,11 +243,23 @@ AC_ARG_ENABLE(rss,
 	[enable_rss="yes"])
 AM_CONDITIONAL(ENABLE_RSS, test "$enable_rss" = "yes")
 
+AC_ARG_ENABLE(spiegel_tv_doc,
+	AS_HELP_STRING([--enable-spiegel_tv_doc], [enable spiegel-tv-doc @<:@default=yes@:>@]),
+	[enable_spiegel_tv_doc="$enableval"],
+	[enable_spiegel_tv_doc="yes"])
+AM_CONDITIONAL(ENABLE_SPIEGEL_TV_DOC, test "$enable_spiegel_tv_doc" = "yes")
+
 AC_ARG_ENABLE(stb_startup,
 	AS_HELP_STRING([--enable-stb_startup], [enable stb_startup @<:@default=yes@:>@]),
 	[enable_stb_startup="$enableval"],
 	[enable_stb_startup="yes"])
 AM_CONDITIONAL(ENABLE_STB_STARTUP, test "$enable_stb_startup" = "yes")
+
+AC_ARG_ENABLE(tierwelt_tv,
+	AS_HELP_STRING([--enable-tierwelt_tv], [enable tierwelt-tv @<:@default=yes@:>@]),
+	[enable_tierwelt_tv="$enableval"],
+	[enable_tierwelt_tv="yes"])
+AM_CONDITIONAL(ENABLE_TIERWELT_TV, test "$enable_tierwelt_tv" = "yes")
 
 AC_ARG_ENABLE(userbouquets,
 	AS_HELP_STRING([--enable-userbouquets], [enable userbouquets @<:@default=yes@:>@]),
@@ -342,7 +354,9 @@ scripts-lua/plugins/openvpn-setup/Makefile
 scripts-lua/plugins/openvpn-setup/openvpn-setup/Makefile
 scripts-lua/plugins/rcu_switcher/Makefile
 scripts-lua/plugins/rss/Makefile
+scripts-lua/plugins/spiegel-tv-doc/Makefile
 scripts-lua/plugins/stb_startup/Makefile
+scripts-lua/plugins/tierwelt-tv/Makefile
 scripts-lua/plugins/userbouquets/Makefile
 scripts-lua/plugins/webradio/Makefile
 scripts-lua/plugins/webtv/Makefile
