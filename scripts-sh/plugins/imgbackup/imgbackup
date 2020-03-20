@@ -1,0 +1,427 @@
+#!/bin/sh
+# Script for complete image backup
+# License: GPLv2 or later
+Version="1.20 vom 20.03.2020"
+Copyright="(C) 2018-2020 DboxOldie / BPanther / Frankenstone / Fritz"
+
+#
+file=$0
+model=`cat /proc/stb/info/model`
+[ -e /proc/stb/info/vumodel ] && vumodel=`cat /proc/stb/info/vumodel`
+[ "$model" == "dm8000" ] && [ "$vumodel" == "solo4k" ] && model=$vumodel
+[ "$model" == "dm8000" ] && [ "$vumodel" == "duo4k" ] && model=$vumodel
+[ "$model" == "dm8000" ] && [ "$vumodel" == "zero4k" ] && model=$vumodel
+[ "$model" == "dm8000" ] && [ "$vumodel" == "ultimo4k" ] && model=$vumodel
+[ "$model" == "dm8000" ] && [ "$vumodel" == "uno4k" ] && model=$vumodel
+[ "$model" == "dm8000" ] && [ "$vumodel" == "uno4kse" ] && model=$vumodel
+save_path="/tmp"
+tmproot="/tmp/buroot"
+multiroot="/tmp/multiroot"
+destname="imgbackup-${model}_$(date +%d.%m.%Y-%H.%M)"
+archive="tgz"
+knl=0
+klen=0
+bz2=$(which bzip2)
+hexd=$(which hexdump)
+xxdmp=$(which xxd)
+new_layout=0
+multi=0
+gui_mode=0
+bkp_part=1
+magic_number="0x016f2818" # HD51 / BRE2ZE4K / ZGEMMA H7 / VUSOLO4K / VUDUO4K / VUZERO4K / UTLIMATE4K / UNO4K / UNO4KSE
+dtb_magic_number="0xd00dfeed"
+
+#
+# Subroutine für AX HD51 / Bre2ze 4K / Zgemma H7
+#
+read_bootargs()
+{
+	rootsubdir=""
+	kdev=""
+	for i in $(cat /sys/firmware/devicetree/base/chosen/bootargs);do
+		[ -n "$(echo $i | grep 'root=')" ] && rootmtd=$(echo $i | cut -d '=' -f2 | cut -d '/' -f3)
+		[ -n "$(echo $i | grep 'rootsubdir=')" ] && rootsubdir=$(echo $i | cut -d '=' -f2)
+		[ -n "$(echo $i | grep 'kernel=')" ] && kdev=$(echo $i | cut -d '=' -f2)
+	done
+	[ -n "$rootsubdir" -a -n "$kdev" ] && new_layout=1
+	if [ $new_layout == 1 ];then
+		kernelnumber=$(echo ${kdev:13:1})
+		[ $kernelnumber == 2 ] && bkp_part=1
+		[ $kernelnumber == 4 ] && bkp_part=2
+		[ $kernelnumber == 5 ] && bkp_part=3
+		[ $kernelnumber == 6 ] && bkp_part=4
+	else
+		[ "$rootmtd" == "mmcblk0p3" ] && bkp_part=1
+		[ "$rootmtd" == "mmcblk0p5" ] && bkp_part=2
+		[ "$rootmtd" == "mmcblk0p7" ] && bkp_part=3
+		[ "$rootmtd" == "mmcblk0p9" ] && bkp_part=4
+	fi
+}
+
+#
+# Root und Kernel Partition bestimmen
+#
+if [ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ]; then
+	read_bootargs
+else
+	rootmtd=`readlink /dev/root`
+	[ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ] && [ "$rootmtd" == "mmcblk0p5" ] && bkp_part=1
+	[ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ] && [ "$rootmtd" == "mmcblk0p7" ] && bkp_part=2
+	[ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ] && [ "$rootmtd" == "mmcblk0p9" ] && bkp_part=3
+	[ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ] && [ "$rootmtd" == "mmcblk0p11" ] && bkp_part=4
+	[ "$model" == "zero4k" ] && [ "$rootmtd" == "mmcblk0p8" ] && bkp_part=1
+	[ "$model" == "zero4k" ] && [ "$rootmtd" == "mmcblk0p10" ] && bkp_part=2
+	[ "$model" == "zero4k" ] && [ "$rootmtd" == "mmcblk0p12" ] && bkp_part=3
+	[ "$model" == "zero4k" ] && [ "$rootmtd" == "mmcblk0p14" ] && bkp_part=4
+	[ "$model" == "duo4k" ] && [ "$rootmtd" == "mmcblk0p10" ] && bkp_part=1
+	[ "$model" == "duo4k" ] && [ "$rootmtd" == "mmcblk0p12" ] && bkp_part=2
+	[ "$model" == "duo4k" ] && [ "$rootmtd" == "mmcblk0p14" ] && bkp_part=3
+	[ "$model" == "duo4k" ] && [ "$rootmtd" == "mmcblk0p16" ] && bkp_part=4
+fi
+
+#
+# Parameter auslesen
+#
+while [ $# -gt 0 ]
+do
+	parm=$1
+	[ "$parm" == "none" ] && archive=$parm
+	[ "$(echo ${parm:0:1})" == "/" ] && save_path=$parm
+	[ "$parm" == "select_dir" ] && select_dir=1
+	if [ "$parm" == "gui" ]; then
+		gui_mode=1
+		msgbox title="Partitions-Backup erstellen" msg="~cDiese Partitionen stehen zur Auswahl:" select="Partition 1, Partition 2, Partition 3, Partition 4" order=4 default=$bkp_part
+		parm=-m$?
+		[ "$parm" == "-m0" ] && echo "  Abbruch!" && exit
+		B_PART=`echo "Backup Partition: ${parm:2:3}"`
+	fi
+	if [ "$parm" == "-m1" ]; then
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 0 ] && rootmtd=mmcblk0p3 && multi=1
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 1 ] && kernelnumber=2 && rootsubdir="linuxrootfs1" && rootmtd=mmcblk0p3 && multi=1
+		[ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ] && rootmtd=mmcblk0p5 && multi=1
+		[ "$model" == "zero4k" ] && rootmtd=mmcblk0p8 && multi=1
+		[ "$model" == "duo4k" ] && rootmtd=mmcblk0p10 && multi=1
+		destname="$(echo ${parm:1:2})-"$destname
+	elif [ "$parm" == "-m2" ]; then
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 0 ] && rootmtd=mmcblk0p5 && multi=1
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 1 ] && kernelnumber=4 && rootsubdir="linuxrootfs2" && rootmtd=mmcblk0p7 && multi=1
+		[ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ] && rootmtd=mmcblk0p7 && multi=1
+		[ "$model" == "zero4k" ] && rootmtd=mmcblk0p10 && multi=1
+		[ "$model" == "duo4k" ] && rootmtd=mmcblk0p12 && multi=1
+		destname="$(echo ${parm:1:2})-"$destname
+	elif [ "$parm" == "-m3" ]; then
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 0 ] && rootmtd=mmcblk0p7 && multi=1
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 1 ] && kernelnumber=5 && rootsubdir="linuxrootfs3" && rootmtd=mmcblk0p7 && multi=1
+		[ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ] && rootmtd=mmcblk0p9 && multi=1
+		[ "$model" == "zero4k" ] && rootmtd=mmcblk0p12 && multi=1
+		[ "$model" == "duo4k" ] && rootmtd=mmcblk0p14 && multi=1
+		destname="$(echo ${parm:1:2})-"$destname
+	elif [ "$parm" == "-m4" ]; then
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 0 ] && rootmtd=mmcblk0p9 && multi=1
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 1 ] && kernelnumber=6 && rootsubdir="linuxrootfs4" && rootmtd=mmcblk0p7 && multi=1
+		[ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ] && rootmtd=mmcblk0p11 && multi=1
+		[ "$model" == "zero4k" ] && rootmtd=mmcblk0p14 && multi=1
+		[ "$model" == "duo4k" ] && rootmtd=mmcblk0p16 && multi=1
+		destname="$(echo ${parm:1:2})-"$destname
+	fi
+	shift
+done
+
+if [ "$gui_mode" == "1" ] || [ "$select_dir" == "1" ]; then
+	msgb=0
+	OPT=$save_path,`echo "" && mount | grep /dev/sd | awk '{print $3.","}' && mount | grep /mnt | awk '{print $3.","}'`
+	OPT=`echo "$OPT" | grep -v "/tmp/mnt"`
+	msgbox title="Hauptverzeichnis auswählen" msg="" select="$OPT" order=2
+	msgb=$?
+	if [ "$msgb" != "0" ]; then
+		cnt=0
+		for DIR in $OPT; do
+			cnt=$((cnt + 1))
+			DIR=`echo "$DIR" | cut -d "," -f1`
+			[ "$cnt" == "$msgb" ] && save_path=$DIR && break
+		done
+	else
+		echo "  Abbruch!" && exit
+	fi
+	msgb=0
+	OPT=`echo "" && find $save_path -type d -maxdepth 3 | awk '{print $1.","}'`
+	OPT=`echo "$OPT" | grep -v "/tmp/mnt"`
+	msgbox title="Unterverzeichnis auswählen" msg="" select="$OPT" order=2
+	msgb=$?
+	if [ "$msgb" != "0" ]; then
+		cnt=0
+		for DIR in $OPT; do
+			cnt=$((cnt + 1))
+			DIR=`echo "$DIR" | cut -d "," -f1`
+			[ "$cnt" == "$msgb" ] && save_path=$DIR && break
+		done
+	else
+		echo "  Abbruch!" && exit
+	fi
+	B_DIR=`echo "Backup Verzeichnis: $save_path"`
+fi
+
+[ "$archive" == "none" ] && save_path="$save_path/$destname"
+
+rootnumber=`echo ${rootmtd:8:2}`
+mmcprefix=`echo ${rootmtd:0:8}`
+
+echo "  Image Backup (Version: $Version) - $Copyright"
+echo "  AX HD51 4K, Bre2ze 4K, ZGEMMA H7, VU+ DUO 4K, VU+ UNO 4K, VU+ UNO 4K SE, VU+ ZERO 4K, VU+ ULTIMO 4K und VU+ SOLO 4K"
+echo
+echo "  $B_PART"
+echo "  $B_DIR"
+echo
+
+if [ "${save_path:0:4}" == "/tmp" ]; then
+	mkdir /tmp/tmp_mount
+	mount /dev/$rootmtd /tmp/tmp_mount
+	[ -e /tmp/tmp_mount/usr/bin/enigma2.sh ] && e2_found=1
+	umount /tmp/tmp_mount
+	rmdir /tmp/tmp_mount
+	[ "$e2_found" == "1" ] && echo "  STOP, E2 passt nicht in /tmp !" && exit
+fi
+
+df $save_path | grep -q tmpfs && DIR_CHECK=$? || DIR_CHECK=$?
+[ "$DIR_CHECK" == "0" ] && [ "${save_path:0:4}" != "/tmp" ] && echo "  Das gewählte Verzeichnis ist ungültig !" && exit
+
+if [ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ]; then
+	echo "  Image Backup für Boxmodel '$model' startet..."
+	[ $new_layout == 0 ] && kernelnumber=$((rootnumber - 1))
+elif [ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ]; then
+	case $rootmtd in
+		mmcblk0p4)
+			kernelnumber=$((rootnumber - 3));;
+		mmcblk0p5)
+			multipart=1
+			kernelnumber=$((rootnumber - 1));;
+		mmcblk0p7)
+			multipart=2
+			kernelnumber=$((rootnumber - 1));;
+		mmcblk0p9)
+			multipart=3
+			kernelnumber=$((rootnumber - 1));;
+		mmcblk0p11)
+			multipart=4
+			kernelnumber=$((rootnumber - 1));;
+	esac
+	echo "  Image Backup für Boxmodel '$model' startet..."
+elif [ "$model" == "zero4k" ]; then
+	case $rootmtd in
+		mmcblk0p7)
+			kernelnumber=$((rootnumber - 3));;
+		mmcblk0p8)
+			multipart=1
+			kernelnumber=$((rootnumber - 1));;
+		mmcblk0p10)
+			multipart=2
+			kernelnumber=$((rootnumber - 1));;
+		mmcblk0p12)
+			multipart=3
+			kernelnumber=$((rootnumber - 1));;
+		mmcblk0p14)
+			multipart=4
+			kernelnumber=$((rootnumber - 1));;
+	esac
+	echo "  Image Backup für Boxmodel '$model' startet..."
+elif [ "$model" == "duo4k" ]; then
+	case $rootmtd in
+		mmcblk0p9)
+			kernelnumber=$((rootnumber - 3));;
+		mmcblk0p10)
+			multipart=1
+			kernelnumber=$((rootnumber - 1));;
+		mmcblk0p12)
+			multipart=2
+			kernelnumber=$((rootnumber - 1));;
+		mmcblk0p14)
+			multipart=3
+			kernelnumber=$((rootnumber - 1));;
+		mmcblk0p16)
+			multipart=4
+			kernelnumber=$((rootnumber - 1));;
+	esac
+	echo "  Image Backup für Boxmodel '$model' startet..."
+else
+	echo "  Box nicht unterstützt - Abbruch!"
+	exit 0
+fi
+kernelmtd=$mmcprefix$kernelnumber
+
+if [ -z "$bz2" ]; then
+	echo "  Kein 'bzip2' im Image."
+	echo "  Packen von 'rootfs${multipart}.tar.bz2' nicht möglich."
+	echo "  Abbruch!"
+	exit 0
+fi
+
+if [ $kernelnumber -lt 17 -a $kernelnumber -gt 0 ]; then
+	echo
+	echo "  Kerneldevice = $kernelmtd"
+	if [ $new_layout == 1 ]; then
+		echo "  -$model neues Flashlayout-"
+		echo "  Rootdevice   = $rootsubdir auf $rootmtd"
+	else
+		echo "  Rootdevice   = $rootmtd"
+	fi
+else
+	echo "  Kernel MTD nicht im Bereich (1..16)! > $kernelnumber"
+	echo "  Abbruch!"
+	exit 0
+fi
+
+k_backup()
+{
+	if [ -z "$hexd" -a -z "$xxdmp" ]; then
+		echo "  Busybox Applets 'hexdump' und 'xxd' fehlen."
+		klen=5038080
+		echo "  Standard Kernel Länge wird benutzt > $klen Bytes werden ausgelesen."
+		k_read
+		knl=0
+	else
+		knl=1
+		k_check
+	fi
+}
+
+k_check()
+{
+# 16 Bytes ( 33 bis 49 ) aus Kernel Partition lesen
+#
+	if [ ! -z "$hexd" ]; then
+		line=`dd if=/dev/$kernelmtd bs=1 skip=32 count=16 2> /dev/null | hexdump -C`
+	elif [ ! -z "$xxdmp" ]; then
+		line=`dd if=/dev/$kernelmtd bs=1 skip=32 count=16 2> /dev/null | xxd -g 1`
+	fi
+
+# Kernelmagic für zImage prüfen
+#
+	kmagic="0x"
+	kmagic=$kmagic`echo $line | cut -d " " -f9`
+	kmagic=$kmagic`echo $line | cut -d " " -f8`
+	kmagic=$kmagic`echo $line | cut -d " " -f7`
+	kmagic=$kmagic`echo $line | cut -d " " -f6`
+
+	echo
+	if [ "$kmagic" == "$magic_number" ]; then
+		echo "  Magic für zImage gefunden > $kmagic == $magic_number"
+	else
+		echo "  Keine Magic für zImage gefunden > $kmagic != $magic_number"
+		echo "  Kernel Backup übersprungen."
+		knl=0
+	fi
+	if [ "$knl" == "1" ]; then
+# zImage Länge bestimmen
+#
+		zimage_len="0x"
+		zimage_len=$zimage_len`echo $line | cut -d " " -f17`
+		zimage_len=$zimage_len`echo $line | cut -d " " -f16`
+		zimage_len=$zimage_len`echo $line | cut -d " " -f15`
+		zimage_len=$zimage_len`echo $line | cut -d " " -f14`
+		echo "  zImage Länge = $((zimage_len)) Bytes"
+
+# Prüfung auf DTB
+#
+# 16 Bytes ( ab zImage Länge ) aus Kernel Partition lesen
+#
+		if [ ! -z "$hexd" ]; then
+			line=`dd if=/dev/$kernelmtd bs=1 skip=$((zimage_len)) count=16 2> /dev/null | hexdump -C`
+		elif [ ! -z "$xxdmp" ]; then
+			line=`dd if=/dev/$kernelmtd bs=1 skip=$((zimage_len)) count=16 2> /dev/null | xxd -g 1`
+		fi
+
+		dtb_magic="0x"
+		dtb_magic=$dtb_magic`echo $line | cut -d " " -f2`
+		dtb_magic=$dtb_magic`echo $line | cut -d " " -f3`
+		dtb_magic=$dtb_magic`echo $line | cut -d " " -f4`
+		dtb_magic=$dtb_magic`echo $line | cut -d " " -f5`
+
+		if [ "$dtb_magic" == "$dtb_magic_number" ]; then
+			echo "  DTB Bereich vorhanden."
+# DTB Länge bestimmen
+#
+			dtb_len="0x"
+			dtb_len=$dtb_len`echo $line | cut -d " " -f6`
+			dtb_len=$dtb_len`echo $line | cut -d " " -f7`
+			dtb_len=$dtb_len`echo $line | cut -d " " -f8`
+			dtb_len=$dtb_len`echo $line | cut -d " " -f9`
+			echo "  DTB Länge = $((dtb_len)) Bytes"
+		else
+			echo "  Kein DTB Bereich vorhanden."
+			dtb_len=0
+		fi
+
+# Endgültige Kernellänge
+#
+		klen=$((zimage_len + dtb_len))
+		echo "  Gesamt Kernel Länge = $klen Bytes"
+		k_read
+	fi
+}
+#
+k_read()
+{
+# Kernel aus Partition auslesen
+#
+	count=`echo $((klen / 4096))`
+	len1=`echo $((count * 4096))`
+	rest=`echo $((klen - len1))`
+
+	dd if=/dev/$kernelmtd of=$save_path/kernel_1.bin bs=4096 count=$count 2> /dev/null
+	dd if=/dev/$kernelmtd of=$save_path/kernel_2.bin bs=1 count=$rest skip=$len1 2> /dev/null
+
+	[ "$model" == "duo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" -o "$model" == "zero4k" -o "$model" == "ultimo4k" -o "$model" == "solo4k" ] && extname=${multipart}_auto
+	cat $save_path/kernel_?.bin > $save_path/kernel$extname.bin
+
+	rm -f $save_path/kernel_?.bin
+
+	echo
+	echo "  'kernel$extname.bin' in $save_path gespeichert."
+}
+#
+r_backup()
+{
+	mkdir -p $tmproot
+	if [ $multi == 1 ]; then
+		if [ $new_layout == 1 ]; then
+			mkdir -p $multiroot
+			mount /dev/$rootmtd $multiroot
+			mount --bind $multiroot/$rootsubdir $tmproot
+			umount -f $multiroot
+			[ -z "$(mount | grep $multiroot)" ] && rmdir $multiroot
+		else
+			mount /dev/$rootmtd $tmproot
+		fi
+	else
+		mount --bind / $tmproot
+	fi
+
+	echo
+	echo "  Erstelle 'rootfs${multipart}.tar'..."
+	tar -cf $save_path/rootfs${multipart}.tar -C $tmproot ./ 2> /dev/null
+	echo "  Packe 'rootfs${multipart}.tar' zu rootfs${multipart}.tar.bz2'..."
+	echo "  Dauer ca. 2-10 Minuten (je nach Imagegröße)..."
+	$bz2 $save_path/rootfs${multipart}.tar
+
+	umount -f $tmproot
+	[ -z "$(mount | grep $tmproot)" ] && rmdir $tmproot
+
+	if [ "$archive" == "tgz" ]; then
+		echo "  Erstelle Image Archiv '$destname.tgz' in $save_path..."
+		tar -czf $save_path/$destname.tgz -C $save_path kernel$extname.bin rootfs${multipart}.tar.bz2
+		rm -f $save_path/kernel$extname.bin
+		rm -f $save_path/rootfs${multipart}.tar.bz2
+		echo
+		echo "  Image Archiv '$destname.tgz' gespeichert in $save_path."
+	else
+		echo
+		echo "  'rootfs${multipart}.tar.bz2' in $save_path gespeichert."
+	fi
+}
+
+# main
+mkdir -p $save_path
+k_backup
+r_backup
+
+exit 0
