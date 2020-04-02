@@ -27,3 +27,6 @@ Installation:
 Das Plugin ist nun unter "Werkzeuge" auf der blauen Taste zu finden. Über die Menü-Einstellungen kann man es auch an andere Stellen setzen, wie bei anderen Plugins auch.
 
 
+
+
+
