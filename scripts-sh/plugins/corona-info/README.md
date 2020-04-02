@@ -1,8 +1,11 @@
 ## Corona-Info
+
 <p>
   <img src="https://www.neutrino-images.de/channellogos/corona/corona.png" width="200" title="hover text">
 </p>
-# von fred_feuerstein (NI-Team)
+
+von fred_feuerstein (NI-Team)
+
 
 In der aktuellen Situation mit Corona interessieren evt. einige von euch die aktuellen Fallzahlen von ausgewählten Ländern.
 
