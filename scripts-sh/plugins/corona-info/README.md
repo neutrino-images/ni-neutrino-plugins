@@ -26,7 +26,12 @@ Installation:
 
 Das Plugin ist nun unter "Werkzeuge" auf der blauen Taste zu finden. Über die Menü-Einstellungen kann man es auch an andere Stellen setzen, wie bei anderen Plugins auch.
 
+So sieht es aus:
 
+<p>
+
+  <img src="https://www.neutrino-images.de/channellogos/corona/screenshot3.png" width="500" title="hover text">
+</p>
 
 
 
