@@ -3,7 +3,7 @@ plugindir = $(PLUGINDIR)
 plugin_DATA = \
 	corona.cfg \
 	corona_hint.png	\
-  corona.land
+  	corona.land
 
 plugin_SCRIPTS = \
 	corona.so
