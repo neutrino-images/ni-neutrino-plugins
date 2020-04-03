@@ -59,7 +59,7 @@ if [ -e "$pluginpath"/corona.land ]; then
 		echo '"ESP",Spanien' >> /tmp/coronaland.tmp
 		echo '"PRT",Portugal' >> /tmp/coronaland.tmp
 		echo '"USA",USA' >> /tmp/coronaland.tmp
-		echo '"AUS",~Osterreich' >> /tmp/coronaland.tmp
+		echo '"AUT",~Osterreich' >> /tmp/coronaland.tmp
 		echo '"CH",Schweiz' >> /tmp/coronaland.tmp
 		echo '"FRA",Frankreich' >> /tmp/coronaland.tmp
 		echo '"NL",Niederlande' >> /tmp/coronaland.tmp
