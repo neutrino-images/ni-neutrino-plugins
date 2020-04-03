@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V1.81                            *
+# * Corona-Info V1.82                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -34,7 +34,7 @@ command="WGET"
 # pluginpath mit $(dirname $0) sollte bei allen passen ;) (thx. DboxOldie)
 pluginpath="$(dirname "$0")"
 
-vinfo="V1.81"
+vinfo="V1.82"
 path=$pluginpath"/corona_hint.png"
 titletext1="Corona-Info"
 
@@ -195,7 +195,7 @@ fi
 
 echo "Corona-Info - Schriftgröße "$rowsize" eingestellt!"
 
-echo "Corona-Info - Anzeige am TV"
+echo "Corona-Info - Bitte warten, Anzeige am TV wird vorbereitet"
 
 while :; do
 auswahl=1
@@ -210,7 +210,7 @@ msgbox msg=/tmp/coronalist.txt size="$rowsize" icon="$path" title=$titletext1" "
   		;;
 		*)
       rm -f /tmp/corona*
-      echo "Corona-Info - Exit (Exit-Taste)"
+      echo "Corona-Info - Exit (Exit-Taste/Timeout)"
       exit 0
 			;;
 		esac
