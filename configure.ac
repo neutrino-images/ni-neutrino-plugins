@@ -279,6 +279,12 @@ AC_ARG_ENABLE(autoreboot,
 	[enable_autoreboot="yes"])
 AM_CONDITIONAL(ENABLE_AUTOREBOOT, test "$enable_autoreboot" = "yes")
 
+AC_ARG_ENABLE(corona-info,
+	AS_HELP_STRING([--enable-corona-info], [enable corona-info @<:@default=yes@:>@]),
+	[enable_corona_info="$enableval"],
+	[enable_corona_info="yes"])
+AM_CONDITIONAL(ENABLE_CORONA_INFO, test "$enable_corona_info" = "yes")
+
 AC_ARG_ENABLE(dropbox_uploader,
 	AS_HELP_STRING([--enable-dropbox_uploader], [enable dropbox_uploader @<:@default=yes@:>@]),
 	[enable_dropbox_uploader="$enableval"],
@@ -363,6 +369,7 @@ scripts-lua/plugins/webtv/Makefile
 scripts-sh/Makefile
 scripts-sh/plugins/Makefile
 scripts-sh/plugins/autoreboot/Makefile
+scripts-sh/plugins/corona-info/Makefile
 scripts-sh/plugins/dropbox_uploader/Makefile
 scripts-sh/plugins/EPGscan/Makefile
 scripts-sh/plugins/imgbackup/Makefile
