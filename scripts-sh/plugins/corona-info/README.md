@@ -17,6 +17,7 @@ Aktuelle Länder in der Übersicht: Deutschland, Italien, Spanien, USA, Oesterre
 
 Die Länder können in der Datei: corona.land im config-Verzeichnis der Box (var/tuxbox/config) geändert (hinzugefügt und gelöscht) und anders sortiert werden! Bitte die Struktur der Datei so belassen.
 
+Zur Ausführung wird msgbox ab 2.14 und tuxwetter (für die Chart-Anzeige) auf der Box benötigt!
 
 Installation:
 
@@ -35,6 +36,12 @@ So sieht es aus:
 
   <img src="https://www.neutrino-images.de/channellogos/corona/screenshot3.png" width="500" title="hover text">
 </p>
+<p>
 
+  <img src="https://www.neutrino-images.de/channellogos/corona/screenshot4.png" width="500" title="hover text">
+</p>
+<p>
 
+  <img src="https://www.neutrino-images.de/channellogos/corona/screenshot5.png" width="500" title="hover text">
+</p>
 
