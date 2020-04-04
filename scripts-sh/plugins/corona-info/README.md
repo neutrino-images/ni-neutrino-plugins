@@ -14,13 +14,14 @@ Wenn euch noch weitere Länder interessieren, gebt hier im Thread Bescheid.
 
 Aktuelle Länder in der Übersicht: Deutschland, Italien, Spanien, USA, Oesterreich, Frankreich, Schweiz, Niederlande, China, UK, ...
 
-Die Länder können in der Datei: corona.land im Plugin-Verzeichnis geändert (hinzugefügt und gelöscht) und anders sortiert werden! Bitte die Struktur der Datei so belassen.
+Die Länder können in der Datei: corona.land im config-Verzeichnis der Box (var/tuxbox/config) geändert (hinzugefügt und gelöscht) und anders sortiert werden! Bitte die Struktur der Datei so belassen.
+
+Ab 05.04. ist das Plugin in den NI-Nightly Images enthalten.
 
 Installation:
 
 - Zip Datei entpacken und die 4 Dateien nach /var/tuxbox/plugins (oder euer entsprechendes anderes Plugin-Verzeichnis) kopieren
 - Rechte der corona.so Datei auf 755 ändern.
-- Plugins neu laden im Menü, oder Box neu starten.
 - wer Probleme mit dem WGET Abfruf hat kann am Anfang des Scripts die Variable von WGET auf CURL ändern, dann wird statt WGET eben CURL im Script genutzt
 - Länder für die Übersicht können in der Datei corona.land editiert werden.
 

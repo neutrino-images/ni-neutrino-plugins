@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V1.82                            *
+# * Corona-Info V1.83                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -26,15 +26,19 @@
 # Aufrufvariante für Download, "WGET" oder "CURL" bitte auswählen
 command="WGET" 
 
+# Verzeichnis, in dem die persönliche corona.land Datei liegt
+landpath="/var/tuxbox/config"
 
-
-# ab hier keine Eintragung mehr nötig
-#################################################
 # pluginpath entsprechend setzen, ggfs. von /var/tuxbox/plugins auf /share/tuxbox/neutrino/plugins" ändern
 # pluginpath mit $(dirname $0) sollte bei allen passen ;) (thx. DboxOldie)
 pluginpath="$(dirname "$0")"
 
-vinfo="V1.82"
+
+
+# ab hier keine Eintragung mehr nötig
+#################################################
+
+vinfo="V1.83"
 path=$pluginpath"/corona_hint.png"
 titletext1="Corona-Info"
 
@@ -50,8 +54,8 @@ echo "Corona-Info - Temp-Dateien gelöscht"
 cleanup
 
 
-if [ -e "$pluginpath"/corona.land ]; then
-	  cp "$pluginpath"/corona.land /tmp/coronaland.tmp
+if [ -e "$landpath"/corona.land ]; then
+	  cp "$landpath"/corona.land /tmp/coronaland.tmp
 	  echo "Corona-Info - corona.land Datei wird genutzt"
 	else 
 		echo '"DEU",Deutschland' >> /tmp/coronaland.tmp
