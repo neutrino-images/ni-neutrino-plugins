@@ -247,7 +247,7 @@ echo "Corona-Info - Bitte warten, Anzeige am TV wird vorbereitet und angezeigt"
 
 while :; do
 auswahl=2
-msgbox msg=/tmp/coronalist.txt size="$rowsize" icon="$path" title=$titletext1" "$vinfo select="F~ALLE-WHO,EXIT,TOTE_WHO" order=3 default=$auswahl >/dev/null
+msgbox msg=/tmp/coronalist.txt size="$rowsize" icon="$path" title=$titletext1" "$vinfo select="F~ALLE_WHO,EXIT,TOTE_WHO" order=3 default=$auswahl >/dev/null
 		auswahl=$?
 		case $auswahl	in
 	  1)
