@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V1.83                            *
+# * Corona-Info V1.90                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -38,9 +38,10 @@ pluginpath="$(dirname "$0")"
 # ab hier keine Eintragung mehr nötig
 #################################################
 
-vinfo="V1.83"
+vinfo="V1.90"
 path=$pluginpath"/corona_hint.png"
 titletext1="Corona-Info"
+
 
 echo "--------------------------------------------------"
 echo "Corona-Info "$vinfo" startet"
@@ -50,8 +51,51 @@ cleanup() {
 	rm -rf /tmp/corona*
 }
 
-echo "Corona-Info - Temp-Dateien gelöscht"
+fallurl="https://de.wikipedia.org/api/rest_v1/page/graph/png/COVID-19-Pandemie/0/a4dfd52f0df0a4c4b62650f44bf3b27cc4c4dca9.png"
+toteurl="https://de.wikipedia.org/api/rest_v1/page/graph/png/COVID-19-Pandemie/0/7fa03ddea3bbeb0bb58b7f0a1c6f1e820e1519c5.png"
+deuurl="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/COVID-19_outbreak_Germany_per_capita_cases_map.svg/800px-COVID-19_outbreak_Germany_per_capita_cases_map.svg.png"
+
+repeat=""
+fallstring="PICTURE=fall,|PNG$repeat|$fallurl"
+totestring="PICTURE=tote,|PNG$repeat|$toteurl"
+destring="PICTURE=deu,|PNG$repeat|$deurl"
+
+fallgrafik() {
+  if [ -e /bin/tuxwetter ]; then
+      /bin/tuxwetter "$fallstring" >/dev/null &
+      sleep 10
+      killall tuxwetter >/dev/null
+    else
+      msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
+      echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
+  fi
+}
+
+totegrafik() {
+  if [ -e /bin/tuxwetter ]; then
+      /bin/tuxwetter "$totestring" >/dev/null &
+      sleep 10
+      killall tuxwetter >/dev/null
+    else
+      msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
+      echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
+  fi
+}
+
+deugrafik() {
+  if [ -e /bin/tuxwetter ]; then
+      /bin/tuxwetter "$destring" >/dev/null &
+      sleep 10
+      killall tuxwetter >/dev/null
+    else
+      msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
+      echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
+  fi
+}
+
 cleanup
+
+echo "Corona-Info - Temp-Dateien gelöscht"
 
 
 if [ -e "$landpath"/corona.land ]; then
@@ -199,19 +243,27 @@ fi
 
 echo "Corona-Info - Schriftgröße "$rowsize" eingestellt!"
 
-echo "Corona-Info - Bitte warten, Anzeige am TV wird vorbereitet"
+echo "Corona-Info - Bitte warten, Anzeige am TV wird vorbereitet und angezeigt"
 
 while :; do
-auswahl=1
-msgbox msg=/tmp/coronalist.txt size="$rowsize" icon="$path" title=$titletext1" "$vinfo select=EXIT default=$auswahl >/dev/null
+auswahl=2
+msgbox msg=/tmp/coronalist.txt size="$rowsize" icon="$path" title=$titletext1" "$vinfo select="F~ALLE-WHO,EXIT,TOTE_WHO" order=3 default=$auswahl >/dev/null
 		auswahl=$?
 		case $auswahl	in
 	  1)
+      fallgrafik
+      echo "Corona-Info - Grafik-Fälle-Weltweit-WHO"
+  		;;		
+	  2)
 		  #Abbruch
       rm -f /tmp/corona*
       echo "Corona-Info - Exit (OK-Taste)"
       exit 0
   		;;
+	  3)
+      totegrafik
+      echo "Corona-Info - Grafik-Tote-Weltweit-WHO"
+  		;;		
 		*)
       rm -f /tmp/corona*
       echo "Corona-Info - Exit (Exit-Taste/Timeout)"
