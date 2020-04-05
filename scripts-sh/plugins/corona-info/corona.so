@@ -239,7 +239,7 @@ echo "Corona-Info - Bitte warten, Anzeige am TV wird vorbereitet  und angezeigt"
 
 while :; do
 	auswahl=2
-	msgbox msg="$msgboxfile" size="$rowsize" icon="$icon" title="$title $vinfo" select="F~ALLE_WHO,EXIT,TOTE_WHO" order=3 default=$auswahl >/dev/null
+	msgbox msg="$msgboxfile" size="$rowsize" icon="$icon" title="$title $vinfo" select="F~ALLE_WHO,EXIT,TOTE_WHO,DEUTSCHLAND" order=4 default=$auswahl >/dev/null
 	auswahl=$?
 	case $auswahl in
 	  1)
