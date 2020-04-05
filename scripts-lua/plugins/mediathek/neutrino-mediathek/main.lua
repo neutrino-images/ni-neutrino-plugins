@@ -6,10 +6,10 @@ function getVersionInfo()
 
 	local vdate  = os.date(l.formatDate .. ' / ' .. l.formatTime, j_table.entry[1].vdate)	-- no NLS
 	local mvdate = os.date(l.formatDate .. ' / ' .. l.formatTime, j_table.entry[1].mvdate)	-- no NLS
-	local msg = string.format(l.formatVersion, pluginVersion, j_table.entry[1].version, vdate, j_table.entry[1].progname, j_table.entry[1].progversion,
+	local vInfo = string.format(l.formatVersion, pluginVersion, j_table.entry[1].version, vdate, j_table.entry[1].progname, j_table.entry[1].progversion,
 			j_table.entry[1].api, j_table.entry[1].apiversion, j_table.entry[1].mvversion, j_table.entry[1].mventrys, mvdate)
 
-	messagebox.exec{title=l.versionHeader .. ' ' .. pluginName, text=msg, buttons={ 'ok' } }	-- no NLS
+	messagebox.exec{title=l.versionHeader .. ' ' .. pluginName, text=vInfo, buttons={ 'ok' } }	-- no NLS
 end -- function getVersionInfo
 
 function paintMainMenu(space, frameColor, textColor, info, count)
@@ -18,7 +18,7 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 	local w1 = 0
 	local w2 = 0
 	local w = 0
-	for i = 1, count do
+	for i=1, count do
 		local wText1 = N:getRenderWidth(useDynFont, fontText, info[i][1])
 		if wText1 > w1 then w1 = wText1 end
 		local wText2 = N:getRenderWidth(useDynFont, fontText, info[i][2])
@@ -40,7 +40,7 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 	h_tmp = math.floor(h_tmp)
 	y_start = math.floor(y_start)
 
-	for i = 1, count do
+	for i=1, count do
 		local y = y_start + (i-1)*h_tmp
 		local bg = 0
 		txtC=textColor
@@ -49,16 +49,12 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 			bg   = COL.MENUCONTENTINACTIVE
 		end
 
-		if info[i][1] == '' and info[i][2] == '' then
-			goto continue
+		if (info[i][1] ~= '' or info[i][2] ~= '') then
+			G.paintSimpleFrame(x, y, w, h, frameColor, bg)
+			N:paintVLine(x + w1 + 2*OFFSET.INNER_MID, y, h, frameColor)
+			N:RenderString(useDynFont, fontText, info[i][1], x1, y + h, txtC, w1, h, 1)
+			N:RenderString(useDynFont, fontText, info[i][2], x2, y + h, txtC, w2, h, 0)
 		end
-
-		G.paintSimpleFrame(x, y, w, h, frameColor, bg)
-		N:paintVLine(x + w1 + 2*OFFSET.INNER_MID, y, h, frameColor)
-		N:RenderString(useDynFont, fontText, info[i][1], x1, y + h, txtC, w1, h, 1)
-		N:RenderString(useDynFont, fontText, info[i][2], x2, y + h, txtC, w2, h, 0)
-
-		::continue::
 	end
 end -- function paintMainMenu
 
@@ -157,6 +153,8 @@ function afterStop()
 	M:AudioMute(muteStatusNeutrino, true)
 	M:setVolume(volumeNeutrino)
 
+	V:StopPicture()
+
 --	if timerThread ~= nil then
 --		local ok = timerThread:cancel()
 --		H.printf("timerThread cancel ok: %s", tostring(ok))
@@ -180,7 +178,7 @@ function main()
 	startBox = paintAnInfoBox(l.startPluginInfoMsg, WHERE.CENTER)
 	createImages()
 	mainWindow()
-	_saveConfig(true)
+	_saveConfig()
 	afterStop()
 end
 

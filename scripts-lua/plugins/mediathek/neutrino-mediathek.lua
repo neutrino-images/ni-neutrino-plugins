@@ -2,11 +2,13 @@
 -- Neutrino Plugin 'Neutrino Mediathek' --
 ------------------------------------------
 -- First version:	long time ago		Author: Most likely several but unknown to me; Jacek
---				Base functionality based on data from mediathek.slknet.de server
+--			Base functionality based on data from mediathek.slknet.de server
 -- v 0.4 beta 1:	2020-03-26			Author: Roland Oberle
---				Added search for Titles and Themes (slow and dirty)
+--			Added search for Titles and Themes (slow and dirty)
 -- v 0.4 beta 2:	2020-04-01			Author: Roland Oberle
---				Error corrections and added download capabilities
+--			Error corrections and added download capabilities
+-- v 0.4 beta 3:	2020-04-05			Author: Roland Oberle
+--			Error corrections and .xml generation and background cleaning
 --
 N = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES)
 -- check lua api version
@@ -25,7 +27,7 @@ function loadLuaLib(lib, noerror)
 	end
 	if status == true then return data
 	else
-		error('Lua library  not found: "' .. lib .. '[.so|.lua]"')	-- no NLS 
+		error('Lua library  not found: "' .. lib .. '[.so|.lua]"')	-- no NLS
 	end
 end -- function loadLuaLib
 
@@ -45,14 +47,14 @@ FH:rmdir(pluginTmpPath)
 FH:mkdir(pluginTmpPath)
 
 -- include lua files
-dofile(pluginScriptPath .. '/variables.lua')			-- no NLS
-dofile(pluginScriptPath .. '/functions.lua')			-- no NLS
-dofile(pluginScriptPath .. '/images.lua')				-- no NLS
-dofile(pluginScriptPath .. '/json_decode.lua')			-- no NLS
-dofile(pluginScriptPath .. '/config.lua')				-- no NLS
-dofile(pluginScriptPath .. '/parse_m3u8.lua')			-- no NLS
-dofile(pluginScriptPath .. '/livestream.lua')			-- no NLS
-dofile(pluginScriptPath .. '/mediathek.lua')			-- no NLS
+dofile(pluginScriptPath .. '/variables.lua')		-- no NLS
+dofile(pluginScriptPath .. '/functions.lua')		-- no NLS
+dofile(pluginScriptPath .. '/images.lua')		-- no NLS
+dofile(pluginScriptPath .. '/json_decode.lua')		-- no NLS
+dofile(pluginScriptPath .. '/config.lua')		-- no NLS
+dofile(pluginScriptPath .. '/parse_m3u8.lua')		-- no NLS
+dofile(pluginScriptPath .. '/livestream.lua')		-- no NLS
+dofile(pluginScriptPath .. '/mediathek.lua')		-- no NLS
 dofile(pluginScriptPath .. '/mediathek_leftMenu.lua')	-- no NLS
 dofile(pluginScriptPath .. '/mediathek_movieInfo.lua')	-- no NLS
-dofile(pluginScriptPath .. '/main.lua')					-- no NLS
+dofile(pluginScriptPath .. '/main.lua')			-- no NLS

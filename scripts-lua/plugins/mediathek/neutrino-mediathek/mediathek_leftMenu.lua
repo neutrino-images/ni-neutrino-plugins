@@ -7,14 +7,14 @@ function repaintMediathek()
 	leftMenuEntry[5][2] = formatMinDuration(conf.seeMinimumDuration)
 	paintMtLeftMenu()
 
-	mtRightMenu_select		= 1
+	mtRightMenu_select	= 1
 	mtRightMenu_view_page	= 1
 	mtRightMenu_list_start	= 0
 	paintMtRightMenu()
 end -- function repaintMediathek
 
-function changeTitle(dummy, title)
-	conf.title = title
+function changeTitle(k, v)
+	conf.title = v
 	return MENU_RETURN.REPAINT
 end -- function changeTitle
 
@@ -26,21 +26,21 @@ function changeAllTitles(k, v)
 	return MENU_RETURN.EXIT_ALL
 end -- function changeAllTitles
 
-function changePartialTitle(k, v)
+function changePartSearch(k, v)
 	conf.partialTitle = translateOnOff(v)
 	if conf.partialTitle == 'off' then	-- no NLS
 		conf.inDescriptionToo = 'off'	-- no NLS
 	end
 	return MENU_RETURN.EXIT_All
-end -- function changePartialTitle
+end -- function changePartSearch
 
-function changeInDescriptionToo(k, v)
+function changeInDescr(k, v)
 	conf.inDescriptionToo = translateOnOff(v)
 	if conf.inDescriptionToo == 'on' then	-- no NLS
 		conf.partialTitle = 'on'	-- no NLS
 	end
 	return MENU_RETURN.EXIT_AlL
-end -- function changeInDescriptionToo
+end -- function changeInDescr
 
 function changeIgnoreCase(k, v)
 	conf.ignoreCase = translateOnOff(v)
@@ -48,9 +48,9 @@ function changeIgnoreCase(k, v)
 end -- function changeIgnoreCase
 
 function titleMenu()
-	local old_title				= conf.title
-	local old_allTitles			= conf.allTitles
-	local old_partialTitle		= conf.partialTitle 
+	local old_title			= conf.title
+	local old_allTitles		= conf.allTitles
+	local old_partialTitle		= conf.partialTitle
 	local old_inDescriptionToo	= conf.inDescriptionToo
 	local old_ignoreCase		= conf.ignoreCase
 	local screen = saveFullScreen()
@@ -65,12 +65,12 @@ function titleMenu()
 
 	titleList = {}
 	local opt={l.on, l.off}
-	m_title_sel:addItem{type="chooser", action="changeAllTitles", hint_icon="hint_service", hint=l.titleAllH ,options=opt, id="allTitles", value=unTranslateOnOff(conf.allTitles), name=l.titleAll}	-- no NLS
+	m_title_sel:addItem{type="chooser", action="changeAllTitles", hint_icon="hint_service", hint=l.titleAllTitlesH ,options=opt, id="allTitles", value=unTranslateOnOff(conf.allTitles), name=l.titleAllTitles}	-- no NLS
 	local opt={l.on, l.off}
-	local titleItem = m_title_sel:addItem{type="chooser", action="changePartialTitle", hint_icon="hint_service", hint=l.titlePartSearchH , options=opt, id="partialTitle", value=unTranslateOnOff(conf.partialTitle), name=l.titlePartSearch}	-- no NLS
+	local titleItem = m_title_sel:addItem{type="chooser", action="changePartSearch", hint_icon="hint_service", hint=l.titlePartSearchH , options=opt, id="partSearch", value=unTranslateOnOff(conf.partialTitle), name=l.titlePartSearch}	-- no NLS
 	titleList[1] = titleItem
 	local opt={l.on, l.off}
-	local titleItem = m_title_sel:addItem{type="chooser", action="changeInDescriptionToo", hint_icon="hint_service", hint=l.titleInDescrH, options=opt, id="inDescriptionToo", value=unTranslateOnOff(conf.inDescriptionToo), name=l.titleInDescr}	-- no NLS
+	local titleItem = m_title_sel:addItem{type="chooser", action="changeInDescr", hint_icon="hint_service", hint=l.titleInDescrH, options=opt, id="inDescr", value=unTranslateOnOff(conf.inDescriptionToo), name=l.titleInDescr}	-- no NLS
 	titleList[2] = titleItem
 	local opt={l.on, l.off}
 	local titleItem = m_title_sel:addItem{type="chooser", action="changeIgnoreCase", hint_icon="hint_service", hint=l.titleIgnoreCaseH , options=opt, id="ignoreCase", value=unTranslateOnOff(conf.ignoreCase), name=l.titleIgnoreCase}	-- no NLS
@@ -150,7 +150,6 @@ function changeAllThemes(k, v)
 end -- function changeAllThemes
 
 function themeMenu()
-
 	local old_theme     = conf.theme
 	local old_allThemes = conf.allThemes
 	local screen = saveFullScreen()
@@ -185,7 +184,7 @@ function themeMenu()
 	end
 	el['epoch'] = period
 
-	local minDuration = conf.seeMinimumDuration * 60
+	local minDuration = conf.seeMinimumDuration*60
 	el['duration'] = minDuration
 
 	local refTime = 0
@@ -256,7 +255,7 @@ function themeMenu()
 	end -- up to max number of entries read
 	j = j - 1
 
-	table.sort(mtList, function(a, b) return a.name < b.name end)
+	table.sort(mtList, function(a, b) return string.upper(a.name) < string.upper(b.name) end)
 
 	local opt={l.on, l.off}
 	m_theme_sel:addItem{type="chooser", action="changeAllThemes", hint_icon="hint_service", hint=l.themeAllH, options=opt, id="allThemes", value=unTranslateOnOff(conf.allThemes), name=l.themeAll}	-- no NLS
@@ -288,9 +287,9 @@ function periodOfTimeMenu()
 	addKillKey(mi)
 
 	local opt={l.on, l.off}
-	mi:addItem{type="chooser", action="setConfigString", hint_icon="hint_service", hint=l.seePeriodFutureH, options=opt, id="seeFuturePrograms", value=unTranslateOnOff(conf.seeFuturePrograms), name=l.seePeriodFuture}	-- no NLS
+	mi:addItem{type="chooser", action="setConfigOnOff", hint_icon="hint_service", hint=l.seePeriodFutureH, options=opt, id="seeFuturePrograms", value=unTranslateOnOff(conf.seeFuturePrograms), name=l.seePeriodFuture}	-- no NLS
 	opt={ 'all', '1', '3', '7', '14', '28', '60'}	-- no NLS
-	mi:addItem{type="chooser", action="setConfigStringNT", hint_icon="hint_service", hint=l.seePeriodDaysH, options=opt, id="seePeriod", value=conf.seePeriod, name=l.seePeriodDays}	-- no NLS
+	mi:addItem{type="chooser", action="setConfigValue", hint_icon="hint_service", hint=l.seePeriodDaysH, options=opt, id="seePeriod", value=conf.seePeriod, name=l.seePeriodDays}	-- no NLS
 
 	mi:exec()
 	restoreFullScreen(screen, true)
@@ -309,7 +308,7 @@ function minDurationMenu()
 	mi:addItem{type="separatorline"}	-- no NLS
 	addKillKey(mi)
 
-	mi:addItem{type="numeric", action="setConfigInt", range="0,120", hint_icon="hint_service", hint=l.durationMinH, id="seeMinimumDuration", value=conf.seeMinimumDuration, name=l.durationMin}	-- no NLS
+	mi:addItem{type="numeric", action="setConfigValue", range="0,120", hint_icon="hint_service", hint=l.durationMinH, id="seeMinimumDuration", value=conf.seeMinimumDuration, name=l.durationMin}	-- no NLS
 
 	mi:exec()
 	restoreFullScreen(screen, true)

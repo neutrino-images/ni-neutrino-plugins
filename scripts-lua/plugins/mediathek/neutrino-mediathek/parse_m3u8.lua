@@ -46,7 +46,7 @@ function parse_m3u8Data(url, parse_mode)
 				c = string.gsub(c, '"', '')	-- no NLS
 				codec = H.split(c, ',')	-- no NLS
 				local i
-				for i = 1, #codec do
+				for i=1, #codec do
 					codec[i] = H.trim(codec[i])
 				end
 			end
@@ -55,11 +55,11 @@ function parse_m3u8Data(url, parse_mode)
 					count = count - 1
 				end
 			end
-			streamInfo[count] = {}
-			streamInfo[count]['bandwidth'] = tonumber(bandwidth)
-			streamInfo[count]['resolution'] = resolution
-			streamInfo[count]['codec'] = {}
-			streamInfo[count]['codec'] = codec
+			streamInfo[count]		= {}
+			streamInfo[count]['bandwidth']	= tonumber(bandwidth)
+			streamInfo[count]['resolution']	= resolution
+			streamInfo[count]['codec']	= {}
+			streamInfo[count]['codec']	= codec
 			count = count + 1
 		else
 			if ((count > 1) and (#line > 2)) then
@@ -98,19 +98,19 @@ function get_m3u8url(url, parse_mode)
 	end
 
 	local i
-	local minBW    = 1000000000
-	local maxBW    = 0
-	local tmpBW    = 0
-	local xBW      = 0
-	local maxRes   = ''
-	local minRes   = ''
-	local xRes     = ''
-	local minUrl   = ''
-	local maxUrl   = ''
-	local xUrl     = ''
+	local minBW	= 1000000000
+	local maxBW	= 0
+	local tmpBW	= 0
+	local xBW	= 0
+	local maxRes	= ''
+	local minRes	= ''
+	local xRes	= ''
+	local minUrl	= ''
+	local maxUrl	= ''
+	local xUrl	= ''
 
 	-- min/max bandwidth
-	for i = 1, #si do
+	for i=1, #si do
 		if (si[i]['bandwidth'] == nil) then si[i]['bandwidth'] = 0 end
 		if (si[i]['bandwidth'] > 65000) then -- skip audio streams
 			if (si[i]['bandwidth'] <= minBW) then
@@ -129,7 +129,7 @@ function get_m3u8url(url, parse_mode)
 	-- average bandwidth
 	tmpBW = (maxBW+minBW)/2
 	local diff = 1000000000
-	for i = 1, #si do
+	for i=1, #si do
 		if (si[i]['bandwidth'] == nil) then si[i]['bandwidth'] = 0 end
 		if (si[i]['bandwidth'] > 65000) then -- skip audio streams
 			if (math.abs(tmpBW - si[i]['bandwidth']) < diff) then
@@ -146,19 +146,19 @@ function get_m3u8url(url, parse_mode)
 
 	if (conf.streamQuality == 'max') then	-- no NLS
 		-- max
-		ret['url']           = maxUrl
-		ret['bandwidth']     = maxBW
-		ret['resolution']    = maxRes
+		ret['url']		= maxUrl
+		ret['bandwidth']	= maxBW
+		ret['resolution']	= maxRes
 	elseif (conf.streamQuality == 'normal') then	-- no NLS
 		-- normal
-		ret['url']           = xUrl
-		ret['bandwidth']     = xBW
-		ret['resolution']    = xRes
+		ret['url']		= xUrl
+		ret['bandwidth']	= xBW
+		ret['resolution']	= xRes
 	else
 		-- min
-		ret['url']           = minUrl
-		ret['bandwidth']     = minBW
-		ret['resolution']    = minRes
+		ret['url']		= minUrl
+		ret['bandwidth']	= minBW
+		ret['resolution']	= minRes
 	end
 	ret['qual'] = conf.streamQuality
 

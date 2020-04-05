@@ -20,8 +20,7 @@ function paintMovieInfo(isMP, res, ratio, rate)
 	local frame_y = y + space_y
 	local frame_w = box_w - 2*space_x
 	local frame_h = real_h - 2*space_y
-	G.paintSimpleFrame(frame_x, frame_y, frame_w, frame_h,
-			COL.FRAME, 0)
+	G.paintSimpleFrame(frame_x, frame_y, frame_w, frame_h, COL.FRAME, 0)
 	local txt = ''
 
 	local function paintInfoItem(_x, _y, info1, info2, frame)
@@ -29,13 +28,11 @@ function paintMovieInfo(isMP, res, ratio, rate)
 		local tmp2_h = math.floor(fontLeftMenu2_h+N:scale2Res(4))
 		local _y1 = _y
 		local _y = math.floor(_y+fontLeftMenu1_h+N:scale2Res(10))
-		N:RenderString(useDynFont, fontLeftMenu1, info1, math.floor(_x+N:scale2Res(14)), _y,
-				COL.MENUCONTENT_TEXT, frame_w, tmp1_h, 0)
+		N:RenderString(useDynFont, fontLeftMenu1, info1, math.floor(_x+N:scale2Res(14)), _y, COL.MENUCONTENT_TEXT, frame_w, tmp1_h, 0)
 		_y = _y + tmp1_h+0
 
 		if type(info2) ~= 'table' then	-- no NLS
-			N:RenderString(useDynFont, fontLeftMenu2, info2,math.floor( _x+N:scale2Res(12+10)), _y,
-					COL.MENUCONTENT_TEXT, frame_w, tmp2_h, 0)
+			N:RenderString(useDynFont, fontLeftMenu2, info2,math.floor( _x+N:scale2Res(12+10)), _y, COL.MENUCONTENT_TEXT, frame_w, tmp2_h, 0)
 		else
 			local maxLines = 6
 			local lines = #info2
@@ -43,8 +40,7 @@ function paintMovieInfo(isMP, res, ratio, rate)
 			local i = 1
 			for i=1, lines do
 				local txt = string.gsub(info2[i],'\n', ' ')	-- no NLS
-				N:RenderString(useDynFont, fontLeftMenu2, txt, math.floor(_x+N:scale2Res(12+10)), _y,
-						COL.MENUCONTENT_TEXT, frame_w, tmp2_h, 0)
+				N:RenderString(useDynFont, fontLeftMenu2, txt, math.floor(_x+N:scale2Res(12+10)), _y, COL.MENUCONTENT_TEXT, frame_w, tmp2_h, 0)
 				_y = _y + tmp2_h
 			end
 			_y = _y - tmp2_h
@@ -114,10 +110,11 @@ function paintMovieInfo(isMP, res, ratio, rate)
 
 		paintInfoItem(frame_x, bottom_y, l.infoQuality, txt, true)
 	end
-		-- geo
-		start_y = start_y + step
-		txt = mtList[mtRightMenu_select].geo
-		paintInfoItem(frame_x+frame_w*3/4, bottom_y, l.infoGeo, txt, false)
+
+	-- geo
+	start_y = start_y + step
+	txt = mtList[mtRightMenu_select].geo
+	paintInfoItem(frame_x+frame_w*3/4, bottom_y, l.infoGeo, txt, false)
 
 	repeat
 		local msg, data = N:GetInput(500)

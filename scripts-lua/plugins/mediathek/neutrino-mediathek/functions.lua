@@ -19,8 +19,8 @@ function killPlugin(id)
 end -- function killPlugin
 
 function addKillKey(menu)
-	menu:addKey{directkey=RC.tv,		id='tv',		action='killPlugin'}	-- no NLS
-	menu:addKey{directkey=RC.radio,		id='radio',		action='killPlugin'}	-- no NLS
+	menu:addKey{directkey=RC.tv,		id='tv',	action='killPlugin'}	-- no NLS
+	menu:addKey{directkey=RC.radio,		id='radio',	action='killPlugin'}	-- no NLS
 	menu:addKey{directkey=RC.standby,	id='standby',	action='killPlugin'}	-- no NLS
 end -- function addKillKey
 
@@ -59,27 +59,27 @@ function downloadFileInternal(url, file, hideBox, _ua, postData_, uriDecode)
 dlDebug = true
 	if (dlDebug == true) then
 		H.printf( '\n' ..	-- no NLS
-				'   remote url: %s\n' ..	-- no NLS
-				'         file: %s\n' ..	-- no NLS
-				'     postData: %s\n' ..	-- no NLS
-				'     ipv4only: %s\n' ..	-- no NLS
-				'   user_agent: %s\n' ..	-- no NLS
-				'       silent: %s\n' ..	-- no NLS
-				'      verbose: %s' ..	-- no NLS
-				'', url, tostring(file), C:decodeUri(tostring(postData)), tostring(v4), ua, tostring(s), tostring(v))
+			'   remote url: %s\n' ..	-- no NLS
+			'         file: %s\n' ..	-- no NLS
+			'     postData: %s\n' ..	-- no NLS
+			'     ipv4only: %s\n' ..	-- no NLS
+			'   user_agent: %s\n' ..	-- no NLS
+			'       silent: %s\n' ..	-- no NLS
+			'      verbose: %s' ..	-- no NLS
+			'', url, tostring(file), C:decodeUri(tostring(postData)), tostring(v4), ua, tostring(s), tostring(v))
 	end
 
-s = false
-v = true
+	s = false
+	v = true
 	local ret, data
 	if uriDecode == nil then
 		if file ~= '' then
-			ret, data = C:download{url=url, o=file, A=ua, ipv4=v4, s=s, v=v, postfields=postData}
+			ret, data	= C:download{url=url, o=file, A=ua, ipv4=v4, s=s, v=v, postfields=postData}
 		else
-			ret, data = C:download{url=url,         A=ua, ipv4=v4, s=s, v=v, postfields=postData}
+			ret, data	= C:download{url=url,         A=ua, ipv4=v4, s=s, v=v, postfields=postData}
 		end
 	else
-		ret, data     = C:download{url=url,         A=ua, ipv4=v4, s=s, v=v, postfields=postData}
+		ret, data		= C:download{url=url,         A=ua, ipv4=v4, s=s, v=v, postfields=postData}
 		if (ret == 0) then
 			data = C:decodeUri(data)
 			if ((file ~= '') and (data ~= nil)) then
@@ -108,7 +108,7 @@ v = true
 	end
 end -- function downloadFileInternal
 
-function playMovie(title, url, info1, info2, enableMovieInfo)
+function playMovie(url, title, info1, info2, enableMovieInfo)
 	local function muteSleep(mute, wait)
 		local threadFunc = [[
 			local t = ...
@@ -152,7 +152,58 @@ function playMovie(title, url, info1, info2, enableMovieInfo)
 	end
 end -- function playMovie
 
-function downloadMovie(title, url)
+function downloadMovie(url, channel, title, description, theme, duration, date, time)
+	local function constructXMLFile(channel, title, description, theme, duration, date, time, downloadQuality)
+		local function escape(s, w)
+			local t = ''
+			for i=1, #s do
+				c = string.sub(s, i, i)
+				t = t .. c
+				if (c == w) then t = t .. c end
+			end
+			return t
+		end -- function escape
+		
+		local xml = {}
+		xml[1]	= '<?xml version="1.0" encoding="UTF-8"?>'	-- no NLS
+		xml[2]	= '<neutrino commandversion="1">'	-- no NLS
+		xml[3]	= '	<record command="record">'	-- no NLS
+		xml[4]	= '		<channelname>' .. channel .. '</channelname>'	-- no NLS
+		xml[5]	= '		<epgtitle>' .. title .. '</epgtitle>'	-- no NLS
+		xml[6]	= '		<id>0</id>'	-- no NLS
+		xml[7]	= '		<info1>' .. description .. '</info1>'	-- no NLS
+		xml[8]	= '		<info2>' .. string.format(l.xmlInfo2, theme, downloadQuality, date, time) .. '</info2>'	-- no NLS
+		xml[9]	= '		<epgid>0</epgid>'	-- no NLS
+		xml[10]	= '		<mode>1</mode>'	-- no NLS
+		xml[11]	= '		<videopid>0</videopid>'	-- no NLS
+		xml[12]	= '		<videotype>0</videotype>'	-- no NLS
+		xml[13]	= '		<vtxtpid>0</vtxtpid>'	-- no NLS
+		xml[14]	= '		<genremajor>0</genremajor>'	-- no NLS
+		xml[15]	= '		<genreminor>0</genreminor>'	-- no NLS
+		xml[16]	= '		<seriename></seriename>'	-- no NLS
+		xml[17]	= '		<length>' .. duration .. '</length>'	-- no NLS
+		xml[18]	= '		<productioncountry></productioncountry>'	-- no NLS
+		xml[19]	= '		<productiondate></productiondate>'	-- no NLS
+		xml[20]	= '		<rating>0</rating>'	-- no NLS
+		xml[21]	= '		<quality>' .. downloadQuality .. '</quality>'	-- no NLS
+		xml[22]	= '		<parentallockage>0</parentallockage>'	-- no NLS
+		xml[23]	= '		<dateoflastplay>0</dateoflastplay>'	-- no NLS
+		xml[24]	= '		<bookmark>'	-- no NLS
+		xml[25]	= '			<bookmarkstart>0</bookmarkstart>'	-- no NLS
+		xml[26]	= '			<bookmarkend>0</bookmarkend>'	-- no NLS
+		xml[27]	= '			<bookmarklast>0</bookmarklast>'	-- no NLS
+		xml[28]	= '			<bookmarkuser bookmarkuserpos="0" bookmarkusertype="0" bookmarkusername=""/>'	-- no NLS
+		xml[29]	= '		</bookmark>'	-- no NLS
+		xml[30]	= '	</record>'	-- no NLS
+		xml[31]	= '</neutrino>'	-- no NLS
+
+		local s = ''
+		for i=1, #xml do
+			s = s .. escape(xml[i], '\'') .. string.char(10)	-- NL
+		end
+		return s
+	end -- function constructXMLFile
+
 	local function muteSleep(mute, wait)
 		local threadFunc = [[
 			local t = ...
@@ -175,8 +226,8 @@ function downloadMovie(title, url)
 			if ((r >= 'A' and r <= 'Z') or	-- no NLS
 				(r >= 'a' and r <= 'z') or	-- no NLS
 				(r >= '0' and r <= '9') or	-- no NLS
-				r == '.' or r == ',' or r == ':' or r == ';' or r == '-' or r == '(' or r == ')' or	-- no NLS
-				r == '?' or r == '!') then	-- no NLS
+				r == '.' or r == ',' or r == ':' or r == ';' or	-- no NLS
+				r == '-' or r == '(' or r == ')' or r == '?' or r == '!') then	-- no NLS
 				t = t .. r
 			else
 				t = t .. '_'	-- no NLS
@@ -184,7 +235,7 @@ function downloadMovie(title, url)
 		end
 		return t
 	end -- function validName
-	
+
 	local muteThread
 	if (moviePlayed == false) then
 		volumePlugin = M:getVolume()
@@ -196,26 +247,32 @@ function downloadMovie(title, url)
 
 	if (conf.downloadPath ~= '/') then
 		if (string.sub(url, -4) == '.mp4') then	-- no NLS
-			local filePathName = conf.downloadPath .. '/' .. validName(title) .. string.sub(url, -4)	-- no NLS
-			local filePathNameWOExt = string.sub(filePathName, 1, -5)
+			local date4Name = string.sub(date, 7, 10) .. string.sub(date, 4, 5) .. string.sub(date, 1, 2)
+			local time4Name = string.sub(time, 1,  2) .. string.sub(time, 4, 5) .. '00'	-- no NLS
+			local filePathNameWOExt = conf.downloadPath .. '/' .. validName(channel) .. '_' .. validName(title) .. '_' .. date4Name .. '_' .. time4Name	-- no NLS
+			local fileMP4 = '"' .. filePathNameWOExt .. '.mp4"'	-- no NLS
 			local fileLOG = '"' .. filePathNameWOExt .. '.log"'	-- no NLS
 			local fileLST = '"' .. filePathNameWOExt .. '.lst"'	-- no NLS
 			local fileERR = '"' .. filePathNameWOExt .. '.err"'	-- no NLS
 			local fileCMD = '"' .. filePathNameWOExt .. '.cmd"'	-- no NLS
+			local fileXML = '"' .. filePathNameWOExt .. '.xml"'	-- no NLS
 			local info1 = l.statusDLStarted
-			local info2 = string.format(l.statusDLWhat, title, filePathName, url, conf.streamQuality)
-			paintInfoBoxAndWait(info1, info2, 10)
-			local wgetCMD = 'wget --verbose --continue --no-check-certificate --inet4-only --user-agent=' .. user_agent2 .. ' --progress=dot:mega --output-document="' .. filePathName .. '" --output-file=' .. fileLOG .. ' ' .. url .. ' > ' .. fileLST .. ' 2> ' .. fileERR .. ' &'	-- no NLS
+			local info2 = string.format(l.statusDLWhat, channel, title, description, theme, duration, date, time, conf.downloadQuality, fileMP4, url)
+			paintInfoBoxAndWait(info1, info2, conf.guiTimeMsg)
+			local durationInMinutes = tostring(tonumber(string.sub(duration, 1, 2)) * 60 + tonumber(string.sub(duration, 4, 5)) + 1)
+			local tagsXML = constructXMLFile(channel, title, description, theme, durationInMinutes, date, time, conf.downloadQuality)
+			os.execute('echo \'' .. tagsXML .. '\' > ' .. fileXML)
+			local wgetCMD = 'wget --verbose --continue --no-check-certificate --inet4-only --user-agent=' .. user_agent2 .. ' --progress=dot:mega --output-document=' .. fileMP4 .. ' --output-file=' .. fileLOG .. ' ' .. url .. ' > ' .. fileLST .. ' 2> ' .. fileERR .. ' &'	-- no NLS
 			os.execute('echo \'' .. wgetCMD .. '\' > ' .. fileCMD)
 			os.execute(wgetCMD)
 		else
-			paintAnInfoBoxAndWait(l.statusDLNot, WHERE.CENTER, 10)
+			paintAnInfoBoxAndWait(l.statusDLNot, WHERE.CENTER, conf.guiTimeMsg)
 		end
 	else
-		paintAnInfoBoxAndWait(string.format(l.statusDLNoPath, conf.downloadPath), WHERE.CENTER, 10)
+		paintAnInfoBoxAndWait(string.format(l.statusDLNoPath, conf.downloadPath), WHERE.CENTER, conf.guiTimeMsg)
 		local info1 = l.statusDLSpace
 		local info2 = runACommand('df | grep Filesystem ; df -m | grep /dev/')	-- no NLS
-		paintInfoBoxAndWait(info1, info2, 10)
+		paintInfoBoxAndWait(info1, info2, conf.guiTimeMsg)
 	end
 
 	muteStatusPlugin = M:isMuted()
@@ -248,7 +305,7 @@ function mtInfoBox(hdr, w, h)
 	local y = ((SCREEN.END_Y - SCREEN.OFF_Y) - dy) / 2
 	if x < 0 then x = 0 end
 	if y < 0 then y = 0 end
-	local ib = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=hdr, btnRed=l.btnBeenden, icon="information", has_shadow=true, shadow_mode=1, show_footer=true} 	-- no NLS
+	local ib = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=hdr, btnRed=l.btnBeenden, icon="information", has_shadow=true, shadow_mode=1, show_footer=true}	-- no NLS
 	ib:paint()
 	return ib
 end -- function mtInfoBox
@@ -317,7 +374,7 @@ end -- function createCacheFileName
 -- url_decode/url_encode code from: http://lua-users.org/wiki/StringRecipes
 function url_decode(str)
 	str = string.gsub (str, '+', ' ')	-- no NLS
-	str = string.gsub (str, '%%(%x%x)',	-- no NLS 
+	str = string.gsub (str, '%%(%x%x)',	-- no NLS
 		function(h) return string.char(tonumber(h,16)) end)
 	str = string.gsub (str, '\r\n', '\n')	-- no NLS
 	return str
@@ -400,11 +457,11 @@ function paintInfoBox(txt1, txt2)
 	local maxLen = 0
 	for i=1, crCount2 do
 		local s, e = string.find(_txt, '\n')	-- no NLS
---		paintAnInfoBoxAndWait("s: " .. s .. " e: " .. e, WHERE.CENTER, 2)
+--		paintAnInfoBoxAndWait("s: " .. s .. " e: " .. e, WHERE.CENTER, 3)
 		if s ~= nil then
 			local txt = string.sub(_txt, 1, s - 1)
 			_txt = string.sub(_txt, e + 1)
---			paintAnInfoBoxAndWait("Teil: " .. txt, WHERE.CENTER, 2)
+--			paintAnInfoBoxAndWait("Teil: " .. txt, WHERE.CENTER, 3)
 			local len = N:getRenderWidth(useDynFont, fontLeftMenu2, txt)
 			if (len > maxLen) then maxLen = len end
 		end
@@ -419,7 +476,7 @@ function paintInfoBox(txt1, txt2)
 	local dx = maxLen + 10
 	local dy = (crCount2*tmp2_h) + tmp1_h + 10
 
---paintAnInfoBoxAndWait("tmp1_h: " .. tmp1_h, WHERE.CENTER, 10)
+--paintAnInfoBoxAndWait("tmp1_h: " .. tmp1_h, WHERE.CENTER, 3)
 	G.paintSimpleFrame(startX-5, startY-5, dx, dy, COL.FRAME, COL.BACKGROUND)
 	local ib = paintEmptyInfoBox(startX-5, startY-5, dx, dy)
 
@@ -432,11 +489,11 @@ function paintInfoBox(txt1, txt2)
 	_txt = txt2
 	for i=1, crCount2 do
 		local s, e = string.find(_txt, '\n')	-- no NLS
---		paintAnInfoBoxAndWait("s: " .. s .. " e: " .. e, WHERE.CENTER, 2)
+--		paintAnInfoBoxAndWait("s: " .. s .. " e: " .. e, WHERE.CENTER, 3)
 		if s ~= nil then
 			local txt = string.sub(_txt, 1, s - 1)
 			_txt = string.sub(_txt, e + 1)
---			paintAnInfoBoxAndWait("Teil: " .. txt, WHERE.CENTER, 2)
+--			paintAnInfoBoxAndWait("Teil: " .. txt, WHERE.CENTER, 3)
 			local widthX = N:getRenderWidth(useDynFont, fontLeftMenu2, txt)
 			if (widthX > maxLen) then
 				while N:getRenderWidth(useDynFont, fontLeftMenu2, txt) > maxLen-8 do
@@ -494,10 +551,6 @@ function paintTopRightInfoBox(txt)
 	local y  = math.floor(dy + 5)
 	local ib = paintEmptyInfoBox(x, y, dx, dy)
 	N:RenderString(useDynFont, fontMiniInfo, txt, x, y+dy, COL.YELLOW, dx, dy, 1)
-
---	local ib = cwindow.new{color_body=COL.MENUCONTENTSELECTED_PLUS_0, x=x, y=y, dx=dx+10, dy=dy, has_shadow=true, shadow_mode=1, show_footer=false, show_header=false}
---	ctext.new{parent=ib, x=0, y=0, dx=dx, dy=dy+4, text=txt, color_text=COL.YELLOW, color_body=COL.MENUCONTENTSELECTED_PLUS_0, font_text=FONT.MENU, mode="ALIGN_CENTER"}
---	ib:paint()
 	return ib
 end -- function paintTopRightInfoBox
 
@@ -551,10 +604,10 @@ function getSendDataHead(mode)
 	else
 		ret['isBeta'] = true	-- no NLS
 	end
-	ret['vBeta']	= pluginVersionBeta		-- no NLS
+	ret['vBeta']	= pluginVersionBeta	-- no NLS
 	ret['vMajor']	= pluginVersionMajor	-- no NLS
 	ret['vMinor']	= pluginVersionMinor	-- no NLS
-	ret['mode']		= mode					-- no NLS
+	ret['mode']	= mode			-- no NLS
 
 	return ret
 end -- function getSendDataHead

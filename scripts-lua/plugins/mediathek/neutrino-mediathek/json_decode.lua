@@ -58,7 +58,7 @@ end
 
 function checkJsonError(tab)
 	if tab.error > 0 then
---		paintAnInfoBoxAndWait(tab.entry .. "\nAbort...", WHERE.CENTER)
+--		paintAnInfoBoxAndWait(tab.entry .. "\nAbort...", WHERE.CENTER, conf.guiTimeMsg)
 		H.printf('Error: %s', tab.entry)	-- no NLS
 		messagebox.exec{title='Error', text=tab.entry, buttons={ 'ok' } }	-- no NLS
 		return false

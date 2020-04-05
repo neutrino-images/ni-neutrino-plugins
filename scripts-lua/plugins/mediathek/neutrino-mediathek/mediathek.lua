@@ -1,12 +1,12 @@
 mtLeftMenu_x	= SCREEN.OFF_X + 10
 mtLeftMenu_w	= math.floor(N:scale2Res(240))
-subMenuTop		= math.floor(N:scale2Res(10))
-subMenuLeft		= math.floor(N:scale2Res(8))
+subMenuTop	= math.floor(N:scale2Res(10))
+subMenuLeft	= math.floor(N:scale2Res(8))
 subMenuSpace	= math.floor(N:scale2Res(16))
 subMenuHight	= math.floor(N:scale2Res(26))
 mtRightMenu_x	= mtLeftMenu_x + 8 + mtLeftMenu_w
 mtRightMenu_w	= SCREEN.END_X - mtRightMenu_x-8
-mtRightMenu_select		= 1
+mtRightMenu_select	= 1
 mtRightMenu_list_start	= 0
 mtRightMenu_list_total	= 0
 mtRightMenu_view_page	= 1
@@ -17,10 +17,10 @@ leftInfoBox_y	= 0
 leftInfoBox_w	= 0
 leftInfoBox_h	= 0
 
-mtList			= {}
-mtBuffer		= {}
-titleList		= {}
-themeList		= {}
+mtList		= {}
+mtBuffer	= {}
+titleList	= {}
+themeList	= {}
 
 function playOrDownloadVideo(playOrDownload)
 	local flag_max = false
@@ -30,9 +30,15 @@ function playOrDownloadVideo(playOrDownload)
 	if (mtList[mtRightMenu_select].url ~= '') then			flag_normal = true end
 	if (mtList[mtRightMenu_select].url_small ~= '') then	flag_min = true end
 
+	local quality = ''
+	if (playOrDownload == true) then
+		quality = conf.streamQuality
+	else
+		quality = conf.downloadQuality
+	end
 	local url = ''
 	-- conf=max: 1. max, 2. normal, 3. min
-	if (conf.streamQuality == 'max') then	-- no NLS
+	if (quality == 'max') then	-- no NLS
 		if (flag_max == true) then
 			url = mtList[mtRightMenu_select].url_hd
 		elseif (flag_normal == true) then
@@ -41,7 +47,7 @@ function playOrDownloadVideo(playOrDownload)
 			url = mtList[mtRightMenu_select].url_small
 		end
 	-- conf=min: 1. min, 2. normal, 3. max
-	elseif (conf.streamQuality == 'min') then	-- no NLS
+	elseif (quality == 'min') then	-- no NLS
 		if (flag_min == true) then
 			url = mtList[mtRightMenu_select].url_small
 		elseif (flag_normal == true) then
@@ -63,9 +69,9 @@ function playOrDownloadVideo(playOrDownload)
 	local screen = saveFullScreen()
 	hideMtWindow()
 	if (playOrDownload == true) then
-		playMovie(mtList[mtRightMenu_select].title, url, mtList[mtRightMenu_select].theme, url, true)
+		playMovie(url, mtList[mtRightMenu_select].title, mtList[mtRightMenu_select].theme, url, true)
 	else
-		downloadMovie(mtList[mtRightMenu_select].title, url, mtList[mtRightMenu_select].theme, url, true)
+		downloadMovie(url, mtList[mtRightMenu_select].channel, mtList[mtRightMenu_select].title, mtList[mtRightMenu_select].description, mtList[mtRightMenu_select].theme, mtList[mtRightMenu_select].duration, mtList[mtRightMenu_select].date, mtList[mtRightMenu_select].time)
 	end
 	restoreFullScreen(screen, true)
 end -- function playOrDownloadVideo
@@ -102,12 +108,12 @@ function paint_mtItemLine(count)
 	if (count <= #mtList) then
 		paintItem(29,	mtList[count].theme,	0)
 		paintItem(40,	mtList[count].title,	0)
-		paintItem(11,	mtList[count].date,		1)
-		paintItem(6,	mtList[count].time,		1)
+		paintItem(11,	mtList[count].date,	1)
+		paintItem(6,	mtList[count].time,	1)
 		paintItem(9,	mtList[count].duration,	1)
 		local geo = ''
 		if (mtList[count].geo ~= '') then geo = 'X' end	-- no NLS
-		paintItem(5,	geo,					1)
+		paintItem(5,	geo,			1)
 	end
 end -- function paint_mtItemLine
 
@@ -133,21 +139,21 @@ function paintMtRightMenu()
 		return string.format('%02d:%02d:%02d', h, m, s)	-- no NLS
 	end -- function formatDuration
 
-	local function paintHead(vH, txt)
-		local paint = true
-		if (vH < 1) then
-			vH = math.abs(vH)
-			paint = false
-		end
-		local w = math.floor(((rightItem_w / 100) * vH))
-		N:RenderString(useDynFont, fontLeftMenu1, txt, item_x, y+subMenuHight, textColor, w, subMenuHight, 1)
-		item_x = item_x + w
-		if (paint == true) then
-			N:paintVLine(item_x, y, subMenuHight, frameColor)
-		end
-	end -- function paintHead
-
 	local function paintHeadLine()
+		local function paintHead(vH, txt)
+			local paint = true
+			if (vH < 0) then
+				vH = math.abs(vH)
+				paint = false
+			end
+			local w = math.floor(((rightItem_w / 100) * vH))
+			N:RenderString(useDynFont, fontLeftMenu1, txt, item_x, y+subMenuHight, textColor, w, subMenuHight, 1)
+			item_x = item_x + w
+			if (paint == true) then
+				N:paintVLine(item_x, y, subMenuHight, frameColor)
+			end
+		end -- function paintHead
+		
 		G.paintSimpleFrame(x, y, rightItem_w, subMenuHight, frameColor, 0)
 		paintHead(29,	l.headerTheme)
 		paintHead(40,	l.headerTitle)
@@ -247,21 +253,21 @@ function paintMtRightMenu()
 				maxentries = 1
 			else
 				for i=1, #j_table.entry do
-					local title				= conf.title
-					local allTitles			= conf.allTitles
-					local partialTitle		= conf.partialTitle
+					local title		= conf.title
+					local allTitles		= conf.allTitles
+					local partialTitle	= conf.partialTitle
 					local inDescriptionToo	= conf.inDescriptionToo
-					local theme				= conf.theme
-					local allThemes			= conf.allThemes
-					local t_title			= j_table.entry[i].title
-					local t_description		= j_table.entry[i].description
-					local t_theme			= j_table.entry[i].theme
+					local theme		= conf.theme
+					local allThemes		= conf.allThemes
+					local t_title		= j_table.entry[i].title
+					local t_description	= j_table.entry[i].description
+					local t_theme		= j_table.entry[i].theme
 					if conf.ignoreCase == 'on' then	-- no NLS
-						title			= string.upper(title)
-						t_title			= string.upper(t_title)
+						title		= string.upper(title)
+						t_title		= string.upper(t_title)
 						t_description	= string.upper(t_description)
 					end
-					if ((theme == t_theme  and allTitles == 'on'                                                                                       ) or -- no NLS
+					if ((theme == t_theme  and allTitles == 'on'                                                                                           ) or -- no NLS
 						(allThemes == 'on' and title == t_title                                  and partialTitle == 'off'                             ) or -- no NLS
 						(allThemes == 'on' and string.find(t_title, title, 1, true) ~= nil       and partialTitle == 'on'                              ) or -- no NLS
 						(allThemes == 'on' and string.find(t_description, title, 1, true) ~= nil and partialTitle == 'on' and inDescriptionToo == 'on' ) or -- no NLS
@@ -269,17 +275,17 @@ function paintMtRightMenu()
 						(theme == t_theme  and string.find(t_title, title, 1, true) ~= nil       and partialTitle == 'on'                              ) or -- no NLS
 						(theme == t_theme  and string.find(t_description, title, 1, true) ~= nil and partialTitle == 'on' and inDescriptionToo == 'on' )) then -- no NLS
 						mtBuffer[j] = {}
-						mtBuffer[j].channel		= j_table.entry[i].channel
-						mtBuffer[j].theme		= j_table.entry[i].theme
-						mtBuffer[j].title		= j_table.entry[i].title
-						mtBuffer[j].date		= os.date(l.formatDate, j_table.entry[i].date_unix)
-						mtBuffer[j].time		= os.date(l.formatTime, j_table.entry[i].date_unix)
+						mtBuffer[j].channel	= j_table.entry[i].channel
+						mtBuffer[j].theme	= j_table.entry[i].theme
+						mtBuffer[j].title	= j_table.entry[i].title
+						mtBuffer[j].date	= os.date(l.formatDate, j_table.entry[i].date_unix)
+						mtBuffer[j].time	= os.date(l.formatTime, j_table.entry[i].date_unix)
 						mtBuffer[j].duration	= formatDuration(j_table.entry[i].duration)
-						mtBuffer[j].geo			= j_table.entry[i].geo
+						mtBuffer[j].geo		= j_table.entry[i].geo
 						mtBuffer[j].description	= j_table.entry[i].description
-						mtBuffer[j].url			= j_table.entry[i].url
+						mtBuffer[j].url		= j_table.entry[i].url
 						mtBuffer[j].url_small	= j_table.entry[i].url_small
-						mtBuffer[j].url_hd		= j_table.entry[i].url_hd
+						mtBuffer[j].url_hd	= j_table.entry[i].url_hd
 						mtBuffer[j].parse_m3u8	= j_table.entry[i].parse_m3u8
 						j = j + 1
 					end
@@ -294,7 +300,7 @@ function paintMtRightMenu()
 		mtBuffer_list_total = j
 
 		selectionChanged = false
-		paintAnInfoBoxAndWait(string.format(l.titleRead, mtBuffer_list_total), WHERE.CENTER, 1)
+--		paintAnInfoBoxAndWait(string.format(l.titleRead, mtBuffer_list_total), WHERE.CENTER, 3)
 	end -- function bufferEntries
 
 	itemLine_y = mtMenu_y+subMenuTop+2
@@ -376,17 +382,17 @@ function paintMtRightMenu()
 				while (#mtList > 1) do table.remove(mtList) end
 			end
 			mtList[1] = {}
-			mtList[1].channel		= ''
-			mtList[1].theme			= ''
-			mtList[1].title			= l.titleNotFound
-			mtList[1].date			= ''
-			mtList[1].time			= ''
-			mtList[1].duration		= ''
-			mtList[1].geo			= ''
+			mtList[1].channel	= ''
+			mtList[1].theme		= ''
+			mtList[1].title		= l.titleNotFound
+			mtList[1].date		= ''
+			mtList[1].time		= ''
+			mtList[1].duration	= ''
+			mtList[1].geo		= ''
 			mtList[1].description	= ''
-			mtList[1].url			= ''
-			mtList[1].url_small		= ''
-			mtList[1].url_hd		= ''
+			mtList[1].url		= ''
+			mtList[1].url_small	= ''
+			mtList[1].url_hd	= ''
 			mtList[1].parse_m3u8	= ''
 		else
 			mtRightMenu_list_total = j_table.head.total
@@ -396,17 +402,17 @@ function paintMtRightMenu()
 			end
 			for i=1, #j_table.entry do
 				mtList[i] = {}
-				mtList[i].channel		= j_table.entry[i].channel
-				mtList[i].theme			= j_table.entry[i].theme
-				mtList[i].title			= j_table.entry[i].title
-				mtList[i].date			= os.date(l.formatDate, j_table.entry[i].date_unix)
-				mtList[i].time			= os.date(l.formatTime, j_table.entry[i].date_unix)
-				mtList[i].duration		= formatDuration(j_table.entry[i].duration)
-				mtList[i].geo			= j_table.entry[i].geo
+				mtList[i].channel	= j_table.entry[i].channel
+				mtList[i].theme		= j_table.entry[i].theme
+				mtList[i].title		= j_table.entry[i].title
+				mtList[i].date		= os.date(l.formatDate, j_table.entry[i].date_unix)
+				mtList[i].time		= os.date(l.formatTime, j_table.entry[i].date_unix)
+				mtList[i].duration	= formatDuration(j_table.entry[i].duration)
+				mtList[i].geo		= j_table.entry[i].geo
 				mtList[i].description	= j_table.entry[i].description
-				mtList[i].url			= j_table.entry[i].url
-				mtList[i].url_small		= j_table.entry[i].url_small
-				mtList[i].url_hd		= j_table.entry[i].url_hd
+				mtList[i].url		= j_table.entry[i].url
+				mtList[i].url_small	= j_table.entry[i].url_small
+				mtList[i].url_hd	= j_table.entry[i].url_hd
 				mtList[i].parse_m3u8	= j_table.entry[i].parse_m3u8
 			end
 		end
@@ -426,22 +432,22 @@ function paintMtRightMenu()
 		end
 		for i=1, maxBuffer do
 			mtList[i] = {}
-			mtList[i].channel		= mtBuffer[mtRightMenu_list_start+i].channel
-			mtList[i].theme			= mtBuffer[mtRightMenu_list_start+i].theme
-			mtList[i].title			= mtBuffer[mtRightMenu_list_start+i].title
-			mtList[i].date			= mtBuffer[mtRightMenu_list_start+i].date
-			mtList[i].time			= mtBuffer[mtRightMenu_list_start+i].time
-			mtList[i].duration		= mtBuffer[mtRightMenu_list_start+i].duration
-			mtList[i].geo			= mtBuffer[mtRightMenu_list_start+i].geo
+			mtList[i].channel	= mtBuffer[mtRightMenu_list_start+i].channel
+			mtList[i].theme		= mtBuffer[mtRightMenu_list_start+i].theme
+			mtList[i].title		= mtBuffer[mtRightMenu_list_start+i].title
+			mtList[i].date		= mtBuffer[mtRightMenu_list_start+i].date
+			mtList[i].time		= mtBuffer[mtRightMenu_list_start+i].time
+			mtList[i].duration	= mtBuffer[mtRightMenu_list_start+i].duration
+			mtList[i].geo		= mtBuffer[mtRightMenu_list_start+i].geo
 			mtList[i].description	= mtBuffer[mtRightMenu_list_start+i].description
-			mtList[i].url			= mtBuffer[mtRightMenu_list_start+i].url
-			mtList[i].url_small		= mtBuffer[mtRightMenu_list_start+i].url_small
-			mtList[i].url_hd		= mtBuffer[mtRightMenu_list_start+i].url_hd
+			mtList[i].url		= mtBuffer[mtRightMenu_list_start+i].url
+			mtList[i].url_small	= mtBuffer[mtRightMenu_list_start+i].url_small
+			mtList[i].url_hd	= mtBuffer[mtRightMenu_list_start+i].url_hd
 			mtList[i].parse_m3u8	= mtBuffer[mtRightMenu_list_start+i].parse_m3u8
 		end
 	end -- Either with theme or title selected or not
 
-	for i = 1, mtRightMenu_count do
+	for i=1, mtRightMenu_count do
 		paint_mtItemLine(i)
 	end
 
@@ -450,11 +456,8 @@ function paintMtRightMenu()
 end -- function paintMtRightMenu
 
 function paintLeftInfoBox(txt)
-	G.paintSimpleFrame(leftInfoBox_x, leftInfoBox_y, leftInfoBox_w, leftInfoBox_h,
-			COL.FRAME, COL.MENUCONTENT_PLUS_1)
-	N:RenderString(useDynFont, fontLeftMenu2, txt,
-			leftInfoBox_x, leftInfoBox_y+subMenuHight,
-			COL.MENUCONTENT_TEXT, leftInfoBox_w, subMenuHight, 1)
+	G.paintSimpleFrame(leftInfoBox_x, leftInfoBox_y, leftInfoBox_w, leftInfoBox_h, COL.FRAME, COL.MENUCONTENT_PLUS_1)
+	N:RenderString(useDynFont, fontLeftMenu2, txt, leftInfoBox_x, leftInfoBox_y+subMenuHight, COL.MENUCONTENT_TEXT, leftInfoBox_w, subMenuHight, 1)
 end -- function paintLeftInfoBox
 
 function paintMtLeftMenu()
@@ -464,7 +467,7 @@ function paintMtLeftMenu()
 	local txtCol = COL.MENUCONTENT_TEXT
 	local bgCol  = COL.MENUCONTENT_PLUS_0
 
-	buttonCol_w, buttonCol_h = N:GetSize(btnBlue) 	-- any color is good
+	buttonCol_w, buttonCol_h = N:GetSize(btnBlue)	-- any color is good
 
 	-- left frame
 	G.paintSimpleFrame(mtLeftMenu_x, mtMenu_y, mtLeftMenu_w, mtMenu_h, frameColor, 0)
@@ -490,8 +493,7 @@ function paintMtLeftMenu()
 		end
 		G.paintSimpleFrame(mtLeftMenu_x+subMenuLeft, y, mtLeftMenu_w-subMenuLeft*2, subMenuHight, frameColor, bgCol)
 		N:paintVLine(mtLeftMenu_x+subMenuLeft+subMenuHight, y, subMenuHight, frameColor)
-		N:RenderString(useDynFont, fontLeftMenu1, txt1,
-				math.floor(mtLeftMenu_x+subMenuLeft+subMenuHight+subMenuHight/3), y+subMenuHight, txtCol, mtLeftMenu_w-subMenuHight-subMenuLeft*2, subMenuHight, 0)
+		N:RenderString(useDynFont, fontLeftMenu1, txt1, math.floor(mtLeftMenu_x+subMenuLeft+subMenuHight+subMenuHight/3), y+subMenuHight, txtCol, mtLeftMenu_w-subMenuHight-subMenuLeft*2, subMenuHight, 0)
 
 		buttonCol_x = mtLeftMenu_x+subMenuLeft+(subMenuHight-buttonCol_w)/2
 		buttonCol_y = y+(subMenuHight-buttonCol_h)/2
@@ -504,24 +506,22 @@ function paintMtLeftMenu()
 				crCount = crCount + 1
 			end
 		end
---		paintAnInfoBoxAndWait("CRs: " .. crCount, WHERE.CENTER, 4)
+--		paintAnInfoBoxAndWait("CRs: " .. crCount, WHERE.CENTER, 3)
 		if crCount == 0 then
 			G.paintSimpleFrame(mtLeftMenu_x+subMenuLeft, y, mtLeftMenu_w-subMenuLeft*2, subMenuHight, frameColor, bgCol)
-			N:RenderString(useDynFont, fontLeftMenu2, txt2,
-					mtLeftMenu_x+subMenuLeft, y+subMenuHight, txtCol, mtLeftMenu_w-subMenuLeft*2, subMenuHight, 1)
+			N:RenderString(useDynFont, fontLeftMenu2, txt2, mtLeftMenu_x+subMenuLeft, y+subMenuHight, txtCol, mtLeftMenu_w-subMenuLeft*2, subMenuHight, 1)
 		else
 			crCount = crCount + 1
 			txt2 = txt2 .. '\n'	-- no NLS
 			G.paintSimpleFrame(mtLeftMenu_x+subMenuLeft, y, mtLeftMenu_w-subMenuLeft*2, crCount*subMenuHight, frameColor, bgCol)
 			for i=1, crCount do
 				local s, e = string.find(txt2, '\n')	-- no NLS
---				paintAnInfoBoxAndWait("s: " .. s .. " e: " .. e, WHERE.CENTER, 2)
+--				paintAnInfoBoxAndWait("s: " .. s .. " e: " .. e, WHERE.CENTER, 3)
 				if s ~= nil then
 					local txt = string.sub(txt2, 1, s-1)
 					txt2 = string.sub(txt2, e+1)
---					paintAnInfoBoxAndWait("Teil: " .. txt, WHERE.CENTER, 2)
-					N:RenderString(useDynFont, fontLeftMenu2, txt,
-							mtLeftMenu_x+subMenuLeft, y+subMenuHight, txtCol, mtLeftMenu_w-subMenuLeft*2, subMenuHight, 0)
+--					paintAnInfoBoxAndWait("Teil: " .. txt, WHERE.CENTER, 3)
+					N:RenderString(useDynFont, fontLeftMenu2, txt, mtLeftMenu_x+subMenuLeft, y+subMenuHight, txtCol, mtLeftMenu_w-subMenuLeft*2, subMenuHight, 0)
 					y = y + subMenuHight
 				end
 			end
@@ -531,7 +531,7 @@ function paintMtLeftMenu()
 	-- items
 	local i = 0
 	y = mtMenu_y+subMenuTop
-	for i = 1, #leftMenuEntry do
+	for i=1, #leftMenuEntry do
 		if (leftMenuEntry[i][4] == true) then
 			paintLeftItem(leftMenuEntry[i][1], leftMenuEntry[i][2], leftMenuEntry[i][3], leftMenuEntry[i][5])
 			y = y + subMenuHight + subMenuSpace
@@ -574,7 +574,6 @@ function newMtWindow()
 		h_mtWindow = cwindow.new{x=x, y=y, dx=w, dy=h, color_body=bgCol, show_footer=false, name=pluginName .. ' - v' .. pluginVersion, icon=pluginIcon}	-- no NLS
 	end
 	paintMtWindow(false)
---	mtScreen = saveFullScreen()
 end -- function newMtWindow
 
 function formatTitle(allTitles, title)
@@ -582,7 +581,7 @@ function formatTitle(allTitles, title)
 	local frame_w = leftInfoBox_w - 2*space_x
 	local f_title = l.formatAllTitles
 	if allTitles == 'off' then	-- no NLS
-		f_title = title 
+		f_title = title
 		if conf.partialTitle == 'on' then f_title = '... ' .. f_title .. ' ...' end	-- no NLS
 	end
 	f_title = adjustStringLen(f_title, frame_w-6, fontLeftMenu2)
@@ -593,7 +592,9 @@ function formatTheme(allThemes, theme)
 	local space_x = math.floor(N:scale2Res(6))
 	local frame_w = leftInfoBox_w - 2*space_x
 	local f_theme = l.formatAllThemes
-	if allThemes == 'off' then f_theme = theme end	-- no NLS
+	if allThemes == 'off' then	-- no NLS
+		f_theme = theme
+	end
 	f_theme = adjustStringLen(f_theme, frame_w-6, fontLeftMenu2)
 	return f_theme
 end -- function formatTheme
@@ -630,13 +631,13 @@ function startMediathek()
 		leftMenuEntry[i][5]	= e5
 	end -- function fillLeftMenuEntry
 
-	fillLeftMenuEntry(l.menuTitle,			formatTitle(conf.allTitles, conf.title),	btnRed,    true, true)
-	fillLeftMenuEntry(l.menuChannel,		conf.channel,								btnGreen,  true, true)
-	fillLeftMenuEntry(l.menuTheme,			formatTheme(conf.allThemes, conf.theme),	btnYellow, true, true)
-	fillLeftMenuEntry(l.menuSeePeriod,		formatseePeriod(),							btnBlue,   true, true)
+	fillLeftMenuEntry(l.menuTitle,		formatTitle(conf.allTitles, conf.title),	btnRed,    true, true)
+	fillLeftMenuEntry(l.menuChannel,	conf.channel,					btnGreen,  true, true)
+	fillLeftMenuEntry(l.menuTheme,		formatTheme(conf.allThemes, conf.theme),	btnYellow, true, true)
+	fillLeftMenuEntry(l.menuSeePeriod,	formatseePeriod(),				btnBlue,   true, true)
 	fillLeftMenuEntry(l.menuMinDuration,	formatMinDuration(conf.seeMinimumDuration),	btn1,      true, true)
-	fillLeftMenuEntry(l.menuSort,			"Datum",									btn2,      true, false) -- not yet implemented
-	fillLeftMenuEntry(l.menuCaution,		l.menuWarning,								btn0,      true, true)
+	fillLeftMenuEntry(l.menuSort,		"Datum",					btn2,      true, false) -- not yet implemented
+	fillLeftMenuEntry(l.menuCaution,	l.menuWarning,					btn0,      true, true)
 
 	selectionChanged = true
 
@@ -735,12 +736,11 @@ function startMediathek()
 		checkKillKey(msg)
 
 		local countWGETRunning = runACommand('ps -ef | grep -c wget')	-- no NLS
-		if (countWGETRunning == nil) then 
+		if (countWGETRunning == nil) then
 			countWGETRunning = 0
 		else
 			countWGETRunning = tonumber(countWGETRunning)
 		end
---paintAnInfoBoxAndWait("ps Command returned: " .. countWGETRunning, WHERE.CENTER, 3)
 		if (countWGETRunning > 2) then
 			G.hideInfoBox(topRightBox)
 			if (countWGETRunning == 3) then -- including ps and wget commands

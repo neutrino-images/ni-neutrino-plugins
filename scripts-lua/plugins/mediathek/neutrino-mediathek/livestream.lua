@@ -33,10 +33,10 @@ function playLivestream(_id)
 	if ((parse_m3u8 == 1) or (parse_m3u8 == 2) or (parse_m3u8 == 3)) then
 		local mode = parse_m3u8
 		m3u8Ret	= get_m3u8url(url, mode)
-		url		= m3u8Ret['url']					-- no NLS
-		bw		= tonumber(m3u8Ret['bandwidth'])	-- no NLS
-		res		= m3u8Ret['resolution']				-- no NLS
-		qual	= m3u8Ret['qual']					-- no NLS
+		url	= m3u8Ret['url']			-- no NLS
+		bw	= tonumber(m3u8Ret['bandwidth'])	-- no NLS
+		res	= m3u8Ret['resolution']			-- no NLS
+		qual	= m3u8Ret['qual']			-- no NLS
 	else
 		bw = nil
 		res = '-'	-- no NLS
@@ -52,7 +52,7 @@ function playLivestream(_id)
 	hideMenu(m_live)
 	hideMainWindow()
 
-	playMovie(title, url, msg1, url, false)
+	playMovie(url, title, msg1, url, false)
 
 	if forcePluginExit == true then
 		menuRet = MENU_RETURN.EXIT_ALL
@@ -89,10 +89,10 @@ function playLivestream2(_id)
 			end
 		end
 		m3u8Ret	= get_m3u8url(url, mode)
-		url		= m3u8Ret['url']					-- no NLS
+		url		= m3u8Ret['url']			-- no NLS
 		bw		= tonumber(m3u8Ret['bandwidth'])	-- no NLS
-		res		= m3u8Ret['resolution']				-- no NLS
-		qual	= m3u8Ret['qual']					-- no NLS
+		res		= m3u8Ret['resolution']			-- no NLS
+		qual	= m3u8Ret['qual']				-- no NLS
 	else
 		bw = nil
 		res = '-'	-- no NLS
@@ -108,7 +108,7 @@ function playLivestream2(_id)
 	hideMenu(m_live)
 	hideMainWindow()
 
-	playMovie(title, url, msg1, url, false)
+	playMovie(url, title, msg1, url, false)
 
 	if forcePluginExit == true then
 		menuRet = MENU_RETURN.EXIT_ALL
@@ -127,7 +127,7 @@ function getLivestreams()
 		return false
 	end
 
-	for i = 1, #j_table.entry do
+	for i=1, #j_table.entry do
 		local name = j_table.entry[i].title
 --		name = string.gsub(name, " Livestream", "")
 		local configName = 'livestream_' .. name	-- no NLS
@@ -146,7 +146,7 @@ function livestreamMenu()
 		getLivestreamConfig()
 	end
 
-	m_live = menu.new{name=pluginName .. l.lifestreamsHeader, icon=pluginIcon}
+	m_live = menu.new{name=pluginName .. ' - ' .. l.lifestreamsHeader, icon=pluginIcon}	-- no NLS
 	m_live:addItem{type="subhead", name=l.livestreamsSubHeader}	-- no NLS
 	m_live:addItem{type="separator"}	-- no NLS
 	m_live:addItem{type="back", hint_icon="hint_back", hint=l.backH}	-- no NLS
@@ -156,7 +156,7 @@ function livestreamMenu()
 	addKillKey(m_live)
 
 	local i
-	for i = 1, #videoTable do
+	for i=1, #videoTable do
 		if (conf.livestream[i] == 'on') then	-- no NLS
 			m_live:addItem{type='forwarder', action='playLivestream', hint_icon="hint_service", hint=l.lifestreamsEntryH, id=i, name=videoTable[i][1]}	-- no NLS
 		end
