@@ -1,31 +1,16 @@
-
 function getVersionInfo()
-	local s = getJsonData2(url_new .. actionCmd_versionInfo, nil, nil, queryMode_Info);
+	local s = getJsonData2(url_new .. actionCmd_versionInfo, nil, nil, queryMode_Info)
 --	H.printf("\nretData:\n%s\n", tostring(s))
-	local j_table = decodeJson(s);
+	local j_table = decodeJson(s)
 	if checkJsonError(j_table) == false then return false end
 
-	local vdate  = os.date("%d.%m.%Y / %H:%M:%S", j_table.entry[1].vdate);
-	local mvdate = os.date("%d.%m.%Y / %H:%M", j_table.entry[1].mvdate);
-	local msg = string.format("Plugin v%s\n \n" ..
-			"Datenbank\n" ..
-			"Version: %s (Update %s)\n \n" ..
-			"Datenbank MediathekView => Neutrino Mediathek\n" ..
-			"%s (%s)\n \n" ..
-			"Server API\n" ..
-			"%s (%s)\n \n" ..
-			"Datenbank MediathekView:\n" ..
-			"%s\n" ..
-			"%d Einträge (Stand vom %s)", 
-			pluginVersion,
-			j_table.entry[1].version, vdate,
-			j_table.entry[1].progname, j_table.entry[1].progversion,
-			j_table.entry[1].api, j_table.entry[1].apiversion,
-			j_table.entry[1].mvversion,
-			j_table.entry[1].mventrys, mvdate);
+	local vdate  = os.date(l.formatDate .. ' / ' .. l.formatTime, j_table.entry[1].vdate)	-- no NLS
+	local mvdate = os.date(l.formatDate .. ' / ' .. l.formatTime, j_table.entry[1].mvdate)	-- no NLS
+	local msg = string.format(l.formatVersion, pluginVersion, j_table.entry[1].version, vdate, j_table.entry[1].progname, j_table.entry[1].progversion,
+			j_table.entry[1].api, j_table.entry[1].apiversion, j_table.entry[1].mvversion, j_table.entry[1].mventrys, mvdate)
 
-	messagebox.exec{title="Versionsinfo " .. pluginName, text=msg, buttons={ "ok" } };
-end
+	messagebox.exec{title=l.versionHeader .. ' ' .. pluginName, text=msg, buttons={ 'ok' } }	-- no NLS
+end -- function getVersionInfo
 
 function paintMainMenu(space, frameColor, textColor, info, count)
 	local fontText = fontMainMenu
@@ -59,13 +44,12 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 		local y = y_start + (i-1)*h_tmp
 		local bg = 0
 		txtC=textColor
-		if ((i == 2) and (conf.enableLivestreams == "off")) then
-			-- livestreams
+		if ((i == 2) and (conf.enableLivestreams == 'off')) then	-- no NLS
 			txtC = COL.MENUCONTENTINACTIVE_TEXT
 			bg   = COL.MENUCONTENTINACTIVE
 		end
 
-		if info[i][1] == "" and info[i][2] == "" then
+		if info[i][1] == '' and info[i][2] == '' then
 			goto continue
 		end
 
@@ -76,7 +60,7 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 
 		::continue::
 	end
-end
+end -- function paintMainMenu
 
 function paintMainWindow(menuOnly, win)
 	if (not win) then win = h_mainWindow end
@@ -84,13 +68,12 @@ function paintMainWindow(menuOnly, win)
 		win:paint{do_save_bg=true}
 	end
 	paintMainMenu(OFFSET.INNER_SMALL, COL.FRAME, COL.MENUCONTENT_TEXT, mainMenuEntry, #mainMenuEntry)
-end
+end -- function paintMainWindow
 
 function hideMainWindow()
 	h_mainWindow:hide()
 	N:PaintBox(0, 0, SCREEN.X_RES, SCREEN.Y_RES, COL.BACKGROUND)
-
-end
+end -- function hideMainWindow
 
 function newMainWindow()
 	local x = SCREEN.OFF_X
@@ -108,12 +91,12 @@ function newMainWindow()
 		bgCol = (0x60000000)
 	end
 
-	local ret = cwindow.new{x=x, y=y, dx=w, dy=h, color_body=bgCol, show_header=showHeader, show_footer=false, name=pluginName .. " - v" .. pluginVersion, icon=pluginIcon};
+	local ret = cwindow.new{x=x, y=y, dx=w, dy=h, color_body=bgCol, show_header=showHeader, show_footer=false, name=pluginName .. ' - v' .. pluginVersion, icon=pluginIcon}	-- no NLS
 	G.hideInfoBox(startBox)
 	paintMainWindow(false, ret)
 	mainScreen = saveFullScreen()
 	return ret
-end
+end -- function newMainWindow
 
 function mainWindow()
 
@@ -128,7 +111,7 @@ function mainWindow()
 		end
 		-- livestreams
 		if ((msg == RC.sat) or (msg == RC.red)) then
-			if (conf.enableLivestreams == "on") then
+			if (conf.enableLivestreams == 'on') then	-- no NLS
 				livestreamMenu()
 			end
 		end
@@ -140,22 +123,10 @@ function mainWindow()
 		if (msg == RC.info) then
 			getVersionInfo()
 		end
-		-- for testing
-		if (msg == RC.rewind) then
-		end
-		if (msg == RC.www) then
-			testFunc()
---			if timerThread ~= nil then
---				timerThread:cancel()
---			end
-		end
 		-- exit plugin
 		checkKillKey(msg)
-	until msg == RC.home or msg == RC.stop or forcePluginExit == true;
-
-end
-
--- ###########################################################################################
+	until msg == RC.home or msg == RC.stop or forcePluginExit == true
+end -- function mainWindow
 
 muteStatusNeutrino	= false
 muteStatusPlugin	= false
@@ -172,7 +143,7 @@ function beforeStart()
 
 --	timerThread = threads.new(_timerThread)
 --	timerThread:start()
-end
+end -- function beforeStart
 
 function afterStop()
 	hideMainWindow()
@@ -180,39 +151,37 @@ function afterStop()
 		V:channelRezap()
 	end
 	local rev, box = M:GetRevision()
-	if rev == 1 and box == "Spark" then V:StopPicture() end
+	if rev == 1 and box == 'Spark' then V:StopPicture() end	-- no NLS
 
 	M:enableMuteIcon(true)
 	M:AudioMute(muteStatusNeutrino, true)
 	M:setVolume(volumeNeutrino)
 
-	if timerThread ~= nil then
-		local ok = timerThread:cancel()
-		H.printf("timerThread cancel ok: %s", tostring(ok))
-		ok = thread:join()
-		H.printf("timerThread join ok: %s", tostring(ok))
-	end
-end
-
---local _timerThread = [[
---	while (true) do
+--	if timerThread ~= nil then
+--		local ok = timerThread:cancel()
+--		H.printf("timerThread cancel ok: %s", tostring(ok))
+--		ok = thread:join()
+--		H.printf("timerThread join ok: %s", tostring(ok))
 --	end
---	return 1
---]]
+end -- function afterStop
+
+--	local _timerThread = [[
+--		while (true) do
+--		end
+--		return 1
+--	]]
 
 function main()
-	initLocale();
-	initVars();
+	initLocale()
+	initVars()
 	beforeStart()
-	loadConfig();
-	setFonts();
-	startBox = paintMiniInfoBox("Starte Plugin");
-	createImages();
-	mainWindow();
-	_saveConfig(true);
+	_loadConfig()
+	setFonts()
+	startBox = paintMiniInfoBox(l.startPluginInfoMsg)
+	createImages()
+	mainWindow()
+	_saveConfig(true)
 	afterStop()
 end
 
 main()
-
--- ###########################################################################################
