@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V1.91                            *
+# * Corona-Info V1.92                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -26,19 +26,22 @@
 # Aufrufvariante für Download, "WGET" oder "CURL" bitte auswählen
 command="WGET" 
 
-# Verzeichnis, in dem die persönliche corona.land Datei liegt
-landpath="/var/tuxbox/config"
-
 # pluginpath entsprechend setzen, ggfs. von /var/tuxbox/plugins auf /share/tuxbox/neutrino/plugins" ändern
 # pluginpath mit $(dirname $0) sollte bei allen passen ;) (thx. DboxOldie)
 pluginpath="$(dirname "$0")"
+
+# Verzeichnis, in dem die persönliche corona.land Datei liegt
+landpath="/var/tuxbox/config"
+
+# Tuxwetter
+tux_wetter="/bin/tuxwetter"
 
 
 # ab hier keine Eintragung mehr nötig
 #################################################
 
 title="Corona-Info"
-vinfo="V1.91"
+vinfo="V1.92"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
@@ -63,8 +66,8 @@ totestring="PICTURE=tote,|PNG$repeat|$toteurl"
 destring="PICTURE=deu,|PNG$repeat|$deurl"
 
 fallgrafik() {
-  if [ -e /bin/tuxwetter ]; then
-      /bin/tuxwetter "$fallstring" >/dev/null &
+  if [ -e $tux_wetter ]; then
+      $tux_wetter "$fallstring" >/dev/null &
       sleep 10
       killall tuxwetter >/dev/null
     else
@@ -74,8 +77,8 @@ fallgrafik() {
 }
 
 totegrafik() {
-  if [ -e /bin/tuxwetter ]; then
-      /bin/tuxwetter "$totestring" >/dev/null &
+  if [ -e $tux_wetter ]; then
+      $tux_wetter "$totestring" >/dev/null &
       sleep 10
       killall tuxwetter >/dev/null
     else
@@ -85,8 +88,8 @@ totegrafik() {
 }
 
 deugrafik() {
-  if [ -e /bin/tuxwetter ]; then
-      /bin/tuxwetter "$destring" >/dev/null &
+  if [ -e $tux_wetter ]; then
+      $tux_wetter "$destring" >/dev/null &
       sleep 10
       killall tuxwetter >/dev/null
     else
@@ -252,6 +255,10 @@ while :; do
       totegrafik
       echo "Corona-Info - Grafik-Tote-Weltweit-WHO"
   		;;		
+	  4)
+	    deugrafik
+	    echo "Corona-Info - Deutschland-Grafik-WHO"
+	    ;;
 		*)
 			echo "Corona-Info - Exit (Exit-Taste/Timeout)"
 			break
