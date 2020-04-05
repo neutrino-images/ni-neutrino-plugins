@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.87"
+rssReaderVersion="Lua RSS READER v0.89"
 local CONF_PATH = "/var/tuxbox/config/"
 local n = neutrino()
 local FontMenu = FONT.MENU
@@ -59,7 +59,10 @@ locale["english"] = {
 	curlTimeout= "Connect Timeout",
 	curlTimeouthint = "Internet connect timeout (min/max) 1...99 seconds",
 	maxRes = "Max. Resolution",
-	maxReshint = "Max. Resolution für Youtube Video"
+	maxReshint = "Max. Resolution für Youtube Video",
+	mt_ard = "Generate ARD Media Library List",
+	mt_zdf = "Generate ZDF Media Library List",
+	mt_hint = "The list is only loaded after rss restart"
 }
 locale["deutsch"] = {
 	picdir = "Bildverzeichnis: ",
@@ -79,7 +82,10 @@ locale["deutsch"] = {
 	curlTimeout="Zeitüberschreitung der Internetverbindung nach",
 	curlTimeouthint="Zeitüberschreitung der Internetverbindung (min/max) 1...99 sekunden",
 	maxRes = "Max. Auflösung",
-	maxReshint = "Max. Auflösung für Youtube Video"
+	maxReshint = "Max. Auflösung für Youtube Video",
+	mt_ard = "Generiere ARD Mediathek Liste",
+	mt_zdf = "Generiere ZDF Mediathek Liste",
+	mt_hint = "Die Liste wird erst nach rss neustart geladen"
 }
 locale["polski"] = {
 	picdir = "katalog zdjęć: ",
@@ -99,7 +105,10 @@ locale["polski"] = {
 	curlTimeout="Limit czasu połączenia z Internetem",
 	curlTimeouthint="Limit czasu połączenia z Internetem (min/max) 1...99 sekund",
 	maxRes = "Max. rozdzielczość",
-	maxReshint = "Maksymalna rozdzielczość dla Youtube Video"
+	maxReshint = "Maksymalna rozdzielczość dla Youtube Video",
+	mt_ard = "Generowanie listy bibliotek ARD Media",
+	mt_zdf = "Generowanie listy bibliotek ZDF Media",
+	mt_hint = "Lista jest ładowana dopiero po restarcie rss"
 }
 
 function get_confFile()
@@ -1176,12 +1185,126 @@ function settings(id,a)
 	d=d+1
 	local res_opt={ '3840x2160','2560x1440','1920x1080','1280x720','854x480','640x360' }
 	menu:addItem{type="chooser", action="set_action", options=res_opt, id="maxRes", value=conf.maxRes, name=LOC.maxRes ,directkey=godirectkey(d),hint_icon="hint_service",hint=LOC.maxReshint}
+	menu:addItem{type="separatorline"}
+	d=d+1
+	menu:addItem{type="forwarder", name=LOC.mt_ard, action="gen_MT_ard", id="ard", directkey==godirectkey(d) ,hint=LOC.mt_hint}
+	d=d+1
+	menu:addItem{type="forwarder", name=LOC.mt_zdf, action="gen_MT_zdf", id="zdf", directkey==godirectkey(d) ,hint=LOC.mt_hint}
 
 	menu:exec()
 	menu:hide()
 	menu = nil
-	return MENU_RETURN.EXIT_REPAINT
 end
+
+---- Mediatheken Gen
+function read_file(filename)
+	local fp = io.open(filename, "r")
+	if fp == nil then error("Error opening file '" .. filename .. "'.") end
+	local data = fp:read("*a")
+	fp:close()
+	return data
+end
+
+function readDir(dir, fileType)
+	local v = {}
+	local p = io.popen('ls '.. dir .. " | grep " .. fileType)
+	for file in p:lines() do
+		table.insert(v, file)
+	end
+	return v
+end
+
+function LoadMediatheken()
+	local vfile = readDir(CONF_PATH, "rss_gen_")
+	for k,v in pairs(vfile) do
+		loadMediathek(CONF_PATH .. v)
+	end
+end
+function loadMediathek(filename)
+	print(filename)
+	local data = read_file(filename)
+	for _line in data:gmatch('(title.-)\n') do
+		local _name = _line:match('title="(.-)"')
+		local _url = _line:match('url="(.-)"')
+		local _grup = _line:match('grup="(.-)"')
+		local _submenu = _line:match('submenu="(.-)"')
+		local _addon = _line:match('addon="(.-)"')
+		table.insert(feedentries,{name=_name, exec=_url,grup=_grup, submenu=_submenu,addon=_addon})
+	end
+end
+
+function save_gen_con(table,mt_name,addon)
+	local filename= CONF_PATH .. "rss_gen_" .. mt_name .. ".conf"
+	local file = io.open(filename,'w+')
+	if file then
+		for k,v in pairs(table) do
+			local grup="Mediathek-" .. mt_name
+			local submenu=v.az
+
+			file:write('title="' .. v.name .. '" url="' .. v.url .. '" grup="' .. grup .. '" submenu="' .. submenu .. '" addon="' .. addon .. '" \n')
+		end
+		file:close()
+		return
+	end
+	info(filename, mt_name .. " save error file")
+end
+
+function gen_MT_ard()
+	glob.settings_menu:hide()
+	local az = {"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","Z","0-9"}
+	local allT = {}
+	local tab = {}
+	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
+	if h then
+		h:paint()
+	end
+	for i, v in ipairs(az) do
+		local url = "https://classic.ardmediathek.de/tv/sendungen-a-z?sendungsTyp=sendung&buchstabe=" .. v
+		local data = getdata(url)
+		for  _data in  data:gmatch('<div class=\"teaser\"(.-</h4>)') do
+			if allT[_url]  ~= true then
+				local _url = _data:match('<a href="/(.-)"')
+				if _url then
+					local title = _data:match("<h4.->(.-)<")
+					_url = xml_entities(_url)
+					title = convHTMLentities(title)
+					title = xml_entities(title)
+					table.insert(tab,{name=title, url="https://classic.ardmediathek.de/" .. _url .. "&rss=true", az=v})
+				end
+			end
+		end
+	end
+	h:hide()
+	save_gen_con(tab,"ARD","ard")
+
+end
+
+function gen_MT_zdf()
+	glob.settings_menu:hide()
+	local allT = {}
+	local _az = {"a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","z","0%20-%209"}
+	local tab = {}
+	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
+	if h then
+		h:paint()
+	end
+	for i, v in ipairs(_az) do
+		local url = "https://www.zdf.de/sendungen-a-z?group=" .. v
+		local data = getdata(url)
+		if data then
+			for  _url , title in  data:gmatch('<a%s+href="(/[%-%w/]+)" title="(.-)"') do
+				if allT[_url]  ~= true then
+					allT[_url] = true
+					if v == "0%20-%209" then v = "0-9" end
+					table.insert(tab,{name=convHTMLentities(title), url="https://www.zdf.de/rss/zdf/" .. _url, az=v})
+				end
+			end
+		end
+	end
+	h:hide()
+	save_gen_con(tab,"ZDF","zdf")
+end
+
 ----
 function rssurlmenu(url)
 	glob.feedpersed = getFeedDataFromUrl(url)
@@ -1380,8 +1503,8 @@ function main()
 			{ name = "rssreader.conf Beispiel",		exec = "SEPARATORLINE" },
 			{ name = "heise.de",		exec = "https://www.heise.de/newsticker/heise-atom.xml",addon="heise", submenu="TechNews"},
 			{ name = "CHIP Hardware-News",	exec = "http://www.chip.de/rss/rss_technik.xml", submenu="TechNews"},
-			{ name = "Tatort - ARD Mediathek", exec = "http://www.ardmediathek.de/tv/Tatort/Sendung?documentId=602916&rss=true", submenu="Podcast", addon="ard"},
-			{ name = "Alle Filme - ARD Mediathek", exec = "http://www.ardmediathek.de/tv/Alle-Filme/mehr?documentId=31610076&rss=true", submenu="Podcast",addon="ard"},
+			{ name = "Tatort - ARD Mediathek", exec = "https://classic.ardmediathek.de/tv/Tatort/Sendung?documentId=602916&rss=true", submenu="Podcast", addon="ard"},
+			{ name = "Alle Filme - ARD Mediathek", exec = "https://classic.ardmediathek.de/tv/Alle-Filme/mehr?documentId=31610076&rss=true", submenu="Podcast",addon="ard"},
 			{ name = "arte", exec = "http://www.arte.tv/papi/tvguide-flow/feeds/videos/de.xml?currentWeek=0", submenu="Podcast",addon="arte"},
 			{ name = "ARTE : TV-Programm",	exec = "http://www.arte.tv/papi/tvguide-flow/feeds/program/de.xml?currentWeek=0", submenu="Podcast",addon="arte"},
 			{ name = "TecTime TV",	exec = "https://www.youtube.com/feeds/videos.xml?user=DrDishTelevision", submenu="Youtube", addon="yt" },
@@ -1392,6 +1515,7 @@ function main()
 	end
 	fh:mkdir(picdir)
 
+	LoadMediatheken()
 	loadConfig()
 
 	if conf.picdir == nil or fh:exist(conf.picdir , "d") == false then
