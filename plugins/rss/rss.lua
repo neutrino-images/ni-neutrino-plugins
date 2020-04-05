@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.88"
+rssReaderVersion="Lua RSS READER v0.89"
 local CONF_PATH = "/var/tuxbox/config/"
 local n = neutrino()
 local FontMenu = FONT.MENU
@@ -60,7 +60,9 @@ locale["english"] = {
 	curlTimeouthint = "Internet connect timeout (min/max) 1...99 seconds",
 	maxRes = "Max. Resolution",
 	maxReshint = "Max. Resolution für Youtube Video",
-	mt_zdf = "Generate ZDF Media Library List"
+	mt_ard = "Generate ARD Media Library List",
+	mt_zdf = "Generate ZDF Media Library List",
+	mt_hint = "The list is only loaded after rss restart"
 }
 locale["deutsch"] = {
 	picdir = "Bildverzeichnis: ",
@@ -81,7 +83,9 @@ locale["deutsch"] = {
 	curlTimeouthint="Zeitüberschreitung der Internetverbindung (min/max) 1...99 sekunden",
 	maxRes = "Max. Auflösung",
 	maxReshint = "Max. Auflösung für Youtube Video",
-	mt_zdf = "Generiere ZDF Mediathek Liste"
+	mt_ard = "Generiere ARD Mediathek Liste",
+	mt_zdf = "Generiere ZDF Mediathek Liste",
+	mt_hint = "Die Liste wird erst nach rss neustart geladen"
 }
 locale["polski"] = {
 	picdir = "katalog zdjęć: ",
@@ -102,7 +106,9 @@ locale["polski"] = {
 	curlTimeouthint="Limit czasu połączenia z Internetem (min/max) 1...99 sekund",
 	maxRes = "Max. rozdzielczość",
 	maxReshint = "Maksymalna rozdzielczość dla Youtube Video",
-	mt_zdf = "Generowanie listy bibliotek ZDF Media"
+	mt_ard = "Generowanie listy bibliotek ARD Media",
+	mt_zdf = "Generowanie listy bibliotek ZDF Media",
+	mt_hint = "Lista jest ładowana dopiero po restarcie rss"
 }
 
 function get_confFile()
@@ -1181,7 +1187,9 @@ function settings(id,a)
 	menu:addItem{type="chooser", action="set_action", options=res_opt, id="maxRes", value=conf.maxRes, name=LOC.maxRes ,directkey=godirectkey(d),hint_icon="hint_service",hint=LOC.maxReshint}
 	menu:addItem{type="separatorline"}
 	d=d+1
-	menu:addItem{type="forwarder", name=LOC.mt_zdf, action="gen_MT_zdf", id="zdf", directkey==godirectkey(d) }
+	menu:addItem{type="forwarder", name=LOC.mt_ard, action="gen_MT_ard", id="ard", directkey==godirectkey(d) ,hint=LOC.mt_hint}
+	d=d+1
+	menu:addItem{type="forwarder", name=LOC.mt_zdf, action="gen_MT_zdf", id="zdf", directkey==godirectkey(d) ,hint=LOC.mt_hint}
 
 	menu:exec()
 	menu:hide()
@@ -1239,6 +1247,36 @@ function save_gen_con(table,mt_name,addon)
 		return
 	end
 	info(filename, mt_name .. " save error file")
+end
+
+function gen_MT_ard()
+	glob.settings_menu:hide()
+	local az = {"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","Z","0-9"}
+	local allT = {}
+	local tab = {}
+	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
+	if h then
+		h:paint()
+	end
+	for i, v in ipairs(az) do
+		local url = "https://classic.ardmediathek.de/tv/sendungen-a-z?sendungsTyp=sendung&buchstabe=" .. v
+		local data = getdata(url)
+		for  _data in  data:gmatch('<div class=\"teaser\"(.-</h4>)') do
+			if allT[_url]  ~= true then
+				local _url = _data:match('<a href="/(.-)"')
+				if _url then
+					local title = _data:match("<h4.->(.-)<")
+					_url = xml_entities(_url)
+					title = convHTMLentities(title)
+					title = xml_entities(title)
+					table.insert(tab,{name=title, url="https://classic.ardmediathek.de/" .. _url .. "&rss=true", az=v})
+				end
+			end
+		end
+	end
+	h:hide()
+	save_gen_con(tab,"ARD","ard")
+
 end
 
 function gen_MT_zdf()
