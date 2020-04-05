@@ -28,13 +28,14 @@ command="WGET"
 
 # pluginpath entsprechend setzen, ggfs. von /var/tuxbox/plugins auf /share/tuxbox/neutrino/plugins" ändern
 # pluginpath mit $(dirname $0) sollte bei allen passen ;) (thx. DboxOldie)
-pluginpath="$(dirname "$0")"
+pluginpath=$(dirname "$0")
 
 # Verzeichnis, in dem die persönliche corona.land Datei liegt
 landpath="/var/tuxbox/config"
 
 # Tuxwetter
-tux_wetter="/bin/tuxwetter"
+tux_wetter=$(which tuxwetter)
+
 
 
 # ab hier keine Eintragung mehr nötig
@@ -58,41 +59,60 @@ echo "-----------------------------by fred_feuerstein---"
 
 fallurl="https://www.neutrino-images.de/storage/public/corona-info/faelle.png"
 toteurl="https://www.neutrino-images.de/storage/public/corona-info/tote.png"
-deuurl="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/COVID-19_outbreak_Germany_per_capita_cases_map.svg/800px-COVID-19_outbreak_Germany_per_capita_cases_map.svg.png"
+deurl="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/COVID-19_outbreak_Germany_per_capita_cases_map.svg/800px-COVID-19_outbreak_Germany_per_capita_cases_map.svg.png"
 
 repeat=""
 fallstring="PICTURE=fall,|PNG$repeat|$fallurl"
 totestring="PICTURE=tote,|PNG$repeat|$toteurl"
 destring="PICTURE=deu,|PNG$repeat|$deurl"
+gtimeout=10
 
 fallgrafik() {
-  if [ -e $tux_wetter ]; then
-      $tux_wetter "$fallstring" >/dev/null &
-      sleep 10
-      killall tuxwetter >/dev/null
+	tmout=0
+  if [ "$tux_wetter" == "" ]; then
+      msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
+      echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
     else
+			$tux_wetter "$fallstring" >/dev/null &
+			while pidof `basename $tux_wetter` >/dev/null && [ $tmout -lt $gtimeout ]; do
+			    tmout=$(($tmout+1))
+			    sleep 1
+				done
+			pidof `basename $tux_wetter` >/dev/null && killall `basename $tux_wetter`
       msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
       echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
   fi
 }
 
 totegrafik() {
-  if [ -e $tux_wetter ]; then
-      $tux_wetter "$totestring" >/dev/null &
-      sleep 10
-      killall tuxwetter >/dev/null
+	tmout=0
+  if [ "$tux_wetter" == "" ]; then
+      msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
+      echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
     else
+			$tux_wetter "$totestring" >/dev/null &
+			while pidof `basename $tux_wetter` >/dev/null && [ $tmout -lt $gtimeout ]; do
+			    tmout=$(($tmout+1))
+			    sleep 1
+				done
+			pidof `basename $tux_wetter` >/dev/null && killall `basename $tux_wetter`
       msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
       echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
   fi
 }
 
 deugrafik() {
-  if [ -e $tux_wetter ]; then
-      $tux_wetter "$destring" >/dev/null &
-      sleep 10
-      killall tuxwetter >/dev/null
+	tmout=0
+  if [ "$tux_wetter" == "" ]; then
+      msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
+      echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
     else
+			$tux_wetter "$destring" >/dev/null &
+			while pidof `basename $tux_wetter` >/dev/null && [ $tmout -lt $gtimeout ]; do
+			    tmout=$(($tmout+1))
+			    sleep 1
+				done
+			pidof `basename $tux_wetter` >/dev/null && killall `basename $tux_wetter`
       msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
       echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
   fi
