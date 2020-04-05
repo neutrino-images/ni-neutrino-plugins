@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V1.92                            *
+# * Corona-Info V1.93                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -35,14 +35,14 @@ landpath="/var/tuxbox/config"
 
 # Tuxwetter
 tux_wetter=$(which tuxwetter)
-
+[ -z $tux_wetter ] && PATH=$PATH:$pluginpath && tux_wetter=`which tuxwetter.so`
 
 
 # ab hier keine Eintragung mehr nötig
 #################################################
 
 title="Corona-Info"
-vinfo="V1.92"
+vinfo="V1.93"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
