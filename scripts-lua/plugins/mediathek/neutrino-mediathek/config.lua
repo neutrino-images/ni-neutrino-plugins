@@ -3,6 +3,7 @@ function _loadConfig()
 
 	conf.enableLivestreams	= config:getString('enableLivestreams',	'on')		-- no NLS
 	conf.streamQuality		= config:getString('streamQuality',		'max')		-- no NLS
+	conf.downloadPath		= config:getString('downloadPath',		'/')		-- no NLS
 	conf.allTitles			= config:getString('allTitles',			'on')		-- no NLS
 	conf.title				= config:getString('title',				'')			-- no NLS
 	conf.partialTitle		= config:getString('partialTitle',		'off')		-- no NLS
@@ -29,15 +30,16 @@ function _loadConfig()
 end -- function _loadConfig
 
 function _saveConfig(skipMsg)
-	local screen = 0;
+	local screen = 0
 	if (skipMsg == false) then
 		screen = saveFullScreen()
-		local box = paintMiniInfoBox(l.saveConfigInfoMsg)
+		local box = paintAnInfoBox(l.saveConfigInfoMsg, WHERE.CENTER)
 	end
 
 	saveLivestreamConfig()
 	config:setString('enableLivestreams',	conf.enableLivestreams)	-- no NLS
 	config:setString('streamQuality',		conf.streamQuality)		-- no NLS
+	config:setString('downloadPath',		conf.downloadPath)		-- no NLS
 	config:setString('allTitles',			conf.allTitles)			-- no NLS
 	config:setString('title',				conf.title)				-- no NLS
 	config:setString('partialTitle',		conf.partialTitle)		-- no NLS
@@ -150,7 +152,7 @@ function enableLivestreams()
 	if menuRet == MENU_RETURN.EXIT_ALL then
 		return menuRet
 	end
-	return MENU_RETURN.REPAINT;
+	return MENU_RETURN.REPAINT
 end -- function enableLivestreams
 
 function set2(k, v)
@@ -191,8 +193,14 @@ function networkSetup()
 	if menuRet == MENU_RETURN.EXIT_ALL then
 		return menuRet
 	end
-	return MENU_RETURN.REPAINT;
+	return MENU_RETURN.REPAINT
 end -- function networkSetup
+
+function changeDLPath(dummy, downloadPath)
+	conf.downloadPath = downloadPath
+	return MENU_RETURN.REPAINT
+end -- function changeDLPath
+
 
 function configMenu()
 	local old_guiUseSystemIcons	= conf.guiUseSystemIcons
@@ -221,8 +229,11 @@ function configMenu()
 	opt={ 'max', 'normal' ,'min' }	-- no NLS
 	m_conf:addItem{type="chooser", action="setConfigStringNT", hint_icon="hint_service", hint=l.settingsQualityH, options=opt, id="streamQuality", value=conf.streamQuality, name=l.settingsQuality}	-- no NLS
 
-	m_conf:addItem{type="separatorline"}	-- no NLS
+	m_conf:addItem{type="separatorline", name=l.settingsIP}	-- no NLS
 	m_conf:addItem{type="forwarder", action="networkSetup", hint_icon="hint_service", hint=l.settingsNetworkH, name=l.settingsNetwork, icon=2, directkey=RC["2"]}	-- no NLS
+
+	m_conf:addItem{type="separatorline", name=l.settingsDownload}	-- no NLS
+	m_conf:addItem{type="filebrowser", dir_mode="1", action="changeDLPath", hint_icon="hint_service", hint=l.settingsDLPathH, id="downloadPath", value=conf.downloadPath, name=l.settingsDLPath}	-- no NLS
 
 	m_conf:exec()
 	_saveConfig(true)
@@ -242,7 +253,7 @@ function configMenu()
 	end
 
 	if (old_guiUseSystemIcons ~= conf.guiUseSystemIcons) then
-		createImages();
+		createImages()
 	end
 
 	if (old_networkIPV4Only ~= conf.networkIPV4Only) then

@@ -11,7 +11,7 @@ end -- function getTecTimeTv_m3u8
 
 function playLivestream(_id)
 	i = tonumber(_id)
-	local title = videoTable[i][1] .. ' ' .. l.lifeTitle
+	local title = videoTable[i][1] .. ' ' .. l.lifeTitle	-- no NLS
 	local url = videoTable[i][2]
 	local parse_m3u8 = tonumber(videoTable[i][3])
 

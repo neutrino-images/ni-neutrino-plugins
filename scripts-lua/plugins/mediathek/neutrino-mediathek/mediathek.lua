@@ -21,10 +21,8 @@ mtList			= {}
 mtBuffer		= {}
 titleList		= {}
 themeList		= {}
---m_title_sel	= {}
---m_theme_sel	= {}
 
-function playVideo()
+function playOrDownloadVideo(playOrDownload)
 	local flag_max = false
 	local flag_normal = false
 	local flag_min = false
@@ -64,11 +62,15 @@ function playVideo()
 
 	local screen = saveFullScreen()
 	hideMtWindow()
-	playMovie(mtList[mtRightMenu_select].title, url, mtList[mtRightMenu_select].theme, url, true)
+	if (playOrDownload == true) then
+		playMovie(mtList[mtRightMenu_select].title, url, mtList[mtRightMenu_select].theme, url, true)
+	else
+		downloadMovie(mtList[mtRightMenu_select].title, url, mtList[mtRightMenu_select].theme, url, true)
+	end
 	restoreFullScreen(screen, true)
-end -- function playVideo
+end -- function playOrDownloadVideo
 
-function paint_mtItemLine(viewChannel, count)
+function paint_mtItemLine(count)
 	_item_x = mtRightMenu_x + 8
 	_itemLine_y = itemLine_y + subMenuHight*count
 	local bgCol  = 0
@@ -98,19 +100,14 @@ function paint_mtItemLine(viewChannel, count)
 	end -- function paintItem
 
 	if (count <= #mtList) then
-		local cw = 10
-		if (viewChannel == true) then
-			paintItem(cw, '', 1)
-			cw = 0
-		end
-		paintItem(24+cw/2, mtList[count].theme,		0)
-		paintItem(35+cw/2, mtList[count].title,		0)
-		paintItem(11,      mtList[count].date,		1)
-		paintItem(6,       mtList[count].time,		1)
-		paintItem(9,       mtList[count].duration,	1)
+		paintItem(29,	mtList[count].theme,	0)
+		paintItem(40,	mtList[count].title,	0)
+		paintItem(11,	mtList[count].date,		1)
+		paintItem(6,	mtList[count].time,		1)
+		paintItem(9,	mtList[count].duration,	1)
 		local geo = ''
 		if (mtList[count].geo ~= '') then geo = 'X' end	-- no NLS
-		paintItem(5,       geo,						1)
+		paintItem(5,	geo,					1)
 	end
 end -- function paint_mtItemLine
 
@@ -150,19 +147,14 @@ function paintMtRightMenu()
 		end
 	end -- function paintHead
 
-	local function paintHeadLine(viewChannel)
+	local function paintHeadLine()
 		G.paintSimpleFrame(x, y, rightItem_w, subMenuHight, frameColor, 0)
-		local cw = 10
-		if (viewChannel == true) then
-			paintHead(cw,	l.headerChannel)
-			cw = 0
-		end
-		paintHead(24+cw/2,	l.headerTheme)
-		paintHead(35+cw/2,	l.headerTitle)
-		paintHead(11,		l.headerDate)
-		paintHead(6,		l.headerTime)
-		paintHead(9,		l.headerDuration)
-		paintHead(-5,		l.headerGeo)
+		paintHead(29,	l.headerTheme)
+		paintHead(40,	l.headerTitle)
+		paintHead(11,	l.headerDate)
+		paintHead(6,	l.headerTime)
+		paintHead(9,	l.headerDuration)
+		paintHead(-5,	l.headerGeo)
 	end -- function paintHeadLine
 
 	local function bufferEntries()
@@ -223,7 +215,7 @@ function paintMtRightMenu()
 			if (totalentries == 999999) then
 				totalentries = l.searchTitleInfoAll
 			end
-			local box = paintMiniInfoBox(string.format(l.searchTitleInfoMsg, actentries, endentries, tostring(totalentries)))
+			local box = paintAnInfoBox(string.format(l.searchTitleInfoMsg, actentries, endentries, tostring(totalentries)), WHERE.CENTER)
 				local j_table = {}
 			j_table = decodeJson(s)
 			if (j_table == nil) then
@@ -302,12 +294,12 @@ function paintMtRightMenu()
 		mtBuffer_list_total = j
 
 		selectionChanged = false
-		paintMiniInfoBoxAndWait(string.format(l.titleRead, mtBuffer_list_total), 1)
+		paintAnInfoBoxAndWait(string.format(l.titleRead, mtBuffer_list_total), WHERE.CENTER, 1)
 	end -- function bufferEntries
 
 	itemLine_y = mtMenu_y+subMenuTop+2
 	_item_x = 0
-	paintHeadLine(false)
+	paintHeadLine()
 
 	local i = 1
 	while (itemLine_y+subMenuHight*i < mtMenu_h+mtMenu_y-subMenuHight) do
@@ -450,7 +442,7 @@ function paintMtRightMenu()
 	end -- Either with theme or title selected or not
 
 	for i = 1, mtRightMenu_count do
-		paint_mtItemLine(false, i)
+		paint_mtItemLine(i)
 	end
 
 	mtRightMenu_max_page = math.ceil(mtRightMenu_list_total/mtRightMenu_count)
@@ -512,7 +504,7 @@ function paintMtLeftMenu()
 				crCount = crCount + 1
 			end
 		end
---		paintMiniInfoBoxAndWait("CRs: " .. crCount, 4)
+--		paintAnInfoBoxAndWait("CRs: " .. crCount, WHERE.CENTER, 4)
 		if crCount == 0 then
 			G.paintSimpleFrame(mtLeftMenu_x+subMenuLeft, y, mtLeftMenu_w-subMenuLeft*2, subMenuHight, frameColor, bgCol)
 			N:RenderString(useDynFont, fontLeftMenu2, txt2,
@@ -523,11 +515,11 @@ function paintMtLeftMenu()
 			G.paintSimpleFrame(mtLeftMenu_x+subMenuLeft, y, mtLeftMenu_w-subMenuLeft*2, crCount*subMenuHight, frameColor, bgCol)
 			for i=1, crCount do
 				local s, e = string.find(txt2, '\n')	-- no NLS
---				paintMiniInfoBoxAndWait("s: " .. s .. " e: " .. e, 2)
+--				paintAnInfoBoxAndWait("s: " .. s .. " e: " .. e, WHERE.CENTER, 2)
 				if s ~= nil then
 					local txt = string.sub(txt2, 1, s-1)
 					txt2 = string.sub(txt2, e+1)
---					paintMiniInfoBoxAndWait("Teil: " .. txt, 2)
+--					paintAnInfoBoxAndWait("Teil: " .. txt, WHERE.CENTER, 2)
 					N:RenderString(useDynFont, fontLeftMenu2, txt,
 							mtLeftMenu_x+subMenuLeft, y+subMenuHight, txtCol, mtLeftMenu_w-subMenuLeft*2, subMenuHight, 0)
 					y = y + subMenuHight
@@ -649,6 +641,7 @@ function startMediathek()
 	selectionChanged = true
 
 	newMtWindow()
+	local topRightBox = nil
 
 	repeat
 		local msg, data = N:GetInput(500)
@@ -666,8 +659,8 @@ function startMediathek()
 						mtRightMenu_select = select_old
 					end
 				else
-					paint_mtItemLine(false, select_old)
-					paint_mtItemLine(false, mtRightMenu_select)
+					paint_mtItemLine(select_old)
+					paint_mtItemLine(mtRightMenu_select)
 				end
 			else
 				mtRightMenu_select = select_old
@@ -702,8 +695,8 @@ function startMediathek()
 					mtRightMenu_select = select_old
 				end
 			else
-				paint_mtItemLine(false, select_old)
-				paint_mtItemLine(false, mtRightMenu_select)
+				paint_mtItemLine(select_old)
+				paint_mtItemLine(mtRightMenu_select)
 			end
 		end
 		if ((msg == RC.left) or (msg == RC.page_up)) then
@@ -734,12 +727,30 @@ function startMediathek()
 --		elseif (msg == RC['2']) then
 --			sort
 		elseif (msg == RC.ok) then
-			playVideo()
+			playOrDownloadVideo(true)
+		elseif (msg == RC.record) then
+			playOrDownloadVideo(false)
 		end
 		-- exit plugin
 		checkKillKey(msg)
+
+		local countWGETRunning = runACommand('ps -ef | grep -c wget')	-- no NLS
+		if (countWGETRunning == nil) then 
+			countWGETRunning = 0
+		else
+			countWGETRunning = tonumber(countWGETRunning)
+		end
+--paintAnInfoBoxAndWait("ps Command returned: " .. countWGETRunning, WHERE.CENTER, 3)
+		if (countWGETRunning > 2) then
+			G.hideInfoBox(topRightBox)
+			if (countWGETRunning == 3) then -- including ps and wget commands
+				topRightBox = paintTopRightInfoBox(l.statusDLRunning1)
+			else
+				topRightBox = paintTopRightInfoBox(string.format(l.statusDLRunningN, countWGETRunning-2)) -- w/o ps and grep commands
+			end
+		else
+			G.hideInfoBox(topRightBox)
+		end
+
 	until msg == RC.home or forcePluginExit == true
 end -- function startMediathek
-
-dofile(pluginScriptPath .. '/mediathek_leftMenu.lua')	-- no NLS
-dofile(pluginScriptPath .. '/mediathek_movieInfo.lua')	-- no NLS

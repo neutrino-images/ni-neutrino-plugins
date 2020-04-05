@@ -114,12 +114,12 @@ function get_m3u8url(url, parse_mode)
 		if (si[i]['bandwidth'] == nil) then si[i]['bandwidth'] = 0 end
 		if (si[i]['bandwidth'] > 65000) then -- skip audio streams
 			if (si[i]['bandwidth'] <= minBW) then
-				minBW = si[i]['bandwidth']
+				minBW  = si[i]['bandwidth']
 				minUrl = si[i]['url']
 				minRes = si[i]['resolution']
 			end
 			if (si[i]['bandwidth'] >= maxBW) then
-				maxBW = si[i]['bandwidth']
+				maxBW  = si[i]['bandwidth']
 				maxUrl = si[i]['url']
 				maxRes = si[i]['resolution']
 			end
@@ -135,7 +135,7 @@ function get_m3u8url(url, parse_mode)
 			if (math.abs(tmpBW - si[i]['bandwidth']) < diff) then
 				diff = math.abs(tmpBW - si[i]['bandwidth'])
 				xUrl = si[i]['url']
-				xBW = si[i]['bandwidth']
+				xBW  = si[i]['bandwidth']
 				xRes = si[i]['resolution']
 			end
 		end

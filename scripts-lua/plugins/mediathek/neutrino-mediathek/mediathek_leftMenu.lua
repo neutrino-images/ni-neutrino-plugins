@@ -15,7 +15,7 @@ end -- function repaintMediathek
 
 function changeTitle(dummy, title)
 	conf.title = title
-	return MENU_RETURN.EXIT_ALL
+	return MENU_RETURN.REPAINT
 end -- function changeTitle
 
 function changeAllTitles(k, v)
@@ -223,7 +223,7 @@ function themeMenu()
 		if (totalentries == 999999) then
 			totalentries = l.searchThemeInfoAll
 		end
-		local box = paintMiniInfoBox(string.format(l.searchThemeInfoMsg, actentries, endentries, tostring(totalentries)))
+		local box = paintAnInfoBox(string.format(l.searchThemeInfoMsg, actentries, endentries, tostring(totalentries)), WHERE.CENTER)
 		local j_table = {}
 		j_table = decodeJson(s)
 		if (j_table == nil) then
@@ -289,7 +289,7 @@ function periodOfTimeMenu()
 
 	local opt={l.on, l.off}
 	mi:addItem{type="chooser", action="setConfigString", hint_icon="hint_service", hint=l.seePeriodFutureH, options=opt, id="seeFuturePrograms", value=unTranslateOnOff(conf.seeFuturePrograms), name=l.seePeriodFuture}	-- no NLS
-	opt={ 'all', '1', '3', '7', '14', '28', '60', '90', '365'}	-- no NLS
+	opt={ 'all', '1', '3', '7', '14', '28', '60'}	-- no NLS
 	mi:addItem{type="chooser", action="setConfigStringNT", hint_icon="hint_service", hint=l.seePeriodDaysH, options=opt, id="seePeriod", value=conf.seePeriod, name=l.seePeriodDays}	-- no NLS
 
 	mi:exec()

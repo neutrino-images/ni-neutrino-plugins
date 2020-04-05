@@ -14,7 +14,7 @@ end -- function initLocale
 function initVars()
 	pluginVersionMajor	= 0
 	pluginVersionMinor	= 4
-	pluginVersionBeta	= 1
+	pluginVersionBeta	= 2
 	if (pluginVersionBeta == 0) then
 		pvbTmp = ''
 	else
@@ -26,7 +26,7 @@ function initVars()
 
 
 	noCacheFiles	= false
-	dlDebug			= false
+	dlDebug			= true
 
 	forcePluginExit		= false
 --	Curl				= nil
@@ -67,6 +67,10 @@ function initVars()
 	h_mtWindow	= nil
 	mtScreen	= nil
 
+	WHERE			= {}
+	WHERE.TOPRIGHT	= 3
+	WHERE.CENTER	= 5
+
 	mainScreen	= 0
 	moviePlayed	= false
 
@@ -85,7 +89,7 @@ function initVars()
 	timeMode_normal	= 1
 	timeMode_future	= 2
 
-	softwareSig			= 'Neutrino Mediathek'	-- no NLS
+	softwareSig = 'Neutrino Mediathek'	-- no NLS
 	local rev
 	rev, hardware = M:GetRevision()
 	if (hardware ~= nil) then
