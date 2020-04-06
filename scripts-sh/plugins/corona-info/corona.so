@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V1.93                            *
+# * Corona-Info V1.94                           *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -42,7 +42,7 @@ tux_wetter=$(which tuxwetter)
 #################################################
 
 title="Corona-Info"
-vinfo="V1.93"
+vinfo="V1.94"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
@@ -59,12 +59,16 @@ echo "-----------------------------by fred_feuerstein---"
 
 fallurl="https://www.neutrino-images.de/storage/public/corona-info/faelle.png"
 toteurl="https://www.neutrino-images.de/storage/public/corona-info/tote.png"
-deurl="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/COVID-19_outbreak_Germany_per_capita_cases_map.svg/800px-COVID-19_outbreak_Germany_per_capita_cases_map.svg.png"
+dekarte1url="https://www.neutrino-images.de/storage/public/corona-info/dekarte1.jpg"
+dekarte2url="https://www.neutrino-images.de/storage/public/corona-info/dekarte2.jpg"
+dekarte3url="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/COVID-19_outbreak_Germany_per_capita_cases_map.svg/800px-COVID-19_outbreak_Germany_per_capita_cases_map.svg.png"
 
 repeat=""
 fallstring="PICTURE=fall,|PNG$repeat|$fallurl"
 totestring="PICTURE=tote,|PNG$repeat|$toteurl"
-destring="PICTURE=deu,|PNG$repeat|$deurl"
+dekarte1string="PICTURE=deu,|JPG$repeat|$dekarte1url"
+dekarte2string="PICTURE=deu,|JPG$repeat|$dekarte2url"
+dekarte3string="PICTURE=deu,|PNG$repeat|$dekarte3url"
 gtimeout=10
 
 fallgrafik() {
@@ -79,8 +83,6 @@ fallgrafik() {
 			    sleep 1
 				done
 			pidof `basename $tux_wetter` >/dev/null && killall `basename $tux_wetter`
-      msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
-      echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
   fi
 }
 
@@ -96,25 +98,53 @@ totegrafik() {
 			    sleep 1
 				done
 			pidof `basename $tux_wetter` >/dev/null && killall `basename $tux_wetter`
-      msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
-      echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
   fi
 }
 
-deugrafik() {
+
+dekarte1grafik() {
 	tmout=0
   if [ "$tux_wetter" == "" ]; then
       msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
       echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
     else
-			$tux_wetter "$destring" >/dev/null &
+			$tux_wetter "$dekarte1string" >/dev/null &
 			while pidof `basename $tux_wetter` >/dev/null && [ $tmout -lt $gtimeout ]; do
 			    tmout=$(($tmout+1))
 			    sleep 1
 				done
 			pidof `basename $tux_wetter` >/dev/null && killall `basename $tux_wetter`
+  fi
+}
+
+
+dekarte2grafik() {
+	tmout=0
+  if [ "$tux_wetter" == "" ]; then
       msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
       echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
+    else
+			$tux_wetter "$dekarte2string" >/dev/null &
+			while pidof `basename $tux_wetter` >/dev/null && [ $tmout -lt $gtimeout ]; do
+			    tmout=$(($tmout+1))
+			    sleep 1
+				done
+			pidof `basename $tux_wetter` >/dev/null && killall `basename $tux_wetter`
+  fi
+}
+
+dekarte3grafik() {
+	tmout=0
+  if [ "$tux_wetter" == "" ]; then
+      msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
+      echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
+    else
+			$tux_wetter "$dekarte3string" >/dev/null &
+			while pidof `basename $tux_wetter` >/dev/null && [ $tmout -lt $gtimeout ]; do
+			    tmout=$(($tmout+1))
+			    sleep 1
+				done
+			pidof `basename $tux_wetter` >/dev/null && killall `basename $tux_wetter`
   fi
 }
 
@@ -235,7 +265,7 @@ echo "~s" >> $msgboxfile
 echo "Gesamt Weltweit ~T0240~Y"$ALL_GESAMT" ~T0340  ~T0420~R"$ALL_TOTE"  ~T0500"$ALL_QUOTE"% ~T0580 ~T0650~Y"$ALL_ERKRANKT" ~T0745~B ~T0830~G"$ALL_GEHEILT" ~T0930~SAnz. Länder: "$ALL_ANZAHL"" >> $msgboxfile
 echo "~s" >> $msgboxfile
 echo "~cQuelle: https://corona.lmao.ninja/countries - Datenstand: "$ALL_UPDATE" Uhr" >> $msgboxfile 
-echo "~cDie Liste der L~ander kann in der Datei corona.land editiert/sortiert werden. fred_feuerstein (NI-Team)" >> $msgboxfile 
+#echo "~cDie Liste der L~ander kann in der Datei corona.land editiert/sortiert werden. fred_feuerstein (NI-Team)" >> $msgboxfile 
 
 echo "Corona-Info - Übersicht wurde erstellt"
 
@@ -258,8 +288,8 @@ echo "Corona-Info - Schriftgröße "$rowsize" eingestellt!"
 echo "Corona-Info - Bitte warten, Anzeige am TV wird vorbereitet  und angezeigt"
 
 while :; do
-	auswahl=2
-	msgbox msg="$msgboxfile" size="$rowsize" icon="$icon" title="$title $vinfo" select="F~ALLE_WHO,EXIT,TOTE_WHO,DEUTSCHLAND" order=4 default=$auswahl >/dev/null
+	auswahl=3
+	msgbox msg="$msgboxfile" size="$rowsize" icon="$icon" title="$title $vinfo" select="F~alle (WHO),Tote (WHO),EXIT,DE-Karte (BMP),DE-Karte (n-tv),DE-Karte (WHO)" order=3 default=$auswahl >/dev/null
 	auswahl=$?
 	case $auswahl in
 	  1)
@@ -267,17 +297,25 @@ while :; do
       echo "Corona-Info - Grafik-Fälle-Weltweit-WHO"
   		;;		
 	  2)
+      totegrafik
+      echo "Corona-Info - Grafik-Tote-Weltweit-WHO"
+  		;;		
+	  3)
 		  #Abbruch
       echo "Corona-Info - Exit (OK-Taste)"
 			break
    		;;
-	  3)
-      totegrafik
-      echo "Corona-Info - Grafik-Tote-Weltweit-WHO"
-  		;;		
 	  4)
-	    deugrafik
-	    echo "Corona-Info - Deutschland-Grafik-WHO"
+	    dekarte1grafik
+	    echo "Corona-Info - Deutschland-Karte BerlinderMorgenpost"
+	    ;;
+	  5)
+	    dekarte2grafik
+	    echo "Corona-Info - Deutschland-Karte n-tv"
+	    ;;
+	  6)
+	    dekarte3grafik
+	    echo "Corona-Info - Deutschland-Karte wiki/WHO"
 	    ;;
 		*)
 			echo "Corona-Info - Exit (Exit-Taste/Timeout)"
