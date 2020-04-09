@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V1.94                           *
+# * Corona-Info V2.00                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -42,7 +42,7 @@ tux_wetter=$(which tuxwetter)
 #################################################
 
 title="Corona-Info"
-vinfo="V1.94"
+vinfo="V2.00"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
@@ -165,13 +165,13 @@ else
 	echo '"PRT",Portugal' >> $landfile
 	echo '"USA",USA' >> $landfile
 	echo '"AUT",~Osterreich' >> $landfile
-	echo '"CH",Schweiz' >> $landfile
+	echo '"CHE",Schweiz' >> $landfile
 	echo '"FRA",Frankreich' >> $landfile
-	echo '"NL",Niederlande' >> $landfile
+	echo '"NLD",Niederlande' >> $landfile
 	echo '"CHN",China' >> $landfile
 	echo '"KOR",S~udkorea' >> $landfile
 	echo '"RUS",Russland' >> $landfile
-	echo '"UK",Gro~zbritannien' >> $landfile
+	echo '"GBR",Gro~zbritannien' >> $landfile
 	echo "Corona-Info - corona.land nicht vorhanden - Default-Laender werden genutzt"
 fi
 
@@ -192,7 +192,7 @@ else
 fi 
 
 if [ -e $countriesfile ]; then
-	sed -i -e 's|{"country|\n{"country|g' $countriesfile
+	sed -i -e 's|,"country|\n{"country|g' $countriesfile
 	echo "Corona-Info - Länderdaten erfolgreich geladen"
 else
 	echo "Corona-Info - Länderdaten in $countriesfile nicht gefunden"
@@ -209,9 +209,10 @@ fi
 echo "Corona-Info - Daten werden aufbereitet zur Anzeige"
 
 echo "~s" > $msgboxfile
-echo "Land    ~T0240~YGesamt  ~T0340      ~T0420~RGesamt ~T0500 ~T0580 ~T0650~YErkrankt ~T0745~B ~T0830~GGeheilt ~T0930~YFälle p.  ~T1035~RTote p." >> $msgboxfile
-echo " ~T0240~YInfizierte  ~T0340heute      ~T0420~RTote ~T0500Quote ~T0580heute ~T0650~Ymild ~T0745~Bkritisch ~T0830~Ggemeldet ~T0930~YMio.Einw  ~T1035~RMio.Einw" >> $msgboxfile
+echo "Land    ~T0215~YGesamt  ~T0310      ~T0380~RGesamt ~T0460 ~T0525 ~T0585~YErkrankt ~T0670~B ~T0745~GGeheilt ~T0820~GTests ~T0925~GTests ~T0990~YFälle  ~T1055~RTote" >> $msgboxfile
+echo " ~T0215~YInfizierte  ~T0310heute      ~T0380~RTote ~T0460Quote ~T0525heute ~T0585~Ymild ~T0670~Bkritisch ~T0745~Ggemeld. ~T0820~GAnzahl ~T0925~GpMio. ~T0990~YpMio.  ~T1055~RpMio." >> $msgboxfile
 echo "~s" >> $msgboxfile
+
 
 # Werte aller Länder ermitteln und in Datei speichern
 
@@ -244,8 +245,10 @@ for i in $(seq 1 "$lines"); do
 	KRITISCH=$(echo "$LAND" | sed 's/.*critical":\(.*\)$/\1/' | cut -d "," -f1)
 	FALLPROMILLION=$(echo "$LAND" | sed 's/.*casesPerOneMillion":\(.*\)$/\1/' | cut -d "," -f1)
 	TOTEPROMILLION=$(echo "$LAND" | sed 's/.*deathsPerOneMillion":\(.*\)$/\1/' | cut -d "," -f1)
+	TESTS=$(echo "$LAND" | sed 's/.*tests":\(.*\)$/\1/' | cut -d "," -f1)
+	TESTSPROMILLION=$(echo "$LAND" | sed 's/.*testsPerOneMillion":\(.*\)$/\1/' | cut -d "}" -f1)
 
-	echo $landanzeige" ~T0240~Y"$GESAMT" ~T0340"$NEU_HEUTE"  ~T0420~R"$TOTE"  ~T0500"$QUOTE"% ~T0580"$TOTE_HEUTE" ~T0650~Y"$ERKRANKT" ~T0745~B"$KRITISCH" ~T0830~G"$GEHEILT" ~T0930~Y"$FALLPROMILLION" ~T1035~R"$TOTEPROMILLION"" >> $msgboxfile
+	echo $landanzeige" ~T0215~Y"$GESAMT" ~T0310"$NEU_HEUTE"  ~T0380~R"$TOTE"  ~T0460"$QUOTE"% ~T0525"$TOTE_HEUTE" ~T0585~Y"$ERKRANKT" ~T0670~B"$KRITISCH" ~T0745~G"$GEHEILT" ~T0820~G"$TESTS" ~T0925~G"$TESTSPROMILLION" ~T0990~Y"$FALLPROMILLION" ~T1055~R"$TOTEPROMILLION"" >> $msgboxfile
 done
 
 # Gesamtwerte ermitteln und in Datei speichern
@@ -253,16 +256,24 @@ done
 ALL=$(cat $worldfile)
 ALL_GESAMT=$(echo "$ALL" | sed 's/.*cases":\(.*\)$/\1/' | cut -d "," -f1)
 ALL_TOTE=$(echo "$ALL" | sed 's/.*deaths":\(.*\)$/\1/' | cut -d "," -f1)
+ALL_NEU_HEUTE=$(echo "$ALL" | sed 's/.*todayCases":\(.*\)$/\1/' | cut -d "," -f1)
+ALL_TOTE_HEUTE=$(echo "$ALL" | sed 's/.*todayDeaths":\(.*\)$/\1/' | cut -d "," -f1)
 ALL_GEHEILT=$(echo "$ALL" | sed 's/.*recovered":\(.*\)$/\1/' | cut -d "," -f1)
 ALL_ERKRANKT=$(echo "$ALL" | sed 's/.*active":\(.*\)$/\1/' | cut -d "," -f1)
 ALL_QUOTETEMP=$(echo | awk '{print '$ALL_TOTE'*100/'$ALL_GESAMT'}')
 ALL_QUOTE=$(printf "%.1f\n" $ALL_QUOTETEMP)
 ALL_ANZAHL=$(echo "$ALL" | sed 's/.*affectedCountries":\(.*\)$/\1/' | cut -d "}" -f1)
 ALL_UPDATETEMP=$(echo "$ALL" | sed 's/.*updated":\(.*\)$/\1/' | cut -d "," -f1)
+ALL_TESTS=$(echo "$ALL" | sed 's/.*tests":\(.*\)$/\1/' | cut -d "," -f1)
+ALL_TESTSPROMILLION=$(echo "$ALL" | sed 's/.*testsPerOneMillion":\(.*\)$/\1/' | cut -d "," -f1)
+ALL_FALLPROMILLION=$(echo "$ALL" | sed 's/.*casesPerOneMillion":\(.*\)$/\1/' | cut -d "," -f1)
+ALL_TOTEPROMILLION=$(echo "$ALL" | sed 's/.*deathsPerOneMillion":\(.*\)$/\1/' | cut -d "," -f1)
+ALL_KRITISCH=$(echo "$ALL" | sed 's/.*critical":\(.*\)$/\1/' | cut -d "," -f1)
 ALL_UPDATE=$(date -d @${ALL_UPDATETEMP:0:10} '+%d.%m.%Y - %H:%M')
 
 echo "~s" >> $msgboxfile
-echo "Gesamt Weltweit ~T0240~Y"$ALL_GESAMT" ~T0340  ~T0420~R"$ALL_TOTE"  ~T0500"$ALL_QUOTE"% ~T0580 ~T0650~Y"$ALL_ERKRANKT" ~T0745~B ~T0830~G"$ALL_GEHEILT" ~T0930~SAnz. Länder: "$ALL_ANZAHL"" >> $msgboxfile
+echo "Weltweit ~T0215~Y"$ALL_GESAMT" ~T0310"$ALL_NEU_HEUTE"  ~T0380~R"$ALL_TOTE"  ~T0460"$ALL_QUOTE"% ~T0525"$ALL_TOTE_HEUTE" ~T0585~Y"$ALL_ERKRANKT" ~T0670~B"$ALL_KRITISCH" ~T0745~G"$ALL_GEHEILT" ~T0820~G"$ALL_TESTS" ~T0925~G"$ALL_TESTSPROMILLION" ~T0990~Y"$ALL_FALLPROMILLION" ~T1055~R"$ALL_TOTEPROMILLION" " >> $msgboxfile
+echo "Anzahl Länder ~T0215"$ALL_ANZAHL" " >> $msgboxfile
 echo "~s" >> $msgboxfile
 echo "~cQuelle: https://corona.lmao.ninja/countries - Datenstand: "$ALL_UPDATE" Uhr" >> $msgboxfile 
 #echo "~cDie Liste der L~ander kann in der Datei corona.land editiert/sortiert werden. fred_feuerstein (NI-Team)" >> $msgboxfile 
@@ -272,13 +283,13 @@ echo "Corona-Info - Übersicht wurde erstellt"
 # Schriftgröße ermitteln
 
 if [ "$lines" -ge "24" ]; then
-	rowsize="15"
+	rowsize="14"
 elif [ "$lines" -ge "19" ]; then
-	rowsize="17"
+	rowsize="16"
 elif [ "$lines" -ge "17" ]; then
-	rowsize="19" 
+	rowsize="18" 
 elif [ "$lines" -le "16" ]; then
-	rowsize="21"
+	rowsize="20"
 fi
 
 echo "Corona-Info - Schriftgröße "$rowsize" eingestellt!"
