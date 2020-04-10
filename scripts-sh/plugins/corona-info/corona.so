@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V2.02                            *
+# * Corona-Info V2.03                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -42,7 +42,7 @@ tux_wetter=$(which tuxwetter)
 #################################################
 
 title="Corona-Info"
-vinfo="V2.02"
+vinfo="V2.03"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
@@ -224,12 +224,16 @@ while :; do
 	  1)
       echo "Corona-Info - Update Plugin "$vinfo" auf "$updatever" "
       update
-      msgbox popup="Plugin aktualisiert von $vinfo auf $updatever" icon="$icon" title="$title $vinfo" timeout=03
+      msgbox popup="Plugin wird aktualisiert von $vinfo auf $updatever und beendet" icon="$icon" title="$title $vinfo" timeout=03
+      echo "Corona-Info - nach Update Plugin beendet"
+      exit 0
   		;;		
 	  2)
       echo "Corona-Info - Update corona.land"
       updateland
-      msgbox popup="corona.land aktualisiert ..." icon="$icon" title="$title $vinfo" timeout=03
+      msgbox popup="corona.land wird aktualisiert und Plugin beendet" icon="$icon" title="$title $vinfo" timeout=03
+      echo "Corona-Info - nach Update corona.land beendet"
+      exit 0
   		;;		
 	  3)
 		  #Abbruch
