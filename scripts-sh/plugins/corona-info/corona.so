@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V2.03                            *
+# * Corona-Info V2.04                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -42,7 +42,7 @@ tux_wetter=$(which tuxwetter)
 #################################################
 
 title="Corona-Info"
-vinfo="V2.03"
+vinfo="V2.04"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
@@ -200,16 +200,17 @@ updateseiteerstellen() {
 	echo "~BPlugin-Update-Funktion"  >> $msgboxfile2
 	echo "~s" >> $msgboxfile2
 	echo " " >> $msgboxfile2
-	echo "Versionsstand lokal:  ~T0450~Y"$vinfo >> $msgboxfile2
-	echo "Versionsstand im GIT: ~T0450~Y"$updatever >> $msgboxfile2
+	echo "~YVersionsstand lokal:  ~T0450~B"$vinfo >> $msgboxfile2
+	echo "~YVersionsstand im GIT: ~T0450~B"$updatever >> $msgboxfile2
 	echo " " >> $msgboxfile2
 	echo " " >> $msgboxfile2
 	echo "Bitte Hinweise zu neuen Versionen im NI-Forum beachten!"  >> $msgboxfile2
-	echo "Es können ggfs. manuelle ~Anderungen an der corona.land n~otig sein."  >> $msgboxfile2
+	echo " " >> $msgboxfile2
+	echo "Alternativ kann auch nur die corona.land upgedatet werden."  >> $msgboxfile2
 	echo "~s" >> $msgboxfile2
-	echo "Alternativ kann auch die corona.land vom Server geholt werden."  >> $msgboxfile2
-	echo "Achtung: dabei wird die vorhandene Datei ~uberschrieben."  >> $msgboxfile2
-
+	echo "~YACHTUNG: Beim Update werden eure pers~onlichen Einstellungen mit "  >> $msgboxfile2
+	echo "~Ymit Defaultwerten aus dem Git ~uberschrieben! "  >> $msgboxfile2
+	echo "~s" >> $msgboxfile2
 }
 
 updateseite() {
@@ -218,20 +219,20 @@ echo "Corona-Info - Update-Seite wird angezeigt am TV"
 
 while :; do
 	auswahl=3
-	msgbox msg="$msgboxfile2" size="22" icon="$icon" title="$title $vinfo" select="Update Plugin,Update corona.land,ZUR~UCK" order=3 default=$auswahl >/dev/null
+	msgbox msg="$msgboxfile2" size="20" icon="$icon" title="$title $vinfo" select="Update Plugin,Update corona.land,ZUR~UCK" order=3 default=$auswahl >/dev/null
 	auswahl=$?
 	case $auswahl in
 	  1)
       echo "Corona-Info - Update Plugin "$vinfo" auf "$updatever" "
       update
-      msgbox popup="Plugin wird aktualisiert von $vinfo auf $updatever und beendet" icon="$icon" title="$title $vinfo" timeout=03
+      msgbox popup="Plugin wird aktualisiert von $vinfo auf $updatever und beendet" icon="$icon" title="$title $vinfo" timeout=05
       echo "Corona-Info - nach Update Plugin beendet"
       exit 0
   		;;		
 	  2)
       echo "Corona-Info - Update corona.land"
       updateland
-      msgbox popup="corona.land wird aktualisiert und Plugin beendet" icon="$icon" title="$title $vinfo" timeout=03
+      msgbox popup="corona.land wird aktualisiert und Plugin beendet" icon="$icon" title="$title $vinfo" timeout=05
       echo "Corona-Info - nach Update corona.land beendet"
       exit 0
   		;;		
@@ -259,7 +260,7 @@ else
 	echo '"ITA",Italien' >> $landfile
 	echo '"ESP",Spanien' >> $landfile
 	echo '"PRT",Portugal' >> $landfile
-	echo '"USA",USA' >> $landfile
+	echo '"_id":840,USA' >> $landfile
 	echo '"AUT",~Osterreich' >> $landfile
 	echo '"CHE",Schweiz' >> $landfile
 	echo '"FRA",Frankreich' >> $landfile
