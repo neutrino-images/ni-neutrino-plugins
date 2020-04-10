@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V2.00                            *
+# * Corona-Info V2.01                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -42,7 +42,7 @@ tux_wetter=$(which tuxwetter)
 #################################################
 
 title="Corona-Info"
-vinfo="V2.00"
+vinfo="V2.01"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
@@ -148,12 +148,103 @@ dekarte3grafik() {
   fi
 }
 
+
+
 cleanup
 
 landfile="$landpath"/corona.land
 msgboxfile=/tmp/corona.msgbox
+msgboxfile2=/tmp/corona.msgbox2
 countriesfile=/tmp/corona.countries
 worldfile=/tmp/corona.world
+updatefile=/tmp/corona.update
+
+update() {
+  echo "Corona-Info - Update-Files Plugin aus Git laden"
+	if [ $command = "WGET" ]; then
+  	wget -O $pluginpath/corona.so https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/corona-info/corona.so --no-check-certificate
+  	wget -O $pluginpath/corona.cfg https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/corona-info/corona.cfg --no-check-certificate
+  	wget -O $pluginpath/corona_hint.png https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/corona-info/corona_hint.png --no-check-certificate
+	else
+		curl -k -o $pluginpath/corona.so https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/corona-info/corona.so
+		curl -k -o $pluginpath/corona.cfg https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/corona-info/corona.cfg
+		curl -k -o $pluginpath/corona_hint.png https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/corona-info/corona_hint.png
+	fi 
+}
+
+updateland() {
+  echo "Corona-Info - Update-File corona.land aus Git laden"
+	if [ $command = "WGET" ]; then
+  	wget -O $landpath/corona.land https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/corona-info/corona.land --no-check-certificate
+	else
+		curl -k -o $landpath/corona.land https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/corona-info/corona.land
+	fi 
+}
+
+updateseiteerstellen() {
+
+  echo "Corona-Info - Update-Check-Version im Git"
+	if [ $command = "WGET" ]; then
+		wget -O $updatefile https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/corona-info/corona.so
+	else
+		curl -k -o $updatefile https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/corona-info/corona.so
+	fi 
+
+	updatevertemp=$(cat $updatefile | grep "vinfo=")
+	updatever=$(echo "$updatevertemp" | cut -d '"' -f2 )
+
+  echo "Corona-Info - Update Seite erstellen"
+
+	echo " " >> $msgboxfile2
+	echo "~BPlugin-Update-Funktion"  >> $msgboxfile2
+	echo "~s" >> $msgboxfile2
+	echo " " >> $msgboxfile2
+	echo "Versionsstand lokal:  ~T0450~Y"$vinfo >> $msgboxfile2
+	echo "Versionsstand im GIT: ~T0450~Y"$updatever >> $msgboxfile2
+	echo " " >> $msgboxfile2
+	echo " " >> $msgboxfile2
+	echo "Bitte Hinweise zu neuen Versionen im NI-Forum beachten!"  >> $msgboxfile2
+	echo "Es können ggfs. manuelle ~Anderungen an der corona.land n~otig sein."  >> $msgboxfile2
+	echo "~s" >> $msgboxfile2
+	echo "Alternativ kann auch die corona.land vom Server geholt werden."  >> $msgboxfile2
+	echo "Achtung: dabei wird die vorhandene Datei ~uberschrieben."  >> $msgboxfile2
+
+}
+
+updateseite() {
+
+echo "Corona-Info - Update-Seite wird angezeigt am TV"
+
+while :; do
+	auswahl=3
+	msgbox msg="$msgboxfile2" size="22" icon="$icon" title="$title $vinfo" select="Update Plugin,Update corona.land,ZUR~UCK" order=3 default=$auswahl >/dev/null
+	auswahl=$?
+	case $auswahl in
+	  1)
+      echo "Corona-Info - Update Plugin "$vinfo" auf "$updatever" "
+      update
+      msgbox popup="Plugin aktualisiert von $vinfo auf $updatever" icon="$icon" title="$title $vinfo" timeout=03
+  		;;		
+	  2)
+      echo "Corona-Info - Update corona.land"
+      updateland
+      msgbox popup="corona.land aktualisiert ..." icon="$icon" title="$title $vinfo" timeout=03
+  		;;		
+	  3)
+		  #Abbruch
+      echo "Corona-Info - Zurück (OK-Taste)"
+      rm -rf /tmp/corona.msgbox2
+			break
+   		;;
+		*)
+			echo "Corona-Info - Zurück (Exit-Taste/Timeout)"
+			rm -rf /tmp/corona.msgbox2
+			break
+		  ;;
+	esac
+done
+
+}
 
 if [ -e "$landfile" ]; then
 	echo "Corona-Info - corona.land ("$landpath") Datei wird genutzt"
@@ -203,6 +294,7 @@ if [ -e $worldfile ]; then
 else
 	echo "Corona-Info - Länderdaten-Summe in $worldfile nicht gefunden"
 fi
+
 
 # Übersicht erstellen
 
@@ -300,16 +392,16 @@ echo "Corona-Info - Bitte warten, Anzeige am TV wird vorbereitet  und angezeigt"
 
 while :; do
 	auswahl=3
-	msgbox msg="$msgboxfile" size="$rowsize" icon="$icon" title="$title $vinfo" select="F~alle (WHO),Tote (WHO),EXIT,DE-Karte (BMP),DE-Karte (n-tv),DE-Karte (WHO)" order=3 default=$auswahl >/dev/null
+	msgbox msg="$msgboxfile" size="$rowsize" icon="$icon" title="$title $vinfo" select="F~alle (WHO),Tote (WHO),EXIT,Update-Plugin,DE-Karte (BMP),DE-Karte (n-tv),DE-Karte (WHO)" order=4 default=$auswahl >/dev/null
 	auswahl=$?
 	case $auswahl in
 	  1)
-      fallgrafik
       echo "Corona-Info - Grafik-Fälle-Weltweit-WHO"
+      fallgrafik
   		;;		
 	  2)
-      totegrafik
       echo "Corona-Info - Grafik-Tote-Weltweit-WHO"
+      totegrafik
   		;;		
 	  3)
 		  #Abbruch
@@ -317,16 +409,21 @@ while :; do
 			break
    		;;
 	  4)
-	    dekarte1grafik
-	    echo "Corona-Info - Deutschland-Karte BerlinderMorgenpost"
+	    echo "Corona-Info - Updateseite geöffnet"
+	    updateseiteerstellen
+	    updateseite
 	    ;;
 	  5)
-	    dekarte2grafik
-	    echo "Corona-Info - Deutschland-Karte n-tv"
+	    echo "Corona-Info - Deutschland-Karte BerlinderMorgenpost"
+	    dekarte1grafik
 	    ;;
 	  6)
-	    dekarte3grafik
+	    echo "Corona-Info - Deutschland-Karte n-tv"
+	    dekarte2grafik
+	    ;;
+	  7)
 	    echo "Corona-Info - Deutschland-Karte wiki/WHO"
+	    dekarte3grafik
 	    ;;
 		*)
 			echo "Corona-Info - Exit (Exit-Taste/Timeout)"
