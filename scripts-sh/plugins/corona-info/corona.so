@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V2.01                            *
+# * Corona-Info V2.02                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -42,7 +42,7 @@ tux_wetter=$(which tuxwetter)
 #################################################
 
 title="Corona-Info"
-vinfo="V2.01"
+vinfo="V2.02"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
@@ -185,13 +185,14 @@ updateseiteerstellen() {
 
   echo "Corona-Info - Update-Check-Version im Git"
 	if [ $command = "WGET" ]; then
-		wget -O $updatefile https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/corona-info/corona.so
+		wget -O $updatefile https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/corona-info/corona.so --no-check-certificate
 	else
 		curl -k -o $updatefile https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/corona-info/corona.so
 	fi 
 
 	updatevertemp=$(cat $updatefile | grep "vinfo=")
-	updatever=$(echo "$updatevertemp" | cut -d '"' -f2 )
+	updatevertemp2=$(echo "$updatevertemp" | cut -d '"' -f2 )
+	updatever=`echo ${updatevertemp2:0:5}`
 
   echo "Corona-Info - Update Seite erstellen"
 
