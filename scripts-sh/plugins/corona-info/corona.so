@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V2.04                            *
+# * Corona-Info V2.10                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -42,7 +42,7 @@ tux_wetter=$(which tuxwetter)
 #################################################
 
 title="Corona-Info"
-vinfo="V2.04"
+vinfo="V2.10"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
@@ -57,8 +57,30 @@ echo "--------------------------------------------------"
 echo "Corona-Info "$vinfo" startet"
 echo "-----------------------------by fred_feuerstein---"
 
-fallurl="https://www.neutrino-images.de/storage/public/corona-info/faelle.png"
-toteurl="https://www.neutrino-images.de/storage/public/corona-info/tote.png"
+cleanup
+
+# Generierung Dateienamen für 2 Charts vom Wiki
+
+echo "Corona-Info - Dateiename Wiki-Charts generieren"
+
+	if [ $command = "WGET" ]; then
+		wget -O /tmp/corona.html "https://de.wikipedia.org/wiki/COVID-19-Pandemie"
+	else
+		curl -k -o /tmp/corona.html https://de.wikipedia.org/wiki/COVID-19-Pandemie
+	fi 
+
+bildtemp1=`cat /tmp/corona.html | grep "mw-graph-img"`
+echo $bildtemp1 >> /tmp/coronabild.tmp
+sed -i -e 's|"|\n|g' /tmp/coronabild.tmp
+bildtemp2=`cat /tmp/coronabild.tmp | grep ".png" `
+echo $bildtemp2 >> /tmp/coronabild2.tmp
+sed -i -e 's|/api/|\n/api/|g' /tmp/coronabild2.tmp
+
+bild1faelle=`head -n2 /tmp/coronabild2.tmp | tail -n1 `
+bild2tote=`head -n3 /tmp/coronabild2.tmp | tail -n1 `
+
+fallurl="https://de.wikipedia.org$bild1faelle"
+toteurl="https://de.wikipedia.org$bild2tote"
 dekarte1url="https://www.neutrino-images.de/storage/public/corona-info/dekarte1.jpg"
 dekarte2url="https://www.neutrino-images.de/storage/public/corona-info/dekarte2.jpg"
 dekarte3url="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/COVID-19_outbreak_Germany_per_capita_cases_map.svg/800px-COVID-19_outbreak_Germany_per_capita_cases_map.svg.png"
@@ -149,8 +171,6 @@ dekarte3grafik() {
 }
 
 
-
-cleanup
 
 landfile="$landpath"/corona.land
 msgboxfile=/tmp/corona.msgbox
