@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V2.10                            *
+# * Corona-Info V2.20                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -42,7 +42,7 @@ tux_wetter=$(which tuxwetter)
 #################################################
 
 title="Corona-Info"
-vinfo="V2.10"
+vinfo="V2.20"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
@@ -59,9 +59,21 @@ echo "-----------------------------by fred_feuerstein---"
 
 cleanup
 
-# Generierung Dateienamen für 2 Charts vom Wiki
+gtimeout=10
 
-echo "Corona-Info - Dateiename Wiki-Charts generieren"
+landfile="$landpath"/corona.land
+msgboxfile=/tmp/corona.msgbox
+msgboxfile2=/tmp/corona.msgbox2
+msgboxfile3=/tmp/corona.msgbox3
+countriesfile=/tmp/corona.countries
+worldfile=/tmp/corona.world
+updatefile=/tmp/corona.update
+
+chartparser() {
+
+# Generierung Dateienamen für Charts vom Wiki
+
+echo "Corona-Info - Dateiename Wiki-Charts Weltweit generieren"
 
 	if [ $command = "WGET" ]; then
 		wget -O /tmp/corona.html "https://de.wikipedia.org/wiki/COVID-19-Pandemie"
@@ -76,14 +88,50 @@ bildtemp2=`cat /tmp/coronabild.tmp | grep ".png" `
 echo $bildtemp2 >> /tmp/coronabild2.tmp
 sed -i -e 's|/api/|\n/api/|g' /tmp/coronabild2.tmp
 
-bild1faelle=`head -n2 /tmp/coronabild2.tmp | tail -n1 `
-bild2tote=`head -n3 /tmp/coronabild2.tmp | tail -n1 `
+#Weltweite Fälle
+bild1=`head -n2 /tmp/coronabild2.tmp | tail -n1 `
+#Weltweit Tote
+bild2=`head -n3 /tmp/coronabild2.tmp | tail -n1 `
 
-fallurl="https://de.wikipedia.org$bild1faelle"
-toteurl="https://de.wikipedia.org$bild2tote"
+echo "Corona-Info - Dateiename Wiki-Charts Deutschland generieren"
+
+	if [ $command = "WGET" ]; then
+		wget -O /tmp/corona2.html "https://de.wikipedia.org/wiki/COVID-19-Pandemie_in_Deutschland"
+	else
+		curl -k -o /tmp/corona2.html https://de.wikipedia.org/wiki/COVID-19-Pandemie_in_Deutschland
+	fi 
+
+bildtemp3=`cat /tmp/corona2.html | grep "mw-graph-img"`
+echo $bildtemp3 >> /tmp/coronabild3.tmp
+sed -i -e 's|"|\n|g' /tmp/coronabild3.tmp
+bildtemp4=`cat /tmp/coronabild3.tmp | grep ".png" `
+echo $bildtemp4 >> /tmp/coronabild4.tmp
+sed -i -e 's|/api/|\n/api/|g' /tmp/coronabild4.tmp
+
+#DE Fälle
+bild3=`head -n2 /tmp/coronabild4.tmp | tail -n1 `
+#DE Fälle pro Tag
+bild4=`head -n3 /tmp/coronabild4.tmp | tail -n1 `
+#DE Tote
+bild5=`head -n4 /tmp/coronabild4.tmp | tail -n1 `
+#DE Tote pro Tag
+bild6=`head -n5 /tmp/coronabild4.tmp | tail -n1 `
+#DE Genesen
+bild7=`head -n6 /tmp/coronabild4.tmp | tail -n1 `
+#DE Genesen pro Tag
+bild8=`head -n7 /tmp/coronabild4.tmp | tail -n1 `
+
+fallurl="https://de.wikipedia.org$bild1"
+toteurl="https://de.wikipedia.org$bild2"
 dekarte1url="https://www.neutrino-images.de/storage/public/corona-info/dekarte1.jpg"
 dekarte2url="https://www.neutrino-images.de/storage/public/corona-info/dekarte2.jpg"
 dekarte3url="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/COVID-19_outbreak_Germany_per_capita_cases_map.svg/800px-COVID-19_outbreak_Germany_per_capita_cases_map.svg.png"
+defaelle="https://de.wikipedia.org$bild3"
+defaelleprotag="https://de.wikipedia.org$bild4"
+detote="https://de.wikipedia.org$bild5"
+detoteprotag="https://de.wikipedia.org$bild6"
+degenesen="https://de.wikipedia.org$bild7"
+degenesenprotag="https://de.wikipedia.org$bild8"
 
 repeat=""
 fallstring="PICTURE=fall,|PNG$repeat|$fallurl"
@@ -91,7 +139,14 @@ totestring="PICTURE=tote,|PNG$repeat|$toteurl"
 dekarte1string="PICTURE=deu,|JPG$repeat|$dekarte1url"
 dekarte2string="PICTURE=deu,|JPG$repeat|$dekarte2url"
 dekarte3string="PICTURE=deu,|PNG$repeat|$dekarte3url"
-gtimeout=10
+defaellestring="PICTURE=fall,|PNG$repeat|$defaelle"
+defaelleprotagstring="PICTURE=fall,|PNG$repeat|$defaelleprotag"
+detotestring="PICTURE=tote,|PNG$repeat|$detote"
+detoteprotagstring="PICTURE=tote,|PNG$repeat|$detoteprotag"
+degenesenstring="PICTURE=tote,|PNG$repeat|$degenesen"
+degenesenprotagstring="PICTURE=tote,|PNG$repeat|$degenesenprotag"
+
+}
 
 fallgrafik() {
 	tmout=0
@@ -170,14 +225,97 @@ dekarte3grafik() {
   fi
 }
 
+defaellegrafik() {
+	tmout=0
+  if [ "$tux_wetter" == "" ]; then
+      msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
+      echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
+    else
+			$tux_wetter "$defaellestring" >/dev/null &
+			while pidof `basename $tux_wetter` >/dev/null && [ $tmout -lt $gtimeout ]; do
+			    tmout=$(($tmout+1))
+			    sleep 1
+				done
+			pidof `basename $tux_wetter` >/dev/null && killall `basename $tux_wetter`
+  fi
+}
+
+defaelleprotaggrafik() {
+	tmout=0
+  if [ "$tux_wetter" == "" ]; then
+      msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
+      echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
+    else
+			$tux_wetter "$defaelleprotagstring" >/dev/null &
+			while pidof `basename $tux_wetter` >/dev/null && [ $tmout -lt $gtimeout ]; do
+			    tmout=$(($tmout+1))
+			    sleep 1
+				done
+			pidof `basename $tux_wetter` >/dev/null && killall `basename $tux_wetter`
+  fi
+}
 
 
-landfile="$landpath"/corona.land
-msgboxfile=/tmp/corona.msgbox
-msgboxfile2=/tmp/corona.msgbox2
-countriesfile=/tmp/corona.countries
-worldfile=/tmp/corona.world
-updatefile=/tmp/corona.update
+detotegrafik() {
+	tmout=0
+  if [ "$tux_wetter" == "" ]; then
+      msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
+      echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
+    else
+			$tux_wetter "$detotestring" >/dev/null &
+			while pidof `basename $tux_wetter` >/dev/null && [ $tmout -lt $gtimeout ]; do
+			    tmout=$(($tmout+1))
+			    sleep 1
+				done
+			pidof `basename $tux_wetter` >/dev/null && killall `basename $tux_wetter`
+  fi
+}
+
+detoteprotaggrafik() {
+	tmout=0
+  if [ "$tux_wetter" == "" ]; then
+      msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
+      echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
+    else
+			$tux_wetter "$detoteprotagstring" >/dev/null &
+			while pidof `basename $tux_wetter` >/dev/null && [ $tmout -lt $gtimeout ]; do
+			    tmout=$(($tmout+1))
+			    sleep 1
+				done
+			pidof `basename $tux_wetter` >/dev/null && killall `basename $tux_wetter`
+  fi
+}
+
+
+degenesengrafik() {
+	tmout=0
+  if [ "$tux_wetter" == "" ]; then
+      msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
+      echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
+    else
+			$tux_wetter "$degenesenstring" >/dev/null &
+			while pidof `basename $tux_wetter` >/dev/null && [ $tmout -lt $gtimeout ]; do
+			    tmout=$(($tmout+1))
+			    sleep 1
+				done
+			pidof `basename $tux_wetter` >/dev/null && killall `basename $tux_wetter`
+  fi
+}
+
+degenesenprotaggrafik() {
+	tmout=0
+  if [ "$tux_wetter" == "" ]; then
+      msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
+      echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
+    else
+			$tux_wetter "$degenesenprotagstring" >/dev/null &
+			while pidof `basename $tux_wetter` >/dev/null && [ $tmout -lt $gtimeout ]; do
+			    tmout=$(($tmout+1))
+			    sleep 1
+				done
+			pidof `basename $tux_wetter` >/dev/null && killall `basename $tux_wetter`
+  fi
+}
 
 update() {
   echo "Corona-Info - Update-Files Plugin aus Git laden"
@@ -217,19 +355,20 @@ updateseiteerstellen() {
   echo "Corona-Info - Update Seite erstellen"
 
 	echo " " >> $msgboxfile2
-	echo "~BPlugin-Update-Funktion"  >> $msgboxfile2
+	echo "~B~cPlugin-Update-Funktion"  >> $msgboxfile2
 	echo "~s" >> $msgboxfile2
 	echo " " >> $msgboxfile2
-	echo "~YVersionsstand lokal:  ~T0450~B"$vinfo >> $msgboxfile2
-	echo "~YVersionsstand im GIT: ~T0450~B"$updatever >> $msgboxfile2
+	echo "~Y~cVersionsstand lokal  :   ~B"$vinfo >> $msgboxfile2
+	echo "~Y~cVersionsstand im GIT:   ~B"$updatever >> $msgboxfile2
 	echo " " >> $msgboxfile2
 	echo " " >> $msgboxfile2
-	echo "Bitte Hinweise zu neuen Versionen im NI-Forum beachten!"  >> $msgboxfile2
+	echo "~cBitte Hinweise zu neuen Versionen im NI-Forum beachten!"  >> $msgboxfile2
 	echo " " >> $msgboxfile2
-	echo "Alternativ kann auch nur die corona.land upgedatet werden."  >> $msgboxfile2
+	echo "~cAlternativ kann auch nur die corona.land upgedatet werden."  >> $msgboxfile2
+	echo " " >> $msgboxfile2
 	echo "~s" >> $msgboxfile2
-	echo "~YACHTUNG: Beim Update werden eure pers~onlichen Einstellungen mit "  >> $msgboxfile2
-	echo "~Ymit Defaultwerten aus dem Git ~uberschrieben! "  >> $msgboxfile2
+	echo "~Y~cACHTUNG: Beim Update werden eure pers~onlichen Einstellungen mit "  >> $msgboxfile2
+	echo "~Y~cmit Defaultwerten aus dem Git ~uberschrieben! "  >> $msgboxfile2
 	echo "~s" >> $msgboxfile2
 }
 
@@ -271,6 +410,97 @@ while :; do
 done
 
 }
+
+chartseiteerstellen() {
+
+  echo "Corona-Info - Chart Seite erstellen"
+
+	echo " " >> $msgboxfile3
+	echo "~B~cChart-Seite"  >> $msgboxfile3
+	echo "~s" >> $msgboxfile3
+	echo " " >> $msgboxfile3
+	echo "~cHier gibt es einige Charts aus Deutschland und Weltweit." >> $msgboxfile3
+	echo " " >> $msgboxfile3
+	echo "~cDiese werden haupts~achlich aus Wiki Seiten geholt. Bei" >> $msgboxfile3
+	echo "~cmanchen Charts und Karten steht die Quelle dabei. " >> $msgboxfile3
+	echo " " >> $msgboxfile3
+	echo "~s" >> $msgboxfile3
+	echo "~cBitte einfach ausw~ahlen: " >> $msgboxfile3
+
+}
+
+chartseite() {
+
+chartparser
+
+echo "Corona-Info - Chart-Seite wird angezeigt am TV"
+
+while :; do
+	auswahl=3
+	msgbox msg="$msgboxfile3" size="22" icon="$icon" title="$title $vinfo" select="Weltweit F~alle (WHO),Weltweit Tote (WHO),ZUR~UCK,DE-Karte (BMP),DE-F~alle (RKI),DE-F~alle p.T. (RKI),DE-Tote (RKI),DE-Tote p.T. (RKI),DE-Genesen (RKI),DE-Genesen p.T. (RKI),DE-Karte (ntv),DE-Karte (WHO)" order=4 default=$auswahl >/dev/null
+	auswahl=$?
+	case $auswahl in
+	  1)
+      echo "Corona-Info - Grafik-Fälle-Weltweit-WHO"
+      fallgrafik
+  		;;		
+	  2)
+      echo "Corona-Info - Grafik-Tote-Weltweit-WHO"
+      totegrafik
+  		;;		
+	  3)
+		  #Zurück
+      echo "Corona-Info - Zurück (OK-Taste)"
+      rm -rf /tmp/corona.msgbox3
+			break
+   		;;
+	  4)
+	    echo "Corona-Info - Deutschland-Karte BerlinderMorgenpost"
+	    dekarte1grafik
+	    ;;
+	  5)
+	    echo "Corona-Info - Deutschland-Faelle "
+	    defaellegrafik
+	    ;;
+	  6)
+	    echo "Corona-Info - Deutschland-Faelle pro Tag"
+	    defaelleprotaggrafik
+	    ;;
+	  7)
+	    echo "Corona-Info - Deutschland-Tote"
+	    detotegrafik
+	    ;;
+	  8)
+	    echo "Corona-Info - Deutschland-Tote pro Tag"
+	    detoteprotaggrafik
+	    ;;
+	  9)
+	    echo "Corona-Info - Deutschland-Genesen"
+	    degenesengrafik
+	    ;;
+	  10)
+	    echo "Corona-Info - Deutschland-Genesen pro Tag"
+	    degenesenprotaggrafik
+	    ;;
+	  11)
+	    echo "Corona-Info - Deutschland-Karte n-tv"
+	    dekarte2grafik
+	    ;;
+	  12)
+	    echo "Corona-Info - Deutschland-Karte wiki/WHO"
+	    dekarte3grafik
+	    ;;
+		*)
+			echo "Corona-Info - Zurück (Exit-Taste/Timeout)"
+			rm -rf /tmp/corona.msgbox3
+			break
+		  ;;
+	esac
+done
+
+}
+
+
 
 if [ -e "$landfile" ]; then
 	echo "Corona-Info - corona.land ("$landpath") Datei wird genutzt"
@@ -417,39 +647,24 @@ echo "Corona-Info - Schriftgröße "$rowsize" eingestellt!"
 echo "Corona-Info - Bitte warten, Anzeige am TV wird vorbereitet  und angezeigt"
 
 while :; do
-	auswahl=3
-	msgbox msg="$msgboxfile" size="$rowsize" icon="$icon" title="$title $vinfo" select="F~alle (WHO),Tote (WHO),EXIT,Update-Plugin,DE-Karte (BMP),DE-Karte (n-tv),DE-Karte (WHO)" order=4 default=$auswahl >/dev/null
+	auswahl=2
+	msgbox msg="$msgboxfile" size="$rowsize" icon="$icon" title="$title $vinfo" select="Chart-Seite,EXIT,Update-Plugin" order=3 default=$auswahl >/dev/null
 	auswahl=$?
 	case $auswahl in
 	  1)
-      echo "Corona-Info - Grafik-Fälle-Weltweit-WHO"
-      fallgrafik
+      echo "Corona-Info - Chart-Seite ausgewählt"
+	    chartseiteerstellen
+	    chartseite
   		;;		
 	  2)
-      echo "Corona-Info - Grafik-Tote-Weltweit-WHO"
-      totegrafik
-  		;;		
-	  3)
 		  #Abbruch
       echo "Corona-Info - Exit (OK-Taste)"
 			break
    		;;
-	  4)
+	  3)
 	    echo "Corona-Info - Updateseite geöffnet"
 	    updateseiteerstellen
 	    updateseite
-	    ;;
-	  5)
-	    echo "Corona-Info - Deutschland-Karte BerlinderMorgenpost"
-	    dekarte1grafik
-	    ;;
-	  6)
-	    echo "Corona-Info - Deutschland-Karte n-tv"
-	    dekarte2grafik
-	    ;;
-	  7)
-	    echo "Corona-Info - Deutschland-Karte wiki/WHO"
-	    dekarte3grafik
 	    ;;
 		*)
 			echo "Corona-Info - Exit (Exit-Taste/Timeout)"
