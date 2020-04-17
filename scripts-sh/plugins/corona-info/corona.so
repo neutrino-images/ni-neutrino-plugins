@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V2.20                            *
+# * Corona-Info V2.21                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -42,7 +42,7 @@ tux_wetter=$(which tuxwetter)
 #################################################
 
 title="Corona-Info"
-vinfo="V2.20"
+vinfo="V2.21"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
@@ -531,11 +531,11 @@ msgbox popup="Daten werden geholt... (ca. 6 Sekunden)" icon="$icon" title="$titl
 echo "Corona-Info - Länderdaten-Download"
 
 if [ $command = "WGET" ]; then
-	wget -O $countriesfile https://corona.lmao.ninja/countries --no-check-certificate
-	wget -O $worldfile https://corona.lmao.ninja/all --no-check-certificate
+	wget -O $countriesfile https://corona.lmao.ninja/v2/countries --no-check-certificate
+	wget -O $worldfile https://corona.lmao.ninja/v2/all --no-check-certificate
 else
-	curl -k -o $countriesfile https://corona.lmao.ninja/countries
-	curl -k -o $worldfile https://corona.lmao.ninja/all
+	curl -k -o $countriesfile https://corona.lmao.ninja/v2/countries
+	curl -k -o $worldfile https://corona.lmao.ninja/v2/all
 fi 
 
 if [ -e $countriesfile ]; then
