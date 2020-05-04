@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V2.30                            *
+# * Corona-Info V2.31                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -42,7 +42,7 @@ tux_wetter=$(which tuxwetter)
 #################################################
 
 title="Corona-Info"
-vinfo="V2.30"
+vinfo="V2.31"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
@@ -124,9 +124,9 @@ bild4=`head -n3 $htmlparserbild4 | tail -n1 `
 bild5=`head -n4 $htmlparserbild4 | tail -n1 `
 #DE Tote pro Tag
 bild6=`head -n5 $htmlparserbild4 | tail -n1 `
-#DE Genesen
+#DE Tote nach Alter/Geschlecht
 bild7=`head -n6 $htmlparserbild4 | tail -n1 `
-#DE Genesen pro Tag
+#DE Genesen/aktive/verstorbene
 bild8=`head -n7 $htmlparserbild4 | tail -n1 `
 
 fallurl="https://de.wikipedia.org$bild1"
@@ -445,7 +445,7 @@ echo "Corona-Info - Chart-Seite wird angezeigt am TV"
 
 while :; do
 	auswahl=3
-	msgbox msg="$msgboxfile3" size="22" icon="$icon" title="$title $vinfo" select="Weltweit F~alle (WHO),Weltweit Tote (WHO),ZUR~UCK,DE-Karte (BMP),DE-F~alle (RKI),DE-F~alle p.T. (RKI),DE-Tote (RKI),DE-Tote p.T. (RKI),DE-Genesen (RKI),DE-Genesen p.T. (RKI),DE-Karte (ntv),DE-Karte (WHO)" order=4 timeout=$pgtimeout default=$auswahl >/dev/null
+	msgbox msg="$msgboxfile3" size="22" icon="$icon" title="$title $vinfo" select="Weltweit F~alle (WHO),Weltweit Tote (WHO),ZUR~UCK,DE-Karte (BMP),DE-F~alle (RKI),DE-F~alle p.T. (RKI),DE-Tote (RKI),DE-Tote p.T. (RKI),DE-Tote Alter/Sex (RKI),DE-Genesen (RKI),DE-Karte (ntv),DE-Karte (WHO)" order=4 timeout=$pgtimeout default=$auswahl >/dev/null
 	auswahl=$?
 	case $auswahl in
 	  1)
