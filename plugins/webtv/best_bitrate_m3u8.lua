@@ -65,11 +65,11 @@ function getVideoUrl(m3u8_url)
 				local lang = adata:match('LANGUAGE="(.-)"')
 				local aurl = adata:match('URI="(.-)"')
 				if aurl then
-					if lname and lang1 and lname:lower() == lang1:lower() then
+					if lname and lang1 and lang:lower() == lang1:lower() then
 						l1 = aurl
-					elseif lname and lang2 and lname:lower() == lang2:lower() then
+					elseif lname and lang2 and lang:lower() == lang2:lower() then
 						l2 = aurl
-					elseif lname and lang3 and lname:lower() == lang3:lower() then
+					elseif lname and lang3 and lang:lower() == lang3:lower() then
 						l3 = aurl
 					elseif l == nil then
 						l = aurl
