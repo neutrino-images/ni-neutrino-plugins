@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V2.22                            *
+# * Corona-Info V2.31                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -42,7 +42,7 @@ tux_wetter=$(which tuxwetter)
 #################################################
 
 title="Corona-Info"
-vinfo="V2.22"
+vinfo="V2.31"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
@@ -59,7 +59,8 @@ echo "-----------------------------by fred_feuerstein---"
 
 cleanup
 
-gtimeout=10
+gtimeout=20
+pgtimeout=120
 
 landfile="$landpath"/corona.land
 msgboxfile=/tmp/corona.msgbox
@@ -68,6 +69,13 @@ msgboxfile3=/tmp/corona.msgbox3
 countriesfile=/tmp/corona.countries
 worldfile=/tmp/corona.world
 updatefile=/tmp/corona.update
+htmlparser=/tmp/corona.html
+htmlparserbild1=/tmp/coronabild.tmp
+htmlparserbild2=/tmp/coronabild2.tmp
+htmlparser2=/tmp/corona2.html
+htmlparserbild3=/tmp/coronabild3.tmp
+htmlparserbild4=/tmp/coronabild4.tmp
+
 
 chartparser() {
 
@@ -76,50 +84,50 @@ chartparser() {
 echo "Corona-Info - Dateiename Wiki-Charts Weltweit generieren"
 
 	if [ $command = "WGET" ]; then
-		wget -O /tmp/corona.html "https://de.wikipedia.org/wiki/COVID-19-Pandemie"
+		wget -O $htmlparser "https://de.wikipedia.org/wiki/COVID-19-Pandemie"
 	else
-		curl -k -o /tmp/corona.html https://de.wikipedia.org/wiki/COVID-19-Pandemie
+		curl -k -o $htmlparser https://de.wikipedia.org/wiki/COVID-19-Pandemie
 	fi 
 
-bildtemp1=`cat /tmp/corona.html | grep "mw-graph-img"`
-echo $bildtemp1 >> /tmp/coronabild.tmp
-sed -i -e 's|"|\n|g' /tmp/coronabild.tmp
-bildtemp2=`cat /tmp/coronabild.tmp | grep ".png" `
-echo $bildtemp2 >> /tmp/coronabild2.tmp
-sed -i -e 's|/api/|\n/api/|g' /tmp/coronabild2.tmp
+bildtemp1=`cat $htmlparser | grep "mw-graph-img"`
+echo $bildtemp1 >> $htmlparserbild1
+sed -i -e 's|"|\n|g' $htmlparserbild1
+bildtemp2=`cat $htmlparserbild1 | grep ".png" `
+echo $bildtemp2 >> $htmlparserbild2
+sed -i -e 's|/api/|\n/api/|g' $htmlparserbild2
 
 #Weltweite Fälle
-bild1=`head -n2 /tmp/coronabild2.tmp | tail -n1 `
+bild1=`head -n2 $htmlparserbild2 | tail -n1 `
 #Weltweit Tote
-bild2=`head -n3 /tmp/coronabild2.tmp | tail -n1 `
+bild2=`head -n3 $htmlparserbild2 | tail -n1 `
 
 echo "Corona-Info - Dateiename Wiki-Charts Deutschland generieren"
 
 	if [ $command = "WGET" ]; then
-		wget -O /tmp/corona2.html "https://de.wikipedia.org/wiki/COVID-19-Pandemie_in_Deutschland"
+		wget -O $htmlparser2 "https://de.wikipedia.org/wiki/COVID-19-Pandemie_in_Deutschland"
 	else
-		curl -k -o /tmp/corona2.html https://de.wikipedia.org/wiki/COVID-19-Pandemie_in_Deutschland
+		curl -k -o $htmlparser2 https://de.wikipedia.org/wiki/COVID-19-Pandemie_in_Deutschland
 	fi 
 
-bildtemp3=`cat /tmp/corona2.html | grep "mw-graph-img"`
-echo $bildtemp3 >> /tmp/coronabild3.tmp
-sed -i -e 's|"|\n|g' /tmp/coronabild3.tmp
-bildtemp4=`cat /tmp/coronabild3.tmp | grep ".png" `
-echo $bildtemp4 >> /tmp/coronabild4.tmp
-sed -i -e 's|/api/|\n/api/|g' /tmp/coronabild4.tmp
+bildtemp3=`cat $htmlparser2 | grep "mw-graph-img"`
+echo $bildtemp3 >> $htmlparserbild3
+sed -i -e 's|"|\n|g' $htmlparserbild3
+bildtemp4=`cat $htmlparserbild3 | grep ".png" `
+echo $bildtemp4 >> $htmlparserbild4
+sed -i -e 's|/api/|\n/api/|g' $htmlparserbild4
 
 #DE Fälle
-bild3=`head -n2 /tmp/coronabild4.tmp | tail -n1 `
+bild3=`head -n2 $htmlparserbild4 | tail -n1 `
 #DE Fälle pro Tag
-bild4=`head -n3 /tmp/coronabild4.tmp | tail -n1 `
+bild4=`head -n3 $htmlparserbild4 | tail -n1 `
 #DE Tote
-bild5=`head -n4 /tmp/coronabild4.tmp | tail -n1 `
+bild5=`head -n4 $htmlparserbild4 | tail -n1 `
 #DE Tote pro Tag
-bild6=`head -n5 /tmp/coronabild4.tmp | tail -n1 `
-#DE Genesen
-bild7=`head -n6 /tmp/coronabild4.tmp | tail -n1 `
-#DE Genesen pro Tag
-bild8=`head -n7 /tmp/coronabild4.tmp | tail -n1 `
+bild6=`head -n5 $htmlparserbild4 | tail -n1 `
+#DE Tote nach Alter/Geschlecht
+bild7=`head -n6 $htmlparserbild4 | tail -n1 `
+#DE Genesen/aktive/verstorbene
+bild8=`head -n7 $htmlparserbild4 | tail -n1 `
 
 fallurl="https://de.wikipedia.org$bild1"
 toteurl="https://de.wikipedia.org$bild2"
@@ -378,7 +386,7 @@ echo "Corona-Info - Update-Seite wird angezeigt am TV"
 
 while :; do
 	auswahl=3
-	msgbox msg="$msgboxfile2" size="20" icon="$icon" title="$title $vinfo" select="Update Plugin,Update corona.land,ZUR~UCK" order=3 default=$auswahl >/dev/null
+	msgbox msg="$msgboxfile2" size="20" icon="$icon" title="$title $vinfo" select="Update Plugin,Update corona.land,ZUR~UCK" order=3 timeout=$pgtimeout default=$auswahl >/dev/null
 	auswahl=$?
 	case $auswahl in
 	  1)
@@ -437,7 +445,7 @@ echo "Corona-Info - Chart-Seite wird angezeigt am TV"
 
 while :; do
 	auswahl=3
-	msgbox msg="$msgboxfile3" size="22" icon="$icon" title="$title $vinfo" select="Weltweit F~alle (WHO),Weltweit Tote (WHO),ZUR~UCK,DE-Karte (BMP),DE-F~alle (RKI),DE-F~alle p.T. (RKI),DE-Tote (RKI),DE-Tote p.T. (RKI),DE-Genesen (RKI),DE-Genesen p.T. (RKI),DE-Karte (ntv),DE-Karte (WHO)" order=4 default=$auswahl >/dev/null
+	msgbox msg="$msgboxfile3" size="22" icon="$icon" title="$title $vinfo" select="Weltweit F~alle (WHO),Weltweit Tote (WHO),ZUR~UCK,DE-Karte (BMP),DE-F~alle (RKI),DE-F~alle p.T. (RKI),DE-Tote (RKI),DE-Tote p.T. (RKI),DE-Tote Alter/Sex (RKI),DE-Genesen (RKI),DE-Karte (ntv),DE-Karte (WHO)" order=4 timeout=$pgtimeout default=$auswahl >/dev/null
 	auswahl=$?
 	case $auswahl in
 	  1)
@@ -625,7 +633,7 @@ echo "~s" >> $msgboxfile
 echo "Weltweit ~T0215~Y"$ALL_GESAMT" ~T0310"$ALL_NEU_HEUTE"  ~T0380~R"$ALL_TOTE"  ~T0460"$ALL_QUOTE"% ~T0525"$ALL_TOTE_HEUTE" ~T0585~Y"$ALL_ERKRANKT" ~T0670~B"$ALL_KRITISCH" ~T0745~G"$ALL_GEHEILT" ~T0820~G"$ALL_TESTS" ~T0920~G"$ALL_TESTSPROMILLION" ~T0985~Y"$ALL_FALLPROMILLION" ~T1050~R"$ALL_TOTEPROMILLION"~T1100~S"$ALL_CONTINENT" " >> $msgboxfile
 echo "Anzahl Länder ~T0215"$ALL_ANZAHL" " >> $msgboxfile
 echo "~s" >> $msgboxfile
-echo "~cQuelle: https://corona.lmao.ninja/countries - Datenstand: "$ALL_UPDATE" Uhr" >> $msgboxfile 
+echo "~cQuelle: https://corona.lmao.ninja/v2/countries - Datenstand: "$ALL_UPDATE" Uhr" >> $msgboxfile 
 #echo "~cDie Liste der L~ander kann in der Datei corona.land editiert/sortiert werden. fred_feuerstein (NI-Team)" >> $msgboxfile 
 
 echo "Corona-Info - Übersicht wurde erstellt"
@@ -650,7 +658,7 @@ echo "Corona-Info - Bitte warten, Anzeige am TV wird vorbereitet  und angezeigt"
 
 while :; do
 	auswahl=2
-	msgbox msg="$msgboxfile" size="$rowsize" icon="$icon" title="$title $vinfo" select="Chart-Seite,EXIT,Update-Plugin" order=3 default=$auswahl >/dev/null
+	msgbox msg="$msgboxfile" size="$rowsize" icon="$icon" title="$title $vinfo" select="Chart-Seite,EXIT,Update-Plugin" order=3 timeout=$pgtimeout default=$auswahl >/dev/null
 	auswahl=$?
 	case $auswahl in
 	  1)
