@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V2.31                            *
+# * Corona-Info V2.32                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -34,15 +34,24 @@ pluginpath=$(dirname "$0")
 landpath="/var/tuxbox/config"
 
 # Tuxwetter
+# default-Eintrag (u.a. im NI-Image)
 tux_wetter=$(which tuxwetter)
-[ -z $tux_wetter ] && PATH=$PATH:$pluginpath && tux_wetter=`which tuxwetter.so`
 
+if [ -z $tux_wetter ]; then
+   if [ -e /var/plugins/tuxwet ]; then
+      # Eintrag für Keywelt-Image
+      PATH=$PATH:/var/plugins/tuxwet && tux_wetter=`which tuxwetter`
+   else
+      # Eintrag für BP-Image
+      PATH=$PATH:$pluginpath  && tux_wetter=`which tuxwetter.so`
+   fi
+fi
 
 # ab hier keine Eintragung mehr nötig
 #################################################
 
 title="Corona-Info"
-vinfo="V2.31"
+vinfo="V2.32"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
