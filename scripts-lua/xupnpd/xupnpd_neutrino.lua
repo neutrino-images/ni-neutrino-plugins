@@ -1,4 +1,4 @@
--- Plugin for converting channels lists from coolstream receivers
+-- Plugin for converting channels lists from neutrino receivers
 -- Author focus.cst@gmail.com
 -- License GPL v2
 -- Copyright (C) 2013 CoolStream International Ltd
@@ -181,7 +181,7 @@ function cst_save_bouqutes(feed, friendly_name, mode, sysip)
 			local m3ufilename = cfg.tmp_path.."cst_"..friendly_name.."_"..mode.."_bouquet_"..bnum..".m3u"
 			cst_debug(0, m3ufilename)
 			local m3ufile = io.open(m3ufilename,"w")
-			m3ufile:write("#EXTM3U name=\""..friendly_name..": "..mode.." - "..trim(bouquett).."\" plugin=coolstream type=ts\n")
+			m3ufile:write("#EXTM3U name=\""..friendly_name..": "..mode.." - "..trim(bouquett).."\" plugin=neutrino type=ts\n")
 			for cindex,channelt in pairs(bouquet) do
 				local id = channelt[1];
 				local name = channelt[2];
@@ -261,9 +261,9 @@ cst_updatefeed("172.16.1.20","tank")
 end
 
 if not cst_test then
-plugins['coolstream']={}
-plugins.coolstream.name="CoolStream"
-plugins.coolstream.desc="IP address (example: <i>192.168.0.1</i>)"
-plugins.coolstream.updatefeed=cst_updatefeed
-plugins.coolstream.sendurl=cst_sendurl
+plugins['neutrino']={}
+plugins.neutrino.name="Neutrino"
+plugins.neutrino.desc="IP address (example: <i>192.168.0.1</i>)"
+plugins.neutrino.updatefeed=cst_updatefeed
+plugins.neutrino.sendurl=cst_sendurl
 end
