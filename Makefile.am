@@ -1,5 +1,8 @@
 SUBDIRS =
 
+if ENABLE_ASC2UNI
+SUBDIRS += asc2uni
+endif
 if ENABLE_COOLITSCLIMAX
 SUBDIRS += cooliTSclimax
 endif

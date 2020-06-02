@@ -35,6 +35,12 @@ AC_ARG_WITH(neutrino-build,
 	[NEUTRINO_BUILD=""])
 AC_SUBST(NEUTRINO_BUILD)
 
+AC_ARG_ENABLE(asc2uni,
+	AS_HELP_STRING([--enable-asc2uni], [enable asc2uni @<:@default=yes@:>@]),
+	[enable_asc2uni="$enableval"],
+	[enable_asc2uni="yes"])
+AM_CONDITIONAL(ENABLE_ASC2UNI, test "$enable_asc2uni" = "yes")
+
 AC_ARG_ENABLE(coolitsclimax,
 	AS_HELP_STRING([--enable-coolitsclimax], [enable coolitsclimax @<:@default=yes@:>@]),
 	[enable_coolitsclimax="$enableval"],
@@ -329,6 +335,7 @@ AM_CONDITIONAL(ENABLE_WORTRATEN, test "$enable_wortraten" = "yes")
 
 AC_CONFIG_FILES([
 Makefile
+asc2uni/Makefile
 cooliTSclimax/Makefile
 data/Makefile
 data/fonts/Makefile
