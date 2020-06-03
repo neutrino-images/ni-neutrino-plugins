@@ -1,7 +1,10 @@
 ACLOCAL_AMFLAGS = \
 	-I m4
 
+AM_CFLAGS =  \
+	 -std=c11
+
 bin_PROGRAMS = asc2uni
 
-satfind_SOURCES = \
+asc2uni_SOURCES = \
 	asc2uni.c
