@@ -18,6 +18,7 @@
  *
  */
 
+#include <config.h>
 #include <sys/types.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -26,6 +27,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include <linux/dvb/dmx.h>
 #include <linux/dvb/frontend.h>
@@ -105,6 +107,9 @@ int main(int argc, char **argv)
 	int tune = 0;
 	int nocolor = 0;
 	int usevfd = 0;
+#if BOXMODEL_VUPLUS
+	int useoled = 0;
+#endif
 	int fe_fd, dmx_fd;
 	fd_set rfds;
 	int result;
@@ -128,6 +133,12 @@ int main(int argc, char **argv)
 		{
 			usevfd = 1;
 		}
+#if BOXMODEL_VUPLUS
+		else if ((!strcmp(argv[x], "--useoled")))
+		{
+			useoled = 1;
+		}
+#endif
 		else if ((!strcmp(argv[x], "--demux")))
 		{
 			x++;
@@ -140,7 +151,11 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			printf("Usage: satfind [--tune] [--nocolor] [--usevfd] [--demux <device>] [--frontend <device>]\n\n--tune : tune to 12051 V 27500 3/4 (only for DVB-S and if no GUI is running)\n--nocolor : output without color\n--usevfd : show BER/SNR/SIG at vfd device\n--demux <device> : use alternative demux device (default: /dev/dvb/adapter0/demux0)\n--frontend <device>: use alternative frontend device (default: /dev/dvb/adapter0/frontend0)\n\n");
+			char * oled="";
+#if BOXMODEL_VUPLUS
+			oled=" [--useoled]";
+#endif
+			printf("Usage: satfind [--tune] [--nocolor] [--usevfd]%s [--demux <device>] [--frontend <device>]\n\n--tune : tune to 12051 V 27500 3/4 (only for DVB-S and if no GUI is running)\n--nocolor : output without color\n--usevfd : show BER/SNR/SIG at vfd device\n--demux <device> : use alternative demux device (default: /dev/dvb/adapter0/demux0)\n--frontend <device>: use alternative frontend device (default: /dev/dvb/adapter0/frontend0)\n\n", oled);
 			return 0;
 		}
 	}
@@ -275,6 +290,15 @@ int main(int argc, char **argv)
 				fclose(out);
 			}
 		}
+#if BOXMODEL_VUPLUS
+		if (useoled)
+		{
+			usleep(1000000);
+			char tmpstr[64];
+			snprintf(tmpstr, sizeof(tmpstr), "oled -tu 'BER: %u' -tc 'SNR: %u' -td 'SIG: %u'", (signal_quality.ber / 655), (signal_quality.snr / 655), (signal_quality.strength / 655));
+			system(tmpstr);
+		}
+#endif
 	}
 	/* close devices */
 	close(dmx_fd);
