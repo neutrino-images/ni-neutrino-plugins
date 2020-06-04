@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * NI Fritz! Smart Home Info mit toggle V3.65   *
+# * NI Fritz! Smart Home Info mit toggle V3.70   *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team), LoginTeil zur     *
@@ -36,8 +36,8 @@ pluginpath=`echo "$CONFIG" | grep '^PLUGINPATH' | cut -d "=" -f2 | tr -d ' ' | t
 
 # ab hier keine Eintragung mehr nötig
 #################################################
-vinfo="V3.65"
-vinfo2="365"
+vinfo="V3.70"
+vinfo2="370"
 
 echo "--------------------------------------"
 echo "SmartHomeInfo "$vinfo" startet"
@@ -92,7 +92,14 @@ then
 
 	# login aufbauen und hashen
 	CPSTR="$Challenge-$Passwd"
-	echo -n $CPSTR | /bin/iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
+	if [ -e /bin/asc2uni ]
+	then
+		asc2uni $CPSTR  > /tmp/anrufer.md5
+		echo "SmartHomeInfo - asc2uni wird genutzt"
+	else
+		echo -n $CPSTR | /bin/iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
+		echo "SmartHomeInfo - iconv wird genutzt"
+	fi	
 	MD5=`md5sum /tmp/anrufer.md5 | sed -e s/' '.*$//`
 	RESPONSE="$Challenge-$MD5"
 	POSTDATA="login:command/response=$RESPONSE&getpage=../html/de/menus/menu2.html"
@@ -116,7 +123,14 @@ else
 		Challenge=`cat /tmp/anrufer.tmp | awk '{match($0,/Challenge>[^<>]+</); print substr($0,RSTART+10,RLENGTH-11)}'`
 		# login aufbauen und hashen
 		CPSTR="$Challenge-$Passwd"
-  	echo -n $CPSTR | /bin/iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
+		if [ -e /bin/asc2uni ]
+		then
+			asc2uni $CPSTR  > /tmp/anrufer.md5
+			echo "SmartHomeInfo - asc2uni wird genutzt"
+		else
+			echo -n $CPSTR | /bin/iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
+			echo "SmartHomeInfo - iconv wird genutzt"
+		fi
 		#echo -n $CPSTR > /tmp/anrufer.md5
 		MD5=`md5sum /tmp/anrufer.md5 | sed -e s/' '.*$//`
 		RESPONSE="$Challenge-$MD5"
@@ -217,6 +231,93 @@ done
 source /tmp/dectidx
 
 }
+
+#############################
+## Online-Update Plugin
+
+update() {
+  echo "SmartHomeInfo - Update-Files Plugin aus Git laden"
+  	wget -O $pluginpath/smarthomeinfo.so https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo.so --no-check-certificate
+  	wget -O $pluginpath/smarthomeinfo.cfg https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo.cfg --no-check-certificate
+  	wget -O $pluginpath/smarthomeinfo_hint.png https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo_hint.png --no-check-certificate
+}
+
+updateconf() {
+  echo "SmartHomeInfo - conf aus Git laden"
+ 	wget -O /var/tuxbox/config/smarthomeinfo.conf https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo.conf --no-check-certificate
+}
+
+updateseiteerstellen() {
+
+  echo "SmartHomeInfo - Update-Check-Version im Git"
+	wget -O /tmp/smarthomeinfo.update https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo.so --no-check-certificate
+
+	updatevertemp=$(cat /tmp/smarthomeinfo.update | grep "vinfo=")
+	updatevertemp2=$(echo "$updatevertemp" | cut -d '"' -f2 )
+	updatever=`echo ${updatevertemp2:0:5}`
+
+  echo "SmartHomeInfo - Update Seite erstellen"
+
+	echo " " >> /tmp/dectupdate1.txt
+	echo "~B~cPlugin-Update-Funktion"  >> /tmp/dectupdate1.txt
+	echo "~s" >> /tmp/dectupdate1.txt
+	echo " " >> /tmp/dectupdate1.txt
+	echo "~Y~cVersionsstand lokal  :   ~B"$vinfo >> /tmp/dectupdate1.txt
+	echo "~Y~cVersionsstand im GIT:   ~B"$updatever >> /tmp/dectupdate1.txt
+	echo " " >> /tmp/dectupdate1.txt
+	echo " " >> /tmp/dectupdate1.txt
+	echo "~cBitte Hinweise zu neuen Versionen im NI-Forum beachten!"  >> /tmp/dectupdate1.txt
+	echo " " >> /tmp/dectupdate1.txt
+	echo "~cAlternativ kann auch nur die smarthomeinfo.conf upgedatet werden."  >> /tmp/dectupdate1.txt
+	echo " " >> /tmp/dectupdate1.txt
+	echo "~s" >> /tmp/dectupdate1.txt
+	echo "~Y~cACHTUNG: Beim Update der conf-Datei werden eure pers~onlichen Einstellungen "  >> /tmp/dectupdate1.txt
+	echo "~Y~cmit Defaultwerten aus dem Git ~uberschrieben und m~ussen wieder angepasst werden! "  >> /tmp/dectupdate1.txt
+	echo "~s" >> /tmp/dectupdate1.txt
+}
+
+updateseite() {
+
+echo "SmartHomeInfo - Update-Seite wird angezeigt am TV"
+
+while :; do
+	auswahl=3
+	msgbox msg="/tmp/dectupdate1.txt" size="20" icon=$path title=$titletext1"Smart Home Info "$vinfo  select="Update Plugin,Update conf,ZUR~UCK" order=3 timeout=60 default=$auswahl >/dev/null
+	auswahl=$?
+	case $auswahl in
+	  1)
+      echo "SmartHomeInfo - Update Plugin "$vinfo" auf "$updatever" "
+      update
+      msgbox popup="Plugin wird aktualisiert von $vinfo auf $updatever und beendet" icon=$path title=$titletext1"Smart Home Info "$vinfo timeout=05
+      echo "SmartHomeInfo - nach Update Plugin beendet"
+      exit 0
+  		;;		
+	  2)
+      echo "SmartHomeInfo - Update smarthomeinfo.conf"
+      updateconf
+      msgbox popup="smarthomeinfo.conf wird aktualisiert und Plugin beendet" icon=$path title=$titletext1"Smart Home Info "$vinfo timeout=05
+      echo "SmartHomeInfo - nach Update smarthomeinfo.conf beendet"
+      exit 0
+  		;;		
+	  3)
+		  #Abbruch
+      echo "SmartHomeInfo - Zurück (OK-Taste)"
+      rm -rf /tmp/dectupdate1.txt
+			break
+   		;;
+		*)
+			echo "SmartHomeInfo - Zurück (Exit-Taste/Timeout)"
+      rm -rf /tmp/dectupdate1.txt
+			break
+		  ;;
+	esac
+done
+
+}
+
+
+
+
 
 #############################
 ## Übersicht erstellen
@@ -406,106 +507,111 @@ dectuebersicht
 
 
 while :; do
-auswahl=1
-msgbox msg=/tmp/dectuebersicht.txt size=10 icon=$path title=$titletext1"Smart Home Info "$vinfo select=$DECTNAME1,$DECTNAME2,$DECTNAME3,$DECTNAME4,$DECTNAME5,$DECTNAME6,$DECTNAME7,$DECTNAME8,$DECTNAME9,$DECTNAME10,$DECTNAME11,$DECTNAME12,$DECTNAME13,$DECTNAME14,$DECTNAME15,$DECTNAME16,$DECTNAME17,$DECTNAME18,$DECTNAME19,$DECTNAME20 order=5 size=22 default=$auswahl 
+auswahl=2
+msgbox msg=/tmp/dectuebersicht.txt size=9 icon=$path title=$titletext1"Smart Home Info "$vinfo select=UPD.PLUGIN,$DECTNAME1,$DECTNAME2,$DECTNAME3,$DECTNAME4,$DECTNAME5,$DECTNAME6,$DECTNAME7,$DECTNAME8,$DECTNAME9,$DECTNAME10,$DECTNAME11,$DECTNAME12,$DECTNAME13,$DECTNAME14,$DECTNAME15,$DECTNAME16,$DECTNAME17,$DECTNAME18,$DECTNAME19,$DECTNAME20 order=5 size=22 default=$auswahl 
 		auswahl=$?
 		case $auswahl	in
-		1)
+	  1)
+	    echo "SmartHomeInfo - Updateseite geöffnet"
+	    updateseiteerstellen
+	    updateseite
+	    ;;
+		2)
 		  DECT200=$DECT2001
       id200=$id1
 		  break
 		  ;;
-		2)
+		3)
 		  DECT200=$DECT2002
 		  id200=$id2
 		  break
 		  ;;
-		3)
+		4)
 		  DECT200=$DECT2003
 		  id200=$id3
 		  break
 		  ;;
-		4)
+		5)
 		  DECT200=$DECT2004
 		  id200=$id4
 		  break
 		  ;;
-		5)
+		6)
 		  DECT200=$DECT2005
 		  id200=$id5
 		  break
 		  ;;
-		6)
+		7)
 		  DECT200=$DECT2006
 		  id200=$id6
 		  break
 		  ;;
-		7)
+		8)
 		  DECT200=$DECT2007
 		  id200=$id7
 		  break
 		  ;;
-		8)
+		9)
 		  DECT200=$DECT2008
 		  id200=$id8
 		  break
 		  ;;
-		9)
+		10)
 		  DECT200=$DECT2009
 		  id200=$id9
 		  break
 		  ;;
-		10)
+		11)
 		  DECT200=$DECT20010
 		  id200=$id10
 		  break
 		  ;;
-		11)
+		12)
 		  DECT200=$DECT20011
 		  id200=$id11
 		  break
 		  ;;
-		12)
+		13)
 		  DECT200=$DECT20012
 		  id200=$id12
 		  break
 		  ;;
-		13)
+		14)
 		  DECT200=$DECT20013
 		  id200=$id13
 		  break
 		  ;;
-		14)
+		15)
 		  DECT200=$DECT20014
 		  id200=$id14
 		  break
 		  ;;
-		15)
+		16)
 		  DECT200=$DECT20015
 		  id200=$id15
 		  break
 		  ;;
-		16)
+		17)
 		  DECT200=$DECT20016
 		  id200=$id16
 		  break
 		  ;;
-		17)
+		18)
 		  DECT200=$DECT20017
 		  id200=$id16
 		  break
 		  ;;
-		18)
+		19)
 		  DECT200=$DECT20018
 		  id200=$id16
 		  break
 		  ;;
-		19)
+		20)
 		  DECT200=$DECT20019
 		  id200=$id16
 		  break
 		  ;;
-		20)
+		21)
 		  DECT200=$DECT20020
 		  id200=$id16
 		  break
