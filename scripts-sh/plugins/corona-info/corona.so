@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V2.32                            *
+# * Corona-Info V2.33                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -51,7 +51,7 @@ fi
 #################################################
 
 title="Corona-Info"
-vinfo="V2.32"
+vinfo="V2.33"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
@@ -454,7 +454,7 @@ echo "Corona-Info - Chart-Seite wird angezeigt am TV"
 
 while :; do
 	auswahl=3
-	msgbox msg="$msgboxfile3" size="22" icon="$icon" title="$title $vinfo" select="Weltweit F~alle (WHO),Weltweit Tote (WHO),ZUR~UCK,DE-Karte (BMP),DE-F~alle (RKI),DE-F~alle p.T. (RKI),DE-Tote (RKI),DE-Tote p.T. (RKI),DE-Tote Alter/Sex (RKI),DE-Genesen (RKI),DE-Karte (ntv),DE-Karte (WHO)" order=4 timeout=$pgtimeout default=$auswahl >/dev/null
+	msgbox msg="$msgboxfile3" size="22" icon="$icon" title="$title $vinfo" select="Weltweit F~alle (WHO),-frei-,ZUR~UCK,DE-Karte (BMP),DE-F~alle (RKI),DE-F~alle p.T. (RKI),DE-Tote Alter/Sex (RKI),DE-Genesen (RKI),-frei-,-frei-,DE-Karte (ntv),DE-Karte (WHO)" order=4 timeout=$pgtimeout default=$auswahl >/dev/null
 	auswahl=$?
 	case $auswahl in
 	  1)
