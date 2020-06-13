@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 	int tune = 0;
 	int nocolor = 0;
 	int usevfd = 0;
-#if BOXMODEL_VUPLUS
+#if BOXMODEL_VUPLUS_ALL
 	int useoled = 0;
 #endif
 	int fe_fd, dmx_fd;
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 		{
 			usevfd = 1;
 		}
-#if BOXMODEL_VUPLUS
+#if BOXMODEL_VUPLUS_ALL
 		else if ((!strcmp(argv[x], "--useoled")))
 		{
 			useoled = 1;
@@ -152,7 +152,7 @@ int main(int argc, char **argv)
 		else
 		{
 			char * oled="";
-#if BOXMODEL_VUPLUS
+#if BOXMODEL_VUPLUS_ALL
 			oled=" [--useoled]";
 #endif
 			printf("Usage: satfind [--tune] [--nocolor] [--usevfd]%s [--demux <device>] [--frontend <device>]\n\n--tune : tune to 12051 V 27500 3/4 (only for DVB-S and if no GUI is running)\n--nocolor : output without color\n--usevfd : show BER/SNR/SIG at vfd device\n--demux <device> : use alternative demux device (default: /dev/dvb/adapter0/demux0)\n--frontend <device>: use alternative frontend device (default: /dev/dvb/adapter0/frontend0)\n\n", oled);
@@ -290,7 +290,7 @@ int main(int argc, char **argv)
 				fclose(out);
 			}
 		}
-#if BOXMODEL_VUPLUS
+#if BOXMODEL_VUPLUS_ALL
 		if (useoled)
 		{
 			usleep(1000000);
