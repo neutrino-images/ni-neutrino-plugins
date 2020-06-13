@@ -79,10 +79,14 @@ end
 
 function proc_get(procfile)
 	fp = io.open(procfile, "r")
-	s = fp:read("*a")
-	code = string.gsub(s, "\n", "")
-	fp:close()
-	return code
+	if(io.type(fp) == "file") then
+		s = fp:read("*a")
+		code = string.gsub(s, "\n", "")
+		fp:close()
+		return code
+	else
+		return ""
+	end
 end
 
 function write_config(code)
