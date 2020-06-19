@@ -66,10 +66,10 @@
 #define PIDFILE "/tmp/tuxcald.pid"			//! PID file
 #define CLKFILE "/tmp/tuxcal.clk"			//! clock file
 #define NOTIFILE "/tmp/tuxmail.new"			//! notify from tuxmail
-#define SNDFILE1 "/tuxcal_birthday.wav"			//! birthday sound
-#define SNDFILE2 "/tuxcal_event.wav"			//! event sound
-#define SNDFILE3 "/tuxcal_timer.wav"			//! timer sound
-#define SHELLFILE "/tuxcal.notify"			//! notify shell file
+#define SNDFILE1 "/tuxcal/tuxcal_birthday.wav"		//! birthday sound
+#define SNDFILE2 "/tuxcal/tuxcal_event.wav"		//! event sound
+#define SNDFILE3 "/tuxcal/tuxcal_timer.wav"		//! timer sound
+#define SHELLFILE "/tuxcal/tuxcal.notify"		//! notify shell file
 #define KBLCKFILE "/tmp/keyboard.lck"			//! file to lock keyboard-conversion
 
 #define bool char
