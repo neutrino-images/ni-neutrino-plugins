@@ -1084,85 +1084,85 @@ void FillEasternDays(int year)
 	
 	CalcEastern(year, &mon, &day);
 	mon1=mon; day1=day;
-	varaibledays[OFFSET_E-1].mon = mon;			// eastern
-	varaibledays[OFFSET_E-1].day = day;
+	variabledays[OFFSET_E-1].mon = mon;			// eastern
+	variabledays[OFFSET_E-1].day = day;
 	AddDays(&day, &mon, &year, 1);
-	varaibledays[OFFSET_EM-1].mon = mon;		// eastern monday
-	varaibledays[OFFSET_EM-1].day = day;
+	variabledays[OFFSET_EM-1].mon = mon;		// eastern monday
+	variabledays[OFFSET_EM-1].day = day;
 	
 	AddDays(&day, &mon, &year, 19);					// +39 days from eastern
 	AddDays(&day, &mon, &year, 19);
-	varaibledays[OFFSET_H-1].mon = mon;			// christi himmelfahrt
-	varaibledays[OFFSET_H-1].day = day;
+	variabledays[OFFSET_H-1].mon = mon;			// christi himmelfahrt
+	variabledays[OFFSET_H-1].day = day;
 	
 	AddDays(&day, &mon, &year, 10);
-	varaibledays[OFFSET_P-1].mon = mon;			// pfingsten
-	varaibledays[OFFSET_P-1].day = day;
+	variabledays[OFFSET_P-1].mon = mon;			// pfingsten
+	variabledays[OFFSET_P-1].day = day;
 	AddDays(&day, &mon, &year, 1);
-	varaibledays[OFFSET_PM-1].mon = mon;		// pfingsten montag
-	varaibledays[OFFSET_PM-1].day = day;
+	variabledays[OFFSET_PM-1].mon = mon;		// pfingsten montag
+	variabledays[OFFSET_PM-1].day = day;
 	
 	AddDays(&day, &mon, &year, 10);
-	varaibledays[OFFSET_F-1].mon = mon;			// fronleichnam
-	varaibledays[OFFSET_F-1].day = day;
+	variabledays[OFFSET_F-1].mon = mon;			// fronleichnam
+	variabledays[OFFSET_F-1].day = day;
 	
 	AddDays(&day1, &mon1, &year, -2);
-	varaibledays[OFFSET_KF-1].mon = mon1;		// karfreitag
-	varaibledays[OFFSET_KF-1].day = day1;
+	variabledays[OFFSET_KF-1].mon = mon1;		// karfreitag
+	variabledays[OFFSET_KF-1].day = day1;
 	AddDays(&day1, &mon1, &year, -1);
-	varaibledays[OFFSET_GD-1].mon = mon1;		// gruendonnerstag
-	varaibledays[OFFSET_GD-1].day = day1;
+	variabledays[OFFSET_GD-1].mon = mon1;		// gruendonnerstag
+	variabledays[OFFSET_GD-1].day = day1;
 
 	AddDays(&day1, &mon1, &year, -23);
 	AddDays(&day1, &mon1, &year, -20);
-	varaibledays[OFFSET_A-1].mon = mon1;		// aschermittwoch
-	varaibledays[OFFSET_A-1].day = day1;
+	variabledays[OFFSET_A-1].mon = mon1;		// aschermittwoch
+	variabledays[OFFSET_A-1].day = day1;
 	AddDays(&day1, &mon1, &year, -2);
-	varaibledays[OFFSET_RM-1].mon = mon1;		// rosenmontag
-	varaibledays[OFFSET_RM-1].day = day1;
+	variabledays[OFFSET_RM-1].mon = mon1;		// rosenmontag
+	variabledays[OFFSET_RM-1].day = day1;
 
 	//mothersday is 2. sunday in may
 	int iWDay;
 	iWDay=DayOfWeek(1,5,year);
-	varaibledays[OFFSET_M-1].mon = 5;
-	varaibledays[OFFSET_M-1].day = 15-iWDay;
+	variabledays[OFFSET_M-1].mon = 5;
+	variabledays[OFFSET_M-1].day = 15-iWDay;
 	
 	// sommertime
 	iWDay=DayOfWeek(31,3,year);
-	if (iWDay!=7)	varaibledays[OFFSET_SZ-1].day = 31-iWDay;
-	else varaibledays[OFFSET_SZ-1].day = 31;
-	varaibledays[OFFSET_SZ-1].mon = 3;
+	if (iWDay!=7)	variabledays[OFFSET_SZ-1].day = 31-iWDay;
+	else variabledays[OFFSET_SZ-1].day = 31;
+	variabledays[OFFSET_SZ-1].mon = 3;
 
 	// wintertime	
 	iWDay=DayOfWeek(31,10,year);
-	if (iWDay!=7)	varaibledays[OFFSET_WZ-1].day = 31-iWDay;
-	else varaibledays[OFFSET_WZ-1].day = 31;
-	varaibledays[OFFSET_WZ-1].mon = 10;
+	if (iWDay!=7)	variabledays[OFFSET_WZ-1].day = 31-iWDay;
+	else variabledays[OFFSET_WZ-1].day = 31;
+	variabledays[OFFSET_WZ-1].mon = 10;
 	
-	varaibledays[OFFSET_W0-1].day=24;					// heiliger abend
-	varaibledays[OFFSET_W0-1].mon=12;
-	varaibledays[OFFSET_W1-1].day=25;					// 1. weihnachtstag
-	varaibledays[OFFSET_W1-1].mon=12;
-	varaibledays[OFFSET_W2-1].day=26;					// 2. weihnachtstag
-	varaibledays[OFFSET_W2-1].mon=12;
-	varaibledays[OFFSET_3K-1].day=6;					// hl. 3 koenige
-	varaibledays[OFFSET_3K-1].mon=1;
-	varaibledays[OFFSET_N-1].day=1;						// neujahr
-	varaibledays[OFFSET_N-1].mon=1;
-	varaibledays[OFFSET_S-1].day=31;					// sylvester
-	varaibledays[OFFSET_S-1].mon=12;
-	varaibledays[OFFSET_V-1].day=14;					// valentinstag
-	varaibledays[OFFSET_V-1].mon=2;
-	varaibledays[OFFSET_1M-1].day=1;					// 1. may
-	varaibledays[OFFSET_1M-1].mon=5;
-	varaibledays[OFFSET_MH-1].day=15;					// maria himmelfahrt
-	varaibledays[OFFSET_MH-1].mon=8;
-	varaibledays[OFFSET_NI-1].day=6;					// nikolaus
-	varaibledays[OFFSET_NI-1].mon=12;
-	varaibledays[OFFSET_ND-1].day=3;					// tag der deutschen einheit
-	varaibledays[OFFSET_ND-1].mon=10;
-	varaibledays[OFFSET_NA-1].day=26;					// nationalfeiertag oesterreich
-	varaibledays[OFFSET_NA-1].mon=10;
+	variabledays[OFFSET_W0-1].day=24;					// heiliger abend
+	variabledays[OFFSET_W0-1].mon=12;
+	variabledays[OFFSET_W1-1].day=25;					// 1. weihnachtstag
+	variabledays[OFFSET_W1-1].mon=12;
+	variabledays[OFFSET_W2-1].day=26;					// 2. weihnachtstag
+	variabledays[OFFSET_W2-1].mon=12;
+	variabledays[OFFSET_3K-1].day=6;					// hl. 3 koenige
+	variabledays[OFFSET_3K-1].mon=1;
+	variabledays[OFFSET_N-1].day=1;						// neujahr
+	variabledays[OFFSET_N-1].mon=1;
+	variabledays[OFFSET_S-1].day=31;					// sylvester
+	variabledays[OFFSET_S-1].mon=12;
+	variabledays[OFFSET_V-1].day=14;					// valentinstag
+	variabledays[OFFSET_V-1].mon=2;
+	variabledays[OFFSET_1M-1].day=1;					// 1. may
+	variabledays[OFFSET_1M-1].mon=5;
+	variabledays[OFFSET_MH-1].day=15;					// maria himmelfahrt
+	variabledays[OFFSET_MH-1].mon=8;
+	variabledays[OFFSET_NI-1].day=6;					// nikolaus
+	variabledays[OFFSET_NI-1].mon=12;
+	variabledays[OFFSET_ND-1].day=3;					// tag der deutschen einheit
+	variabledays[OFFSET_ND-1].mon=10;
+	variabledays[OFFSET_NA-1].day=26;					// nationalfeiertag oesterreich
+	variabledays[OFFSET_NA-1].mon=10;
 }
 
 /******************************************************************************
@@ -1197,7 +1197,7 @@ int IsEvent(int day, int month, int year)
 		{
 			// first check for any of the holidays: eastern, etc.
 			for (i=1;i<=NOF_VDAYS;i++)
-				if ((varaibledays[i-1].mon==month) && (varaibledays[i-1].day==day))
+				if ((variabledays[i-1].mon==month) && (variabledays[i-1].day==day))
 				{
 					iEventType[j][iCnt++]=MAXENTRYS+i;
 					iCntEvents[j]++;

@@ -386,7 +386,7 @@ typedef struct tagVariableDays
 	int day;										// year
 } VARIABLEDAY, *PVARIABLEDAY;
 
-VARIABLEDAY varaibledays[NOF_VDAYS];
+VARIABLEDAY variabledays[NOF_VDAYS];
 
 //----------------------------------------------------
 // devs

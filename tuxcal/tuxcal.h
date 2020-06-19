@@ -526,7 +526,7 @@ typedef struct tagVariableDays
 	int day;			// year
 } VARIABLEDAY, *PVARIABLEDAY;
 
-VARIABLEDAY varaibledays[NOF_VDAYS];
+VARIABLEDAY variabledays[NOF_VDAYS];
 
 // daemon commands
 enum {GET_STATUS, SET_STATUS, GET_VERSION, RELOAD_DB, TOGGLE_CLOCK};
