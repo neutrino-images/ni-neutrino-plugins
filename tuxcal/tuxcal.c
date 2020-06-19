@@ -2476,7 +2476,7 @@ void LoadDatabase(void)
 			{
 				// dd.mm.   all day event/holiday
 				case 6: 
-					sscanf(p1," %02i.%02i.",&eventdb[iEntry].day,&eventdb[iEntry].month); 
+					sscanf(p1," %02u.%02u.",&eventdb[iEntry].day,&eventdb[iEntry].month); 
 					eventdb[iEntry].days=__mon_yday[0][eventdb[iEntry].month-1]+eventdb[iEntry].day;
 					eventdb[iEntry].hour=-1; 
 					eventdb[iEntry].ehour=-1; 
@@ -2484,7 +2484,7 @@ void LoadDatabase(void)
 				
 				// dd.mm.yyyy   all day event
 				case 10:
-					sscanf(p1," %02i.%02i.%04i",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].year); 
+					sscanf(p1," %02u.%02u.%04u",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].year); 
 					eventdb[iEntry].days=__mon_yday[LeapYear(eventdb[iEntry].year) ? 1 : 0][eventdb[iEntry].month-1]+eventdb[iEntry].day;
 					eventdb[iEntry].hour=-1; 
 					eventdb[iEntry].ehour=-1; 
@@ -2492,7 +2492,7 @@ void LoadDatabase(void)
 				
 				// dd.mm.-dd.mm.   all day event-period
 				case 13:
-					sscanf(p1," %02i.%02i.-%02i.%02i.",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].eday,&eventdb[iEntry].emonth); 
+					sscanf(p1," %02u.%02u.-%02u.%02u.",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].eday,&eventdb[iEntry].emonth); 
 					eventdb[iEntry].days=__mon_yday[0][eventdb[iEntry].month-1]+eventdb[iEntry].day;
 					eventdb[iEntry].edays=__mon_yday[0][eventdb[iEntry].emonth-1]+eventdb[iEntry].eday;
 					eventdb[iEntry].hour=-1; 
@@ -2501,13 +2501,13 @@ void LoadDatabase(void)
 
 				// dd.mm.yyyy hh:mm   event at certain time
 				case 16:
-					sscanf(p1," %02i.%02i.%04i %02i:%02i",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].year,&eventdb[iEntry].hour,&eventdb[iEntry].min); 
+					sscanf(p1," %02u.%02u.%04u %02u:%02u",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].year,&eventdb[iEntry].hour,&eventdb[iEntry].min); 
 					eventdb[iEntry].days=__mon_yday[LeapYear(eventdb[iEntry].year) ? 1 : 0][eventdb[iEntry].month-1]+eventdb[iEntry].day;
 				break;
 
 				// dd.mm.yyyy-dd.mm.yyyy   all day event period
 				case 21:
-					sscanf(p1," %02i.%02i.%04i-%02i.%02i.%04i",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].year,&eventdb[iEntry].eday,&eventdb[iEntry].emonth,&eventdb[iEntry].eyear); 
+					sscanf(p1," %02u.%02u.%04u-%02u.%02u.%04u",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].year,&eventdb[iEntry].eday,&eventdb[iEntry].emonth,&eventdb[iEntry].eyear); 
 					eventdb[iEntry].days=__mon_yday[LeapYear(eventdb[iEntry].year) ? 1 : 0][eventdb[iEntry].month-1]+eventdb[iEntry].day;
 					eventdb[iEntry].edays=__mon_yday[LeapYear(eventdb[iEntry].year) ? 1 : 0][eventdb[iEntry].emonth-1]+eventdb[iEntry].eday;
 					eventdb[iEntry].hour=-1; 
@@ -2516,7 +2516,7 @@ void LoadDatabase(void)
 
 				// dd.mm.yyyy hh:mm-dd.mm.yyyy hh:mm   event-period
 				case 33:
-					sscanf(p1," %02i.%02i.%04i %02i:%02i-%02i.%02i.%04i %02i:%02i",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].year,&eventdb[iEntry].hour,&eventdb[iEntry].min,&eventdb[iEntry].eday,&eventdb[iEntry].emonth,&eventdb[iEntry].eyear,&eventdb[iEntry].ehour,&eventdb[iEntry].emin); 
+					sscanf(p1," %02u.%02u.%04u %02u:%02u-%02u.%02u.%04u %02u:%02u",&eventdb[iEntry].day,&eventdb[iEntry].month,&eventdb[iEntry].year,&eventdb[iEntry].hour,&eventdb[iEntry].min,&eventdb[iEntry].eday,&eventdb[iEntry].emonth,&eventdb[iEntry].eyear,&eventdb[iEntry].ehour,&eventdb[iEntry].emin); 
 					eventdb[iEntry].days=__mon_yday[LeapYear(eventdb[iEntry].year) ? 1 : 0][eventdb[iEntry].month-1]+eventdb[iEntry].day;
 					eventdb[iEntry].edays=__mon_yday[LeapYear(eventdb[iEntry].year) ? 1 : 0][eventdb[iEntry].emonth-1]+eventdb[iEntry].eday;
 				break;
@@ -2568,35 +2568,35 @@ void SaveDatabase(void)
 			
 			info_tm1[0]=0;
 			info_tm2[0]=0;
-			if (eventdb[iEntry].hour!=-1) sprintf(info_tm1," %02i:%02i",eventdb[iEntry].hour,eventdb[iEntry].min);
-			if (eventdb[iEntry].ehour!=-1) sprintf(info_tm2," %02i:%02i",eventdb[iEntry].ehour,eventdb[iEntry].emin);
+			if (eventdb[iEntry].hour!=-1) sprintf(info_tm1," %02u:%02u",eventdb[iEntry].hour,eventdb[iEntry].min);
+			if (eventdb[iEntry].ehour!=-1) sprintf(info_tm2," %02u:%02u",eventdb[iEntry].ehour,eventdb[iEntry].emin);
 			info_yr1[0]=0;
 			info_yr2[0]=0;
-			if (eventdb[iEntry].year!=0)	sprintf(info_yr1,"%04i",eventdb[iEntry].year);
-			if (eventdb[iEntry].eyear!=0) sprintf(info_yr2,"%04i",eventdb[iEntry].eyear);
+			if (eventdb[iEntry].year!=0)	sprintf(info_yr1,"%04u",eventdb[iEntry].year);
+			if (eventdb[iEntry].eyear!=0) sprintf(info_yr2,"%04u",eventdb[iEntry].eyear);
 			
 			// check for holiday
 			if (eventdb[iEntry].type == HOLIDAY)
 			{
-				fprintf(fd_evt,"f;%02i.%02i.%s;%s;\n", eventdb[iEntry].day,eventdb[iEntry].month,info_yr1,eventdb[iEntry].info);
+				fprintf(fd_evt,"f;%02u.%02u.%s;%s;\n", eventdb[iEntry].day,eventdb[iEntry].month,info_yr1,eventdb[iEntry].info);
 			}
 			
 			// check for event
  			if (eventdb[iEntry].type == EVENT)
 			{
-				fprintf(fd_evt,"t;%02i.%02i.%s%s;%s;\n", eventdb[iEntry].day,eventdb[iEntry].month,info_yr1,info_tm1,eventdb[iEntry].info);
+				fprintf(fd_evt,"t;%02u.%02u.%s%s;%s;\n", eventdb[iEntry].day,eventdb[iEntry].month,info_yr1,info_tm1,eventdb[iEntry].info);
 			}
  
 			// check for birthday
 			if (eventdb[iEntry].type == BIRTHDAY)
 			{
-				fprintf(fd_evt,"g;%02i.%02i.%s;%s;\n", eventdb[iEntry].day,eventdb[iEntry].month,info_yr1,eventdb[iEntry].info);
+				fprintf(fd_evt,"g;%02u.%02u.%s;%s;\n", eventdb[iEntry].day,eventdb[iEntry].month,info_yr1,eventdb[iEntry].info);
 			}
 
 			// check for period
 			else if (eventdb[iEntry].type == PERIOD)
 			{
-					fprintf(fd_evt,"z;%02i.%02i.%s%s-%02i.%02i.%s%s;%s;\n", eventdb[iEntry].day,eventdb[iEntry].month,info_yr1,info_tm1,eventdb[iEntry].eday,eventdb[iEntry].emonth,info_yr2,info_tm2,eventdb[iEntry].info);
+					fprintf(fd_evt,"z;%02u.%02u.%s%s-%02u.%02u.%s%s;%s;\n", eventdb[iEntry].day,eventdb[iEntry].month,info_yr1,info_tm1,eventdb[iEntry].eday,eventdb[iEntry].emonth,info_yr2,info_tm2,eventdb[iEntry].info);
 			}				
 			
 			// check if comment
@@ -2628,7 +2628,7 @@ void SaveDatabase(void)
 */
 int main ( void )
 {
-	char cvs_revision[] = "$Revision: 1.09 $";
+	char cvs_revision[] = "$Revision: 1.10 $";
 	FILE *fd_run;
 	FT_Error error;
 
