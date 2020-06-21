@@ -44,8 +44,9 @@
 
 #define SCKFILE "/tmp/tuxcald.socket"			//! socket-file, connection to daemon
 #define RUNFILE "/var/etc/.tuxcald"			//! autostart-file for daemon
-#define CFGFILE "/tuxcal/tuxcal.conf"				//! config-file
-#define EVTFILE "/tuxcal/tuxcal.list"				//! database-file
+#define INITSCRIPT "/etc/init.d/tuxcald"		//! init-script
+#define CFGFILE "/tuxcal/tuxcal.conf"			//! config-file
+#define EVTFILE "/tuxcal/tuxcal.list"			//! database-file
 #define KBLCKFILE "/tmp/keyboard.lck"			//! file to lock keyboard-conversion
 
 //----------------------------------------------------

@@ -3062,20 +3062,39 @@ int main ( void )
 			}
 			break;
 
-			// switch autostart of daemon on or off
+			// switch autostart of daemon on/off and start/stop daemon
 			case RC_STANDBY:
 			{
-				if((fd_run = fopen(RUNFILE, "r")))			//! autostart is on
+				char init_call[80];
+				char init_state[6];
+				int unlink_runfile = 0;
+
+				if (fd_run = fopen(RUNFILE, "r"))			//! autostart is on
 				{
 					fclose(fd_run);
-					unlink(RUNFILE);				//! delete autostart-file
-					ShowMessage(BOOTOFF);				//! show that autostart is disabled
+					unlink_runfile = 1;
+					strcpy(init_state, "stop");
 				}
 				else
 				{
 					fclose(fopen(RUNFILE, "w"));			//! generate the autostart-file
-					ShowMessage(BOOTON);				//! show message that autostart is enabled
+					strcpy(init_state, "start");
 				}
+
+				if (fd_run = fopen(INITSCRIPT, "r"))
+				{
+					fclose(fd_run);
+					sprintf(init_call, "%s %s", INITSCRIPT, init_state);
+					system(init_call);
+				}
+
+				if (unlink_runfile)
+				{
+					unlink(RUNFILE);				//! delete autostart-file
+					ShowMessage(BOOTOFF);				//! show that autostart is disabled
+				}
+				else
+					ShowMessage(BOOTON);				//! show message that autostart is enabled
 			}
 			break;
 
