@@ -2599,7 +2599,7 @@ void SaveDatabase(void)
 */
 int main ( void )
 {
-	char cvs_revision[] = "$Revision: 1.10 $";
+	char cvs_revision[] = "$Revision: 1.11 $";
 	FILE *fd_run;
 	FT_Error error;
 

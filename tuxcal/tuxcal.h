@@ -38,9 +38,8 @@
 #define CONFIGDIR "/var/tuxbox/config"
 #endif
 #ifndef FONTDIR
-#define FONTDIR	"/share/fonts"
+#define FONTDIR "/share/fonts"
 #endif
-
 
 #define SCKFILE "/tmp/tuxcald.socket"			//! socket-file, connection to daemon
 #define RUNFILE "/var/etc/.tuxcald"			//! autostart-file for daemon
@@ -54,7 +53,7 @@
 
 int osdidx = 0;						// actual used language
 
-#define MAXOSD	2
+#define MAXOSD 2
 
 char *infoweek[1][MAXOSD] = {
 	{ "Woche", "Week" }
@@ -71,18 +70,18 @@ char *days[7][MAXOSD] = {
 };
 
 char *monthmsg[12][MAXOSD] = {
-	{ "Januar"    , "January" },
-	{ "Februar"   , "February" },
-	{ "März"      , "March" },
-	{ "April"     , "April" },
-	{ "Mai"       , "May" },
-	{ "Juni"      , "Juni" },
-	{ "Juli"      , "July" },
-	{ "August"    , "August" },
-	{ "September" , "September" },
-	{ "Oktober"   , "October" },
-	{ "November"  , "November" },
-	{ "Dezember"  , "December" }
+	{ "Januar"	, "January" },
+	{ "Februar"	, "February" },
+	{ "März"	, "March" },
+	{ "April"	, "April" },
+	{ "Mai"		, "May" },
+	{ "Juni"	, "Juni" },
+	{ "Juli"	, "July" },
+	{ "August"	, "August" },
+	{ "September"	, "September" },
+	{ "Oktober"	, "October" },
+	{ "November"	, "November" },
+	{ "Dezember"	, "December" }
 };
 
 char* infomsg1[][MAXOSD] = {
@@ -94,17 +93,17 @@ char* infomsg1[][MAXOSD] = {
 };
 
 char *infotype[][MAXOSD] = {
-	{ "Geburtstag" , "Birthday" },
-	{ "Einträge"   , "Entries" },
-	{ "Zeitraum"   , "Period" },
-	{ "Feiertag"   , "Holiday" }
+	{ "Geburtstag"	, "Birthday" },
+	{ "Einträge"	, "Entries" },
+	{ "Zeitraum"	, "Period" },
+	{ "Feiertag"	, "Holiday" }
 };
 
 char *infohelp[][MAXOSD] = {
-	{ "löschen"       , "delete" },
-	{ "markieren"     , "select" },
-	{ "einfügen"      , "insert" },
-	{ "bearbeiten"    , "edit" },
+	{ "löschen"	, "delete" },
+	{ "markieren"	, "select" },
+	{ "einfügen"	, "insert" },
+	{ "bearbeiten"	, "edit" },
 	{ "[OK]Einträge anzeigen [Menü]Uhrzeit ein/ausblenden [0]heute" , "[OK]show entrys [menu]show/hide clock [0]today" }
 };
 
@@ -149,23 +148,23 @@ char *vdaysnames[][MAXOSD] = {
 // ShowMessage output
 enum {NODAEMON, STARTDONE, STARTFAIL, STOPDONE, STOPFAIL, BOOTON, BOOTOFF, DATE, CLOCKFAIL, CLOCKOK, INFO};
 char *infomsg[][MAXOSD] = {
-	{ "Daemon ist nicht geladen!" , "Daemon not running!" },
-	{ "Abfrage wurde gestartet."  , "Polling started." },
-	{ "Start ist fehlgeschlagen!" , "Start failed!" },
-	{ "Abfrage wurde gestoppt."   , "Polling stopped." },
-	{ "Stopp ist fehlgeschlagen!" , "Stop failed!" },
-	{ "Autostart aktiviert."      , "Autostart enabled." },
-	{ "Autostart deaktiviert."    , "Autostart disabled." },
-	{ "%d.%m.%Y %H:%M:%S"         , "%m/%d/%Y %H:%M:%S" },
-	{ "Uhr ist fehlgeschlagen!"   , "Clock failed!" },
-	{ "Uhranzeige umgeschaltet."  , "displaying clock changed" }
+	{ "Daemon ist nicht geladen!"	, "Daemon not running!" },
+	{ "Abfrage wurde gestartet."	, "Polling started." },
+	{ "Start ist fehlgeschlagen!"	, "Start failed!" },
+	{ "Abfrage wurde gestoppt."	, "Polling stopped." },
+	{ "Stopp ist fehlgeschlagen!"	, "Stop failed!" },
+	{ "Autostart aktiviert."	, "Autostart enabled." },
+	{ "Autostart deaktiviert."	, "Autostart disabled." },
+	{ "%d.%m.%Y %H:%M:%S"		, "%m/%d/%Y %H:%M:%S" },
+	{ "Uhr ist fehlgeschlagen!"	, "Clock failed!" },
+	{ "Uhranzeige umgeschaltet."	, "displaying clock changed" }
 };
 
 
 //----------------------------------------------------
 // remote-control and keyboard
 
-unsigned short rccode;				//! remote-control code
+unsigned short rccode;			//! remote-control code
 char kbcode;				//! keyboard-input for Dreambox
 
 // rc codes
@@ -324,21 +323,21 @@ char *szKeyBBoxKey[KEYBOX_KEYS] = {
 
 // for calculation the day of the week
 const int monthcode[12] = {
-	6, 	2, 	2, 	5, 	0, 	3, 	5, 	1, 	4, 	6, 	2, 	4
+	6,	2,	2,	5,	0,	3,	5,	1,	4,	6,	2,	4
 };
 
 // days per month
 const int monthdays[2][12] = {
 	{ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 },	// Normal years.
-	{ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }	// Leap years. 
+	{ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }	// Leap years.
 };
 
 // How many days come before each month (0-12).
 const int __mon_yday[2][13] =
-  {    
+{
     { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 },	// Normal years.
-    { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 }	// Leap years.  
-  };
+    { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 }	// Leap years.
+};
 
 //----------------------------------------------------
 // functions
@@ -406,18 +405,19 @@ char *szFmtStr[] = {
 #define FONTSIZE_NORMAL		32
 #define FONTSIZE_BIG		40
 
-#define MAXSCREEN_X		840 //560 Dbox
-#define MAXSCREEN_Y		500
-#define MSGBOX_SX		145
-#define MSGBOX_SY		175
-#define MSGBOX_EX		455
-#define MSGBOX_EY		325
+#define MAXSCREEN_X		(1280/1.33)	// (var_screeninfo.xres/1.33)
+#define MAXSCREEN_Y		(720/1.33)	// (var_screeninfo.yres/1.33)
+
+#define MSGBOX_SX		(MAXSCREEN_X/7)
+#define MSGBOX_SY		(MAXSCREEN_Y/7)
+#define MSGBOX_EX		(MSGBOX_SX*5)
+#define MSGBOX_EY		(MSGBOX_SY*5)
 
 #define GRIDLINE		32
 #define GRIDLINE_SMALL		24
 #define GRIDBOX_X		(MAXSCREEN_X/7)
-#define GRIDBOX_CY1		420
-#define GRIDBOX_CY2		300
+#define GRIDBOX_CY1		(MAXSCREEN_X/2.09)
+#define GRIDBOX_CY2		(MAXSCREEN_Y/1.69)
 
 #define LNWIDTH			2
 
@@ -566,7 +566,6 @@ unsigned char bgra[][4] ={
 };
 
 #if 0
-
 //                      WHITE     SKIN0    SKIN1    SKIN2   ORANGE   GREEN    YELLOW     RED     BLUE     GREY    DAY1     DAY2     DAY3     DAY4     DAY5     SKIN3    BLACK    LGREY   MAGENTA
 unsigned short rd1[] = {0xFF<<8, 0x00<<8, 0x00<<8, 0x00<<8, 0xFF<<8, 0x00<<8, 0xFF<<8, 0xFF<<8, 0x00<<8, 0xB0<<8, 0xFF<<8, 0xFF<<8, 0xB0<<8, 0x00<<8, 0xFF<<8, 0x50<<8, 0x00<<8, 0x50<<8, 0xFF<<8};
 unsigned short gn1[] = {0xFF<<8, 0x00<<8, 0x40<<8, 0x80<<8, 0xC0<<8, 0xFF<<8, 0xFF<<8, 0x00<<8, 0x00<<8, 0xB0<<8, 0x50<<8, 0xC0<<8, 0xB0<<8, 0xFF<<8, 0xFF<<8, 0x50<<8, 0x00<<8, 0x50<<8, 0x00<<8};
@@ -591,8 +590,8 @@ int startx, starty, sx, ex, sy, ey;
 //----------------------------------------------------
 // object to render
 enum {OBJ_CIRCLE, OBJ_HEART, OBJ_MARKER, OBJ_SCROLLUP, OBJ_SCROLLDN, OBJ_CLOCK};
-#define OBJ_SX	15											// lines for object
-#define OBJ_SY	15											// columns for object
+#define OBJ_SX	15									// lines for object
+#define OBJ_SY	15									// columns for object
 
 char scroll_up[] =
 {
