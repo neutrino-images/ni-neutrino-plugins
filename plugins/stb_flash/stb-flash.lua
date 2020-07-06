@@ -181,7 +181,8 @@ function is_active(root)
 	return active
 end
 
-imageversion_source = "https://tuxbox-images.de/images/" .. get_value("machine", current_root) .. "/imageversion"
+--imageversion_source = "https://tuxbox-images.de/images/" .. get_value("machine", current_root) .. "/imageversion"
+imageversion_source = "https://update.tuxbox-neutrino.org/dist/" .. get_value("machine", current_root) .. "/" .. get_value("imageversion", current_root) .. "/images/imageversion"
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/etc/neutrino/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")
