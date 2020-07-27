@@ -21,13 +21,14 @@
 ]]
 
 local glob = {}
-local version="2webTVxml Version 0.11"
+local version="2webTVxml Version 0.12"
 local n = neutrino()
 local conf = {}
 local on="ein"
 local off="aus"
 local mact = {}
 local loc = nil
+local reloadChannels = false
 locale = {}
 locale["deutsch"] = {
 	file = "Datei auswählen",
@@ -329,6 +330,7 @@ function saveXml(filename,name,xmliste,ext)
 		end
 		file:write("</webtvs>\n")
 		file:close()
+		reloadChannels = true
 		sleep (1)
 		pw:hide()
 	end
@@ -491,6 +493,9 @@ function main()
 	loadConfig()
 	main_menu()
 	saveConfig()
+	if reloadChannels then
+		getdata("http://127.0.0.1:80/control/reloadchannels")
+	end
 	collectgarbage()
 end
 
