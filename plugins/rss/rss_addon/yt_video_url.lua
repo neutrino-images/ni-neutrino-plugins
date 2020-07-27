@@ -129,7 +129,7 @@ function media.getVideoUrl(yurl)
 	if yurl:find("www.youtube.com/user/") then --check user link
 		local youtube_user = getdata(yurl)
 		if youtube_user == nil then return end
-		local youtube_live_url = youtube_user:match('feature=c4.-href="(/watch.-)">')
+		local youtube_live_url = youtube_user:match('"url":"(/watch.-)"') or youtube_user:match('feature=c4.-href="(/watch.-)">')
 		if youtube_live_url == nil then return end
 		yurl = 'https://www.youtube.com' .. youtube_live_url
 	end
@@ -173,9 +173,9 @@ function media.getVideoUrl(yurl)
 		end
 
 		if data then
-			local m3u_url = data:match('hlsvp.:.(https:\\.-m3u8)')
+			local m3u_url = data:match('hlsManifestUrl..:..(https:\\.-m3u8)') or data:match('hlsvp.:.(https:\\.-m3u8)')
 			if m3u_url == nil then
-				m3u_url = data:match('hlsvp=(https%%3A%%2F%%2F.-m3u8)')
+				m3u_url = data:match('hlsManifestUrl..:..(https%%3A%%2F%%2F.-m3u8)') or data:match('hlsvp=(https%%3A%%2F%%2F.-m3u8)')
 				if m3u_url then
 					m3u_url = unescape_uri(m3u_url)
 				end
@@ -210,37 +210,47 @@ function media.getVideoUrl(yurl)
 				url_map = data:match('url_encoded_fmt_stream_map=(.-)$' )
 				if url_map then url_map=unescape_uri(url_map) end
 			end
-			local map_urls = {}
 			local player_map = data:match("ytplayer.config%s+=%s+({.-});")
+			local map_urls = {}
 			local ucount = 0
 			if player_map then
-				local pm1 = nil
-				local pm2 = nil
-				local pm1 = json:decode (player_map)
-				if pm1 and pm1.args and pm1.args.player_response then
-					pm2 = json:decode(pm1.args.player_response)
-					if pm2 and pm2.streamingData and pm2.streamingData.formats then
-						for k, purl in pairs(pm2.streamingData.formats) do
-							if purl.itag and have_itags[purl.itag] ~= true then
-								have_itags[purl.itag] = true
+				local formats_data = data:match('\\"formats\\":(%[{.-}])')
+				if formats_data then
+					formats_data = formats_data:gsub('\\\\\\"','')
+					formats_data = formats_data:gsub('\\"','"')
+					local formats = json:decode (formats_data)
+					if formats then
+						for k, purl in pairs(formats) do
+							if itag and have_itags[itag] ~= true then
+								have_itags[itag] = true
 								ucount = ucount + 1
-								if purl.cipher then
-									map_urls[ucount] = purl.cipher
-								elseif purl.url then
-									map_urls[ucount] = "url=" .. purl.url
+								if signatureCipher then
+									map_urls[ucount] = signatureCipher
+								elseif url then
+									map_urls[ucount] = "url=" .. url
+								elseif cipher then --unnecessary?
+									map_urls[ucount] = cipher
 								end
 							end
 						end
-					end
-					if pm2 and pm2.streamingData and pm2.streamingData.adaptiveFormats then
-						for k, purl in pairs(pm2.streamingData.adaptiveFormats) do
-							if purl.itag and have_itags[purl.itag] ~= true then
-								have_itags[purl.itag] = true
-								ucount = ucount + 1
-								if purl.cipher then
-									map_urls[ucount] = purl.cipher
-								elseif purl.url then
-									map_urls[ucount] = "url=" .. purl.url
+						local adaptiveFormats_data = data:match('\\"adaptiveFormats\\":(%[{.-}])')
+						if adaptiveFormats_data then
+							adaptiveFormats_data = adaptiveFormats_data:gsub('\\\\\\"','')
+							adaptiveFormats_data = adaptiveFormats_data:gsub('\\"','"')
+							local adaptiveFormats = json:decode (adaptiveFormats_data)
+							if adaptiveFormats then
+								for k, purl in pairs(adaptiveFormats) do
+									if purl.itag and have_itags[purl.itag] ~= true then
+										have_itags[purl.itag] = true
+										ucount = ucount + 1
+										if purl.signatureCipher then
+											map_urls[ucount] = purl.signatureCipher
+										elseif purl.url then
+											map_urls[ucount] = "url=" .. purl.url
+										elseif purl.cipher then --unnecessary?
+											map_urls[ucount] = purl.cipher
+										end
+									end
 								end
 							end
 						end
@@ -290,7 +300,7 @@ function media.getVideoUrl(yurl)
 					local s=myurl:match('6s=([%%%-%=%w+_]+)') or myurl:match('&s=([%%%-%=%w+_]+)') or myurl:match('^s=([%%%-%=%w+_]+)')
 					if s and (#s > 99 and #s < 160) then
 						local s2=unescape_uri(s)
-						local js_url= data:match('<script src="([/%w%p]+base%.js)"')
+						local js_url= data:match('<script%s+src="([/%w%p]+base%.js)"')
 						local signature = newsig(s2,js_url)
 						if signature then
 							s = s:gsub("[%+%?%-%*%(%)%.%[%]%^%$%%]","%%%1")
