@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local version="2webTVxml Version 0.12"
+local version="2webTVxml Version 0.13"
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -158,6 +158,7 @@ function loadConfig()
 	if havefile == true then
 		local confdata = read_file(onlineconf)
 		if havefile ~= nil then
+			confdata = confdata .. '\n'
 			for _line in confdata:gmatch('(name.-)\n') do
 				local _name = _line:match('name="(.-)"')
 				local _url = _line:match('url="(.-)"')
