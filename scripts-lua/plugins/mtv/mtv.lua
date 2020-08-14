@@ -22,7 +22,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.de Version 0.33" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.37" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -58,8 +58,10 @@ function saveConfig()
 		config:setString("path_m3u", conf.path_m3u)
 		config:setBool  ("dlflag",conf.dlflag)
 		config:setBool  ("flvflag",conf.flvflag)
+		config:setBool  ("hlsflag",conf.hlsflag)
 		config:setBool  ("playflvflag",conf.playflvflag)
 		config:setBool  ("shuffleflag",conf.shuffleflag)
+		config:setString("maxRes", conf.maxRes)
 		config:setString("search", conf.search)
 		config:saveConfig(get_confFile())
 		conf.changed = false
@@ -82,8 +84,10 @@ function loadConfig()
 	conf.path_m3u = config:getString("path_m3u", "/media/sda1/movies/")
 	conf.dlflag = config:getBool("dlflag", false)
 	conf.flvflag = config:getBool("flvflag", false)
+	conf.hlsflag = config:getBool("hlsflag", true) --hls as default, rtmp server is broken???
 	conf.playflvflag = config:getBool("playflvflag", false)
 	conf.shuffleflag = config:getBool("shuffleflag", false)
+	conf.maxRes = config:getString("maxRes", "1280x720")
 	conf.search = config:getString("search", "Justin Bieber")
 	conf.changed = false
 end
@@ -129,7 +133,6 @@ function init()
 	end
 
 	glob.fav_changed = false
-	glob.have_rtmpdump=which("rtmpdump")
 	glob.mtv_artist={}
 	glob.mtv={
 			{name = "Playlists",url="http://www.mtv.de/playlists",fav=false},
@@ -298,11 +301,44 @@ function getliste(url)
 	h:hide()
 	return liste
 end
+function get_m3u_url(m3u8_url)
+	if m3u8_url == nil then return nil end
+	local videoUrl = nil
+	local res = 0
+	local data = getdata(m3u8_url)
+	if data then
+		local host = m3u8_url:match('([%a]+[:]?//[_%w%-%.]+)/')
+		if m3u8_url:find('/master.m3u8') then
+			local lastpos = (m3u8_url:reverse()):find("/")
+			local hosttmp = m3u8_url:sub(1,#m3u8_url-lastpos)
+			if hosttmp then
+				host = hosttmp .."/"
+			end
+		end
+		local maxRes = 1280
+		if conf.maxRes then
+			local maxResStr = conf.maxRes:match("(%d+)x")
+			maxRes = tonumber(maxResStr)
+		end
+		for band, res1, res2, url in data:gmatch('BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-\n(.-)\n') do
+			if url and res1 then
+				local nr = tonumber(res1)
+				if nr <= maxRes and nr > res then
+					res=nr
+					if host and url:sub(1,4) ~= "http" then
+						url = host .. url
+					end
+					videoUrl = url
+				end
+			end
+		end
+	end
+	return videoUrl
+end
 
 function getvideourl(url,vidname,hls)
 	local	json = require "json"
 	local data = getdata(url)
-
 	local id = data:match('itemId":"(.-)"')
 	local service_url = "http://media.mtvnservices.com/pmt/e1/access/index.html?uri=mgid:arc:episode:mtv.de:" .. id .. "&configtype=edge&ref=" .. url
 	data = getdata(service_url)
@@ -324,9 +360,9 @@ function getvideourl(url,vidname,hls)
 	local video_url = nil
 	if jnTab and jnTab.package and jnTab.package.video and jnTab.package.video.item and jnTab.package.video.item[1].rendition then
 		for k,v in pairs(jnTab.package.video.item[1].rendition) do
-			if (v.width or v.rdminwidth) and v.src then
+			if (hls or v.width or v.rdminwidth) and v.src then
 				local w = tonumber(v.width or v.rdminwidth)
-				if w > max_w then
+				if hls or w > max_w then
 					video_url = v.src
 					max_w = w
 				end
@@ -335,6 +371,9 @@ function getvideourl(url,vidname,hls)
 	end
 	local x = nil
 	if video_url then
+		if video_url:find("m3u8") then
+			video_url = get_m3u_url(video_url)
+		end
 		x = video_url:find("rtmp") or video_url:find("m3u8")
 	end
 	if not x then
@@ -379,7 +418,7 @@ function action_exec(id)
 		if glob.MTVliste[i].name == nil then
 			glob.MTVliste[i].name = "NoName_" .. i
 		end
-		local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name)
+		local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name,conf.hlsflag)
 		if url then
 			hideMenu(glob.menu_liste)
 			vodeoPlay:setSinglePlay()
@@ -403,7 +442,7 @@ function gen_m3u_list(filename)
 			if v.name == nil then
 				v.name = "NoName"
 			end
-			local url = getvideourl(v.url,v.name)
+			local url = getvideourl(v.url,v.name,conf.hlsflag)
 			if url then
 				local extinf = ", "
 				if v.logo and #v.logo > 1 then --TODO Add Logo parse to CMoviePlayerGui::parsePlaylist
@@ -455,7 +494,7 @@ function playlist(filename)
 		if tab[i].name == nil then
 			tab[i].name = "NoName"
 		end
-		local url = getvideourl(tab[i].url,tab[i].name)
+		local url = getvideourl(tab[i].url,tab[i].name,conf.hlsflag)
 		if url then
 			local videoformat = url:sub(-4)
 			if videoformat ~= ".flv" or conf.playflvflag then
@@ -510,7 +549,7 @@ function dlstart(name)
 			if glob.MTVliste[i].name == nil then
 				glob.MTVliste[i].name = "NoName_" .. i
 			end
-			local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name)
+			local url = getvideourl(glob.MTVliste[i].url,glob.MTVliste[i].name,conf.hlsflag)
 			if url then
 				local fname = v.name:gsub([[%s+]], "_")
 				fname = fname:gsub("[:'()]", "_")
@@ -520,7 +559,10 @@ function dlstart(name)
 				if videoformat == nil then
 					videoformat = ".mp4"
 				end
-				if videoformat ~= ".flv" or conf.flvflag then
+				if conf.hlsflag then
+					dl:write("ffmpeg -y -nostdin -loglevel 30 -i " .. url .. " -c copy  " .. conf.path .. "/" .. fname   .. ".ts\n")
+					script_start = true
+				elseif videoformat ~= ".flv" or conf.flvflag then
 					dl:write("rtmpdump -e -r " .. url .. " -o " .. conf.path .. "/" .. fname  .. videoformat .."\n")
 					script_start = true
 				end
@@ -738,10 +780,22 @@ function set_path(id,value)
 end
 
 function set_option(k, v)
+	if k == "maxRes" then
+		conf[k]=v
+	end
+
 	if v == on then
 		conf[k]=true
-	else
+	elseif v == off then
 		conf[k]=false
+	end
+	if k == "hlsflag" then
+		glob.have_rtmpdump=nil
+		if conf[k] then
+			glob.have_rtmpdump=which("ffmpeg")
+		else
+			glob.have_rtmpdump=which("rtmpdump")
+		end
 	end
 	conf.changed = true
 end
@@ -768,6 +822,11 @@ function setings()
 		   enabled=true,value=conf.path_m3u,directkey=godirectkey(d),
 		   hint_icon="hint_service",hint="In welchem Verzeichnis soll das M3U Playlist gespeichert werden ?"
 		 }
+	d=d+1
+	menu:addItem{type="chooser", action="set_option", options={ on, off }, id="hlsflag", value=bool2onoff(conf.hlsflag), directkey=godirectkey(d), name="Videos in HLS-Format",hint_icon="hint_service",hint="HLS als bevorzugte Video Format 'ein' oder 'aus'"}
+	d=d+1
+	local res_opt={ '3840x2160','2560x1440','1920x1080','1280x720','854x480','640x360' }
+	menu:addItem{type="chooser", action="set_option", options=res_opt, id="maxRes", value=conf.maxRes, name="Max. Auflösung" ,directkey=godirectkey(d),hint_icon="hint_service",hint="Max. Video Auflösung"}
 	d=d+1
 	menu:addItem{type="chooser", action="set_option", options={ on, off }, id="dlflag", value=bool2onoff(conf.dlflag), directkey=godirectkey(d), name="Auswahl vorbelegen mit",hint_icon="hint_service",hint="Erstelle Auswahlliste mit 'ein' oder 'aus'"}
 	d=d+1
@@ -898,19 +957,6 @@ end
 function play_live()
 	local video_url = getvideourl(glob.mtv_live_url,"live",true)
 	if video_url then
-		local videodata = getdata(video_url)
-		local res = 0
-		for band, res1, res2, url in videodata:gmatch('#EXT.X.STREAM.INF.-BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-(http.-)\n') do
-			if url and res1 then
-				local nr = tonumber(res1)
-				if nr < 2000 and nr > res then
-					res=nr
-					video_url = url
-				end
-			end
-		end
-	end
-	if video_url then
 		hideMenu(glob.main_menu)
 		vodeoPlay:setSinglePlay()
 		vodeoPlay:PlayFile("MTV Live Stream", video_url);
@@ -969,6 +1015,12 @@ end
 function main()
 	init()
 	loadConfig()
+	glob.have_rtmpdump=nil
+	if conf.hlsflag then
+		glob.have_rtmpdump=which("ffmpeg")
+	else
+		glob.have_rtmpdump=which("rtmpdump")
+	end
 	main_menu()
 	saveConfig()
 	collectgarbage()

@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local version="2webTVxml Version 0.12"
+local version="2webTVxml Version 0.14"
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -76,6 +76,9 @@ function get_confFile()
 end
 function get_conf_onlineFile()
 	return "/var/tuxbox/config/2webTVxmlUrls.conf"
+end
+function get_conf_epgFile()
+	return "/var/tuxbox/config/2webTVxmlEPG.conf"
 end
 
 function hideMenu(menu)
@@ -158,11 +161,28 @@ function loadConfig()
 	if havefile == true then
 		local confdata = read_file(onlineconf)
 		if havefile ~= nil then
+			confdata = confdata .. '\n'
 			for _line in confdata:gmatch('(name.-)\n') do
 				local _name = _line:match('name="(.-)"')
 				local _url = _line:match('url="(.-)"')
 				local _agent = _line:match('agent="(.-)"')
-				table.insert(glob.onlineUrls,{name=_name, url=_url,agent=_agent})
+				table.insert(glob.onlineUrls,{name=_name:lower(), url=_url,agent=_agent})
+			end
+		end
+	end
+
+	local epg_conf = get_conf_epgFile()
+	local havefile = file_exists(epg_conf)
+	glob.epgID = {}
+	if havefile == true then
+		local confdata = read_file(epg_conf)
+		if havefile ~= nil then
+			confdata = confdata .. '\n'
+			for _line in confdata:gmatch('(title.-)\n') do
+				local _title = _line:match('title="(.-)"')
+				local _epgid = _line:match('epgid="(.-)"')
+				_title = _title:gsub("%s","")
+				table.insert(glob.epgID,{title=_title:lower(), epgid=_epgid})
 			end
 		end
 	end
@@ -304,7 +324,6 @@ end
 function saveXml(filename,name,xmliste,ext)
 
 	if conf.defpathon then filename = conf.path .. "/" .. basename(filename) end
-
 	local file = io.open(filename:sub(0,ext) .. "xml",'w+')
 	if file then
 		local saveUrl = true
@@ -325,7 +344,16 @@ function saveXml(filename,name,xmliste,ext)
 				if v.xurl:find("%.m3u8") then script = 'script="best_bitrate_m3u8.lua" ' end
 				v.xurl = xmlentity(v.xurl)
 				v.xtitle = xmlentity(v.xtitle)
-				file:write('\t<webtv genre="' .. v.xgen ..  '" title="' .. v.xtitle .. '" url="' .. v.xurl .. '" ' .. script .. 'description="' .. v.xtag .. '" />\n')
+
+				local epgID = ''
+				if #glob.epgID > 0 then
+					local epgid = checkEPG(v.xtitle)
+					if epgid then
+						epgID = 'epgid="' .. epgid .. '" '
+					end
+				end
+
+				file:write('\t<webtv genre="' .. v.xgen ..  '" title="' .. v.xtitle .. '" url="' .. v.xurl .. '" ' .. epgID .. script .. 'description="' .. v.xtag .. '" />\n')
 			end
 		end
 		file:write("</webtvs>\n")
@@ -334,6 +362,17 @@ function saveXml(filename,name,xmliste,ext)
 		sleep (1)
 		pw:hide()
 	end
+end
+
+function checkEPG(title)
+	for i, v in ipairs(glob.epgID) do
+		local tit = title:lower()
+		tit = tit:gsub("%s","")
+		if tit:find(v.title) then
+			return v.epgid
+		end
+	end
+	return nil
 end
 
 function m3u2xml(data,filename)
