@@ -22,7 +22,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.de Version 0.35" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.36" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -556,11 +556,11 @@ function dlstart(name)
 				fname = fname:gsub("/", "-")
 				pw:showStatus{prog=i,max=#glob.MTVliste,statusText=tostring(i) .. "/" .. tostring(#glob.MTVliste) .. "  " .. fname}
 				local videoformat = url:sub(-4)
-				if conf.hlsflag or videoformat == nil then
+				if videoformat == nil then
 					videoformat = ".mp4"
 				end
 				if conf.hlsflag then
-					dl:write("ffmpeg -i " .. url .. " -c copy -bsf:a aac_adtstoasc " .. conf.path .. "/" .. fname  .. videoformat .."\n")
+					dl:write("ffmpeg -y -i " .. url .. " -c copy  " .. conf.path .. "/" .. fname   .. ".ts\n")
 					script_start = true
 				elseif videoformat ~= ".flv" or conf.flvflag then
 					dl:write("rtmpdump -e -r " .. url .. " -o " .. conf.path .. "/" .. fname  .. videoformat .."\n")
