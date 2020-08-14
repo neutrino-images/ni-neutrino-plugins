@@ -22,7 +22,7 @@
 ]]
 
 local glob = {}
-local mtv_version="mtv.de Version 0.34" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
+local mtv_version="mtv.de Version 0.35" -- Lua API Version: " .. APIVERSION.MAJOR .. "." .. APIVERSION.MINOR
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -560,7 +560,7 @@ function dlstart(name)
 					videoformat = ".mp4"
 				end
 				if conf.hlsflag then
-					dl:write("ffmpeg -i " .. url .. " -c copy " .. conf.path .. "/" .. fname  .. videoformat .."\n")
+					dl:write("ffmpeg -i " .. url .. " -c copy -bsf:a aac_adtstoasc " .. conf.path .. "/" .. fname  .. videoformat .."\n")
 					script_start = true
 				elseif videoformat ~= ".flv" or conf.flvflag then
 					dl:write("rtmpdump -e -r " .. url .. " -o " .. conf.path .. "/" .. fname  .. videoformat .."\n")
