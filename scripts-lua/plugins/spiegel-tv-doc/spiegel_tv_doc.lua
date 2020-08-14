@@ -1,6 +1,6 @@
 --[[
 	SpiegelTV-App
-	Vers.: 0.3
+	Vers.: 0.5
 	Copyright (C) 2020, fritz
 
 	License: GPL
@@ -61,6 +61,7 @@ end
 -- UTF8 in Umlaute wandeln
 function conv_str(_string)
 	if _string == nil then return _string end
+        _string = string.gsub(_string,'\\n','');
         _string = string.gsub(_string,'\\','');
 	_string = string.gsub(_string,"&Auml;","Ä");
 	_string = string.gsub(_string,"&auml;","ä");
@@ -78,11 +79,17 @@ function conv_str(_string)
 	_string = string.gsub(_string,"&quot;","");
 	_string = string.gsub(_string,"&apos;","'");
 	_string = string.gsub(_string,"&#x00c4","Ä");
+	_string = string.gsub(_string,"u00c4","Ä");
 	_string = string.gsub(_string,"&#x00e4","ä");
+	_string = string.gsub(_string,"u00e4","ä");
 	_string = string.gsub(_string,"&#x00d6","Ö");
+	_string = string.gsub(_string,"u00d6","Ö");
 	_string = string.gsub(_string,"&#x00f6","ö");
+	_string = string.gsub(_string,"u00f6","ö");
 	_string = string.gsub(_string,"&#x00dc","Ü");
+	_string = string.gsub(_string,"u00dc","Ü");
 	_string = string.gsub(_string,"&#x00fc","ü");
+	_string = string.gsub(_string,"u00fc","ü");
 	_string = string.gsub(_string,"&#x00df","ß");
 	_string = string.gsub(_string,"u00df","ß");
 	_string = string.gsub(_string,"&#039","'");
@@ -90,6 +97,25 @@ function conv_str(_string)
 	_string = string.gsub(_string,"&#261","ą");
 	_string = string.gsub(_string,";","");
 	_string = string.gsub(_string,"SPIEGEL TV: ","");
+	_string = string.gsub(_string,'u201e','„');
+	_string = string.gsub(_string,'u201c','“');
+	_string = string.gsub(_string,'u00d8','ø');
+	_string = string.gsub(_string,'u00a0',' ');
+	_string = string.gsub(_string,'u0142','ł');
+	_string = string.gsub(_string,'u00b0','°');
+	_string = string.gsub(_string,'u0302','̂ ');
+	_string = string.gsub(_string,'u031e','̞');
+	_string = string.gsub(_string,'u0301','́');
+	_string = string.gsub(_string,'u201d','́');
+	_string = string.gsub(_string,'u2018','‘');
+	_string = string.gsub(_string,'u2013','–');
+	_string = string.gsub(_string,'u2026','…');
+	_string = string.gsub(_string,'u00bf',''); -- ¿
+	_string = string.gsub(_string,'u00bb','»');
+	_string = string.gsub(_string,'u00ab','«');
+	_string = string.gsub(_string,'u00f8','ø');
+	_string = string.gsub(_string,'u2026','…');
+	_string = string.gsub(_string,'u00aa','ª');
 	_string = string.gsub(_string,"%s+%s+", "")
 	return _string
 end
@@ -191,7 +217,7 @@ function epgInfo (xres, yres, aspectRatio, framerate)
 		elseif msg == RC.down or msg == RC.page_down then
 			ct:scroll{dir="down"};
 		end
-	until msg == RC.ok or msg == RC.home
+	until msg == RC.ok or msg == RC.home or msg == RC.info
 	wh:hide()
 end
 
@@ -225,14 +251,36 @@ function select_playitem()
 	if title == nil then
 		title = p[pmid].title
 	end
-	local js_data = getdata(url,nil) -- z.B. https://www.spiegel.de/video/spiegel-tv-ueber-auto-poser-und-ps-protze-video-99031464.html
+	local js_data = getdata(url,nil)
 	local url1 = js_data:match('mediaId&.-&.-;(.-)&')
-	local url2 = "https://cdn.jwplayer.com/manifests/" ..url1 .. ".m3u8"
-	local url3 = getdata(url2,nil)
-	local url = url3:match('x720.-(http.-)\n')
+
+	if url1 == nil then
+		print("Video URL not  found") 
+	end
+
+	local js_url = getdata('https://vcdn01.spiegel.de/v2/media/' .. url1,nil)
+
+	if js_url == nil then -- dummy, kann gelöscht werden wenn der Beitrag vom 14 Jul 2020 aus dem spiegel-tv/index.rss rausgefallen ist
+		js_url = getdata('https://vcdn01.spiegel.de/v2/media/253bWLRR',nil)
+	end
+
+	local url = js_url:match('180p.-"file":"(https:.-videos.-mp4)"') 
+
+	if url == nil then
+		url = js_url:match('720p.-"file":"(https.-videos.-mp4)"') 
+	end
+	if url == nil then
+		url = js_url:match('"file":"(https.-videos.-mp4)"') 
+	end
+
+
+	local description = js_url:match('"description":"(.-)"') 
+	if description == nil then
+		description = p[pmid].description
+	end
 
 	if url then
-		epg = p[pmid].title .. "\n\n" .. p[pmid].description .. "\n\n" ..p[pmid].from
+		epg = p[pmid].title .. "\n\n" .. conv_str(description) .. "\n\n" ..p[pmid].from
 		vPlay:setInfoFunc("epgInfo")
 --		vPlay:PlayFile("SpiegelTV",url,p[pmid].title,url); -- with url, only for testing
 		vPlay:PlayFile("SpiegelTV",url,p[pmid].title);
