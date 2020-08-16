@@ -17,6 +17,7 @@ function media.getAddonMedia(url)
 				media.PicUrl[#media.PicUrl+1] = jnTab._previewImage .. id
 			end
 			local stop = false
+			local maxRes = getMaxVideoRes()
 			for j,videoTab in ipairs(jnTab._mediaArray) do
 				if type(videoTab) == "table" then
 					for i,va in pairs(videoTab) do
@@ -29,8 +30,10 @@ function media.getAddonMedia(url)
 									local v_url,result = getVideoUrlM3U8(v._stream)
 									if v_url then
 										video_url = v_url
-										stop = true
-										break
+										if result >= maxRes then
+											stop = true
+											break
+										end
 									end
 								end
 								if  v._quality and type(v._stream)=="string" and v._stream:sub(#v._stream-3,#v._stream) == ".mp4" then

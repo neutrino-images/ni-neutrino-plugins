@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.90"
+rssReaderVersion="Lua RSS READER v0.91"
 local CONF_PATH = "/var/tuxbox/config/"
 local n = neutrino()
 local FontMenu = FONT.MENU
@@ -118,7 +118,7 @@ end
 function __LINE__() return debug.getinfo(2, 'l').currentline end
 
 function getMaxVideoRes()
-	local maxRes = 1280
+	local maxRes = 1920
 	if conf.maxRes then
 		local maxResStr = conf.maxRes:match("(%d+)x")
 		maxRes = tonumber(maxResStr)
@@ -1174,7 +1174,6 @@ function set_action(id,value)
 	conf[id]=value
 
 	if id == "maxRes" then
-		saveConfig()
 		tmpUrlLink,tmpUrlVideo,tmpUrlAudio,tmpUrlExtra,tmpUrlVideoAudio,tmpText = nil,nil,nil,nil,nil,nil
 	end
 	if id == 'addonsdir' then
