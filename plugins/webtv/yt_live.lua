@@ -152,7 +152,7 @@ function getVideoData(yurl)
 	end
 
 	local revision = 0
-	local maxRes = 1280
+	local maxRes = 1920
 	if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
 		M = misc.new()
 		revision = M:GetRevision()
@@ -229,16 +229,16 @@ function getVideoData(yurl)
 					formats_data = formats_data:gsub('\\"','"')
 					local formats = json:decode (formats_data)
 					if formats then
-						for k, purl in pairs(formats) do
-							if itag and have_itags[itag] ~= true then
-								have_itags[itag] = true
+						for k, v in pairs(formats) do
+							if v.itag and have_itags[v.itag] ~= true then
+								have_itags[v.itag] = true
 								ucount = ucount + 1
-								if signatureCipher then
-									map_urls[ucount] = signatureCipher
-								elseif url then
-									map_urls[ucount] = "url=" .. url
+								if v.signatureCipher then
+									map_urls[ucount] = v.signatureCipher
+								elseif v.url then
+									map_urls[ucount] = "url=" .. v.url
 								elseif cipher then --unnecessary?
-									map_urls[ucount] = cipher
+									map_urls[ucount] = v.cipher
 								end
 							end
 						end

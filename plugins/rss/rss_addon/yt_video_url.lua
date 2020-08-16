@@ -143,15 +143,7 @@ function media.getVideoUrl(yurl)
 	if h then
 		h:paint()
 	end
-	local CONF_PATH = "/var/tuxbox/config/"
-	local config	= configfile.new()
-	config:loadConfig(CONF_PATH .. "rss.conf")
-	local maxRes = 1280
-	local maxResStr = config:getString("maxRes", "1280x720")
-	if maxResStr then
-		maxResStr = maxResStr:match("(%d+)x")
-		maxRes = tonumber(maxResStr)
-	end
+	local maxRes = getMaxVideoRes()
 	local count,countx = 0,0
 	local tmp_res = 0
 	local stop = false
@@ -182,18 +174,7 @@ function media.getVideoUrl(yurl)
 			end
 			if m3u_url then
 				m3u_url = m3u_url:gsub("\\", "")
-				local videodata = getdata(m3u_url)
-				local res = 0
-				for band, res1, res2, url in videodata:gmatch('#EXT.X.STREAM.INF.BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-(http.-)\n') do
-					if url and res1 then
-						local nr = tonumber(res1)
-						if nr <= maxRes and nr > res then
-							res=nr
-							url = url:gsub("/keepalive/yes","")--fix for new ffmpeg
-							video_url = url
-						end
-					end
-				end
+				video_url = getVideoUrlM3U8(m3u_url)
 				if video_url and #video_url > 8 then
 					media.VideoUrl=video_url
 				end
@@ -220,16 +201,16 @@ function media.getVideoUrl(yurl)
 					formats_data = formats_data:gsub('\\"','"')
 					local formats = json:decode (formats_data)
 					if formats then
-						for k, purl in pairs(formats) do
-							if itag and have_itags[itag] ~= true then
-								have_itags[itag] = true
+						for k, v in pairs(formats) do
+							if v.itag and have_itags[v.itag] ~= true then
+								have_itags[v.itag] = true
 								ucount = ucount + 1
-								if signatureCipher then
-									map_urls[ucount] = signatureCipher
-								elseif url then
-									map_urls[ucount] = "url=" .. url
+								if v.signatureCipher then
+									map_urls[ucount] = v.signatureCipher
+								elseif v.url then
+									map_urls[ucount] = "url=" .. v.url
 								elseif cipher then --unnecessary?
-									map_urls[ucount] = cipher
+									map_urls[ucount] = v.cipher
 								end
 							end
 						end
