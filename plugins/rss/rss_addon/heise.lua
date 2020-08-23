@@ -18,8 +18,8 @@ function media.getAddonMedia(url,extraUrl)
 				local host = url:match('([%a]+[:]?//[_%w%-%.]+)/')
 				data = getdata(host .. jsakwaurl)
 				if data then
-					local kultura = data:match('"(//[%w%.]+/%w/.-)/embedIframeJs')
-					local partnerId = data:match('partner%-id%"%)||(%d+)')
+					local kultura = data:match('https:(//[%w%.]+/%w/.-)/embedPlaykitJs') or data:match('"(//[%w%.]+/%w/.-)/embedIframeJs')
+					local partnerId = data:match('"partnerId":(%d+)') or data:match('partner%-id%"%)||(%d+)')
 					if kultura and partnerId then
 						a = "https:" .. kultura:gsub('"[%w%+%.]+"',partnerId)
 					end
