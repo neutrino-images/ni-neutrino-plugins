@@ -3,36 +3,6 @@
 
 local media = {}
 
-function heise_getVideoUrl(m3u8_url)
-	if m3u8_url == nil then return nil end
-	local videoUrl = nil
-	local res = 0
-	local data = getdata(m3u8_url)
-	if data then
-		local host = m3u8_url:match('([%a]+[:]?//[_%w%-%.]+)/')
-		if m3u8_url:find('/master.m3u8') then
-			local lastpos = (m3u8_url:reverse()):find("/")
-			local hosttmp = m3u8_url:sub(1,#m3u8_url-lastpos)
-			if hosttmp then
-				host = hosttmp .."/"
-			end
-		end
-		for band, res1, res2, url in data:gmatch('BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-\n(.-)\n') do
-			if url and res1 then
-				local nr = tonumber(res1)
-				if nr < 2000 and nr > res then
-					res=nr
-					if host and url:sub(1,4) ~= "http" then
-						url = host .. url
-					end
-					videoUrl = url
-				end
-			end
-		end
-	end
-	return videoUrl,res
-end
-
 function media.getAddonMedia(url,extraUrl)
 	local video_url = nil
 
@@ -48,8 +18,8 @@ function media.getAddonMedia(url,extraUrl)
 				local host = url:match('([%a]+[:]?//[_%w%-%.]+)/')
 				data = getdata(host .. jsakwaurl)
 				if data then
-					local kultura = data:match('"(//[%w%.]+/%w/.-)/embedIframeJs')
-					local partnerId = data:match('partner%-id%"%)||(%d+)')
+					local kultura = data:match('https:(//[%w%.]+/%w/.-)/embedPlaykitJs') or data:match('"(//[%w%.]+/%w/.-)/embedIframeJs')
+					local partnerId = data:match('"partnerId":(%d+)') or data:match('partner%-id%"%)||(%d+)')
 					if kultura and partnerId then
 						a = "https:" .. kultura:gsub('"[%w%+%.]+"',partnerId)
 					end
@@ -59,7 +29,7 @@ function media.getAddonMedia(url,extraUrl)
 			a = a .. "/playManifest/entryId"
 			if entry_id then
 				a = a .. "/" .. entry_id .. "/flavorIds/" .. entry_id .. "/format/applehttp/protocol/https/?callback="
-				video_url = heise_getVideoUrl(a)
+				video_url,_ = getVideoUrlM3U8(a)
 				if video_url == nil then video_url = a end
 			end
 		end
@@ -70,6 +40,10 @@ function media.getAddonMedia(url,extraUrl)
 				if hasaddon then
 					b.getVideoUrl('https://youtube.com/watch?v=' .. ytid)
 					video_url = b.VideoUrl
+					if b.UrlVideoAudio then
+						media.UrlVideoAudio = b.UrlVideoAudio
+						b.UrlVideoAudio = nil
+					end
 				end
 			end
 		end

@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.89"
+rssReaderVersion="Lua RSS READER v0.91"
 local CONF_PATH = "/var/tuxbox/config/"
 local n = neutrino()
 local FontMenu = FONT.MENU
@@ -34,11 +34,11 @@ feedentries = {} --don't make
 local S_Key = {fav_setup=1,fav=2,setup=3}
 local addon = nil
 local nothing,hva,hvb,hvc,hve,hvf="nichts",nil,nil,nil,nil,"reader"
-local picdir = "/tmp/rssPics"local vPlay = nil
+local picdir = "/tmp/rssPics"
+local vPlay = nil
 local epgtext = nil
 local epgtitle = nil
 local LinksBrowser = "/links.so"
-
 
 locale = {}
 locale["english"] = {
@@ -59,7 +59,7 @@ locale["english"] = {
 	curlTimeout= "Connect Timeout",
 	curlTimeouthint = "Internet connect timeout (min/max) 1...99 seconds",
 	maxRes = "Max. Resolution",
-	maxReshint = "Max. Resolution für Youtube Video",
+	maxReshint = "Max. Video Resolution",
 	mt_ard = "Generate ARD Media Library List",
 	mt_zdf = "Generate ZDF Media Library List",
 	mt_hint = "The list is only loaded after rss restart"
@@ -82,7 +82,7 @@ locale["deutsch"] = {
 	curlTimeout="Zeitüberschreitung der Internetverbindung nach",
 	curlTimeouthint="Zeitüberschreitung der Internetverbindung (min/max) 1...99 sekunden",
 	maxRes = "Max. Auflösung",
-	maxReshint = "Max. Auflösung für Youtube Video",
+	maxReshint = "Max. Auflösung für Video",
 	mt_ard = "Generiere ARD Mediathek Liste",
 	mt_zdf = "Generiere ZDF Mediathek Liste",
 	mt_hint = "Die Liste wird erst nach rss neustart geladen"
@@ -105,7 +105,7 @@ locale["polski"] = {
 	curlTimeout="Limit czasu połączenia z Internetem",
 	curlTimeouthint="Limit czasu połączenia z Internetem (min/max) 1...99 sekund",
 	maxRes = "Max. rozdzielczość",
-	maxReshint = "Maksymalna rozdzielczość dla Youtube Video",
+	maxReshint = "Maksymalna rozdzielczość dla Video",
 	mt_ard = "Generowanie listy bibliotek ARD Media",
 	mt_zdf = "Generowanie listy bibliotek ZDF Media",
 	mt_hint = "Lista jest ładowana dopiero po restarcie rss"
@@ -117,6 +117,45 @@ end
 
 function __LINE__() return debug.getinfo(2, 'l').currentline end
 
+function getMaxVideoRes()
+	local maxRes = 1920
+	if conf.maxRes then
+		local maxResStr = conf.maxRes:match("(%d+)x")
+		maxRes = tonumber(maxResStr)
+	end
+	return maxRes
+end
+
+function getVideoUrlM3U8(m3u8_url)
+	if m3u8_url == nil then return nil end
+	local videoUrl = nil
+	local res = 0
+	local data = getdata(m3u8_url)
+	if data then
+		local host = m3u8_url:match('([%a]+[:]?//[_%w%-%.]+)/')
+		if m3u8_url:find('/master.m3u8') then
+			local lastpos = (m3u8_url:reverse()):find("/")
+			local hosttmp = m3u8_url:sub(1,#m3u8_url-lastpos)
+			if hosttmp then
+				host = hosttmp .."/"
+			end
+		end
+		local maxRes = getMaxVideoRes()
+		for band, res1, res2, url in data:gmatch('BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-\n(.-)\n') do
+			if url and res1 then
+				local nr = tonumber(res1)
+				if nr <= maxRes and nr > res then
+					res=nr
+					if host and url:sub(1,4) ~= "http" then
+						url = host .. url
+					end
+					videoUrl = url
+				end
+			end
+		end
+	end
+	return videoUrl,res
+end
 
 function pop(cmd)
        local f = assert(io.popen(cmd, 'r'))
@@ -1135,7 +1174,6 @@ function set_action(id,value)
 	conf[id]=value
 
 	if id == "maxRes" then
-		saveConfig()
 		tmpUrlLink,tmpUrlVideo,tmpUrlAudio,tmpUrlExtra,tmpUrlVideoAudio,tmpText = nil,nil,nil,nil,nil,nil
 	end
 	if id == 'addonsdir' then
