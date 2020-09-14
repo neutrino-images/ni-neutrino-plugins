@@ -495,8 +495,8 @@ function paintMtLeftMenu()
 		N:paintVLine(mtLeftMenu_x+subMenuLeft+subMenuHight, y, subMenuHight, frameColor)
 		N:RenderString(useDynFont, fontLeftMenu1, txt1, math.floor(mtLeftMenu_x+subMenuLeft+subMenuHight+subMenuHight/3), y+subMenuHight, txtCol, mtLeftMenu_w-subMenuHight-subMenuLeft*2, subMenuHight, 0)
 
-		buttonCol_x = mtLeftMenu_x+subMenuLeft+(subMenuHight-buttonCol_w)/2
-		buttonCol_y = y+(subMenuHight-buttonCol_h)/2
+		buttonCol_x = math.floor(mtLeftMenu_x+subMenuLeft+(subMenuHight-buttonCol_w)/2)
+		buttonCol_y = y+math.floor((subMenuHight-buttonCol_h)/2)
 		N:DisplayImage(btn, buttonCol_x, buttonCol_y, buttonCol_w, buttonCol_h, 1)
 
 		y = y + subMenuHight
