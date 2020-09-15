@@ -432,7 +432,7 @@ function main()
 	if res == "yes" then
 		local glob = require "posix".glob
 		local startup_lines = {}
-		for _, j in pairs(glob(boot .. '/STARTUP*', 0)) do
+		for _, j in pairs(glob(boot .. '/STARTUP*')) do
 			for line in io.lines(j) do
 				if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("boxmode=12") and not line:match("android") then
 					if line:match(devbase .. image_to_devnum(root)) then
