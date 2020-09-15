@@ -188,7 +188,7 @@ function start_update()
 		end
 		os.execute("unzip -x " .. tmp .. ".zip -d " .. tmp)
 		local glob = require "posix".glob
-		for _, j in pairs(glob(tmp .. "/*", 0)) do
+		for _, j in pairs(glob(tmp .. "/*")) do
 			os.execute("mv -f " .. j .. "/* " .. tmp)
 		end
 		os.execute("rm -rf " .. tmp .. ".zip")
