@@ -109,7 +109,7 @@ function get_imagename(root)
 		imagename = get_value("distro", root) .. " " .. get_value("imageversion", root)
 	else
 		local glob = require "posix".glob
-		for _, j in pairs(glob('/boot/*', 0)) do
+		for _, j in pairs(glob('/boot/*')) do
 			for line in io.lines(j) do
 				if (j ~= bootfile) or (j ~= nil) then
 					if line:match(devbase .. root) then
