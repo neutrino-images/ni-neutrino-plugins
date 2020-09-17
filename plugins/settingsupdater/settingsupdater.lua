@@ -179,10 +179,12 @@ function start_update()
 	ret:paint();
 	if (get_cfg_value("use_git") == 1) then
 		setting_url = "https://github.com/horsti58/lua-data"
-		ok ,err, exitcode = os.execute("git clone " .. setting_url .. " " .. tmp)
+		local exitcode = os.execute("git clone " .. setting_url .. " " .. tmp)
+		value = exitcode / 256
 	else
 		setting_url = "https://codeload.github.com/horsti58/lua-data/zip/master"
-		ok ,err, exitcode = os.execute("curl " .. setting_url .. " -o " .. tmp .. ".zip")
+		local exitcode = os.execute("curl " .. setting_url .. " -o " .. tmp .. ".zip")
+		value = exitcode / 256
 		if (exists(tmp) ~= true) then
 			os.execute("mkdir " .. tmp)
 		end
@@ -194,15 +196,16 @@ function start_update()
 		os.execute("rm -rf " .. tmp .. ".zip")
 	end
 
-	if (exitcode ~= 0) then
+	if (value ~= 0) then
 		ret:hide()
 		show_msg(locale[lang].fetch_failed)
 		return
 	else
 		ret:hide();
 	end
-	local ok,err,exitcode = os.execute("rsync -rlpgoD --size-only " .. setting_intro .. "/settingupdater_" .. nconf_value("osd_resolution") .. ".png " .. icondir .. "/settingupdater.png")
-	if (exitcode ~= 0) then
+	local exitcode = os.execute("rsync -rlpgoD --size-only " .. setting_intro .. "/settingupdater_" .. nconf_value("osd_resolution") .. ".png " .. icondir .. "/settingupdater.png")
+	local value = exitcode / 256
+	if (value ~= 0) then
 		ret:hide()
 		print("rsync missing?")
 		local ok,err,exitcode = os.execute("cp -f " .. setting_intro .. "/settingupdater_" .. nconf_value("osd_resolution") .. ".png " .. icondir .. "/settingupdater.png")
@@ -260,9 +263,10 @@ function start_update()
 	ret:hide()
 	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].cleanup };
 	ret:paint()
-	local ok,err,exitcode = os.execute("rm -r " .. tmp)
+	local exitcode = os.execute("rm -r " .. tmp)
+	local value = exitcode / 256
 	sleep(1);
-	if (exitcode ~= 0) then
+	if (value ~= 0) then
 		ret:hide()
 		show_msg(locale[lang].cleanup_failed)
 		return
@@ -461,3 +465,4 @@ function main()
 end
 
 main()
+
