@@ -361,3 +361,4 @@ function main()
 	chooser:hide()
 end
 
+main()
