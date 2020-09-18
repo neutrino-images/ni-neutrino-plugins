@@ -92,8 +92,7 @@ function create_settingupdater_cfg()
 	file:write("7.0E=0", "\n")
 	file:write("4.8E=0", "\n")
 	file:write("0.8W=0", "\n")
-	file:write("UnityMedia=0", "\n")
-	file:write("KDV=0", "\n")
+	file:write("Vodafone=0", "\n")
 	file:write("use_git=0", "\n")
 	file:close()
 end
@@ -226,8 +225,7 @@ function start_update()
 	if (get_cfg_value("7.0E") == 1) then table.insert (positions, "7.0E"); have_sat = 1 end
 	if (get_cfg_value("4.8E") == 1) then table.insert (positions, "4.8E"); have_sat = 1 end
 	if (get_cfg_value("0.8W") == 1) then table.insert (positions, "0.8W"); have_sat = 1 end
-	if (get_cfg_value("UnityMedia") == 1) then table.insert (positions, "UnityMedia"); have_cable = 1 end
-	if (get_cfg_value("KDV") == 1) then table.insert (positions, "KDV"); have_cable = 1 end
+	if (get_cfg_value("Vodafone") == 1) then table.insert (positions, "UnityMedia"); have_cable = 1 end
 	table.insert (positions, "end")
 
 	bouquets = io.open(zapitdir .. "/bouquets.xml", 'w')
@@ -333,12 +331,8 @@ function thor_cfg(k, v, str)
 	write_cfg(k, v, "0.8W")
 end
 
-function um_cfg(k, v, str)
-	write_cfg(k, v, "UnityMedia")
-end
-
-function kdv_cfg(k, v, str)
-	write_cfg(k, v, "KDV")
+function kab_cfg(k, v, str)
+	write_cfg(k, v, "Vodafone")
 end
 
 function use_git_cfg(k, v, str)
@@ -350,35 +344,35 @@ function options ()
 	menu = menu.new{name=locale[lang].menu_options}
 	menu:addItem{type="back"}
 	menu:addItem{type="separatorline"}
-	if (get_cfg_value("19.2E") == 1) then
-		menu:addItem{type="chooser", action="astra_cfg", options={on, off}, icon=1, directkey=RC["1"], name=locale[lang].cfg_install_a .. " 19.2E " .. locale[lang].cfg_install_b}
-	elseif (get_cfg_value("19.2E") == 0) then
-		menu:addItem{type="chooser", action="astra_cfg", options={off, on}, icon=1, directkey=RC["1"], name=locale[lang].cfg_install_a .. " 19.2E " .. locale[lang].cfg_install_b}
-	end
-	if (get_cfg_value("13.0E") == 1) then
-		menu:addItem{type="chooser", action="hotbird_cfg", options={on, off}, icon=2, directkey=RC["2"], name=locale[lang].cfg_install_a .. " 13.0E " .. locale[lang].cfg_install_b}
-	elseif (get_cfg_value("13.0E") == 0) then
-		menu:addItem{type="chooser", action="hotbird_cfg", options={off, on}, icon=2, directkey=RC["2"], name=locale[lang].cfg_install_a .. " 13.0E " .. locale[lang].cfg_install_b}
-	end
-	if (get_cfg_value("16.0E") == 1) then
-		menu:addItem{type="chooser", action="eutelsatc_cfg", options={on, off}, icon=3, directkey=RC["3"], name=locale[lang].cfg_install_a .. " 16.0E " .. locale[lang].cfg_install_b}
-	elseif (get_cfg_value("16.0E") == 0) then
-		menu:addItem{type="chooser", action="eutelsatc_cfg", options={off, on}, icon=3, directkey=RC["3"], name=locale[lang].cfg_install_a .. " 16.0E " .. locale[lang].cfg_install_b}
-	end
-	if (get_cfg_value("23.5E") == 1) then
-		menu:addItem{type="chooser", action="astra_nl_cfg", options={on, off}, icon=4, directkey=RC["4"], name=locale[lang].cfg_install_a .. " 23.5E " .. locale[lang].cfg_install_b}
-	elseif (get_cfg_value("23.5E") == 0) then
-		menu:addItem{type="chooser", action="astra_nl_cfg", options={off, on}, icon=4, directkey=RC["4"], name=locale[lang].cfg_install_a .. " 23.5E " .. locale[lang].cfg_install_b}
+	if (get_cfg_value("28.2E") == 1) then
+		menu:addItem{type="chooser", action="astra_gb_cfg", options={on, off}, icon=1, directkey=RC["1"], name=locale[lang].cfg_install_a .. " 28.2E " .. locale[lang].cfg_install_b}
+	elseif (get_cfg_value("28.2E") == 0) then
+		menu:addItem{type="chooser", action="astra_gb_cfg", options={off, on}, icon=1, directkey=RC["1"], name=locale[lang].cfg_install_a .. " 28.2E " .. locale[lang].cfg_install_b}
 	end
 	if (get_cfg_value("26.0E") == 1) then
-		menu:addItem{type="chooser", action="badr_cfg", options={on, off}, icon=5, directkey=RC["5"], name=locale[lang].cfg_install_a .. " 26.0E " .. locale[lang].cfg_install_b}
+		menu:addItem{type="chooser", action="badr_cfg", options={on, off}, icon=2, directkey=RC["2"], name=locale[lang].cfg_install_a .. " 26.0E " .. locale[lang].cfg_install_b}
 	elseif (get_cfg_value("26.0E") == 0) then
-		menu:addItem{type="chooser", action="badr_cfg", options={off, on}, icon=5, directkey=RC["5"], name=locale[lang].cfg_install_a .. " 26.0E " .. locale[lang].cfg_install_b}
+		menu:addItem{type="chooser", action="badr_cfg", options={off, on}, icon=2, directkey=RC["2"], name=locale[lang].cfg_install_a .. " 26.0E " .. locale[lang].cfg_install_b}
 	end
-	if (get_cfg_value("28.2E") == 1) then
-		menu:addItem{type="chooser", action="astra_gb_cfg", options={on, off}, icon=6, directkey=RC["6"], name=locale[lang].cfg_install_a .. " 28.2E " .. locale[lang].cfg_install_b}
-	elseif (get_cfg_value("28.2E") == 0) then
-		menu:addItem{type="chooser", action="astra_gb_cfg", options={off, on}, icon=6, directkey=RC["6"], name=locale[lang].cfg_install_a .. " 28.2E " .. locale[lang].cfg_install_b}
+	if (get_cfg_value("23.5E") == 1) then
+		menu:addItem{type="chooser", action="astra_nl_cfg", options={on, off}, icon=3, directkey=RC["3"], name=locale[lang].cfg_install_a .. " 23.5E " .. locale[lang].cfg_install_b}
+	elseif (get_cfg_value("23.5E") == 0) then
+		menu:addItem{type="chooser", action="astra_nl_cfg", options={off, on}, icon=3, directkey=RC["3"], name=locale[lang].cfg_install_a .. " 23.5E " .. locale[lang].cfg_install_b}
+	end
+	if (get_cfg_value("19.2E") == 1) then
+		menu:addItem{type="chooser", action="astra_cfg", options={on, off}, icon=4, directkey=RC["4"], name=locale[lang].cfg_install_a .. " 19.2E " .. locale[lang].cfg_install_b}
+	elseif (get_cfg_value("19.2E") == 0) then
+		menu:addItem{type="chooser", action="astra_cfg", options={off, on}, icon=4, directkey=RC["4"], name=locale[lang].cfg_install_a .. " 19.2E " .. locale[lang].cfg_install_b}
+	end
+	if (get_cfg_value("16.0E") == 1) then
+		menu:addItem{type="chooser", action="eutelsatc_cfg", options={on, off}, icon=5, directkey=RC["5"], name=locale[lang].cfg_install_a .. " 16.0E " .. locale[lang].cfg_install_b}
+	elseif (get_cfg_value("16.0E") == 0) then
+		menu:addItem{type="chooser", action="eutelsatc_cfg", options={off, on}, icon=5, directkey=RC["5"], name=locale[lang].cfg_install_a .. " 16.0E " .. locale[lang].cfg_install_b}
+	end
+	if (get_cfg_value("13.0E") == 1) then
+		menu:addItem{type="chooser", action="hotbird_cfg", options={on, off}, icon=6, directkey=RC["6"], name=locale[lang].cfg_install_a .. " 13.0E " .. locale[lang].cfg_install_b}
+	elseif (get_cfg_value("13.0E") == 0) then
+		menu:addItem{type="chooser", action="hotbird_cfg", options={off, on}, icon=6, directkey=RC["6"], name=locale[lang].cfg_install_a .. " 13.0E " .. locale[lang].cfg_install_b}
 	end
 	if (get_cfg_value("9.0E") == 1) then
 		menu:addItem{type="chooser", action="eutelsata_cfg", options={on, off}, icon=7, directkey=RC["7"], name=locale[lang].cfg_install_a .. " 9.0E " .. locale[lang].cfg_install_b}
@@ -400,20 +394,15 @@ function options ()
 	elseif (get_cfg_value("0.8W") == 0) then
 		menu:addItem{type="chooser", action="thor_cfg", options={off, on}, icon=0, directkey=RC["0"], name=locale[lang].cfg_install_a .. " 0.8W " .. locale[lang].cfg_install_b}
 	end
-	if (get_cfg_value("UnityMedia") == 1) then
-		menu:addItem{type="chooser", action="um_cfg", options={on, off}, icon=0, directkey=RC["0"], name=locale[lang].cfg_install_a .. " UnityMedia " .. locale[lang].cfg_install_b}
-	elseif (get_cfg_value("UnityMedia") == 0) then
-		menu:addItem{type="chooser", action="um_cfg", options={off, on}, icon=0, directkey=RC["0"], name=locale[lang].cfg_install_a .. " UnityMedia " .. locale[lang].cfg_install_b}
-	end
-	if (get_cfg_value("KDV") == 1) then
-		menu:addItem{type="chooser", action="kdv_cfg", options={on, off}, icon=0, directkey=RC["0"], name=locale[lang].cfg_install_a .. " KDV " .. locale[lang].cfg_install_b}
-	elseif (get_cfg_value("KDV") == 0) then
-		menu:addItem{type="chooser", action="kdv_cfg", options={off, on}, icon=0, directkey=RC["0"], name=locale[lang].cfg_install_a .. " KDV " .. locale[lang].cfg_install_b}
+	if (get_cfg_value("Vodafone") == 1) then
+		menu:addItem{type="chooser", action="kab_cfg", options={on, off}, icon=yellow, directkey=RC["yellow"], name=locale[lang].cfg_install_a .. " Kabel " .. locale[lang].cfg_install_b}
+	elseif (get_cfg_value("Vodafone") == 0) then
+		menu:addItem{type="chooser", action="kab_cfg", options={off, on}, icon=yellow, directkey=RC["yellow"], name=locale[lang].cfg_install_a .. " Kabel " .. locale[lang].cfg_install_b}
 	end
 	if (get_cfg_value("use_git") == 1) then
-		menu:addItem{type="chooser", action="use_git_cfg", options={on, off}, name=locale[lang].cfg_git}
+		menu:addItem{type="chooser", action="use_git_cfg", options={on, off}, icon=blue, directkey=RC["blue"], name=locale[lang].cfg_git}
 	elseif (get_cfg_value("use_git") == 0) then
-		menu:addItem{type="chooser", action="use_git_cfg", options={off, on}, name=locale[lang].cfg_git}
+		menu:addItem{type="chooser", action="use_git_cfg", options={off, on}, icon=blue, directkey=RC["blue"], name=locale[lang].cfg_git}
 	end
 	menu:exec()
 	main()
@@ -423,7 +412,7 @@ if check_for_update() then show_msg(locale[lang].update_available) end
 
 function main()
 	chooser_dx = n:scale2Res(560)
-	chooser_dy = n:scale2Res(350)
+	chooser_dy = n:scale2Res(400)
 	chooser_x = SCREEN.OFF_X + (((SCREEN.END_X - SCREEN.OFF_X) - chooser_dx) / 2)
 	chooser_y = SCREEN.OFF_Y + (((SCREEN.END_Y - SCREEN.OFF_Y) - chooser_dy) / 2)
 
