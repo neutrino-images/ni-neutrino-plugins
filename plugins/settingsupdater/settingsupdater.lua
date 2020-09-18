@@ -57,6 +57,7 @@ update_available = "Update available"
 }
 
 n = neutrino()
+fh = filehelpers.new()
 tmp = "/tmp/settingupdate"
 neutrino_conf_base = "/var/tuxbox/config"
 icondir = "/share/tuxbox/neutrino/icons"
@@ -65,19 +66,12 @@ zapitdir = neutrino_conf_base .. "/zapit"
 setting_intro = tmp .. "/lua"
 settingupdater_cfg = neutrino_conf_base .. "/settingupdater.cfg"
 
-function exists(file)
-	local ok, err, exitcode = os.rename(file, file)
-	if not ok then
-		if exitcode == 13 then
-		-- Permission denied, but it exists
-		return true
-		end
-	end
-	return ok, err
-end
-
-function isdir(path)
-	return exists(path .. "/")
+function exists(file)                                                                     
+        return fh:exist(file, "f")                                   
+end                                                                  
+                                                                     
+function isdir(path)                                                 
+        return fh:exist(path, "d")                                   
 end
 
 function create_settingupdater_cfg()
