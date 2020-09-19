@@ -70,7 +70,8 @@ cfg_keep = "Keep existing files"
 }
 
 n = neutrino()
-neutrino_conf = "/var/tuxbox/config/neutrino.conf" 
+fh = filehelpers.new()
+neutrino_conf = "/var/tuxbox/config/neutrino.conf"
 tmp = "/tmp/logoupdate"
 icondir = "/share/tuxbox/neutrino/icons"
 logo_source = tmp .. "/logos"
@@ -82,18 +83,11 @@ logodb = tmp .. "/logo-links/logo-links.db"
 logoupdater_cfg = "/var/tuxbox/config/logoupdater.cfg"
 
 function exists(file)
-	local ok, err, exitcode = os.rename(file, file)
-	if not ok then
-		if exitcode == 13 then
-		-- Permission denied, but it exists
-		return true
-		end
-	end
-	return ok, err
+	return fh:exist(file, "f")
 end
 
 function isdir(path)
-	return exists(path .. "/")
+	return fh:exist(path, "d")
 end
 
 function create_logoupdater_cfg()
@@ -142,10 +136,10 @@ end
 logodir = nconf_value("logo_hdd_dir")
 timing_menu = nconf_value("timing.menu")
 
-function sleep(a) 
-	local sec = tonumber(os.clock() + a); 
-	while (os.clock() < sec) do 
-	end 
+function sleep(a)
+	local sec = tonumber(os.clock() + a);
+	while (os.clock() < sec) do
+	end
 end
 
 function show_error(msg)
@@ -160,22 +154,24 @@ function start_update()
 	if (isdir(tmp) == true) then os.execute("rm -rf " .. tmp) end
 	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].fetch_source };
 	ret:paint();
-	if (get_cfg_value("use_git") == 1) then 
-		ok ,err, exitcode = os.execute("git clone " .. logo_url .. " " .. tmp)
+	if (get_cfg_value("use_git") == 1) then
+		local exitcode = os.execute("git clone " .. logo_url .. " " .. tmp)
+		value = exitcode / 256
 	else
-		ok ,err, exitcode = os.execute("curl " .. logo_url .. " -o " .. tmp .. ".zip")
+		local exitcode = os.execute("curl " .. logo_url .. " -o " .. tmp .. ".zip")
+		value = exitcode / 256
 		if (exists(tmp) ~= true) then
 			os.execute("mkdir " .. tmp)
 		end
 		os.execute("unzip -x " .. tmp .. ".zip -d " .. tmp)
 		local glob = require "posix".glob
-		for _, j in pairs(glob(tmp .. "/*")) do
-			os.execute("mv -f " .. j .. "/* " .. tmp)
+		for _,v in pairs(glob(tmp .. '/*/*')) do
+			os.execute("mv -f " .. v .. " " .. tmp)
 		end
 		os.execute("rm -rf " .. tmp .. ".zip")
 	end
 
-	if (exitcode ~= 0) then
+	if (value ~= 0) then
 		ret:hide()
 		show_error(locale[lang].fetch_failed)
 		return
@@ -184,14 +180,15 @@ function start_update()
 	end
 
 	os.execute("rsync -rlpgoD --size-only " .. logo_intro .. "/logoupdater_" .. nconf_value("osd_resolution") .. ".png " .. icondir .. "/logoupdater.png")
-	
+
 	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].copy_logos };
 	ret:paint();
 	local delete = ""
-	if (get_cfg_value("keep_files") == 0) then delete = "--delete " end 
-	local ok,err,exitcode = os.execute("rsync -rlpgoD --size-only " .. delete .. logo_source .. "/ " .. logodir)
+	if (get_cfg_value("keep_files") == 0) then delete = "--delete " end
+	local exitcode = os.execute("rsync -rlpgoD --size-only " .. delete .. logo_source .. "/ " .. logodir)
+	local value = exitcode / 256
 	sleep(1);
-	if (exitcode ~= 0) then
+	if (value ~= 0) then
 		ret:hide()
 		show_error(locale[lang].copy_failed)
 		return
@@ -202,9 +199,10 @@ function start_update()
 	if (get_cfg_value("eventlogos") == 1) then
 		local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].copy_eventlogos };
 		ret:paint();
-		local ok,err,exitcode = os.execute("rsync -rlpgoD --size-only " .. delete .. logo_event_source .. "/* " .. logodir)
+		local exitcode = os.execute("rsync -rlpgoD --size-only " .. delete .. logo_event_source .. "/* " .. logodir)
+		local value = exitcode / 256
 		sleep(1);
-		if (exitcode ~= 0) then
+		if (value ~= 0) then
 			ret:hide()
 			show_error(locale[lang].copy_failed)
 			return
@@ -216,9 +214,10 @@ function start_update()
 	if (get_cfg_value("popuplogos") == 1) then
 		local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].copy_popuplogos };
 		ret:paint();
-		local ok,err,exitcode = os.execute("rsync -rlpgoD --size-only " .. delete .. logo_popup_source .. "/* " .. logodir)
+		local exitcode = os.execute("rsync -rlpgoD --size-only " .. delete .. logo_popup_source .. "/* " .. logodir)
+		local value = exitcode / 256
 		sleep(1);
-		if (exitcode ~= 0) then
+		if (value ~= 0) then
 			ret:hide()
 			show_error(locale[lang].copy_failed)
 			return
@@ -230,20 +229,22 @@ function start_update()
 	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].link_logos };
 	ret:paint();
 	-- todo: implement lua-filesystem to improve linking performance
-	local ok,err,exitcode = os.execute(logolinker .. " " .. logodb .. " " .. logodir)
-	if (exitcode ~= 0) then
+	local exitcode = os.execute(logolinker .. " " .. logodb .. " " .. logodir)
+	local value = exitcode / 256
+	if (value ~= 0) then
 		ret:hide()
 		show_error(locale[lang].link_failed)
 		return
 	else
 		ret:hide();
-	end	
+	end
 
 	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].cleanup };
 	ret:paint();
-	local ok,err,exitcode = os.execute("rm -rf " .. tmp)
+	local exitcode = os.execute("rm -rf " .. tmp)
+	local value = exitcode / 256
 	sleep(1);
-	if (exitcode ~= 0) then
+	if (value ~= 0) then
 		ret:hide()
 		show_error(locale[lang].cleanup_failed)
 		return
@@ -275,15 +276,15 @@ function eventlogos_cfg(k, v, str)
 	write_cfg(k, v, "eventlogos")
 end
 
-function popuplogos_cfg(k, v, str) 
+function popuplogos_cfg(k, v, str)
 	write_cfg(k, v, "popuplogos")
 end
 
-function use_git_cfg(k, v, str) 
+function use_git_cfg(k, v, str)
 	write_cfg(k, v, "use_git")
 end
 
-function keep_files_cfg(k, v, str) 
+function keep_files_cfg(k, v, str)
 	write_cfg(k, v, "keep_files")
 end
 
@@ -293,7 +294,7 @@ function options ()
 	menu = menu.new{name=locale[lang].menu_options}
 	menu:addItem{type="back"}
 	menu:addItem{type="separatorline"}
-	opt = {locale[lang].yes ,locale[lang].no}	
+	opt = {locale[lang].yes ,locale[lang].no}
 	if (get_cfg_value("eventlogos") == 1) then
 		menu:addItem{type="chooser", action="eventlogos_cfg", options={opt[1], opt[2]}, id="ID1", icon=1, directkey=RC["1"], name=locale[lang].cfg_event}
 	elseif (get_cfg_value("eventlogos") == 0) then
