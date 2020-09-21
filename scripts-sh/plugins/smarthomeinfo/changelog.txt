@@ -1,6 +1,10 @@
 Changelog 
 
 
+V3.72
+- Anpassung an neue API von AVM seit Firmware 7.21
+
+
 V3.70
 - statt iconv wird nun falls im Image vorhanden das kleine tool asc2uni genutzt. Es funktioniert aber auch weiterhin mit iconv.
 - Update-Seite integriert,  mit der das Plugin online aktualisiert werden kann. Es wird angezeigt, welche Version im Git vorhanden ist.

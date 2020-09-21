@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * NI Fritz! Smart Home Info mit toggle V3.70   *
+# * NI Fritz! Smart Home Info mit toggle V3.72   *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team), LoginTeil zur     *
@@ -36,8 +36,8 @@ pluginpath=`echo "$CONFIG" | grep '^PLUGINPATH' | cut -d "=" -f2 | tr -d ' ' | t
 
 # ab hier keine Eintragung mehr nötig
 #################################################
-vinfo="V3.70"
-vinfo2="370"
+vinfo="V3.72"
+vinfo2="372"
 
 echo "--------------------------------------"
 echo "SmartHomeInfo "$vinfo" startet"
@@ -201,6 +201,8 @@ rm -f /tmp/anruf*
 wget -O /tmp/dectdatendraft.xml "http://$FRITZIP/webservices/homeautoswitch.lua?switchcmd=getdevicelistinfos&sid=$SID"
 #xmllint --format /tmp/dectdatendraft.xml >> /tmp/dectdaten.xml
 
+sed -i -e 's|simpleonoff><state>1</state>|simpleonoff><status>1</status>|g' /tmp/dectdatendraft.xml
+sed -i -e 's|simpleonoff><state>0</state>|simpleonoff><status>0</status>|g' /tmp/dectdatendraft.xml
 sed -i -e 's|>|>\n|g' /tmp/dectdatendraft.xml
 sed -i -e ':a;N;$!ba;s|\n\([^<]\)|\1|g' /tmp/dectdatendraft.xml
 #sed -i 's/<\/[^>]*>/&\n/g' /tmp/dectdatendraft.xml
@@ -350,7 +352,10 @@ if [ "$DECTSEARCH" = "" ] ; then
     DECTSEARCH="      "
     else
 
+
 produkt=`cat /tmp/dectdaten.xml | grep "$DECTSEARCH" | grep "productname" | sed 's/.*productname="\(.*\)$/\1/' | sed 's/">\(.*\)$/\1/'`
+
+if [ "$Version" \< "07.20" ]; then
 	if [ "$produkt" = "FRITZ!DECT Repeater 100" ]; then
 	    NR=7
 	   elif [ "$produkt" = "" ]; then
@@ -363,6 +368,23 @@ produkt=`cat /tmp/dectdaten.xml | grep "$DECTSEARCH" | grep "productname" | sed 
 	 	else
  		  NR=16
   fi
+else
+	if [ "$produkt" = "FRITZ!DECT Repeater 100" ]; then
+	    NR=11
+	   elif [ "$produkt" = "" ]; then
+ 		  NR=16
+ 		  produkt="Gruppen "
+     elif [ "$produkt" = "FRITZ!Powerline 546E" ]; then
+      NR=16
+     elif [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
+      NR=25
+	 	else
+ 		  NR=20
+  fi
+fi
+
+
+  
 connect=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</present>" | cut -d ">" -f2 | cut -d "<" -f1`
 	  if [ "$connect" = "1" ]; then
 	  	 connecttext1="~GO"
@@ -753,6 +775,8 @@ datenauslesen() {
 wget -O /tmp/dectdatendraft.xml "http://$FRITZIP/webservices/homeautoswitch.lua?switchcmd=getdevicelistinfos&sid=$SID"
 #xmllint --format /tmp/dectdatendraft.xml >> /tmp/dectdaten.xml
 
+sed -i -e 's|simpleonoff><state>1</state>|simpleonoff><status>1</status>|g' /tmp/dectdatendraft.xml
+sed -i -e 's|simpleonoff><state>0</state>|simpleonoff><status>0</status>|g' /tmp/dectdatendraft.xml
 sed -i -e 's|>|>\n|g' /tmp/dectdatendraft.xml
 sed -i -e ':a;N;$!ba;s|\n\([^<]\)|\1|g' /tmp/dectdatendraft.xml
 #sed -i 's/<\/[^>]*>/&\n/g' /tmp/dectdatendraft.xml
@@ -761,6 +785,7 @@ cp -f /tmp/dectdatendraft.xml /tmp/dectdaten.xml
 
 
 produkt=`cat /tmp/dectdaten.xml | grep "$getrennt" | grep "productname" | sed 's/.*productname="\(.*\)$/\1/' | sed 's/">\(.*\)$/\1/'`
+if [ "$Version" \< "07.20" ]; then
 	if [ "$produkt" = "FRITZ!DECT Repeater 100" ]; then
 	    NR=7
 	   elif [ "$produkt" = "" ]; then
@@ -773,6 +798,20 @@ produkt=`cat /tmp/dectdaten.xml | grep "$getrennt" | grep "productname" | sed 's
 	 	else
  		  NR=16
   fi
+else
+	if [ "$produkt" = "FRITZ!DECT Repeater 100" ]; then
+	    NR=11
+	   elif [ "$produkt" = "" ]; then
+ 		  NR=16
+ 		  produkt="Gruppen "
+     elif [ "$produkt" = "FRITZ!Powerline 546E" ]; then
+      NR=16
+     elif [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
+      NR=25
+	 	else
+ 		  NR=20
+  fi
+fi
 
 connect=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep "</present>" | cut -d ">" -f2 | cut -d "<" -f1`
 	  if [ "$connect" = "1" ]; then
