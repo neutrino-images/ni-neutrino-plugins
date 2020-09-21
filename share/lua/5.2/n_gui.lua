@@ -97,6 +97,9 @@ function G.checkModulVersion(version)
 end
 
 function G.paintFrame(x, y, w, h, f, c, radius, bg)
+	local bor = bit and bit.bor
+		or bit32 and bit32.bor
+		or load[[return function(a, b) return a | b end]]()
 	if N == nil then N = n end
 	if (not radius) then radius = CORNER.RADIUS_LARGE end
 	if (not bg) then bg = 0 end
@@ -106,14 +109,14 @@ function G.paintFrame(x, y, w, h, f, c, radius, bg)
 	h = math.floor(h)
 	if (bg > 0) then
 		-- background
-		N:PaintBox(x, y, w, h, bg, radius, bit32.bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
+		N:PaintBox(x, y, w, h, bg, radius, bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
 	end
 	-- top
-	N:PaintBox(x-f, y-f, w+f*2, f, c, radius, bit32.bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
+	N:PaintBox(x-f, y-f, w+f*2, f, c, radius, bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
 	-- right
 	N:PaintBox(x+w, y, f, h, c)
 	-- bottom
-	N:PaintBox(x-f, y+h, w+f*2, f, c, radius, bit32.bor(CORNER.BOTTOM_LEFT, CORNER.BOTTOM_RIGHT))
+	N:PaintBox(x-f, y+h, w+f*2, f, c, radius, bor(CORNER.BOTTOM_LEFT, CORNER.BOTTOM_RIGHT))
 	-- left
 	N:PaintBox(x-f, y, f, h, c)
 end
