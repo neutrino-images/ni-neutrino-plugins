@@ -650,12 +650,15 @@ function rescaleImageDimensions(width, height, max_width, max_height)
 end
 
 function paintFrame(x, y, w, h, f, c)
+	local bor = bit and bit.bor
+		or bit32 and bit32.bor
+		or load[[return function(a, b) return a | b end]]()
 	-- top
-	n:PaintBox(x-f, y-f, w+(f*3), f, c, CORNER.RADIUS_LARGE, bit32.bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
+	n:PaintBox(x-f, y-f, w+(f*3), f, c, CORNER.RADIUS_LARGE, bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
 	-- right
 	n:PaintBox(x+w+f, y, f, h, c)
 	-- bottom
-	n:PaintBox(x-f, y+h, w+(f*3), f, c, CORNER.RADIUS_LARGE, bit32.bor(CORNER.BOTTOM_LEFT, CORNER.BOTTOM_RIGHT))
+	n:PaintBox(x-f, y+h, w+(f*3), f, c, CORNER.RADIUS_LARGE, bor(CORNER.BOTTOM_LEFT, CORNER.BOTTOM_RIGHT))
 	-- left
 	n:PaintBox(x-f, y, f, h, c)
 end
