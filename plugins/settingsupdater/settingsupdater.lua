@@ -418,7 +418,7 @@ if check_for_update() then show_msg(locale[lang].update_available) end
 
 function main()
 	chooser_dx = n:scale2Res(560)
-	chooser_dy = n:scale2Res(400)
+	chooser_dy = n:scale2Res(350)
 	chooser_x = SCREEN.OFF_X + (((SCREEN.END_X - SCREEN.OFF_X) - chooser_dx) / 2)
 	chooser_y = SCREEN.OFF_Y + (((SCREEN.END_Y - SCREEN.OFF_Y) - chooser_dy) / 2)
 
