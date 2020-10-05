@@ -344,10 +344,10 @@ function main()
 	btnGreen = locale[lang].menu_update,
 	btnRed = locale[lang].menu_options
 	}
-	picture = cpicture.new {
-	parent = chooser,
-	image="logoupdater",
-	}
+
+	image = icondir .. "/logoupdater.png"
+	chooser:setBodyImage{image_path=image}
+
 	chooser:paint()
 	i = 0
 	d = 500 -- ms
