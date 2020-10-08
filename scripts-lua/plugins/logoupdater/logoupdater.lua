@@ -149,17 +149,31 @@ function show_error(msg)
 	ret:hide();
 end
 
+function execute_command(command)
+	local tmpfile = '/tmp/lua_execute_tmp_file'
+	local exit = os.execute(command .. ' > ' .. tmpfile .. ' 2> ' .. tmpfile .. '.err')
+
+	local stdout_file = io.open(tmpfile)
+	local stdout = stdout_file:read("*all")
+
+	local stderr_file = io.open(tmpfile .. '.err')
+	local stderr = stderr_file:read("*all")
+
+	stdout_file:close()
+	stderr_file:close()
+
+	return exit, stdout, stderr
+end
+
 function start_update()
 	chooser:hide()
 	if (isdir(tmp) == true) then os.execute("rm -rf " .. tmp) end
 	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].fetch_source };
 	ret:paint();
 	if (get_cfg_value("use_git") == 1) then
-		local exitcode = os.execute("git clone " .. logo_url .. " " .. tmp)
-		value = exitcode / 256
+		success = execute_command("git clone " .. logo_url .. " " .. tmp)
 	else
-		local exitcode = os.execute("curl " .. logo_url .. " -o " .. tmp .. ".zip")
-		value = exitcode / 256
+		success = execute_command("curl " .. logo_url .. " -o " .. tmp .. ".zip")
 		if (exists(tmp) ~= true) then
 			os.execute("mkdir " .. tmp)
 		end
@@ -171,7 +185,7 @@ function start_update()
 		os.execute("rm -rf " .. tmp .. ".zip")
 	end
 
-	if (value ~= 0) then
+	if not success then
 		ret:hide()
 		show_error(locale[lang].fetch_failed)
 		return
@@ -185,10 +199,9 @@ function start_update()
 	ret:paint();
 	local delete = ""
 	if (get_cfg_value("keep_files") == 0) then delete = "--delete " end
-	local exitcode = os.execute("rsync -rlpgoD --size-only " .. delete .. logo_source .. "/ " .. logodir)
-	local value = exitcode / 256
+	local success = execute_command("rsync -rlpgoD --size-only " .. delete .. logo_source .. "/ " .. logodir)
 	sleep(1);
-	if (value ~= 0) then
+	if not success then
 		ret:hide()
 		show_error(locale[lang].copy_failed)
 		return
@@ -199,10 +212,9 @@ function start_update()
 	if (get_cfg_value("eventlogos") == 1) then
 		local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].copy_eventlogos };
 		ret:paint();
-		local exitcode = os.execute("rsync -rlpgoD --size-only " .. delete .. logo_event_source .. "/* " .. logodir)
-		local value = exitcode / 256
+		local success = execute_command("rsync -rlpgoD --size-only " .. delete .. logo_event_source .. "/* " .. logodir)
 		sleep(1);
-		if (value ~= 0) then
+		if not success then
 			ret:hide()
 			show_error(locale[lang].copy_failed)
 			return
@@ -214,10 +226,9 @@ function start_update()
 	if (get_cfg_value("popuplogos") == 1) then
 		local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].copy_popuplogos };
 		ret:paint();
-		local exitcode = os.execute("rsync -rlpgoD --size-only " .. delete .. logo_popup_source .. "/* " .. logodir)
-		local value = exitcode / 256
+		local success = execute_command("rsync -rlpgoD --size-only " .. delete .. logo_popup_source .. "/* " .. logodir)
 		sleep(1);
-		if (value ~= 0) then
+		if not success then
 			ret:hide()
 			show_error(locale[lang].copy_failed)
 			return
@@ -229,9 +240,8 @@ function start_update()
 	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].link_logos };
 	ret:paint();
 	-- todo: implement lua-filesystem to improve linking performance
-	local exitcode = os.execute(logolinker .. " " .. logodb .. " " .. logodir)
-	local value = exitcode / 256
-	if (value ~= 0) then
+	local success = execute_command(logolinker .. " " .. logodb .. " " .. logodir)
+	if not success then
 		ret:hide()
 		show_error(locale[lang].link_failed)
 		return
@@ -241,10 +251,9 @@ function start_update()
 
 	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].cleanup };
 	ret:paint();
-	local exitcode = os.execute("rm -rf " .. tmp)
-	local value = exitcode / 256
+	local success = execute_command("rm -rf " .. tmp)
 	sleep(1);
-	if (value ~= 0) then
+	if not success then
 		ret:hide()
 		show_error(locale[lang].cleanup_failed)
 		return
@@ -335,10 +344,10 @@ function main()
 	btnGreen = locale[lang].menu_update,
 	btnRed = locale[lang].menu_options
 	}
-	picture = cpicture.new {
-	parent = chooser,
-	image="logoupdater",
-	}
+
+	image = icondir .. "/logoupdater.png"
+	chooser:setBodyImage{image_path=image}
+
 	chooser:paint()
 	i = 0
 	d = 500 -- ms

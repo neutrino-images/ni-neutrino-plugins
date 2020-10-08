@@ -165,6 +165,22 @@ function show_msg(msg)
 	ret:hide();
 end
 
+function execute_command(command)
+    local tmpfile = '/tmp/lua_execute_tmp_file'
+    local exit = os.execute(command .. ' > ' .. tmpfile .. ' 2> ' .. tmpfile .. '.err')
+
+    local stdout_file = io.open(tmpfile)
+    local stdout = stdout_file:read("*all")
+
+    local stderr_file = io.open(tmpfile .. '.err')
+    local stderr = stderr_file:read("*all")
+
+    stdout_file:close()
+    stderr_file:close()
+
+    return exit, stdout, stderr
+end
+
 function start_update()
 	chooser:hide()
 	if (isdir(tmp) == true) then os.execute("rm -rf " .. tmp) end
@@ -172,12 +188,10 @@ function start_update()
 	ret:paint();
 	if (get_cfg_value("use_git") == 1) then
 		setting_url = "https://github.com/horsti58/lua-data"
-		local exitcode = os.execute("git clone " .. setting_url .. " " .. tmp)
-		value = exitcode / 256
+		success = execute_command("git clone " .. setting_url .. " " .. tmp)
 	else
 		setting_url = "https://codeload.github.com/horsti58/lua-data/zip/master"
-		local exitcode = os.execute("curl " .. setting_url .. " -o " .. tmp .. ".zip")
-		value = exitcode / 256
+		success = execute_command("curl " .. setting_url .. " -o " .. tmp .. ".zip")
 		if (exists(tmp) ~= true) then
 			os.execute("mkdir " .. tmp)
 		end
@@ -189,19 +203,18 @@ function start_update()
 		os.execute("rm -rf " .. tmp .. ".zip")
 	end
 
-	if (value ~= 0) then
+	if not success then
 		ret:hide()
 		show_msg(locale[lang].fetch_failed)
 		return
 	else
 		ret:hide();
 	end
-	local exitcode = os.execute("rsync -rlpgoD --size-only " .. setting_intro .. "/settingupdater_" .. nconf_value("osd_resolution") .. ".png " .. icondir .. "/settingupdater.png")
-	local value = exitcode / 256
-	if (value ~= 0) then
+	local success = execute_command("rsync -rlpgoD --size-only " .. setting_intro .. "/settingupdater_" .. nconf_value("osd_resolution") .. ".png " .. icondir .. "/settingupdater.png")
+	if not success then
 		ret:hide()
 		print("rsync missing?")
-		local ok,err,exitcode = os.execute("cp -f " .. setting_intro .. "/settingupdater_" .. nconf_value("osd_resolution") .. ".png " .. icondir .. "/settingupdater.png")
+		os.execute("cp -f " .. setting_intro .. "/settingupdater_" .. nconf_value("osd_resolution") .. ".png " .. icondir .. "/settingupdater.png")
 	else
 		ret:hide();
 	end
@@ -255,10 +268,9 @@ function start_update()
 	ret:hide()
 	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].cleanup };
 	ret:paint()
-	local exitcode = os.execute("rm -r " .. tmp)
-	local value = exitcode / 256
+	local success = execute_command("rm -r " .. tmp)
 	sleep(1);
-	if (value ~= 0) then
+	if not success then
 		ret:hide()
 		show_msg(locale[lang].cleanup_failed)
 		return
@@ -406,7 +418,7 @@ if check_for_update() then show_msg(locale[lang].update_available) end
 
 function main()
 	chooser_dx = n:scale2Res(560)
-	chooser_dy = n:scale2Res(400)
+	chooser_dy = n:scale2Res(350)
 	chooser_x = SCREEN.OFF_X + (((SCREEN.END_X - SCREEN.OFF_X) - chooser_dx) / 2)
 	chooser_y = SCREEN.OFF_Y + (((SCREEN.END_Y - SCREEN.OFF_Y) - chooser_dy) / 2)
 
@@ -421,10 +433,10 @@ function main()
 	btnGreen = locale[lang].menu_update,
 	btnRed = locale[lang].menu_options
 	}
-	picture = cpicture.new {
-	parent = chooser,
-	image="settingupdater",
-	}
+
+	image = icondir .. "/settingupdater.png"
+	chooser:setBodyImage{image_path=image}
+
 	chooser:paint()
 	i = 0
 	d = 500 -- ms

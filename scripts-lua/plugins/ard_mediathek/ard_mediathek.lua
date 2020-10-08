@@ -24,6 +24,9 @@ debugmode = 0 -- 0->no debug output, 1->debug output enabled, 2->debug output pl
 
 local json = require "json"
 local posix = require "posix"
+local bor = bit and bit.bor
+	or bit32 and bit32.bor
+	or load[[return function(a, b) return a | b end]]()
 
 function script_path()
 	return posix.dirname(debug.getinfo(2, "S").source:sub(2)).."/"
@@ -93,7 +96,7 @@ function init()
 	-- set collectgarbage() interval from 200 (default) to 50
 	collectgarbage('setpause', 50)
 
-	hdsAvailable = true
+	hdsAvailable = false
 --	if isNevis() == true then hdsAvailable = false end
 
 	playQuality 			= "auto"
@@ -657,11 +660,11 @@ end
 
 function paintFrame(x, y, w, h, f, c)
 	-- top
-	n:PaintBox(x-f, y-f, w+(f*3), f, c, CORNER.RADIUS_LARGE, bit32.bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
+	n:PaintBox(x-f, y-f, w+(f*3), f, c, CORNER.RADIUS_LARGE, bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
 	-- right
 	n:PaintBox(x+w+f, y, f, h, c)
 	-- bottom
-	n:PaintBox(x-f, y+h, w+(f*3), f, c, CORNER.RADIUS_LARGE, bit32.bor(CORNER.BOTTOM_LEFT, CORNER.BOTTOM_RIGHT))
+	n:PaintBox(x-f, y+h, w+(f*3), f, c, CORNER.RADIUS_LARGE, bor(CORNER.BOTTOM_LEFT, CORNER.BOTTOM_RIGHT))
 	-- left
 	n:PaintBox(x-f, y, f, h, c)
 end
