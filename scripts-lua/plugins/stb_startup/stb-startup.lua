@@ -188,9 +188,10 @@ function is_active(root)
 end
 
 function has_gpt_layout()
-	if (devbase ~= "linuxrootfs") then
-		return true
+	if (devbase == "linuxrootfs") then
+		return false
 	end
+	return true
 end
 
 function has_boxmode()
@@ -298,6 +299,12 @@ function main()
 		lang = "english"
 	end
 
+	if has_gpt_layout() then
+		boot = "/tmp/testmount/boot"
+	else
+		boot = "/tmp/testmount/bootoptions"
+	end
+
 	if isdir("/dev/disk/by-partlabel") then
 		partitions_by_name = "/dev/disk/by-partlabel"
 	elseif isdir("/dev/block/by-name") then
@@ -313,12 +320,6 @@ function main()
 		end
 	else
 		devbase = "linuxrootfs"
-	end
-
-	if has_gpt_layout() then
-		boot = "/tmp/testmount/boot"
-	else
-		boot = "/tmp/testmount/bootoptions"
 	end
 
 	for line in io.lines("/proc/cmdline") do
