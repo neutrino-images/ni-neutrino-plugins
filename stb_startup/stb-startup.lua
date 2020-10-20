@@ -315,10 +315,10 @@ function main()
 		devbase = "linuxrootfs"
 	end
 
-	if has_gpt_layout() then
-		boot = "/tmp/testmount/boot"
-	else
+	if islink(partitions_by_name .. "/bootoptions") then
 		boot = "/tmp/testmount/bootoptions"
+	else
+		boot = "/tmp/testmount/boot"
 	end
 
 	for line in io.lines("/proc/cmdline") do
