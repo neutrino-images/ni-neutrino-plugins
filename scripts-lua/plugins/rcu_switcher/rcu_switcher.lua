@@ -230,6 +230,7 @@ function init()
 	vuplus = proc_get("/proc/stb/info/vumodel")
 	if (
 		   vuplus == "duo4k"
+		or vuplus == "duo4kse"
 		or vuplus == "solo4k"
 		or vuplus == "ultimo4k"
 		or vuplus == "uno4k"
@@ -282,7 +283,9 @@ function init()
 			[13] = { code = 13, name = "ET 4000"				},
 			[16] = { code = 16, name = "HD51, ET 7000 / 7500 / 8500"	},
 			[21] = { code = 21, name = "Zgemma H7"				},
-			[23] = { code = 23, name = "Bre2ze 4K"				}
+			[23] = { code = 23, name = "Bre2ze 4K"				},
+			[26] = { code = 26, name = "HD61"				},
+			[29] = { code = 29, name = "HD60"				}
 		}
 	end
 end

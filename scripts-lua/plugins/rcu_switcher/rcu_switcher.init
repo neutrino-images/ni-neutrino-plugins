@@ -6,7 +6,7 @@ if [ -e /proc/stb/info/vumodel ]; then
 	vumodel=$(cat /proc/stb/info/vumodel)
 
 	case $vumodel in
-		duo4k|solo4k|ultimo4k|uno4k|uno4kse|zero4k)
+		duo4k|duo4kse|solo4k|ultimo4k|uno4k|uno4kse|zero4k)
 			vuplus="true"
 		;;
 		*)
@@ -41,7 +41,7 @@ case $1 in
 				esac
 			else
 				case $code in
-					4|5|7|8|9|11|13|16|21|23)
+					4|5|7|8|9|11|13|16|21|23|26|29)
 						echo $code > $procfile
 					;;
 					*)
