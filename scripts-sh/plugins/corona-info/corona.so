@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V2.33                            *
+# * Corona-Info V2.40                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -51,7 +51,7 @@ fi
 #################################################
 
 title="Corona-Info"
-vinfo="V2.33"
+vinfo="V2.40"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
@@ -125,18 +125,18 @@ bildtemp4=`cat $htmlparserbild3 | grep ".png" `
 echo $bildtemp4 >> $htmlparserbild4
 sed -i -e 's|/api/|\n/api/|g' $htmlparserbild4
 
-#DE Fälle
-bild3=`head -n2 $htmlparserbild4 | tail -n1 `
 #DE Fälle pro Tag
-bild4=`head -n3 $htmlparserbild4 | tail -n1 `
-#DE Tote
-bild5=`head -n4 $htmlparserbild4 | tail -n1 `
+bild3=`head -n2 $htmlparserbild4 | tail -n1 `
+#DE Intensiv
+bild4=`head -n4 $htmlparserbild4 | tail -n1 `
 #DE Tote pro Tag
-bild6=`head -n5 $htmlparserbild4 | tail -n1 `
+bild5=`head -n5 $htmlparserbild4 | tail -n1 `
+#DE Tote pro Tag/Alter
+bild6=`head -n6 $htmlparserbild4 | tail -n1 `
 #DE Tote nach Alter/Geschlecht
 bild7=`head -n6 $htmlparserbild4 | tail -n1 `
 #DE Genesen/aktive/verstorbene
-bild8=`head -n7 $htmlparserbild4 | tail -n1 `
+bild8=`head -n8 $htmlparserbild4 | tail -n1 `
 
 fallurl="https://de.wikipedia.org$bild1"
 toteurl="https://de.wikipedia.org$bild2"
@@ -454,7 +454,7 @@ echo "Corona-Info - Chart-Seite wird angezeigt am TV"
 
 while :; do
 	auswahl=3
-	msgbox msg="$msgboxfile3" size="22" icon="$icon" title="$title $vinfo" select="Weltweit F~alle (WHO),-frei-,ZUR~UCK,DE-Karte (BMP),DE-F~alle (RKI),DE-F~alle p.T. (RKI),DE-Tote Alter/Sex (RKI),DE-Genesen (RKI),-frei-,-frei-,DE-Karte (ntv),DE-Karte (WHO)" order=4 timeout=$pgtimeout default=$auswahl >/dev/null
+	msgbox msg="$msgboxfile3" size="22" icon="$icon" title="$title $vinfo" select="Weltweit F~alle (WHO),-frei-,ZUR~UCK,DE-Karte (BMP),DE-F~alle p.T.(RKI),DE-F~alle Intensiv(RKI),DE-Tote p.T. (RKI),DE-Tote Alter/Sex(RKI),-frei-,DE-Genesen (RKI),DE-Karte (ntv),DE-Karte (WHO)" order=4 timeout=$pgtimeout default=$auswahl >/dev/null
 	auswahl=$?
 	case $auswahl in
 	  1)
@@ -476,7 +476,7 @@ while :; do
 	    dekarte1grafik
 	    ;;
 	  5)
-	    echo "Corona-Info - Deutschland-Faelle "
+	    echo "Corona-Info - Deutschland-Faelle pro Tag "
 	    defaellegrafik
 	    ;;
 	  6)
@@ -526,6 +526,7 @@ else
 	echo '"DEU",Deutschland' >> $landfile
 	echo '"ITA",Italien' >> $landfile
 	echo '"ESP",Spanien' >> $landfile
+	echo '"SWE",Schweden' >> $landfile
 	echo '"PRT",Portugal' >> $landfile
 	echo '"_id":840,USA' >> $landfile
 	echo '"AUT",~Osterreich' >> $landfile
@@ -543,7 +544,7 @@ lines=$(sed $= -n $landfile)
 
 echo "Corona-Info - Länderanzahl = "$lines". "
 
-msgbox popup="Daten werden geholt... (ca. 6 Sekunden)" icon="$icon" title="$title $vinfo ($command)" timeout=02
+msgbox popup="Daten werden geholt... (ca. 7 Sekunden)" icon="$icon" title="$title $vinfo ($command)" timeout=02
 
 echo "Corona-Info - Länderdaten-Download"
 
@@ -574,8 +575,8 @@ fi
 echo "Corona-Info - Daten werden aufbereitet zur Anzeige"
 
 echo "~s" > $msgboxfile
-echo "Land    ~T0215~YGesamt  ~T0310      ~T0380~RGesamt ~T0460 ~T0525 ~T0585~YErkrankt ~T0670~B ~T0745~GGeheilt ~T0820~GTests ~T0920~GTests ~T0985~YFälle  ~T1050~RTote ~T1105~S" >> $msgboxfile
-echo " ~T0215~YInfizierte  ~T0310heute      ~T0380~RTote ~T0460Quote ~T0525heute ~T0585~Ymild ~T0670~Bkritisch ~T0745~Ggemeld. ~T0820~GAnzahl ~T0920~GpMio. ~T0985~YpMio.  ~T1050~RpMio.  ~T1105~S" >> $msgboxfile
+echo "Land    ~T0215~YGesamt  ~T0320      ~T0395~RGesamt ~T0480 ~T0540 ~T0595~YErkrankt ~T0700~B ~T0785~GGeheilt ~T0885~GTests ~T0975~YFälle  ~T1055~RTote ~T1150~S" >> $msgboxfile
+echo " ~T0215~YInfizierte  ~T0320heute      ~T0395~RTote ~T0480Quote ~T0540heute ~T0595~Ymild ~T0700~Bkritisch ~T0785~Ggemeld. ~T0885~GpMio. ~T0975~YpMio.  ~T1055~RpMio.  ~T1150~S" >> $msgboxfile
 echo "~s" >> $msgboxfile
 
 
@@ -614,7 +615,7 @@ for i in $(seq 1 "$lines"); do
 	TESTSPROMILLION=$(echo "$LAND" | sed 's/.*testsPerOneMillion":\(.*\)$/\1/' | cut -d "," -f1)
 #	CONTINENT=$(echo "$LAND" | sed 's/.*continent":"\(.*\)$/\1/' | cut -d "}" -f1 | cut -d '"' -f1)
 
-	echo $landanzeige" ~T0215~Y"$GESAMT" ~T0310"$NEU_HEUTE"  ~T0380~R"$TOTE"  ~T0460"$QUOTE"% ~T0525"$TOTE_HEUTE" ~T0585~Y"$ERKRANKT" ~T0670~B"$KRITISCH" ~T0745~G"$GEHEILT" ~T0820~G"$TESTS" ~T0920~G"$TESTSPROMILLION" ~T0985~Y"$FALLPROMILLION" ~T1050~R"$TOTEPROMILLION"~T1100~S"$CONTINENT"" >> $msgboxfile
+	echo $landanzeige" ~T0215~Y"$GESAMT" ~T0320"$NEU_HEUTE"  ~T0395~R"$TOTE"  ~T0480"$QUOTE"% ~T0540"$TOTE_HEUTE" ~T0595~Y"$ERKRANKT" ~T0700~B"$KRITISCH" ~T0785~G"$GEHEILT"  ~T0885~G"$TESTSPROMILLION" ~T0975~Y"$FALLPROMILLION" ~T1055~R"$TOTEPROMILLION"~T1150~S"$CONTINENT"" >> $msgboxfile
 done
 
 # Gesamtwerte ermitteln und in Datei speichern
@@ -639,7 +640,7 @@ ALL_KRITISCH=$(echo "$ALL" | sed 's/.*critical":\(.*\)$/\1/' | cut -d "," -f1)
 ALL_UPDATE=$(date -d @${ALL_UPDATETEMP:0:10} '+%d.%m.%Y - %H:%M')
 
 echo "~s" >> $msgboxfile
-echo "Weltweit ~T0215~Y"$ALL_GESAMT" ~T0310"$ALL_NEU_HEUTE"  ~T0380~R"$ALL_TOTE"  ~T0460"$ALL_QUOTE"% ~T0525"$ALL_TOTE_HEUTE" ~T0585~Y"$ALL_ERKRANKT" ~T0670~B"$ALL_KRITISCH" ~T0745~G"$ALL_GEHEILT" ~T0820~G"$ALL_TESTS" ~T0920~G"$ALL_TESTSPROMILLION" ~T0985~Y"$ALL_FALLPROMILLION" ~T1050~R"$ALL_TOTEPROMILLION"~T1100~S"$ALL_CONTINENT" " >> $msgboxfile
+echo "Weltweit ~T0215~Y"$ALL_GESAMT" ~T0320"$ALL_NEU_HEUTE"  ~T0395~R"$ALL_TOTE"  ~T0480"$ALL_QUOTE"% ~T0540"$ALL_TOTE_HEUTE" ~T0595~Y"$ALL_ERKRANKT" ~T0700~B"$ALL_KRITISCH" ~T0785~G"$ALL_GEHEILT" ~T0975~Y"$ALL_FALLPROMILLION" ~T1055~R"$ALL_TOTEPROMILLION" ~T1150~S"$ALL_CONTINENT" " >> $msgboxfile
 echo "Anzahl Länder ~T0215"$ALL_ANZAHL" " >> $msgboxfile
 echo "~s" >> $msgboxfile
 echo "~cQuelle: https://corona.lmao.ninja/v2/countries - Datenstand: "$ALL_UPDATE" Uhr" >> $msgboxfile 
