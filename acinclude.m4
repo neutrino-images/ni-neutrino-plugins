@@ -136,6 +136,15 @@ TUXBOX_APPS_DIRECTORY_ONE(configdir, CONFIGDIR, localstatedir, /var, /tuxbox/con
 TUXBOX_APPS_DIRECTORY_ONE(datadir, DATADIR, datadir, /share, /tuxbox,
 	[--with-datadir=PATH], [where to find data files])
 
+TUXBOX_APPS_DIRECTORY_ONE(datadir_var, DATADIR_VAR, localstatedir, /var, /tuxbox,
+	[--with-datadir=PATH], [where to find data files])
+
+TUXBOX_APPS_DIRECTORY_ONE(controldir, CONTROLDIR, datadir, /share, /tuxbox/neutrino/control,
+	[--with-controldir=PATH], [where to find control scripts])
+
+TUXBOX_APPS_DIRECTORY_ONE(controldir_var, CONTROLDIR_VAR, localstatedir, /var, /tuxbox/control,
+	[--with-controldir_var=PATH], [where to find control scripts in /var])
+
 TUXBOX_APPS_DIRECTORY_ONE(fontdir, FONTDIR, datadir, /share, /fonts,
 	[--with-fontdir=PATH], [where to find fonts])
 
@@ -192,11 +201,26 @@ TUXBOX_APPS_DIRECTORY_ONE(iconsdir, ICONSDIR, datadir, /share, /tuxbox/neutrino/
 
 TUXBOX_APPS_DIRECTORY_ONE(iconsdir_var, ICONSDIR_VAR, localstatedir, /var, /tuxbox/icons,
 	[--with-iconsdir_var=PATH], [where to find icons in /var])
+
+TUXBOX_APPS_DIRECTORY_ONE(private_httpddir, PRIVATE_HTTPDDIR, datadir, /share, /tuxbox/neutrino/httpd,
+	[--with-private_httpddir=PATH], [where to find private httpd files])
+
+TUXBOX_APPS_DIRECTORY_ONE(public_httpddir, PUBLIC_HTTPDDIR, localstatedir, /var, /tuxbox/httpd,
+	[--with-public_httpddir=PATH], [where to find public httpd files])
+
+TUXBOX_APPS_DIRECTORY_ONE(hosted_httpddir, HOSTED_HTTPDDIR, mntdir, /mnt, /hosted,
+	[--with-hosted_httpddir=PATH], [where to find hosted files])
+
+TUXBOX_APPS_DIRECTORY_ONE(flagdir, FLAGDIR, localstatedir, /var, /etc,
+	[--with-flagdir=PATH], [where to find flag files])
 ])
 
 dnl automake <= 1.6 needs this specifications
 AC_SUBST(CONFIGDIR)
 AC_SUBST(DATADIR)
+AC_SUBST(DATADIR_VAR)
+AC_SUBST(CONTROLDIR)
+AC_SUBST(CONTROLDIR_VAR)
 AC_SUBST(FONTDIR)
 AC_SUBST(FONTDIR_VAR)
 AC_SUBST(GAMESDIR)
@@ -217,6 +241,10 @@ AC_SUBST(THEMESDIR)
 AC_SUBST(THEMESDIR_VAR)
 AC_SUBST(ICONSDIR)
 AC_SUBST(ICONSDIR_VAR)
+AC_SUBST(PRIVATE_HTTPDDIR)
+AC_SUBST(PUBLIC_HTTPDDIR)
+AC_SUBST(HOSTED_HTTPDDIR)
+AC_SUBST(FLAGDIR)
 dnl end workaround
 
 AC_DEFUN([_TUXBOX_APPS_LIB_CONFIG], [
