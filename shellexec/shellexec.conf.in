@@ -1,0 +1,14 @@
+# config
+#FONT=@FONTDIR@/neutrino.ttf
+FONTSIZE=20
+LINESPP=14
+WIDTH=640
+HEIGHT=480
+PAGING=1
+#MENUTIMEOUT=120
+
+MENU=Flexmen~u,ICON=@ICONSDIR@/mainmenue.png
+	INCLUDE=@DATADIR@/neutrino/flex/flex_plugins.conf
+	INCLUDE=@DATADIR@/neutrino/flex/flex_user.conf
+	INCLUDE=@DATADIR_VAR@/flex/flex_user.conf
+ENDMENU

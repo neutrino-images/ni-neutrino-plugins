@@ -27,6 +27,9 @@ plugin_DATA = \
 
 configdir = $(CONFIGDIR)
 
+EXTRA_DIST = \
+	shellexec.conf shellexec.conf.in
+
 config_DATA = \
 	shellexec.conf
 

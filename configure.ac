@@ -385,6 +385,7 @@ scripts-sh/plugins/pr-auto-timer/Makefile
 scripts-sh/plugins/smarthomeinfo/Makefile
 scripts-sh/plugins/wortraten/Makefile
 shellexec/Makefile
+shellexec/shellexec.conf
 showiframe/Makefile
 stbup/Makefile
 tuxcal/Makefile
