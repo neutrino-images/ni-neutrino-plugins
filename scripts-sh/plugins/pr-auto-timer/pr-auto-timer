@@ -24,7 +24,7 @@
 # Related files:
 #	Configuration:		/var/tuxbox/config/pr-auto-timer.conf
 #	Timer rules:		/var/tuxbox/config/pr-auto-timer.rules
-#	Neutrino plugin:	/share/tuxbox/neutrino/plugins/pr-auto-timer.{sh,cfg}
+#	Neutrino plugin:	/usr/share/tuxbox/neutrino/plugins/pr-auto-timer.{sh,cfg}
 
 VERSION=0.42
 

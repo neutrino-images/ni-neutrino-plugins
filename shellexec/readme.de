@@ -1,10 +1,10 @@
 Das Plugin dient zum Aufräumen des Menüs der blauen Taste. Viele dort auswähl-
 bare Scripts oder Binarys werden selten benötigt und verringern nur die Über-
 sichtlichkeit des Menüs. Statt dieser vielen Plugins wird nun das shellexec-
-plugin in den Ordner /share/tuxbox/neutrino/plugins kopiert und die anderen Plugins kön-
-nen dort gelöscht werden. Die von ihnen aufgerufenen Scripte werden nun in die
-shellexec.conf eingetragen, und stehen nun als eine Art Untermenü unter dem
-in der shellexec.cfg eingetragenen Namen zur Verfügung.
+plugin in den Ordner /usr/share/tuxbox/neutrino/plugins kopiert und die anderen
+Plugins können dort gelöscht werden. Die von ihnen aufgerufenen Scripte werden
+nun in die shellexec.conf eingetragen, und stehen nun als eine Art Untermenü
+unter dem in der shellexec.cfg eingetragenen Namen zur Verfügung.
 
 Auch wer selber Plugins als Script schreibt, kann dieses Plugin als Ersatz für
 das ungeliebte LCD-Menü verwenden.
@@ -39,7 +39,7 @@ Wird kein Kommandozeilenparameter angegeben, verwendet das Plugin die Datei
 Installation:
 
 Die Verzeichnis-Struktur gibt den Ort der Dateien im Image eigentlich schon vor,
-also shellexec.cfg und shellexec.so (Rechte auf 755) nach /share/tuxbox/neutrino/plugins/.
+also shellexec.cfg und shellexec.so (Rechte auf 755) nach /usr/share/tuxbox/neutrino/plugins/.
 shellexec nach /var/plugins und shellexec.conf nach /var/tuxbox/config. shellexec
 braucht die Rechte 755.
 
@@ -68,7 +68,7 @@ den Videoeinstellungen festgelegte Fensterbreite.
 
 Für die Auswahl des Textfonts ist der Eintrag:
 
-FONT=/share/fonts/micron_bold.ttf
+FONT=/usr/share/fonts/micron_bold.ttf
 
 zuständig. Hier kann der gewünschte im Image verfügbare Font eingetragen werden.
 Wird dieser Eintrag weggelassen, wird standardmäßig der Font "pakenham.ttf" ver-
@@ -180,7 +180,7 @@ Um in der Titelzeile eines Menüs ähnlich wie bei den Neurtrino-Menüs ein Icon
 lassen, welches die Funktion des Menüs besser verdeutlicht, kann optional der Name eines
 Icons (,ICON=filename) angegeben werden. Die Icons müssen vom Format "*.png" sein und kön-
 nen z. Bsp. mit einem Grafikprogramm erzeugt werden. Als Beispiel kann man sich
-das Icon "/share/tuxbox/neutrino/icons/help.png" anschauen. (Erst ab 2.00 implementiert)
+das Icon "/usr/share/tuxbox/neutrino/icons/help.png" anschauen. (Erst ab 2.00 implementiert)
 Menütitel werden normalerweise, wie in den Neutrino-Menüs auch, auf Linksanschlag positioniert.
 Soll der Titel aus optischen Gründen zentriert dargestellt werden, ist dem Menünamen ein
 Unterstrich ( _ ) voranzustellen. Der Unterstrich selbst wird nicht angezeigt, sorgt aber

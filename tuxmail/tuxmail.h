@@ -31,7 +31,7 @@
 #define CONFIGDIR "/var/tuxbox/config"
 #endif
 #ifndef FONTDIR
-#define FONTDIR	"/share/fonts"
+#define FONTDIR	"/usr/share/fonts"
 #endif
 
 #define SCKFILE "/tmp/tuxmaild.socket"

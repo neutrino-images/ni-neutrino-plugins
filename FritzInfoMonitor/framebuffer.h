@@ -10,7 +10,7 @@
 #include <linux/fb.h>
 
 #ifndef FONTDIR
-#define FONTDIR	"/share/fonts"
+#define FONTDIR	"/usr/share/fonts"
 #endif
 
 /* freetype stuff */

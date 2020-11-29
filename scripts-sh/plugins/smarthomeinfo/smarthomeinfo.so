@@ -47,8 +47,8 @@ if [ -e $pluginpath/smarthomeinfo_hint.png ]; then
 	   path=$pluginpath"/smarthomeinfo_hint.png"
 	   titletext1="NI-Fritz!"
 	else 
-  if [ -e /share/tuxbox/neutrino/icons/hint_imagelogo.png ]; then
-	   path="/share/tuxbox/neutrino/icons/hint_imagelogo.png"
+  if [ -e /usr/share/tuxbox/neutrino/icons/hint_imagelogo.png ]; then
+	   path="/usr/share/tuxbox/neutrino/icons/hint_imagelogo.png"
 	   titletext1="Fritz!"
 	else
 	   path=""

@@ -26,7 +26,7 @@
 # Aufrufvariante für Download, "WGET" oder "CURL" bitte auswählen
 command="WGET" 
 
-# pluginpath entsprechend setzen, ggfs. von /var/tuxbox/plugins auf /share/tuxbox/neutrino/plugins" ändern
+# pluginpath entsprechend setzen, ggfs. von /var/tuxbox/plugins auf /usr/share/tuxbox/neutrino/plugins ändern
 # pluginpath mit $(dirname $0) sollte bei allen passen ;) (thx. DboxOldie)
 pluginpath=$(dirname "$0")
 

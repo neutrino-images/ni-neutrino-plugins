@@ -65,7 +65,7 @@ int bmp2lcd (char *bildfile)
 		strcpy(filename,bildfile);
 	}
 
-	sprintf(bmpfile,"/share/tuxbox/tuxwetter/%s",filename);
+	sprintf(bmpfile,"/usr/share/tuxbox/tuxwetter/%s",filename);
 	
 	FILE *fbmp;
 

@@ -6,7 +6,7 @@ if [ $# -eq 0 ]; then
 fi
 
 iframe=""
-for path in "/var/tuxbox/icons" "/share/tuxbox/neutrino/icons" "/usr/share/tuxbox/neutrino/icons"; do
+for path in "/var/tuxbox/icons" "/usr/share/tuxbox/neutrino/icons"; do
 	if [ -f "$path/$1" ]; then
 		iframe="$path/$1"
 		break

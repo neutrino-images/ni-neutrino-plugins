@@ -29,7 +29,7 @@
 #define CONFIGDIR "/var/tuxbox/config"
 #endif
 #ifndef FONTDIR
-#define FONTDIR	"/share/fonts"
+#define FONTDIR	"/usr/share/fonts"
 #endif
 #ifndef CFG_TUXWET
 #define CFG_TUXWET  CONFIGDIR "/tuxwetter"

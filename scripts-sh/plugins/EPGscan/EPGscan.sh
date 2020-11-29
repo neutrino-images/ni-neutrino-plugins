@@ -263,10 +263,10 @@ case "$1" in
 		fi
 
 		# start pr-auto-timer if desired and found
-		if [ "$pr_auto_timer" = "1" -a -x /share/tuxbox/neutrino/plugins/pr-auto-timer ]
+		if [ "$pr_auto_timer" = "1" -a -x /usr/share/tuxbox/neutrino/plugins/pr-auto-timer ]
 		then
 			console "start pr-auto-timer"
-			/share/tuxbox/neutrino/plugins/pr-auto-timer --menu &
+			/usr/share/tuxbox/neutrino/plugins/pr-auto-timer --menu &
 		fi
 
 		# reboot/halt if desired

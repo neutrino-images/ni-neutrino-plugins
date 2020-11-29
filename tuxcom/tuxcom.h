@@ -75,7 +75,7 @@ int MENUSIZE, MINBOX, BUTTONWIDTH, BUTTONHEIGHT;
 #define CONFIGDIR "/var/tuxbox/config"
 #endif
 #ifndef FONTDIR
-#define FONTDIR	"/share/fonts"
+#define FONTDIR	"/usr/share/fonts"
 #endif
 #define DEFAULT_PATH "/"
 static const char *charset = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#!$%&?*()@\\/=<>+-_,.;:";

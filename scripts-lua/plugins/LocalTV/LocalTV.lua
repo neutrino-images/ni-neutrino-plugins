@@ -429,7 +429,7 @@ function saveliste()
 							if conf.logo_dir  ~= "#" then
 								local logo={}
 								logo[1] =  deflogopth .."/"
-								logo[2] = "/share/tuxbox/neutrino/icons/logo"
+								logo[2] = "/usr/share/tuxbox/neutrino/icons/logo"
 								logo[3] = conf.logo_dir
 								for j,l  in pairs(logo) do
 									if l and is_dir(l) then

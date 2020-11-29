@@ -55,7 +55,7 @@ function cst_get_logo_hdd_dir()
 end
 
 local logo_hdd_dir = cst_get_logo_hdd_dir()
-local logo_flash_dir = "/share/tuxbox/neutrino/icons/logo"
+local logo_flash_dir = "/usr/share/tuxbox/neutrino/icons/logo"
 local logo_flash_dir_var = "/var/tuxbox/icons/logo"
 
 function cst_get_logo(id, name)

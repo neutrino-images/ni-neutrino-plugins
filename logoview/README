@@ -23,7 +23,7 @@ Aufruf:
 
    logoview [LogoName] &
        LogoName   : Path to logofile (jpg only)
-                    default = /share/tuxbox/neutrino/icons/start.jpg
+                    default = /usr/share/tuxbox/neutrino/icons/start.jpg
 
    logoview <Options>
        Options:

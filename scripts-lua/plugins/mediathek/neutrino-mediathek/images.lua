@@ -34,19 +34,19 @@ function createImages()
 	else -- neutrino system icons
 		-- TODO: allow user icons from /var/tuxbox/icons/
 		-- TODO: get path to icons from build environment
-		btn0		= '/share/tuxbox/neutrino/icons/0.png'		-- no NLS
-		btn1		= '/share/tuxbox/neutrino/icons/1.png'		-- no NLS
-		btn2		= '/share/tuxbox/neutrino/icons/2.png'		-- no NLS
-		btn3		= '/share/tuxbox/neutrino/icons/3.png'		-- no NLS
-		btn4		= '/share/tuxbox/neutrino/icons/4.png'		-- no NLS
-		btn5		= '/share/tuxbox/neutrino/icons/5.png'		-- no NLS
-		btn6		= '/share/tuxbox/neutrino/icons/6.png'		-- no NLS
-		btn7		= '/share/tuxbox/neutrino/icons/7.png'		-- no NLS
-		btn8		= '/share/tuxbox/neutrino/icons/8.png'		-- no NLS
-		btn9		= '/share/tuxbox/neutrino/icons/9.png'		-- no NLS
-		btnBlue		= '/share/tuxbox/neutrino/icons/blau.png'	-- no NLS
-		btnGreen	= '/share/tuxbox/neutrino/icons/gruen.png'	-- no NLS
-		btnRed		= '/share/tuxbox/neutrino/icons/rot.png'	-- no NLS
-		btnYellow	= '/share/tuxbox/neutrino/icons/gelb.png'	-- no NLS
+		btn0		= '/usr/share/tuxbox/neutrino/icons/0.png'		-- no NLS
+		btn1		= '/usr/share/tuxbox/neutrino/icons/1.png'		-- no NLS
+		btn2		= '/usr/share/tuxbox/neutrino/icons/2.png'		-- no NLS
+		btn3		= '/usr/share/tuxbox/neutrino/icons/3.png'		-- no NLS
+		btn4		= '/usr/share/tuxbox/neutrino/icons/4.png'		-- no NLS
+		btn5		= '/usr/share/tuxbox/neutrino/icons/5.png'		-- no NLS
+		btn6		= '/usr/share/tuxbox/neutrino/icons/6.png'		-- no NLS
+		btn7		= '/usr/share/tuxbox/neutrino/icons/7.png'		-- no NLS
+		btn8		= '/usr/share/tuxbox/neutrino/icons/8.png'		-- no NLS
+		btn9		= '/usr/share/tuxbox/neutrino/icons/9.png'		-- no NLS
+		btnBlue		= '/usr/share/tuxbox/neutrino/icons/blau.png'	-- no NLS
+		btnGreen	= '/usr/share/tuxbox/neutrino/icons/gruen.png'	-- no NLS
+		btnRed		= '/usr/share/tuxbox/neutrino/icons/rot.png'	-- no NLS
+		btnYellow	= '/usr/share/tuxbox/neutrino/icons/gelb.png'	-- no NLS
 	end -- icon types
 end -- function createImages

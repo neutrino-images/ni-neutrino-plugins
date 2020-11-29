@@ -12,8 +12,8 @@ rootmtd=`readlink /dev/root`
 if [ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ] && [ "$rootmtd" == "mmcblk0p4" ] || \
    [ "$model" == "zero4k" ] && [ "$rootmtd" == "mmcblk0p7" ] || \
    [ "$model" == "duo4k" -o "$model" == "duo4kse" ] && [ "$rootmtd" == "mmcblk0p9" ]; then
-	/share/tuxbox/neutrino/plugins/imgbackup select_dir
+	/usr/share/tuxbox/neutrino/plugins/imgbackup select_dir
 else
-	/share/tuxbox/neutrino/plugins/imgbackup gui
+	/usr/share/tuxbox/neutrino/plugins/imgbackup gui
 fi
 exit 0
