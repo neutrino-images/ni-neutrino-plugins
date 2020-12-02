@@ -12,4 +12,4 @@
 # Description:       Shutdown the STB.
 ### END INIT INFO
 
-/bin/turnoff_power
+/usr/bin/turnoff_power
