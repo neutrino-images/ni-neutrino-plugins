@@ -92,12 +92,12 @@ then
 
 	# login aufbauen und hashen
 	CPSTR="$Challenge-$Passwd"
-	if [ -e /bin/asc2uni ]
+	if [ type asc2uni >/dev/null 2>&1 ]
 	then
 		asc2uni $CPSTR  > /tmp/anrufer.md5
 		echo "SmartHomeInfo - asc2uni wird genutzt"
 	else
-		echo -n $CPSTR | /bin/iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
+		echo -n $CPSTR | iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
 		echo "SmartHomeInfo - iconv wird genutzt"
 	fi	
 	MD5=`md5sum /tmp/anrufer.md5 | sed -e s/' '.*$//`
@@ -123,12 +123,12 @@ else
 		Challenge=`cat /tmp/anrufer.tmp | awk '{match($0,/Challenge>[^<>]+</); print substr($0,RSTART+10,RLENGTH-11)}'`
 		# login aufbauen und hashen
 		CPSTR="$Challenge-$Passwd"
-		if [ -e /bin/asc2uni ]
+		if [ type asc2uni >/dev/null 2>&1 ]
 		then
 			asc2uni $CPSTR  > /tmp/anrufer.md5
 			echo "SmartHomeInfo - asc2uni wird genutzt"
 		else
-			echo -n $CPSTR | /bin/iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
+			echo -n $CPSTR | iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
 			echo "SmartHomeInfo - iconv wird genutzt"
 		fi
 		#echo -n $CPSTR > /tmp/anrufer.md5
