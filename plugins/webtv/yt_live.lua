@@ -179,9 +179,9 @@ function getVideoData(yurl)
 		local newname = nil
 		if data then
 			newname = data:match('<title>(.-)</title>')
-			local m3u_url = data:match('hlsManifestUrl..:..(https:\\.-m3u8)') or data:match('hlsvp.:.(https:\\.-m3u8)')
+			local m3u_url = data:match('hlsManifestUrl.:.(https:.-m3u8)') or data:match('hlsManifestUrl..:..(https:\\.-m3u8)') or data:match('hlsvp.:.(https:\\.-m3u8)')
 			if m3u_url == nil then
-				m3u_url = data:match('hlsManifestUrl..:..(https%%3A%%2F%%2F.-m3u8)') or data:match('hlsvp=(https%%3A%%2F%%2F.-m3u8)')
+				m3u_url = data:match('hlsManifestUrl.:.(https%%3A%.-m3u8)') or data:match('hlsManifestUrl..:..(https%%3A%%2F%%2F.-m3u8)') or data:match('hlsvp=(https%%3A%%2F%%2F.-m3u8)')
 				if m3u_url then
 					m3u_url = unescape_uri(m3u_url)
 				end
@@ -219,14 +219,13 @@ function getVideoData(yurl)
 				url_map = data:match('url_encoded_fmt_stream_map=(.-)$' )
 				if url_map then url_map=unescape_uri(url_map) end
 			end
-			local player_map = data:match("ytplayer.config%s+=%s+({.-});")
+			local player_map = data:match("ytplayer.config%s-=%s-({.-});")
 			local map_urls = {}
 			local ucount = 0
 			if player_map then
-				local formats_data = data:match('\\"formats\\":(%[{.-}])')
+				local formats_data = data:match('"formats":(%[{.-}])')
 				if formats_data then
 					formats_data = formats_data:gsub('\\\\\\"','')
-					formats_data = formats_data:gsub('\\"','"')
 					local formats = json:decode (formats_data)
 					if formats then
 						for k, v in pairs(formats) do
@@ -242,10 +241,9 @@ function getVideoData(yurl)
 								end
 							end
 						end
-						local adaptiveFormats_data = data:match('\\"adaptiveFormats\\":(%[{.-}])')
+						local adaptiveFormats_data = data:match('adaptiveFormats":(%[{.-}])')
 						if adaptiveFormats_data then
 							adaptiveFormats_data = adaptiveFormats_data:gsub('\\\\\\"','')
-							adaptiveFormats_data = adaptiveFormats_data:gsub('\\"','"')
 							local adaptiveFormats = json:decode (adaptiveFormats_data)
 							if adaptiveFormats then
 								for k, purl in pairs(adaptiveFormats) do
