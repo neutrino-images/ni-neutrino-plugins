@@ -8,6 +8,7 @@ turnoff_power_SOURCES = \
 
 install-exec-local:
 	install -D -m 0755 $(srcdir)/turnoff_power.init $(DESTDIR)$(sysconfdir)/init.d/turnoff_power
+	sed -i "s|turnoff_power|$(bindir)/turnoff_power|g" $(DESTDIR)$(sysconfdir)/init.d/turnoff_power
 
 uninstall-hook:
 	rm -f $(DESTDIR)$(sysconfdir)/init.d/turnoff_power
