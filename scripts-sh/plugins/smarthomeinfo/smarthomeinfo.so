@@ -92,7 +92,7 @@ then
 
 	# login aufbauen und hashen
 	CPSTR="$Challenge-$Passwd"
-	if [ type asc2uni >/dev/null 2>&1 ]
+	if type asc2uni >/dev/null 2>&1
 	then
 		asc2uni $CPSTR  > /tmp/anrufer.md5
 		echo "SmartHomeInfo - asc2uni wird genutzt"
@@ -123,7 +123,7 @@ else
 		Challenge=`cat /tmp/anrufer.tmp | awk '{match($0,/Challenge>[^<>]+</); print substr($0,RSTART+10,RLENGTH-11)}'`
 		# login aufbauen und hashen
 		CPSTR="$Challenge-$Passwd"
-		if [ type asc2uni >/dev/null 2>&1 ]
+		if type asc2uni >/dev/null 2>&1
 		then
 			asc2uni $CPSTR  > /tmp/anrufer.md5
 			echo "SmartHomeInfo - asc2uni wird genutzt"
