@@ -195,9 +195,10 @@ function media.getVideoUrl(yurl)
 			local map_urls = {}
 			local ucount = 0
 			if player_map then
-				local formats_data = data:match('"formats":(%[{.-}])')
+				local formats_data = data:match('"formats%p-:(%[{.-}])')
 				if formats_data then
 					formats_data = formats_data:gsub('\\\\\\"','')
+					formats_data = formats_data:gsub('\\"','"')
 					local formats = json:decode (formats_data)
 					if formats then
 						for k, v in pairs(formats) do
@@ -213,9 +214,10 @@ function media.getVideoUrl(yurl)
 								end
 							end
 						end
-						local adaptiveFormats_data = data:match('adaptiveFormats":(%[{.-}])')
+						local adaptiveFormats_data = data:match('adaptiveFormats%p-:(%[{.-}])')
 						if adaptiveFormats_data then
 							adaptiveFormats_data = adaptiveFormats_data:gsub('\\\\\\"','')
+							adaptiveFormats_data = adaptiveFormats_data:gsub('\\"','"')
 							local adaptiveFormats = json:decode (adaptiveFormats_data)
 							if adaptiveFormats then
 								for k, purl in pairs(adaptiveFormats) do
