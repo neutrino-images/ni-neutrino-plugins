@@ -198,7 +198,7 @@ function media.getVideoUrl(yurl)
 				local formats_data = data:match('"formats%p-:(%[{.-}])')
 				if formats_data then
 					formats_data = formats_data:gsub('\\\\\\"','')
-					if formats_data:find('codecs=\"avc1') ~= nil then
+					if formats_data:find('\\"itag\\":') then
 						formats_data = formats_data:gsub('\\"','"')
 					end
 					local formats = json:decode (formats_data)
@@ -219,7 +219,7 @@ function media.getVideoUrl(yurl)
 						local adaptiveFormats_data = data:match('adaptiveFormats%p-:(%[{.-}])')
 						if adaptiveFormats_data then
 							adaptiveFormats_data = adaptiveFormats_data:gsub('\\\\\\"','')
-							if adaptiveFormats_data:find('codecs=\"avc1') ~= nil then
+							if adaptiveFormats_data:find('\\"itag\\":') then
 								adaptiveFormats_data = adaptiveFormats_data:gsub('\\"','"')
 							end
 							local adaptiveFormats = json:decode (adaptiveFormats_data)
