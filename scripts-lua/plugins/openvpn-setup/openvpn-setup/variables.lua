@@ -1,11 +1,13 @@
 
 -- global variables
 flagfile	= "/var/etc/.openvpn"
-sbin_base	= "/sbin"
+
 if helpers.fileExist("/usr/sbin/openvpn") then
 	sbin_base = "/usr/sbin"
 elseif helpers.fileExist("/var/sbin/openvpn") then
 	sbin_base = "/var/sbin"
+else
+	sbin_base = "/sbin"
 end
 
 conf_base	= "/var/etc/openvpn"

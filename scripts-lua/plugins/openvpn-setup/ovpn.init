@@ -7,9 +7,10 @@ ip_forwarding() {
 	echo ${v} > /proc/sys/net/ipv4/ip_forward
 }
 
-sbin_base=/sbin
-if [ -x /var/sbin/openvpn ]; then
-	sbin_base=/var/sbin
+openvpn=$(which openvpn || type -p openvpn)
+if [ -z ${openvpn} ]; then
+	SHOWINFO "openvpn not found."
+	exit 1
 fi
 
 case "$1" in
@@ -24,7 +25,7 @@ case "$1" in
 			fi
 
 			ip_forwarding 1
-			${sbin_base}/openvpn \
+			${openvpn} \
 				--config /var/etc/openvpn/${mode}.conf \
 				--log /tmp/openvpn_${mode}.log \
 				--daemon \
