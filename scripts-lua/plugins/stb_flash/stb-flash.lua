@@ -155,7 +155,7 @@ end
 
 function get_imagename(root)
 		if exists(devpath .. devbase .. root  .. "/etc/image-version") then
-			imagename = get_value("distro", root) .. " " .. get_value("imageversion", root)
+			imagename = get_value("imagename", root) .. " " .. get_value("imageversion", root)
 		else
 			local glob = require "posix".glob
 			for _, j in pairs(glob('/boot/*')) do
@@ -182,7 +182,7 @@ function is_active(root)
 end
 
 --imageversion_source = "https://tuxbox-images.de/images/" .. get_value("machine", current_root) .. "/imageversion"
-imageversion_source = "https://update.tuxbox-neutrino.org/dist/" .. get_value("machine", current_root) .. "/" .. get_value("imageversion", current_root) .. "/images/imageversion"
+imageversion_source = get_value("image_update_url", current_root) .. "/imageversion"
 neutrino_conf = configfile.new()
 neutrino_conf:loadConfig("/etc/neutrino/config/neutrino.conf")
 lang = neutrino_conf:getString("language", "english")

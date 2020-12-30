@@ -65,7 +65,7 @@ function umount(path)
 end
 
 function link(source,destination)
-	fh:ln(source,destination,"s")
+	fh:ln(source,destination,"sf")
 end
 
 function is_mounted(path)
@@ -151,29 +151,34 @@ end
 function get_imagename(root)
 	local etc_isdir = false
 	local imagename = " "
-	if isdir("/tmp/testmount/linuxrootfs" .. root .. "/etc") or
-	isdir("/tmp/testmount/rootfs" .. root .. "/etc") then
+	if isdir("/tmp/testmount/linuxrootfs" .. root .. "/etc") or isdir("/tmp/testmount/rootfs" .. root .. "/etc") then
 		etc_isdir = true
 	end
-	if etc_isdir and
-	(exists("/tmp/testmount/linuxrootfs" .. root .. "/etc/image-version") or
-	exists("/tmp/testmount/rootfs" .. root  .. "/etc/image-version")) then
-		imagename = get_value("distro", root, "/etc") .. " " .. get_value("imageversion", root, "/etc")
-	elseif exists("/tmp/testmount/linuxrootfs" .. root .. "/var/etc/image-version") or
-	exists("/tmp/testmount/rootfs" .. root  .. "/var/etc/image-version") then
-		imagename = get_value("distro", root, "/var/etc") .. " " .. get_value("imageversion", root, "/var/etc")
+
+	if etc_isdir and (exists("/tmp/testmount/linuxrootfs" .. root .. "/etc/image-version") or exists("/tmp/testmount/rootfs" .. root  .. "/etc/image-version")) then
+		imagename = get_value("imagename", root, "/etc") .. " " .. get_value("imageversion", root, "/etc")
+	elseif exists("/tmp/testmount/linuxrootfs" .. root .. "/var/etc/image-version") or exists("/tmp/testmount/rootfs" .. root  .. "/var/etc/image-version") then
+		imagename = get_value("imagename", root, "/var/etc") .. " " .. get_value("imageversion", root, "/var/etc")
 	end
+
 	if imagename == " " then
 		local glob = require "posix".glob
+		imagename = "NOT FOUND"
 		for _, j in pairs(glob(boot .. '/*', 0)) do
-			for line in io.lines(j) do
-				if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("boxmode=12") then
-					if line:match(devbase .. image_to_devnum(root)) then
-						imagename = basename(j)
+			if not isdir(j) and not islink(j) then
+				for line in io.lines(j) do
+					io.write(string.format("j =  %s \n", j))
+					if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("boxmode=12") then
+						if line:match(devbase .. image_to_devnum(root)) then
+							imagename = basename(j)
+						end
 					end
 				end
 			end
 		end
+-- 		io.write(string.format("boot .. '/*' = [ %s ], imagename = [ %s ]\n", boot .. '/*', imagename))
+-- 	else
+-- 		io.write(string.format("boot = [ %s ], imagename = [ %s ]\n", boot, imagename))
 	end
 	return imagename
 end
@@ -188,8 +193,11 @@ function is_active(root)
 end
 
 function has_gpt_layout()
+	io.write(string.format("devbase = [ %s ]\n", devbase))
 	if (devbase ~= "linuxrootfs") then
 		return true
+	else
+		return false
 	end
 end
 
@@ -264,6 +272,20 @@ function set(k, v, str)
 	write_cfg(k, v, "boxmode_12")
 end
 
+function get_boot_path()
+	path_boot = "/tmp/testmount/boot"
+	path_boot_options = "/tmp/testmount/bootoptions"
+	ret = path_boot
+	if has_gpt_layout() then
+		if exists(path_boot) then
+			ret = path_boot
+		else
+			ret = path_boot_options
+		end
+	end
+	return ret
+end
+
 function main()
 	caption = "STB-Startup"
 	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4","boot","bootoptions"}
@@ -303,7 +325,7 @@ function main()
 	elseif isdir("/dev/block/by-name") then
 		partitions_by_name = "/dev/block/by-name"
 	end
-
+	io.write(string.format("partitions_by_name = [ %s ]\n", partitions_by_name))
 	if islink(partitions_by_name .. "/rootfs1") then
 		for line in io.lines("/proc/cmdline") do
 			if line:match("root=") then
@@ -315,11 +337,7 @@ function main()
 		devbase = "linuxrootfs"
 	end
 
-	if islink(partitions_by_name .. "/bootoptions") then
-		boot = "/tmp/testmount/bootoptions"
-	else
-		boot = "/tmp/testmount/boot"
-	end
+	boot = get_boot_path()
 
 	for line in io.lines("/proc/cmdline") do
 		_, j = string.find(line, devbase)
@@ -431,6 +449,8 @@ function main()
 	if res == "yes" then
 		local glob = require "posix".glob
 		local startup_lines = {}
+
+		io.write(string.format("boot =  %s \n", boot))
 		for _, j in pairs(glob(boot .. '/STARTUP*')) do
 			for line in io.lines(j) do
 				if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("boxmode=12") and not line:match("android") then
