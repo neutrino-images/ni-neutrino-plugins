@@ -156,9 +156,9 @@ function get_imagename(root)
 	end
 
 	if etc_isdir and (exists("/tmp/testmount/linuxrootfs" .. root .. "/etc/image-version") or exists("/tmp/testmount/rootfs" .. root  .. "/etc/image-version")) then
-		imagename = get_value("imagename", root, "/etc") .. " " .. get_value("imageversion", root, "/etc")
+		imagename = get_value("distro", root, "/etc") .. " " .. get_value("imageversion", root, "/etc")
 	elseif exists("/tmp/testmount/linuxrootfs" .. root .. "/var/etc/image-version") or exists("/tmp/testmount/rootfs" .. root  .. "/var/etc/image-version") then
-		imagename = get_value("imagename", root, "/var/etc") .. " " .. get_value("imageversion", root, "/var/etc")
+		imagename = get_value("distro", root, "/var/etc") .. " " .. get_value("imageversion", root, "/var/etc")
 	end
 
 	if imagename == " " then
