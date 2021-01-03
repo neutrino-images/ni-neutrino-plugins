@@ -155,27 +155,29 @@ function get_imagename(root)
 	local tmp_version = ""
 	local tmp_name = ""
 
-	if isdir("/tmp/testmount/linuxrootfs" .. root .. "/etc") or isdir("/tmp/testmount/rootfs" .. root .. "/etc") then
+	local etc = "/etc"
+	if isdir("/tmp/testmount/linuxrootfs" .. root .. etc) or isdir("/tmp/testmount/rootfs" .. root .. etc) then
 		etc_isdir = true
 	end
 
 	if etc_isdir and (exists("/tmp/testmount/linuxrootfs" .. root .. "/etc/image-version") or exists("/tmp/testmount/rootfs" .. root  .. "/etc/image-version")) then
-		tmp_name = get_value("distro", root, "/etc")
+		tmp_name = get_value("distro", root, etc)
 		if tmp_name == "" then
-			tmp_name = get_value("creator", root, "/etc")
+			tmp_name = get_value("creator", root, etc)
 		end
-		tmp_version = get_value("imageversion", root, "/etc")
+		tmp_version = get_value("imageversion", root, etc)
 		if tmp_version == "" then
-			tmp_version = get_value("version", root, "/etc")
+			tmp_version = get_value("version", root, etc)
 		end
 	elseif exists("/tmp/testmount/linuxrootfs" .. root .. "/var/etc/image-version") or exists("/tmp/testmount/rootfs" .. root  .. "/var/etc/image-version") then
-		tmp_name = get_value("distro", root, "/var/etc")
+		etc = "/var/etc"
+		tmp_name = get_value("distro", root, etc)
 		if tmp_name == "" then
-			tmp_name = get_value("creator", root, "/var/etc")
+			tmp_name = get_value("creator", root, etc)
 		end
-		tmp_version = get_value("imageversion", root, "/var/etc")
+		tmp_version = get_value("imageversion", root, etc)
 		if tmp_version == "" then
-			tmp_version = get_value("version", root, "/var/etc")
+			tmp_version = get_value("version", root, etc)
 		end
 	end
 
