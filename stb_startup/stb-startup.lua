@@ -275,13 +275,9 @@ end
 function get_boot_path()
 	path_boot = "/tmp/testmount/boot"
 	path_boot_options = "/tmp/testmount/bootoptions"
-	ret = path_boot
-	if has_gpt_layout() then
-		if exists(path_boot) then
-			ret = path_boot
-		else
-			ret = path_boot_options
-		end
+	ret = path_boot_options
+	if islink(partitions_by_name .. "/boot") then
+		ret = path_boot
 	end
 	return ret
 end
