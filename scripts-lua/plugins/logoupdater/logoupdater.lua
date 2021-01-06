@@ -25,6 +25,26 @@
  authors and should not be interpreted as representing official policies, either expressed
  or implied, of the Tuxbox Project.]]
 
+n = neutrino()
+fh = filehelpers.new()
+
+tmp = "/tmp/logoupdate"
+icondir = "/usr/share/tuxbox/neutrino/icons"
+logo_source = tmp .. "/logos"
+logo_event_source = tmp .. "/logos-events"
+logo_popup_source = tmp .. "/logos-popup"
+logolinker = tmp .. "/logo-links/logo-linker.sh"
+logo_intro = tmp .. "/logo-intro/lua-version"
+logodb = tmp .. "/logo-links/logo-links.db"
+logoupdater_cfg = "/var/tuxbox/config/logoupdater.cfg"
+
+neutrino_conf = configfile.new()
+neutrino_conf:loadConfig("/var/tuxbox/config/neutrino.conf")
+lang = neutrino_conf:getString("language", "english")
+logodir = neutrino_conf:getString("logo_hdd_dir", icondir )
+timing_menu = neutrino_conf:getInt32("timing.menu", 240)
+osd_resolution = neutrino_conf:getInt32("osd_resolution", 1)
+
 caption = "Logo Updater"
 
 locale = {}
@@ -47,9 +67,10 @@ cfg_popup = "Popup Logos installieren",
 cfg_event = "Event Logos installieren",
 cfg_git = "Git für den Download verwenden",
 cfg_keep = "Bestehende Dateien behalten",
+msg_end = "Logos wurden erfolgreich nach " .. logodir .. " installiert",
 }
 locale["english"] = {
-fetch_source = "The latest logos are getting downloaded",
+fetch_source = "The latest logos are getting downloaded.",
 fetch_failed = "Download failed",
 copy_logos = "Copy logos to its destination",
 copy_failed = "Copying data failed",
@@ -66,28 +87,24 @@ no = "no",
 cfg_popup = "Install popup logos",
 cfg_event = "Install event logos",
 cfg_git = "Use git for downloading",
-cfg_keep = "Keep existing files"
+cfg_keep = "Keep existing files",
+msg_end = "Logos were successfully into " .. logodir .. " installed.",
 }
 
-n = neutrino()
-fh = filehelpers.new()
-neutrino_conf = "/var/tuxbox/config/neutrino.conf"
-tmp = "/tmp/logoupdate"
-icondir = "/usr/share/tuxbox/neutrino/icons"
-logo_source = tmp .. "/logos"
-logo_event_source = tmp .. "/logos-events"
-logo_popup_source = tmp .. "/logos-popup"
-logolinker = tmp .. "/logo-links/logo-linker.sh"
-logo_intro = tmp .. "/logo-intro/lua-version"
-logodb = tmp .. "/logo-links/logo-links.db"
-logoupdater_cfg = "/var/tuxbox/config/logoupdater.cfg"
-
 function exists(file)
-	return fh:exist(file, "f")
+    if fh:exist(file, "f") == false then
+	io.write(string.format("NOTE: file %s not exists...\n", file))
+        return false
+    end
+    return true
 end
 
 function isdir(path)
-	return fh:exist(path, "d")
+    if fh:exist(path, "d") == false then
+	io.write(string.format("NOTE: path %s not exists...\n", path))
+        return false
+    end
+    return true
 end
 
 function create_logoupdater_cfg()
@@ -119,22 +136,6 @@ else
 	logo_url = "https://codeload.github.com/neutrino-images/ni-logo-stuff/zip/master"
 end
 
-function nconf_value(str)
-	for line in io.lines(neutrino_conf) do
-		if line:match(str .. "=") then
-			local i,j = string.find(line, str .. "=")
-			value = string.sub(line, j+1, #line)
-		end
-	end
-	return value
-end
-
-lang = nconf_value("language")
-if locale[lang] == nil then
-	lang = "english"
-end
-logodir = nconf_value("logo_hdd_dir")
-timing_menu = nconf_value("timing.menu")
 
 function sleep(a)
 	local sec = tonumber(os.clock() + a);
@@ -150,6 +151,8 @@ function show_error(msg)
 end
 
 function execute_command(command)
+	io.write(string.format("execute: %s\n", command))
+
 	local tmpfile = '/tmp/lua_execute_tmp_file'
 	local exit = os.execute(command .. ' > ' .. tmpfile .. ' 2> ' .. tmpfile .. '.err')
 
@@ -167,7 +170,9 @@ end
 
 function start_update()
 	chooser:hide()
-	if (isdir(tmp) == true) then os.execute("rm -rf " .. tmp) end
+	if (isdir(tmp) == true) then
+		os.execute("rm -rf " .. tmp)
+	end
 	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].fetch_source };
 	ret:paint();
 	if (get_cfg_value("use_git") == 1) then
@@ -193,7 +198,7 @@ function start_update()
 		ret:hide();
 	end
 
-	os.execute("rsync -rlpgoD --size-only " .. logo_intro .. "/logoupdater_" .. nconf_value("osd_resolution") .. ".png " .. icondir .. "/logoupdater.png")
+	os.execute("rsync -rlpgoD --size-only " .. logo_intro .. "/logoupdater_" .. osd_resolution .. ".png " .. icondir .. "/logoupdater.png")
 
 	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].copy_logos };
 	ret:paint();
@@ -260,6 +265,7 @@ function start_update()
 	else
 		ret:hide();
 	end
+	messagebox.exec{ title = caption, text = locale[lang].msg_end, buttons = {"ok"}, timeout = 6 };
 end
 
 function write_cfg(k, v, str)
