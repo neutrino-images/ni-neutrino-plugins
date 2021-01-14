@@ -379,7 +379,7 @@ else
      elif [ "$produkt" = "FRITZ!Powerline 546E" ]; then
       NR=16
      elif [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
-      NR=39
+      NR=25
      elif [ "$produkt" = "FRITZ!DECT 440" ]; then
       NR=9
       #NR=24
@@ -835,7 +835,7 @@ else
      elif [ "$produkt" = "FRITZ!Powerline 546E" ]; then
       NR=16
      elif [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
-      NR=39
+      NR=25
      elif [ "$produkt" = "FRITZ!DECT 440" ]; then
       NR=9
       #NR=24
