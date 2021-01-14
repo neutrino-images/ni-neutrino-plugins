@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * NI Fritz! Smart Home Info mit toggle V3.73   *
+# * NI Fritz! Smart Home Info mit toggle V3.75   *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team), LoginTeil zur     *
@@ -36,8 +36,8 @@ pluginpath=`echo "$CONFIG" | grep '^PLUGINPATH' | cut -d "=" -f2 | tr -d ' ' | t
 
 # ab hier keine Eintragung mehr nötig
 #################################################
-vinfo="V3.73"
-vinfo2="373"
+vinfo="V3.75"
+vinfo2="375"
 
 echo "--------------------------------------"
 echo "SmartHomeInfo "$vinfo" startet"
@@ -60,12 +60,14 @@ fi
 curl -s http://smarthomeinfo.showpalast.com/smarthome"$vinfo2".html > /dev/null
 msgbox popup="Daten werden geholt..." icon=$path title=$titletext1"Smart Home Info "$vinfo timeout=02
 
-if [ -e $pluginpath/smarthomeinfopics/200.png ]; then
+if [ -e $pluginpath/smarthomeinfopics/440.png ]; then
 	   echo "SmartHomeInfo - icons vorhanden"
   else 
      echo "SmartHomeInfo - icons download"
+     rm -f $pluginpath/smarthomeinfopics/*.png
+     rm -f $pluginpath/smarthomeinfopics
 		 mkdir $pluginpath/smarthomeinfopics
-     wget -O $pluginpath/smarthomeinfopics/icons.zip http://www.neutrino-images.de/channellogos/fritzdect/icons.zip
+     wget -O $pluginpath/smarthomeinfopics/icons.zip https://www.neutrino-images.de/channellogos/fritzdect/icons.zip
      if [ -e $pluginpath/smarthomeinfopics/icons.zip ]; then
         cd $pluginpath/smarthomeinfopics
       	unzip $pluginpath/smarthomeinfopics/icons.zip >/dev/null  
@@ -377,7 +379,10 @@ else
      elif [ "$produkt" = "FRITZ!Powerline 546E" ]; then
       NR=16
      elif [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
-      NR=25
+      NR=39
+     elif [ "$produkt" = "FRITZ!DECT 440" ]; then
+      NR=9
+      #NR=24
 	 	else
  		  NR=20
   fi
@@ -450,7 +455,7 @@ connect=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</present>" 
       fi
 
  
-	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$connect" = "0" -o "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
+	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$connect" = "0" -o "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" -o "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]; then
       modus1="-"
     else
 	    if [ "$produkt" = "Gruppen " -o "$produkt" = "FRITZ!Powerline 546E" ]; then
@@ -470,7 +475,7 @@ if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = 
 fi
 
 zustand=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</state>" | cut -d ">" -f2 | cut -d "<" -f1`
-	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$connect" = "0" ]; then
+	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$connect" = "0" -o "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]; then
        zustandtext1="~Y-" 
 	  else 
 	  if [ "$zustand" = "1" ]; then
@@ -497,7 +502,7 @@ power=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</power>" | cu
 powerlinks=`echo $power | sed 's/\(.*\)...$/\1/'`
 powerrechts=`echo $power | sed 's/.*\(.\{3\}\)$/\1/'`
 
-	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$produkt" = "Gruppen " -o "$connect" = "0" -o "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
+	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$produkt" = "Gruppen " -o "$connect" = "0" -o "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" -o "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]; then
     	powerfinal1="-"
       	else if [ ${#power} = 3 ]
         then powerfinal1=`echo "0,"$power`
@@ -766,6 +771,28 @@ done
 
 }
 
+menu4() {
+
+while :; do
+auswahl=1
+msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart Home Info "$vinfo hide=2 select="Daten aktualisieren" size=22 default=$auswahl
+
+		auswahl=$?
+		case $auswahl	in
+		1)
+	    #Daten aktualisieren
+      rm -f /tmp/dect*
+      datenauslesen
+			;;
+		*)
+			#break
+			menu
+			datenauslesen
+			;;
+		esac
+done
+
+}
 
 
 ###################################
@@ -783,7 +810,6 @@ sed -i -e ':a;N;$!ba;s|\n\([^<]\)|\1|g' /tmp/dectdatendraft.xml
 
 cp -f /tmp/dectdatendraft.xml /tmp/dectdaten.xml
 
-
 produkt=`cat /tmp/dectdaten.xml | grep "$getrennt" | grep "productname" | sed 's/.*productname="\(.*\)$/\1/' | sed 's/">\(.*\)$/\1/'`
 if [ "$Version" \< "07.20" ]; then
 	if [ "$produkt" = "FRITZ!DECT Repeater 100" ]; then
@@ -795,6 +821,8 @@ if [ "$Version" \< "07.20" ]; then
       NR=12
      elif [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
       NR=21
+     elif [ "$produkt" = "FRITZ!DECT 440" ]; then
+      NR=9
 	 	else
  		  NR=16
   fi
@@ -807,7 +835,10 @@ else
      elif [ "$produkt" = "FRITZ!Powerline 546E" ]; then
       NR=16
      elif [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
-      NR=25
+      NR=39
+     elif [ "$produkt" = "FRITZ!DECT 440" ]; then
+      NR=9
+      #NR=24
 	 	else
  		  NR=20
   fi
@@ -856,7 +887,7 @@ offsetlinks=`echo $offset | sed 's/.$//'`
     offsetfinal=`echo $offsetlinks","$offsetrechts`
   fi
 
-	    if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
+	    if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" -o "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]; then
             batttemp=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep batterylow | cut -d ">" -f2 | cut -d "<" -f1 `
             if [ "$batttemp" = "0" ]; then
                batteryfinal1="~GOK"
@@ -902,7 +933,7 @@ offsetlinks=`echo $offset | sed 's/.$//'`
             comftempfinal1=""
       fi
 
-	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$connect" = "0" -o "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
+	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$connect" = "0" -o "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" -o "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]; then
       modus="-"
     else
 	    if [ "$produkt" = "Gruppen " -o "$produkt" = "FRITZ!Powerline 546E" ]; then
@@ -923,7 +954,7 @@ if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = 
 fi
 
 zustand=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep "</state>" | cut -d ">" -f2 | cut -d "<" -f1`
-	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$connect" = "0" ]; then
+	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$connect" = "0" -o "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]; then
        zustandtext="~Y-" 
 	  else 
 	  if [ "$zustand" = "1" ]; then
@@ -942,7 +973,7 @@ zustand=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep "</state>" | cu
  fi      
 
 
-name=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep "</name>" | cut -d ">" -f2 | cut -d "<" -f1`
+name=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</name>" | cut -d ">" -f2 | cut -d "<" -f1 | cut -d " " -f1 | cut -d ":" -f2`
 fw=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep "fwversion" | sed 's/.*fwversion="\(.*\)$/\1/' | sed 's/" manufac.*\(.*\)$/\1/'`
 
 power=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep "</power>" | cut -d ">" -f2 | cut -d "<" -f1 `
@@ -980,27 +1011,21 @@ power2rechts=`echo $power2 | sed 's/.*\(.\{3\}\)$/\1/'`
 	
 if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
    icondetail="$pluginpath/smarthomeinfopics/300.png"
-  else
-   if [ "$produkt" = "FRITZ!DECT Repeater 100" ]; then
-   icondetail="$pluginpath/smarthomeinfopics/100.png"
-  else	
-   if [ "$produkt" = "FRITZ!Powerline 546E" ]; then
-   icondetail="$pluginpath/smarthomeinfopics/546.png"
-  else
-   if [ "$produkt" = "FRITZ!DECT 200" ]; then
-   icondetail="$pluginpath/smarthomeinfopics/200.png"
-  else
-   if [ "$produkt" = "FRITZ!DECT 210" ]; then
-   icondetail="$pluginpath/smarthomeinfopics/210.png"
+  elif [ "$produkt" = "FRITZ!DECT Repeater 100" ]
+   then icondetail="$pluginpath/smarthomeinfopics/100.png"
+  elif [ "$produkt" = "FRITZ!Powerline 546E" ]
+   then icondetail="$pluginpath/smarthomeinfopics/546.png"
+  elif [ "$produkt" = "FRITZ!DECT 200" ]
+   then icondetail="$pluginpath/smarthomeinfopics/200.png"
+  elif [ "$produkt" = "FRITZ!DECT 210" ]
+   then icondetail="$pluginpath/smarthomeinfopics/210.png"
+  elif [ "$produkt" = "FRITZ!DECT 440" ]
+   then icondetail="$pluginpath/smarthomeinfopics/440.png"
+  elif [ "$produkt" = "FRITZ!DECT 400" ]
+   then icondetail="$pluginpath/smarthomeinfopics/400.png"
   else
    icondetail="$pluginpath/smarthomeinfopics/logo.png"
 fi
-fi
-fi
-fi
-fi
-
-
 
 if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
   echo "~B"$produkt"~S Name:   ~T0600~B"$name"~S" >> /tmp/dectdetail.txt
@@ -1027,6 +1052,25 @@ if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = 
   echo "~cDie EXIT Taste der Fernbedienung geht zurueck zur Auswahl." >> /tmp/dectdetail.txt
 
 menu3
+
+elif [ "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]
+ then
+  echo "~B"$produkt"~S Name:   ~T0600~B"$name"~S" >> /tmp/dectdetail.txt
+  echo "~s" >> /tmp/dectdetail.txt
+  echo "Verbunden mit FritzBox ~T0600"$connecttext"~S" >> /tmp/dectdetail.txt
+  echo "Batterie Zustand			 ~T0600"$batteryfinal1"~S" >> /tmp/dectdetail.txt
+  echo "~s" >> /tmp/dectdetail.txt
+  echo "Fritz!Dect Nummer (AIN)~T0600~Y"$getrennt"~S" >> /tmp/dectdetail.txt
+  echo "ID                     ~T0600~Y"$id200"~S" >> /tmp/dectdetail.txt
+  echo "Firmware               ~T0600~Y"$fw"~S" >> /tmp/dectdetail.txt
+  echo "~s" >> /tmp/dectdetail.txt
+  echo "Temperatur aktuell/ist ~T0600~Y"$tempfinal"~d C (Korr: "$offsetfinal"~d C)~S" >> /tmp/dectdetail.txt
+  echo "~s" >> /tmp/dectdetail.txt
+  echo "~cINFO:" >> /tmp/dectdetail.txt
+  echo "~cDer Button 'Daten aktualisieren' liest die Werte neu ein." >> /tmp/dectdetail.txt
+  echo "~cDie EXIT Taste der Fernbedienung geht zurueck zur Auswahl." >> /tmp/dectdetail.txt
+
+menu4
 
 else
   echo "~B"$produkt"~S Name:   ~T0600~B"$name"~S" >> /tmp/dectdetail.txt

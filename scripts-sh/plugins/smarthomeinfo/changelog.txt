@@ -1,5 +1,11 @@
 Changelog 
 
+V3.75
+- weitere Anpassung wegen FritzDect 440/400 Fernbedienung, neue Status-Seite, Produkt-Icons, etc.
+
+V3.73
+- erste kleine Anpassung wegen FritzDect 440 Fernbedienung
+
 
 V3.72
 - Anpassung an neue API von AVM seit Firmware 7.21
