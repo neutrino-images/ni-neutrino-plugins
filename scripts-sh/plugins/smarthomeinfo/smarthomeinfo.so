@@ -625,22 +625,22 @@ msgbox msg=/tmp/dectuebersicht.txt size=9 icon=$path title=$titletext1"Smart Hom
 		  ;;
 		18)
 		  DECT200=$DECT20017
-		  id200=$id16
+		  id200=$id17
 		  break
 		  ;;
 		19)
 		  DECT200=$DECT20018
-		  id200=$id16
+		  id200=$id18
 		  break
 		  ;;
 		20)
 		  DECT200=$DECT20019
-		  id200=$id16
+		  id200=$id19
 		  break
 		  ;;
 		21)
 		  DECT200=$DECT20020
-		  id200=$id16
+		  id200=$id20
 		  break
 		  ;;
 		*)
