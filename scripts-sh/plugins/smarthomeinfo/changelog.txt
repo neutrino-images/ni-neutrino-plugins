@@ -1,5 +1,8 @@
 Changelog 
 
+V3.80
+- Erweiterung: Anzeige des Batterie-Zustands in Prozent bei Thermostaten und Fernbedienungen, sowohl in der Übersicht, also auch auf den Detail-Seiten.
+
 V3.75
 - weitere Anpassung wegen FritzDect 440/400 Fernbedienung, neue Status-Seite, Produkt-Icons, etc.
 

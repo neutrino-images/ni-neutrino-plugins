@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * NI Fritz! Smart Home Info mit toggle V3.75   *
+# * NI Fritz! Smart Home Info mit toggle V3.80   *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team), LoginTeil zur     *
@@ -36,8 +36,8 @@ pluginpath=`echo "$CONFIG" | grep '^PLUGINPATH' | cut -d "=" -f2 | tr -d ' ' | t
 
 # ab hier keine Eintragung mehr nötig
 #################################################
-vinfo="V3.75"
-vinfo2="375"
+vinfo="V3.80"
+vinfo2="380"
 
 echo "--------------------------------------"
 echo "SmartHomeInfo "$vinfo" startet"
@@ -330,8 +330,8 @@ dectuebersicht() {
 
 ### Werte aller Geräte ermitteln und in Datei speichern.
 
-echo "Gerät verbunden   ~T0585Temp.   ~T0665Heizung (~d C) ~T0810Zustand                     ~T1000Strom akt." >> /tmp/dectuebersicht.txt
-echo "(~GO~S/~RX~S) Name    ~T0310ID  ~T0385AIN          ~T0590(~d C) ~T0660soll ~T0710com ~T0760dwn ~T0810~GEIN~S/~RAUS~S  ~T0910Modus             ~T1000  (Watt)" >> /tmp/dectuebersicht.txt
+echo "Gerät verbunden   ~T0585Temp.   ~T0665Heizung (~d C) ~T0810Zustand                     ~T1000Strom akt.  " >> /tmp/dectuebersicht.txt
+echo "(~GO~S/~RX~S) Name    ~T0310ID  ~T0385AIN          ~T0590(~d C) ~T0660soll ~T0710com ~T0760dwn ~T0810~GEIN~S/~RAUS~S  ~T0910Modus             ~T1000  (Watt)  ~T1100Batt.%" >> /tmp/dectuebersicht.txt
 echo "~s" >> /tmp/dectuebersicht.txt
 
 i=0
@@ -347,6 +347,7 @@ temp=0
 zustand=0
 power=0
 powertemp=0
+batterie="-"
 
 DECTSEARCH=`echo $dect | cut -d ";" -f$i`
 
@@ -379,7 +380,7 @@ else
      elif [ "$produkt" = "FRITZ!Powerline 546E" ]; then
       NR=16
      elif [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
-      NR=25
+      NR=21
      elif [ "$produkt" = "FRITZ!DECT 440" ]; then
       NR=9
       #NR=24
@@ -474,6 +475,18 @@ if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = 
  		fi
 fi
 
+batt1=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</battery>" | cut -d ">" -f2 | cut -d "<" -f1`
+if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" -o "$produkt" = "FRITZ!DECT 400" -o "$produkt" = "FRITZ!DECT 440" ]; then
+	  if [ "$batt1" = "10" -o "$batt1" = "20" ]; then
+	  	 batterie="~R$batt1"
+    elif [ "$batt1" = "30" ]
+    then 
+       batterie="~Y$batt1"
+	  else
+	 		 batterie="~G$batt1"
+		fi
+	fi
+
 zustand=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</state>" | cut -d ">" -f2 | cut -d "<" -f1`
 	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$connect" = "0" -o "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]; then
        zustandtext1="~Y-" 
@@ -511,7 +524,8 @@ powerrechts=`echo $power | sed 's/.*\(.\{3\}\)$/\1/'`
 	fi
 fi
 
-echo ""$connecttext1" ~B"$name1"  ~Y~T0310$id1 ~T0385"$DECTSEARCH"  ~T0590"$tempfinal1" ~T0660"$solltempfinal1" ~T0710"$comftempfinal1" ~T0760"$absktempfinal1" ~T0825"$zustandtext1" ~Y~T0910"$modus1"  ~T1020"$powerfinal1 "~S" >> /tmp/dectuebersicht.txt
+echo ""$connecttext1" ~B"$name1"  ~Y~T0310$id1 ~T0385"$DECTSEARCH"  ~T0590"$tempfinal1" ~T0660"$solltempfinal1" ~T0710"$comftempfinal1" ~T0760"$absktempfinal1" ~T0825"$zustandtext1" ~Y~T0910"$modus1"  ~T1005"$powerfinal1" ~T1100"$batterie"~S" >> /tmp/dectuebersicht.txt
+
 
 done
 
@@ -835,7 +849,7 @@ else
      elif [ "$produkt" = "FRITZ!Powerline 546E" ]; then
       NR=16
      elif [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
-      NR=25
+      NR=21
      elif [ "$produkt" = "FRITZ!DECT 440" ]; then
       NR=9
       #NR=24
@@ -888,6 +902,16 @@ offsetlinks=`echo $offset | sed 's/.$//'`
   fi
 
 	    if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" -o "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]; then
+            batt2=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep "</battery>" | cut -d ">" -f2 | cut -d "<" -f1 `
+        	  if [ "$batt2" = "10" -o "$batt2" = "20" ]; then
+	  	          batterie2="~R$batt2"
+             elif [ "$batt2" = "30" ]
+              then 
+                batterie2="~Y$batt2"
+	           else
+	 		          batterie2="~G$batt2"
+		        fi
+
             batttemp=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep batterylow | cut -d ">" -f2 | cut -d "<" -f1 `
             if [ "$batttemp" = "0" ]; then
                batteryfinal1="~GOK"
@@ -1032,7 +1056,8 @@ if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = 
   echo "~s" >> /tmp/dectdetail.txt
   echo "Verbunden mit FritzBox ~T0600"$connecttext"~S" >> /tmp/dectdetail.txt
   echo "Schaltzustand momentan ~T0600"$zustandtext"  ~Y("$modus")~S" >> /tmp/dectdetail.txt
-  echo "Batterie Zustand			 ~T0600"$batteryfinal1"~S" >> /tmp/dectdetail.txt
+  echo "Batterie        			 ~T0600~Y"$batterie2" % ~S" >> /tmp/dectdetail.txt
+  echo "Batterie Zustand			 ~T0600~Y"$batteryfinal1"~S" >> /tmp/dectdetail.txt
   echo "~s" >> /tmp/dectdetail.txt
   echo "Fritz!Dect Nummer (AIN)~T0600~Y"$getrennt"~S" >> /tmp/dectdetail.txt
   echo "ID                     ~T0600~Y"$id200"~S" >> /tmp/dectdetail.txt
@@ -1058,7 +1083,8 @@ elif [ "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]
   echo "~B"$produkt"~S Name:   ~T0600~B"$name"~S" >> /tmp/dectdetail.txt
   echo "~s" >> /tmp/dectdetail.txt
   echo "Verbunden mit FritzBox ~T0600"$connecttext"~S" >> /tmp/dectdetail.txt
-  echo "Batterie Zustand			 ~T0600"$batteryfinal1"~S" >> /tmp/dectdetail.txt
+  echo "Batterie        			 ~T0600~Y"$batterie2" % ~S" >> /tmp/dectdetail.txt
+  echo "Batterie Zustand			 ~T0600~Y"$batteryfinal1"~S" >> /tmp/dectdetail.txt
   echo "~s" >> /tmp/dectdetail.txt
   echo "Fritz!Dect Nummer (AIN)~T0600~Y"$getrennt"~S" >> /tmp/dectdetail.txt
   echo "ID                     ~T0600~Y"$id200"~S" >> /tmp/dectdetail.txt
