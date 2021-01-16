@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * NI Fritz! Smart Home Info mit toggle V3.80   *
+# * NI Fritz! Smart Home Info mit toggle V3.82   *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team), LoginTeil zur     *
@@ -14,7 +14,10 @@
 # * die baugleichen Fritz!Dect 300/301           *
 # * Thermostate, die mit der FritzBox ge-        *
 # * koppelt sind im toggle-Mode ein/aus und zeigt*
-# * alle Statusinfos zur Steckdose               *
+# * alle Statusinfos zur Steckdose 
+# * Neu hinzugekommen sind die LED Glühbirne     *
+# * Fritz!Dect 500, sowie die Fernbedienungen    *
+# * Fritz!Dect 440 und 400                       *
 # *                                              *
 # * Vorbereitung:                                *
 # * die Login-Daten fuer die FritzBox werden aus *
@@ -36,8 +39,8 @@ pluginpath=`echo "$CONFIG" | grep '^PLUGINPATH' | cut -d "=" -f2 | tr -d ' ' | t
 
 # ab hier keine Eintragung mehr nötig
 #################################################
-vinfo="V3.80"
-vinfo2="380"
+vinfo="V3.82"
+vinfo2="382"
 
 echo "--------------------------------------"
 echo "SmartHomeInfo "$vinfo" startet"
@@ -60,7 +63,7 @@ fi
 curl -s http://smarthomeinfo.showpalast.com/smarthome"$vinfo2".html > /dev/null
 msgbox popup="Daten werden geholt..." icon=$path title=$titletext1"Smart Home Info "$vinfo timeout=02
 
-if [ -e $pluginpath/smarthomeinfopics/440.png ]; then
+if [ -e $pluginpath/smarthomeinfopics/500.png ]; then
 	   echo "SmartHomeInfo - icons vorhanden"
   else 
      echo "SmartHomeInfo - icons download"
@@ -85,13 +88,11 @@ fi
 Version=`wget -O- http://$FRITZIP/jason_boxinfo.xml | grep Version | awk '{match($0,/>[^<>]+</); print substr($0,RSTART+RLENGTH-6,5)}'`
 echo "SmartHomeInfo - Fritzbox-Software V"$Version" "
 
-if [ "$Version" \< "05.50" ]
-then
+if [ "$Version" \< "05.50" ]; then
   echo "SmartHomeInfo - alte Login-Version <05.50"
 	# Challenge abholen
 	ChallengeXML=`wget -O - "http://$FRITZIP/cgi-bin/webcm?getpage=../html/login_sid.xml" 2>/dev/null| grep Challenge`
 	Challenge=`echo $ChallengeXML | awk '{match($0,/>[^<>]+</); print substr($0,RSTART+1,RLENGTH-2)}'`
-
 	# login aufbauen und hashen
 	CPSTR="$Challenge-$Passwd"
 	if type asc2uni >/dev/null 2>&1
@@ -105,17 +106,42 @@ then
 	MD5=`md5sum /tmp/anrufer.md5 | sed -e s/' '.*$//`
 	RESPONSE="$Challenge-$MD5"
 	POSTDATA="login:command/response=$RESPONSE&getpage=../html/de/menus/menu2.html"
-
 	# login senden und SID herausfischen
 	SID=`wget -O - --post-data="$POSTDATA" "http://$FRITZIP/cgi-bin/webcm" 2>/dev/null| grep "name=\"sid\"" | head -1 | awk '{match($0,/value="[^"]+"/); print substr($0,RSTART+7,RLENGTH-8)}'`
-
 	# refresh der daten auslösen
 	wget -O /dev/null "http://$FRITZIP//cgi-bin/webcm?sid=$SID&getpage=..%2Fhtml%2Fde%2Fmenus%2Fmenu2.html&errorpage=..%2Fhtml%2Fde%2Fmenus%2Fmenu2.html&var%3Apagename=foncalls&var%3Aerrorpagename=foncalls&var%3Amenu=home&var%3Apagemaster=&var%3Aactivtype=pppoe&var%3AtabInetstat=0&var%3Aweckernr=&logger%3Asettings%2Ffilter=2"
-
 	# CSV runterladen
 	wget -O /tmp/fb_anrufliste.csv "http://$FRITZIP/cgi-bin/webcm?sid=$SID&getpage=..%2Fhtml%2Fde%2FFRITZ%21Box_Anrufliste.csv" 2>/dev/null
+elif [ "$Version" \> "07.23" ]; then
+  echo "SmartHomeInfo - neue Login-Version >=07.24"
+	wget -O /tmp/anrufer.tmp http://$FRITZIP/login_sid.lua
+	# SID testen
+	SID=`cat /tmp/anrufer.tmp | awk '{match($0,/SID>[^<>]+</); print substr($0,RSTART+4,RLENGTH-5)}'`
+	if [ "$SID" = "0000000000000000" ]; then
+		# Challenge abholen
+		Challenge=`cat /tmp/anrufer.tmp | awk '{match($0,/Challenge>[^<>]+</); print substr($0,RSTART+10,RLENGTH-11)}'`
+		# login aufbauen und hashen
+		CPSTR="$Challenge-$Passwd"
+		if type asc2uni >/dev/null 2>&1
+		then
+			asc2uni $CPSTR  > /tmp/anrufer.md5
+			echo "SmartHomeInfo - asc2uni wird genutzt"
+		else
+			echo -n $CPSTR | iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
+			echo "SmartHomeInfo - iconv wird genutzt"
+		fi
+		MD5=`md5sum /tmp/anrufer.md5 | sed -e s/' '.*$//`
+		RESPONSE="$Challenge-$MD5"
+		if [ "$USERNAME" = "" ]; then
+			USERNAME=`cat /tmp/anrufer.tmp | awk '{match($0,/fritz[^<>]+</); print substr($0,RSTART+0,RLENGTH-1)}'`
+		fi
+		GETDATA="?username=$USERNAME&response=$RESPONSE"
+		echo "SmartHomeInfo - Login: "$GETDATA" !"
+		wget -O /tmp/anrufer.sid http://$FRITZIP/login_sid.lua$GETDATA 
+		SID=$(sed -n '/.*<SID>\([^<]*\)<.*/s//\1/p' /tmp/anrufer.sid)
+	fi
 else
-  echo "SmartHomeInfo - neue Login-Version >05.50"
+  echo "SmartHomeInfo - Login-Version >05.50 bis 7.23"
 	wget -O /tmp/anrufer.tmp http://$FRITZIP/login_sid.lua?username=${USERNAME}
 	# SID testen
 	SID=`cat /tmp/anrufer.tmp | awk '{match($0,/SID>[^<>]+</); print substr($0,RSTART+4,RLENGTH-5)}'`
@@ -133,10 +159,10 @@ else
 			echo -n $CPSTR | iconv -f ISO8859-1 -t UTF-16LE > /tmp/anrufer.md5
 			echo "SmartHomeInfo - iconv wird genutzt"
 		fi
-		#echo -n $CPSTR > /tmp/anrufer.md5
 		MD5=`md5sum /tmp/anrufer.md5 | sed -e s/' '.*$//`
 		RESPONSE="$Challenge-$MD5"
 		GETDATA="?username=$USERNAME&response=$RESPONSE"
+		echo "SmartHomeInfo - Login: "$GETDATA" !"
 		wget -O /tmp/anrufer.sid http://$FRITZIP/login_sid.lua$GETDATA 
 		SID=$(sed -n '/.*<SID>\([^<]*\)<.*/s//\1/p' /tmp/anrufer.sid)
 	fi
@@ -209,9 +235,10 @@ sed -i -e 's|>|>\n|g' /tmp/dectdatendraft.xml
 sed -i -e ':a;N;$!ba;s|\n\([^<]\)|\1|g' /tmp/dectdatendraft.xml
 #sed -i 's/<\/[^>]*>/&\n/g' /tmp/dectdatendraft.xml
 
-cp -f /tmp/dectdatendraft.xml /tmp/dectdaten.xml
+#cp -f /tmp/dectdatendraft.xml /tmp/dectdaten.xml
+sed -e '/button identifier/,+3d' < /tmp/dectdatendraft.xml >> /tmp/dectdaten.xml
 
-LINES=`cat /tmp/dectdaten.xml | grep -oc productname`
+LINES=`cat /tmp/dectdaten.xml | grep -oc identifier`
 
 dectname=`cat /tmp/dectdaten.xml | grep "</name>" | cut -d ">" -f2 |  sed 's|</name|;|g' | tr "\n" ";" | sed 's|;;|;|g' `
 rm -f /tmp/dectnames
@@ -384,7 +411,9 @@ else
      elif [ "$produkt" = "FRITZ!DECT 440" ]; then
       NR=9
       #NR=24
-	 	else
+     elif [ "$produkt" = "FRITZ!DECT 500" ]; then
+      NR=9
+     else
  		  NR=20
   fi
 fi
@@ -532,8 +561,7 @@ done
 #source /tmp/test
 
 echo "~s" >> /tmp/dectuebersicht.txt
-echo "~cBitte Steckdose oder Heizungsthermostat für Detailseite und zum Schalten auswählen. (EXIT -> beenden)" >> /tmp/dectuebersicht.txt
-#echo "~c(Die EXIT Taste der Fernbedienung beendet das Plugin.)" >> /tmp/dectuebersicht.txt
+echo "~cBitte Fritz!Dect Gerät für Detailseite und zur Bedienung auswählen. (EXIT -> beenden)" >> /tmp/dectuebersicht.txt
 
 }
 
@@ -808,7 +836,6 @@ done
 
 }
 
-
 ###################################
 ## Daten für Detailseite ermitteln
 
@@ -822,7 +849,9 @@ sed -i -e 's|>|>\n|g' /tmp/dectdatendraft.xml
 sed -i -e ':a;N;$!ba;s|\n\([^<]\)|\1|g' /tmp/dectdatendraft.xml
 #sed -i 's/<\/[^>]*>/&\n/g' /tmp/dectdatendraft.xml
 
-cp -f /tmp/dectdatendraft.xml /tmp/dectdaten.xml
+#cp -f /tmp/dectdatendraft.xml /tmp/dectdaten.xml
+sed -e '/button identifier/,+3d' < /tmp/dectdatendraft.xml >> /tmp/dectdaten.xml
+
 
 produkt=`cat /tmp/dectdaten.xml | grep "$getrennt" | grep "productname" | sed 's/.*productname="\(.*\)$/\1/' | sed 's/">\(.*\)$/\1/'`
 if [ "$Version" \< "07.20" ]; then
@@ -853,6 +882,8 @@ else
      elif [ "$produkt" = "FRITZ!DECT 440" ]; then
       NR=9
       #NR=24
+     elif [ "$produkt" = "FRITZ!DECT 500" ]; then
+      NR=9
 	 	else
  		  NR=20
   fi
@@ -1047,6 +1078,8 @@ if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = 
    then icondetail="$pluginpath/smarthomeinfopics/440.png"
   elif [ "$produkt" = "FRITZ!DECT 400" ]
    then icondetail="$pluginpath/smarthomeinfopics/400.png"
+  elif [ "$produkt" = "FRITZ!DECT 500" ]
+   then icondetail="$pluginpath/smarthomeinfopics/500.png"
   else
    icondetail="$pluginpath/smarthomeinfopics/logo.png"
 fi
@@ -1097,6 +1130,24 @@ elif [ "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]
   echo "~cDie EXIT Taste der Fernbedienung geht zurueck zur Auswahl." >> /tmp/dectdetail.txt
 
 menu4
+
+elif [ "$produkt" = "FRITZ!DECT 500" ]
+ then
+  echo "~B"$produkt"~S Name:   ~T0600~B"$name"~S" >> /tmp/dectdetail.txt
+  echo "~s" >> /tmp/dectdetail.txt
+  echo "Verbunden mit FritzBox ~T0600"$connecttext"~S" >> /tmp/dectdetail.txt
+  echo "Schaltzustand momentan ~T0600"$zustandtext"  ~Y("$modus")~S" >> /tmp/dectdetail.txt
+  echo "~s" >> /tmp/dectdetail.txt
+  echo "Fritz!Dect Nummer (AIN)~T0600~Y"$getrennt"~S" >> /tmp/dectdetail.txt
+  echo "ID                     ~T0600~Y"$id200"~S" >> /tmp/dectdetail.txt
+  echo "Firmware               ~T0600~Y"$fw"~S" >> /tmp/dectdetail.txt
+  echo "~s" >> /tmp/dectdetail.txt
+  echo "~cINFO:" >> /tmp/dectdetail.txt
+  echo "~cMit EIN/AUS wird die Steckdose abwechselnd geschaltet." >> /tmp/dectdetail.txt
+  echo "~cDer Button 'Daten aktualisieren' liest die Werte neu ein." >> /tmp/dectdetail.txt
+  echo "~cDie EXIT Taste der Fernbedienung geht zurueck zur Auswahl." >> /tmp/dectdetail.txt
+
+menu2
 
 else
   echo "~B"$produkt"~S Name:   ~T0600~B"$name"~S" >> /tmp/dectdetail.txt
