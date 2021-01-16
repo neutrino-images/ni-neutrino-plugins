@@ -1,5 +1,10 @@
 Changelog 
 
+V3.82
+- Anpassung an neues Login-Verfahren bei Fritzbox Firmware >= 7.24 (bei Login nur mit Passwort)
+- Änderung der dectdaten.xml bei den Fernbedienungen 440 und 400
+- Erweiterung für Unterstützung der Fritz!Dect 500 RGB LED Glühbirnen (basic features)
+
 V3.80
 - Erweiterung: Anzeige des Batterie-Zustands in Prozent bei Thermostaten und Fernbedienungen, sowohl in der Übersicht, also auch auf den Detail-Seiten.
 
