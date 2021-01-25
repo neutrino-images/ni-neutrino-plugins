@@ -1,5 +1,6 @@
 #!/bin/sh
 
+. /etc/init.d/functions
 . /etc/init.d/globals
 
 ip_forwarding() {
@@ -24,6 +25,10 @@ case "$1" in
 				exit 1
 			fi
 
+			if [ ! -c /dev/net/tun ]; then
+				load_module kernel/drivers/net/tun.ko
+			fi
+
 			ip_forwarding 1
 			${openvpn} \
 				--config /var/etc/openvpn/${mode}.conf \
@@ -34,7 +39,7 @@ case "$1" in
 		fi
 	;;
 	stop)
-		killall -TERM openvpn
+		kill -TERM $(pidof ${openvpn})
 		sleep 3
 		ip_forwarding 0
 	;;
