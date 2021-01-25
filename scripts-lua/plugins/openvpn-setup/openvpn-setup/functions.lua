@@ -319,7 +319,7 @@ function search_conf(directory)
 	local i, t, popen = 0, {}, io.popen
 	for filename in popen('ls -a "'..directory..'"'):lines() do
 		i = i + 1
-		if filename:find(".conf") or filename:find(".ovpn") then
+		if filename:find(".conf") or filename:find(".openvpn") then
 			return filename
 		end
 	end
@@ -357,7 +357,7 @@ function get_extern(k, v)
 		return
 	end
 
-	local E = {"*.crt", "*.key", "*.conf", "*.ovpn"}
+	local E = {"*.crt", "*.key", "*.conf", "*.openvpn"}
 	local dir = get_filename(v)
 	local destdir = conf_base .. "/" .. dir 
 

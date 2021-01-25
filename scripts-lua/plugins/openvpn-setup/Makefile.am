@@ -7,7 +7,7 @@ plugin_DATA = \
 	openvpn-setup.lua
 
 install-exec-local:
-	install -D -m 0755 $(srcdir)/ovpn.init $(DESTDIR)$(sysconfdir)/init.d/ovpn
+	install -D -m 0755 $(srcdir)/openvpn.init $(DESTDIR)$(sysconfdir)/init.d/openvpn
 
 uninstall-hook:
-	rm -f $(DESTDIR)$(sysconfdir)/init.d/ovpn
+	rm -f $(DESTDIR)$(sysconfdir)/init.d/openvpn
