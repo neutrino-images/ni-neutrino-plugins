@@ -1,5 +1,14 @@
 Changelog 
 
+V4.00
+- Erweiterung bis max. 24 Fritz!Dect Geräte
+- Anpassung Schriftgröße in der Übersicht je nach Anzahl Geräte
+- Umfangreiche Änderungen im Code
+- Erweiterung Übersicht um Art des Dect Geräts (Socket, Thermostat, LED, Remote, Repeater,..)
+- Erweiterung für Fritz!Dect 500 LED: Übersicht, Detailseite, Schalten, etc.
+- Erweiterung der smarthomeinfo.conf um bis zu 5 konfigurierbarer Farbbuttons 
+  für die Fritz!Dect 500 Detail-Seite
+
 V3.82
 - Anpassung an neues Login-Verfahren bei Fritzbox Firmware >= 7.24 (bei Login nur mit Passwort)
 - Änderung der dectdaten.xml bei den Fernbedienungen 440 und 400

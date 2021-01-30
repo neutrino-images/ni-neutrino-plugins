@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * NI Fritz! Smart Home Info mit toggle V3.82   *
+# * NI Fritz! Smart Home Info mit toggle V4.00   *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team), LoginTeil zur     *
@@ -39,8 +39,8 @@ pluginpath=`echo "$CONFIG" | grep '^PLUGINPATH' | cut -d "=" -f2 | tr -d ' ' | t
 
 # ab hier keine Eintragung mehr nötig
 #################################################
-vinfo="V3.82"
-vinfo2="382"
+vinfo="V4.00"
+vinfo2="400"
 
 echo "--------------------------------------"
 echo "SmartHomeInfo "$vinfo" startet"
@@ -236,9 +236,21 @@ sed -i -e ':a;N;$!ba;s|\n\([^<]\)|\1|g' /tmp/dectdatendraft.xml
 #sed -i 's/<\/[^>]*>/&\n/g' /tmp/dectdatendraft.xml
 
 #cp -f /tmp/dectdatendraft.xml /tmp/dectdaten.xml
-sed -e '/button identifier/,+3d' < /tmp/dectdatendraft.xml >> /tmp/dectdaten.xml
+sed -e '/button identifier/,+3d' < /tmp/dectdatendraft.xml >> /tmp/dectdatendraft2.xml
+sed -e '/functionbitmask="1"/,+3d' < /tmp/dectdatendraft2.xml >> /tmp/dectdaten.xml
+
 
 LINES=`cat /tmp/dectdaten.xml | grep -oc identifier`
+
+if [ "$LINES" -ge "20" ]; then
+	rowsize="17"
+elif [ "$LINES" -ge "15" ]; then
+	rowsize="18"
+elif [ "$LINES" -ge "10" ]; then
+	rowsize="19" 
+else
+  rowsize="19"
+fi
 
 dectname=`cat /tmp/dectdaten.xml | grep "</name>" | cut -d ">" -f2 |  sed 's|</name|;|g' | tr "\n" ";" | sed 's|;;|;|g' `
 rm -f /tmp/dectnames
@@ -247,10 +259,13 @@ for i in $(seq 1 $LINES); do
 done
 source /tmp/dectnames
 
-dect=`cat /tmp/dectdaten.xml | grep "identifier" | sed 's/.*identifier="\(.*\)$/\1/' | cut -c 1-17 | sed 's|"|;|g' | tr "\n" ";" | sed 's|; id;|;|g' | sed 's|; id=;|;|g' `
+#dect=`cat /tmp/dectdaten.xml | grep "identifier" | sed 's/.*identifier="\(.*\)$/\1/' | cut -c 1-19 | sed 's|"|;|g' | tr "\n" ";" | sed 's|; id;|;|g' | sed 's|; id=;|;|g' `
+#dect=`cat /tmp/dectdaten.xml | grep "identifier" | sed 's/.*identifier="\(.*\)$/\1/' | sed 's/id=".*\(.*\)$/\1/' | sed 's|"|;|g' | sed 's|; id;|;|g' | sed 's|; |;|g'  `
+dect=`cat /tmp/dectdaten.xml | grep "identifier" | sed 's/.*identifier="\(.*\)$/\1/' | sed 's/id=".*\(.*\)$/\1/' | sed 's|"||g' | tr "\n" ";"  `
+
 rm -f /tmp/dectainx
 for i in $(seq 1 $LINES); do
-        echo DECT200$i=\"$(echo $dect | cut -d ";" -f$i)\" >> /tmp/dectainx
+        echo DECT200$i=\"$(echo $dect | cut -d ";" -f$i | sed 's/.$//')\" >> /tmp/dectainx
 done
 source /tmp/dectainx
 
@@ -260,6 +275,50 @@ for i in $(seq 1 $LINES); do
         echo id$i=`echo $id | cut -d ";" -f$i | tr -d ' '` >> /tmp/dectidx
 done
 source /tmp/dectidx
+
+}
+
+
+farbcodes() {
+
+CONFIG=$(cat /var/tuxbox/config/smarthomeinfo.conf)
+
+buttonname1=`echo "$CONFIG" | grep '^Button1' | cut -d "=" -f2 | cut -d ";" -f1 | tr -d ' '` 
+buttonkelvin1=`echo "$CONFIG" | grep '^Button1' | cut -d "=" -f2 | cut -d ";" -f2 | tr -d ' '` 
+buttonhue1=`echo "$CONFIG" | grep '^Button1' | cut -d "=" -f2 | cut -d ";" -f3 | tr -d ' '` 
+buttonsat1=`echo "$CONFIG" | grep '^Button1' | cut -d "=" -f2 | cut -d ";" -f4 | tr -d ' '` 
+
+buttonname2=`echo "$CONFIG" | grep '^Button2' | cut -d "=" -f2 | cut -d ";" -f1 | tr -d ' '` 
+buttonkelvin2=`echo "$CONFIG" | grep '^Button2' | cut -d "=" -f2 | cut -d ";" -f2 | tr -d ' '` 
+buttonhue2=`echo "$CONFIG" | grep '^Button2' | cut -d "=" -f2 | cut -d ";" -f3 | tr -d ' '` 
+buttonsat2=`echo "$CONFIG" | grep '^Button2' | cut -d "=" -f2 | cut -d ";" -f4 | tr -d ' '` 
+
+buttonname3=`echo "$CONFIG" | grep '^Button3' | cut -d "=" -f2 | cut -d ";" -f1 | tr -d ' '` 
+buttonkelvin3=`echo "$CONFIG" | grep '^Button3' | cut -d "=" -f2 | cut -d ";" -f2 | tr -d ' '` 
+buttonhue3=`echo "$CONFIG" | grep '^Button3' | cut -d "=" -f2 | cut -d ";" -f3 | tr -d ' '` 
+buttonsat3=`echo "$CONFIG" | grep '^Button3' | cut -d "=" -f2 | cut -d ";" -f4 | tr -d ' '` 
+
+buttonname4=`echo "$CONFIG" | grep '^Button4' | cut -d "=" -f2 | cut -d ";" -f1 | tr -d ' '` 
+buttonkelvin4=`echo "$CONFIG" | grep '^Button4' | cut -d "=" -f2 | cut -d ";" -f2 | tr -d ' '` 
+buttonhue4=`echo "$CONFIG" | grep '^Button4' | cut -d "=" -f2 | cut -d ";" -f3 | tr -d ' '` 
+buttonsat4=`echo "$CONFIG" | grep '^Button4' | cut -d "=" -f2 | cut -d ";" -f4 | tr -d ' '` 
+
+buttonname5=`echo "$CONFIG" | grep '^Button5' | cut -d "=" -f2 | cut -d ";" -f1 | tr -d ' '` 
+buttonkelvin5=`echo "$CONFIG" | grep '^Button5' | cut -d "=" -f2 | cut -d ";" -f2 | tr -d ' '` 
+buttonhue5=`echo "$CONFIG" | grep '^Button5' | cut -d "=" -f2 | cut -d ";" -f3 | tr -d ' '` 
+buttonsat5=`echo "$CONFIG" | grep '^Button5' | cut -d "=" -f2 | cut -d ";" -f4 | tr -d ' '` 
+
+if [ "buttonname1" = "" ];then
+   buttonname1="-frei-"
+  elif [ "buttonname2" = "" ];then
+   buttonname2="-frei-"
+  elif [ "buttonname3" = "" ];then
+   buttonname3="-frei-"
+  elif [ "buttonname4" = "" ];then
+   buttonname4="-frei-"
+  elif [ "buttonname5" = "" ];then
+   buttonname5="-frei-"
+fi
 
 }
 
@@ -357,8 +416,8 @@ dectuebersicht() {
 
 ### Werte aller Geräte ermitteln und in Datei speichern.
 
-echo "Gerät verbunden   ~T0585Temp.   ~T0665Heizung (~d C) ~T0810Zustand                     ~T1000Strom akt.  " >> /tmp/dectuebersicht.txt
-echo "(~GO~S/~RX~S) Name    ~T0310ID  ~T0385AIN          ~T0590(~d C) ~T0660soll ~T0710com ~T0760dwn ~T0810~GEIN~S/~RAUS~S  ~T0910Modus             ~T1000  (Watt)  ~T1100Batt.%" >> /tmp/dectuebersicht.txt
+echo "Gerät verbunden   ~T0550Temp. ~T0610Hum.  ~T0660~dC soll/com/dwn ~T0810Zustand                     ~T1000Strom akt.  ~T1100Batterie" >> /tmp/dectuebersicht.txt
+echo "(~GO~S/~RX~S) Name    ~T0235Typ ~T0310ID  ~T0375AIN          ~T0555(~d C) ~T0615(%)~T0660LED hue/sat/kelv ~T0810~GEIN~S/~RAUS~S  ~T0910Modus             ~T1000  (Watt)  ~T1105(%)" >> /tmp/dectuebersicht.txt
 echo "~s" >> /tmp/dectuebersicht.txt
 
 i=0
@@ -375,8 +434,9 @@ zustand=0
 power=0
 powertemp=0
 batterie="-"
+humidity="-"
 
-DECTSEARCH=`echo $dect | cut -d ";" -f$i`
+DECTSEARCH=`echo $dect | cut -d ";" -f$i | sed 's/.$//'`
 
 if [ "$DECTSEARCH" = "" ] ; then
     DECTSEARCH="      "
@@ -409,17 +469,85 @@ else
      elif [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
       NR=21
      elif [ "$produkt" = "FRITZ!DECT 440" ]; then
-      NR=9
+      NR=14
       #NR=24
      elif [ "$produkt" = "FRITZ!DECT 500" ]; then
-      NR=9
+      NR=25
      else
  		  NR=20
   fi
 fi
 
+if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
+   typ1="Thermo"
+  elif [ "$produkt" = "FRITZ!DECT Repeater 100" ]; then
+   typ1="Repeat."
+  elif [ "$produkt" = "FRITZ!Powerline 546E" -o "$produkt" = "FRITZ!DECT 200" -o "$produkt" = "FRITZ!DECT 210" ]; then
+   typ1="Socket"
+  elif [ "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]; then
+   typ1="Remote"
+  elif [ "$produkt" = "FRITZ!DECT 500" ]; then
+   typ1="LED"
+  elif [ "$produkt" = "Gruppen " ]; then
+   typ1="Group"
+  else
+   typ1="-"
+fi
 
-  
+if [ "$produkt" = "FRITZ!DECT 500" ]; then
+  #level=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</level>" | cut -d ">" -f2 | cut -d "<" -f1`
+  levelpercentage=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</levelpercentage>" | cut -d ">" -f2 | cut -d "<" -f1`
+  farbtemp=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</temperature>" | cut -d ">" -f2 | cut -d "<" -f1`
+  origid=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</etsideviceid>" | cut -d ">" -f2 | cut -d "<" -f1`
+  hue=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</hue>" | cut -d ">" -f2 | cut -d "<" -f1`
+  saturation=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</saturation>" | cut -d ">" -f2 | cut -d "<" -f1`
+
+	if [ "$farbtemp" = "3000" ]; then
+	   weiss="warmweiss 2"
+	  elif [ "$farbtemp" = "3400" ]; then
+     weiss="warmweiss 3"
+	  elif [ "$farbtemp" = "2700" ]; then
+     weiss="warmweiss 1"
+ 	  elif [ "$farbtemp" = "3800" ]; then
+     weiss="neutralweiss 4"
+ 	  elif [ "$farbtemp" = "4200" ]; then
+     weiss="neutralweiss 5"
+ 	  elif [ "$farbtemp" = "4700" ]; then
+     weiss="neutralweiss 6"
+ 	  elif [ "$farbtemp" = "5300" ]; then
+     weiss="kaltweiss 7"
+ 	  elif [ "$farbtemp" = "5900" ]; then
+     weiss="kaltweiss 8"
+ 	  elif [ "$farbtemp" = "6500" ]; then
+     weiss="kaltweiss 9"
+    else
+     weiss="-"
+   fi
+
+	if [ "$hue" = "358" ] && [ "$saturation" = "180" ]; then
+	   farbe="~Rrot"
+	  elif [ "$hue" = "225" ] && [ "$saturation" = "204" ]; then
+     farbe="~Bblau"
+	  elif [ "$hue" = "120" ] && [ "$saturation" = "160" ]; then
+     farbe="~Ggruen"
+ 	  elif [ "$hue" = "52" ] && [ "$saturation" = "153" ]; then
+     farbe="~Ygelb"
+ 	  elif [ "$hue" = "296" ] && [ "$saturation" = "140" ]; then
+     farbe="magenta"
+ 	  elif [ "$hue" = "335" ] && [ "$saturation" = "180" ]; then
+     farbe="pink"
+    else
+     farbe="-"
+   fi
+
+	if [ "$farbtemp" = "" ]; then
+	   farbmode="Farbe"
+	 else
+	   farbmode="Weiss"
+	fi
+	
+fi
+
 connect=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</present>" | cut -d ">" -f2 | cut -d "<" -f1`
 	  if [ "$connect" = "1" ]; then
 	  	 connecttext1="~GO"
@@ -438,7 +566,7 @@ connect=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</present>" 
     else
         templinks="0"
     fi
-  if [ "$connect" = "0" ]; then
+  if [ "$connect" = "0" -o "$produkt" = "FRITZ!DECT 500" ]; then
     tempfinal1="-"
   else
     tempfinal1=`echo $templinks","$temprechts`
@@ -478,6 +606,10 @@ connect=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</present>" 
             absktemprechts=`cat /tmp/reftemp.tmp | grep $absktemp | cut -d ";" -f3 `
                absktempfinal1=`echo $absktemplinks","$absktemprechts`
              fi
+          elif [ "$produkt" = "FRITZ!DECT 500" ]; then    
+             solltempfinal1=$hue
+             absktempfinal1=$farbtemp
+             comftempfinal1=$saturation
           else
             solltempfinal1=""
             absktempfinal1=""
@@ -487,6 +619,8 @@ connect=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</present>" 
  
 	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$connect" = "0" -o "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" -o "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]; then
       modus1="-"
+    elif [ "$produkt" = "FRITZ!DECT 500" ]; then    
+      modus1=$farbmode
     else
 	    if [ "$produkt" = "Gruppen " -o "$produkt" = "FRITZ!Powerline 546E" ]; then
  		  modus1=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</mode>" | cut -d ">" -f2 | cut -d "<" -f1`
@@ -516,7 +650,18 @@ if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = 
 		fi
 	fi
 
-zustand=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</state>" | cut -d ">" -f2 | cut -d "<" -f1`
+humtemp=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</rel_humidity>" | cut -d ">" -f2 | cut -d "<" -f1`
+if [ "$produkt" = "FRITZ!DECT 440" ]; then
+	  if [ "$humtemp" -le "30" -o "$humtemp" -ge "60" ]; then
+	  	 humidity="~R$humtemp"
+	  elif [ "$humtemp" = "" ]; then
+	     humidity="-"
+	  else
+	 		 humidity="~G$humtemp"
+		fi
+fi
+
+zustand=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</status>" | cut -d ">" -f2 | cut -d "<" -f1`
 	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$connect" = "0" -o "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]; then
        zustandtext1="~Y-" 
 	  else 
@@ -544,7 +689,7 @@ power=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</power>" | cu
 powerlinks=`echo $power | sed 's/\(.*\)...$/\1/'`
 powerrechts=`echo $power | sed 's/.*\(.\{3\}\)$/\1/'`
 
-	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$produkt" = "Gruppen " -o "$connect" = "0" -o "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" -o "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]; then
+	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$produkt" = "Gruppen " -o "$connect" = "0" -o "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" -o "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" -o "$produkt" = "FRITZ!DECT 500" ]; then
     	powerfinal1="-"
       	else if [ ${#power} = 3 ]
         then powerfinal1=`echo "0,"$power`
@@ -553,7 +698,7 @@ powerrechts=`echo $power | sed 's/.*\(.\{3\}\)$/\1/'`
 	fi
 fi
 
-echo ""$connecttext1" ~B"$name1"  ~Y~T0310$id1 ~T0385"$DECTSEARCH"  ~T0590"$tempfinal1" ~T0660"$solltempfinal1" ~T0710"$comftempfinal1" ~T0760"$absktempfinal1" ~T0825"$zustandtext1" ~Y~T0910"$modus1"  ~T1005"$powerfinal1" ~T1100"$batterie"~S" >> /tmp/dectuebersicht.txt
+echo ""$connecttext1" ~B"$name1"  ~G~T0235$typ1 ~Y~T0310$id1 ~T0375"$DECTSEARCH"  ~T0550"$tempfinal1"   ~T0610"$humidity" ~T0660"$solltempfinal1" ~T0710"$comftempfinal1" ~T0760"$absktempfinal1" ~T0825"$zustandtext1" ~Y~T0910"$modus1"  ~T1005"$powerfinal1" ~T1100"$batterie"~S" >> /tmp/dectuebersicht.txt
 
 
 done
@@ -577,7 +722,7 @@ dectuebersicht
 
 while :; do
 auswahl=2
-msgbox msg=/tmp/dectuebersicht.txt size=9 icon=$path title=$titletext1"Smart Home Info "$vinfo select=UPD.PLUGIN,$DECTNAME1,$DECTNAME2,$DECTNAME3,$DECTNAME4,$DECTNAME5,$DECTNAME6,$DECTNAME7,$DECTNAME8,$DECTNAME9,$DECTNAME10,$DECTNAME11,$DECTNAME12,$DECTNAME13,$DECTNAME14,$DECTNAME15,$DECTNAME16,$DECTNAME17,$DECTNAME18,$DECTNAME19,$DECTNAME20 order=5 size=22 default=$auswahl 
+msgbox msg=/tmp/dectuebersicht.txt size=9 icon=$path title=$titletext1"Smart Home Info "$vinfo select=UPD.PLUGIN,$DECTNAME1,$DECTNAME2,$DECTNAME3,$DECTNAME4,$DECTNAME5,$DECTNAME6,$DECTNAME7,$DECTNAME8,$DECTNAME9,$DECTNAME10,$DECTNAME11,$DECTNAME12,$DECTNAME13,$DECTNAME14,$DECTNAME15,$DECTNAME16,$DECTNAME17,$DECTNAME18,$DECTNAME19,$DECTNAME20,$DECTNAME21,$DECTNAME22,$DECTNAME23,$DECTNAME24 order=5 size=$rowsize default=$auswahl 
 		auswahl=$?
 		case $auswahl	in
 	  1)
@@ -683,6 +828,26 @@ msgbox msg=/tmp/dectuebersicht.txt size=9 icon=$path title=$titletext1"Smart Hom
 		21)
 		  DECT200=$DECT20020
 		  id200=$id20
+		  break
+		  ;;
+		22)
+		  DECT200=$DECT20021
+		  id200=$id21
+		  break
+		  ;;
+		23)
+		  DECT200=$DECT20022
+		  id200=$id22
+		  break
+		  ;;
+		24)
+		  DECT200=$DECT20023
+		  id200=$id23
+		  break
+		  ;;
+		25)
+		  DECT200=$DECT20024
+		  id200=$id24
 		  break
 		  ;;
 		*)
@@ -836,6 +1001,127 @@ done
 
 }
 
+menu5() {
+
+farbcodes
+
+while :; do
+auswahl=1
+msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart Home Info "$vinfo hide=2 select="EIN/AUS,aktualisieren,Dimm -20%,Dimm +10%,Dimm 100%,$buttonname1,$buttonname2,$buttonname3,$buttonname4,$buttonname5" order=5 size=22 default=$auswahl
+
+		auswahl=$?
+		case $auswahl	in
+		1)
+      #Fritzdect toggle (automatisch)
+			wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setswitchtoggle&sid=$SID"
+			#sleep 1
+	    #Daten aktualisieren
+      rm -f /tmp/dect*
+      datenauslesen
+			;;
+		2)
+	    #Daten aktualisieren
+      rm -f /tmp/dect*
+      datenauslesen
+			;;
+		3)
+	    #Dimmen -20
+      levelnow=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</levelpercentage>" | cut -d ">" -f2 | cut -d "<" -f1`
+      levelneu=`echo $((levelnow-20))`
+			wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setlevelpercentage&level=$levelneu&sid=$SID"
+			#sleep 1
+	    #Daten aktualisieren
+      rm -f /tmp/dect*
+      datenauslesen
+			;;
+		4)
+	    #Dimmen +10
+      levelnow=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</levelpercentage>" | cut -d ">" -f2 | cut -d "<" -f1`
+      levelneu=`echo $((levelnow+10))`
+			wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setlevelpercentage&level=$levelneu&sid=$SID"
+			#sleep 1
+	    #Daten aktualisieren
+      rm -f /tmp/dect*
+      datenauslesen
+			;;
+		5)
+	    #Dimmen 100
+			wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setlevelpercentage&level=100&sid=$SID"
+			#sleep 1
+	    #Daten aktualisieren
+      rm -f /tmp/dect*
+      datenauslesen
+			;;
+	  6)
+	    #Farbbutton1
+	    if [ "$buttonkelvin1" = "" ]; then
+			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolor&hue=$buttonhue1&saturation=$buttonsat1&duration=0&sid=$SID"
+			 else
+			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolortemperature&temperature=$buttonkelvin1&duration=0&sid=$SID"
+			fi
+			#sleep 1
+	    #Daten aktualisieren
+      rm -f /tmp/dect*
+      datenauslesen
+			;;
+		7)
+	    #Farbbutton2
+	    if [ "$buttonkelvin2" = "" ]; then
+			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolor&hue=$buttonhue2&saturation=$buttonsat2&duration=0&sid=$SID"
+			 else
+			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolortemperature&temperature=$buttonkelvin2&duration=0&sid=$SID"
+			fi
+			#sleep 1
+	    #Daten aktualisieren
+      rm -f /tmp/dect*
+      datenauslesen
+			;;
+		8)
+	    #Farbbutton3
+	    if [ "$buttonkelvin3" = "" ]; then
+			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolor&hue=$buttonhue3&saturation=$buttonsat3&duration=0&sid=$SID"
+			 else
+			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolortemperature&temperature=$buttonkelvin3&duration=0&sid=$SID"
+			fi
+			#sleep 1
+	    #Daten aktualisieren
+      rm -f /tmp/dect*
+      datenauslesen
+			;;
+		9)
+	    #Farbbutton4
+	    if [ "$buttonkelvin4" = "" ]; then
+			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolor&hue=$buttonhue4&saturation=$buttonsat4&duration=0&sid=$SID"
+			 else
+			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolortemperature&temperature=$buttonkelvin4&duration=0&sid=$SID"
+			fi
+			#sleep 1
+	    #Daten aktualisieren
+      rm -f /tmp/dect*
+      datenauslesen
+			;;
+		10)
+	    #Farbbutton5
+	    if [ "$buttonkelvin5" = "" ]; then
+			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolor&hue=$buttonhue5&saturation=$buttonsat5&duration=0&sid=$SID"
+			 else
+			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolortemperature&temperature=$buttonkelvin5&duration=0&sid=$SID"
+			fi
+			#sleep 1
+	    #Daten aktualisieren
+      rm -f /tmp/dect*
+      datenauslesen
+			;;
+		*)
+			#break
+			menu
+			datenauslesen
+			;;
+		esac
+done
+
+}
+
 ###################################
 ## Daten für Detailseite ermitteln
 
@@ -850,8 +1136,8 @@ sed -i -e ':a;N;$!ba;s|\n\([^<]\)|\1|g' /tmp/dectdatendraft.xml
 #sed -i 's/<\/[^>]*>/&\n/g' /tmp/dectdatendraft.xml
 
 #cp -f /tmp/dectdatendraft.xml /tmp/dectdaten.xml
-sed -e '/button identifier/,+3d' < /tmp/dectdatendraft.xml >> /tmp/dectdaten.xml
-
+sed -e '/button identifier/,+3d' < /tmp/dectdatendraft.xml >> /tmp/dectdatendraft2.xml
+sed -e '/functionbitmask="1"/,+3d' < /tmp/dectdatendraft2.xml >> /tmp/dectdaten.xml
 
 produkt=`cat /tmp/dectdaten.xml | grep "$getrennt" | grep "productname" | sed 's/.*productname="\(.*\)$/\1/' | sed 's/">\(.*\)$/\1/'`
 if [ "$Version" \< "07.20" ]; then
@@ -880,14 +1166,15 @@ else
      elif [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
       NR=21
      elif [ "$produkt" = "FRITZ!DECT 440" ]; then
-      NR=9
+      NR=14
       #NR=24
      elif [ "$produkt" = "FRITZ!DECT 500" ]; then
-      NR=9
+      NR=25
 	 	else
  		  NR=20
   fi
 fi
+
 
 connect=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep "</present>" | cut -d ">" -f2 | cut -d "<" -f1`
 	  if [ "$connect" = "1" ]; then
@@ -931,6 +1218,19 @@ offsetlinks=`echo $offset | sed 's/.$//'`
   else
     offsetfinal=`echo $offsetlinks","$offsetrechts`
   fi
+  
+
+humtemp1=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep "</rel_humidity>" | cut -d ">" -f2 | cut -d "<" -f1`
+humidity2="-"
+if [ "$produkt" = "FRITZ!DECT 440" ]; then
+	  if [ "$humtemp1" -le "30" -o "$humtemp1" -ge "60" ]; then
+	  	 humidity2="~R$humtemp1"
+	  elif [ "$humtemp1" = "" ]; then
+	     humidity2="-"
+	  else
+	 		 humidity2="~G$humtemp1"
+		fi
+fi
 
 	    if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" -o "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]; then
             batt2=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep "</battery>" | cut -d ">" -f2 | cut -d "<" -f1 `
@@ -1008,7 +1308,7 @@ if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = 
  		fi
 fi
 
-zustand=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep "</state>" | cut -d ">" -f2 | cut -d "<" -f1`
+zustand=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep "</status>" | cut -d ">" -f2 | cut -d "<" -f1`
 	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$connect" = "0" -o "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]; then
        zustandtext="~Y-" 
 	  else 
@@ -1027,8 +1327,62 @@ zustand=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep "</state>" | cu
          fi
  fi      
 
+if [ "$produkt" = "FRITZ!DECT 500" ]; then
+  #level=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</level>" | cut -d ">" -f2 | cut -d "<" -f1`
+  levelpercentage=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</levelpercentage>" | cut -d ">" -f2 | cut -d "<" -f1`
+  farbtemp=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</temperature>" | cut -d ">" -f2 | cut -d "<" -f1`
+  origid=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</etsideviceid>" | cut -d ">" -f2 | cut -d "<" -f1`
+  hue=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</hue>" | cut -d ">" -f2 | cut -d "<" -f1`
+  saturation=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</saturation>" | cut -d ">" -f2 | cut -d "<" -f1`
+
+	if [ "$farbtemp" = "3000" ]; then
+	   weiss="warmweiss 2"
+	  elif [ "$farbtemp" = "3400" ]; then
+     weiss="warmweiss 3"
+	  elif [ "$farbtemp" = "2700" ]; then
+     weiss="warmweiss 1"
+ 	  elif [ "$farbtemp" = "3800" ]; then
+     weiss="neutralweiss 4"
+ 	  elif [ "$farbtemp" = "4200" ]; then
+     weiss="neutralweiss 5"
+ 	  elif [ "$farbtemp" = "4700" ]; then
+     weiss="neutralweiss 6"
+ 	  elif [ "$farbtemp" = "5300" ]; then
+     weiss="kaltweiss 7"
+ 	  elif [ "$farbtemp" = "5900" ]; then
+     weiss="kaltweiss 8"
+ 	  elif [ "$farbtemp" = "6500" ]; then
+     weiss="kaltweiss 9"
+    else
+     weiss="-"
+   fi
+
+	if [ "$hue" = "358" ] && [ "$saturation" = "180" ]; then
+	   farbe="~Rrot"
+	  elif [ "$hue" = "225" ] && [ "$saturation" = "204" ]; then
+     farbe="~Bblau"
+	  elif [ "$hue" = "120" ] && [ "$saturation" = "160" ]; then
+     farbe="~Ggruen"
+ 	  elif [ "$hue" = "52" ] && [ "$saturation" = "153" ]; then
+     farbe="~Ygelb"
+ 	  elif [ "$hue" = "296" ] && [ "$saturation" = "140" ]; then
+     farbe="magenta"
+ 	  elif [ "$hue" = "335" ] && [ "$saturation" = "180" ]; then
+     farbe="pink"
+    else
+     farbe="-"
+   fi
+
+	if [ "$farbtemp" = "" ]; then
+	   farbmode="Farbe"
+	 else
+	   farbmode="Weiss"
+	fi
+	
+fi
 
 name=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</name>" | cut -d ">" -f2 | cut -d "<" -f1 | cut -d " " -f1 | cut -d ":" -f2`
+
 fw=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep "fwversion" | sed 's/.*fwversion="\(.*\)$/\1/' | sed 's/" manufac.*\(.*\)$/\1/'`
 
 power=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep "</power>" | cut -d ">" -f2 | cut -d "<" -f1 `
@@ -1124,6 +1478,7 @@ elif [ "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]
   echo "Firmware               ~T0600~Y"$fw"~S" >> /tmp/dectdetail.txt
   echo "~s" >> /tmp/dectdetail.txt
   echo "Temperatur aktuell/ist ~T0600~Y"$tempfinal"~d C (Korr: "$offsetfinal"~d C)~S" >> /tmp/dectdetail.txt
+  echo "Luftfeuchtigkeit ~T0600~Y"$humidity2" % ~S" >> /tmp/dectdetail.txt
   echo "~s" >> /tmp/dectdetail.txt
   echo "~cINFO:" >> /tmp/dectdetail.txt
   echo "~cDer Button 'Daten aktualisieren' liest die Werte neu ein." >> /tmp/dectdetail.txt
@@ -1136,18 +1491,24 @@ elif [ "$produkt" = "FRITZ!DECT 500" ]
   echo "~B"$produkt"~S Name:   ~T0600~B"$name"~S" >> /tmp/dectdetail.txt
   echo "~s" >> /tmp/dectdetail.txt
   echo "Verbunden mit FritzBox ~T0600"$connecttext"~S" >> /tmp/dectdetail.txt
-  echo "Schaltzustand momentan ~T0600"$zustandtext"  ~Y("$modus")~S" >> /tmp/dectdetail.txt
+  echo "Schaltzustand momentan ~T0600"$zustandtext"  ~S" >> /tmp/dectdetail.txt
+  echo "Modus (Farbe/Weiss)    ~T0600"$farbmode" ~S" >> /tmp/dectdetail.txt
+  echo "Helligkeit (Prozent)   ~T0600"$levelpercentage" %  ~S" >> /tmp/dectdetail.txt
+  echo "Farbtemperatur (weiss) ~T0600Kelvin: "$farbtemp" ( "$weiss" ) ~S" >> /tmp/dectdetail.txt
+  echo "Farbcode               ~T0600Hue: "$hue" / Sat.: "$saturation" ( "$farbe"~S ) ~S" >> /tmp/dectdetail.txt
   echo "~s" >> /tmp/dectdetail.txt
   echo "Fritz!Dect Nummer (AIN)~T0600~Y"$getrennt"~S" >> /tmp/dectdetail.txt
-  echo "ID                     ~T0600~Y"$id200"~S" >> /tmp/dectdetail.txt
-  echo "Firmware               ~T0600~Y"$fw"~S" >> /tmp/dectdetail.txt
+  echo "ID / OrigID            ~T0600~Y"$id200" / "$origid"~S" >> /tmp/dectdetail.txt
+  #echo "Firmware               ~T0600~Y"$fw"~S" >> /tmp/dectdetail.txt
   echo "~s" >> /tmp/dectdetail.txt
   echo "~cINFO:" >> /tmp/dectdetail.txt
-  echo "~cMit EIN/AUS wird die Steckdose abwechselnd geschaltet." >> /tmp/dectdetail.txt
-  echo "~cDer Button 'Daten aktualisieren' liest die Werte neu ein." >> /tmp/dectdetail.txt
+  echo "~cMit EIN/AUS wird die Lampe abwechselnd geschaltet." >> /tmp/dectdetail.txt
+  echo "~cMit den Farb-Tasten wird die Lampe in der entsprechenden Farbe geschaltet." >> /tmp/dectdetail.txt
+  echo "~cKonfiguration der Farbtasten in der smarthomeinfo.conf" >> /tmp/dectdetail.txt
+  echo "~cDer Button 'aktualisieren' liest die Werte neu ein." >> /tmp/dectdetail.txt
   echo "~cDie EXIT Taste der Fernbedienung geht zurueck zur Auswahl." >> /tmp/dectdetail.txt
 
-menu2
+menu5
 
 else
   echo "~B"$produkt"~S Name:   ~T0600~B"$name"~S" >> /tmp/dectdetail.txt
