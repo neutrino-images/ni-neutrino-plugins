@@ -1,5 +1,9 @@
 Changelog 
 
+V4.01
+- Codecleaning
+- Log-Ausgaben hinzugefügt, Wget-Ausgaben deaktiviert
+
 V4.00
 - Erweiterung bis max. 24 Fritz!Dect Geräte
 - Anpassung Schriftgröße in der Übersicht je nach Anzahl Geräte

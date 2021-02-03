@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * NI Fritz! Smart Home Info mit toggle V4.00   *
+# * NI Fritz! Smart Home Info mit toggle V4.01   *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team), LoginTeil zur     *
@@ -39,8 +39,8 @@ pluginpath=`echo "$CONFIG" | grep '^PLUGINPATH' | cut -d "=" -f2 | tr -d ' ' | t
 
 # ab hier keine Eintragung mehr nötig
 #################################################
-vinfo="V4.00"
-vinfo2="400"
+vinfo="V4.01"
+vinfo2="401"
 
 echo "--------------------------------------"
 echo "SmartHomeInfo "$vinfo" startet"
@@ -70,7 +70,7 @@ if [ -e $pluginpath/smarthomeinfopics/500.png ]; then
      rm -f $pluginpath/smarthomeinfopics/*.png
      rm -f $pluginpath/smarthomeinfopics
 		 mkdir $pluginpath/smarthomeinfopics
-     wget -O $pluginpath/smarthomeinfopics/icons.zip https://www.neutrino-images.de/channellogos/fritzdect/icons.zip
+     wget -q -O $pluginpath/smarthomeinfopics/icons.zip https://www.neutrino-images.de/channellogos/fritzdect/icons.zip
      if [ -e $pluginpath/smarthomeinfopics/icons.zip ]; then
         cd $pluginpath/smarthomeinfopics
       	unzip $pluginpath/smarthomeinfopics/icons.zip >/dev/null  
@@ -84,14 +84,14 @@ fi
 ## Login bei FritzBox / SessionID
 
 # OS-Version ermitteln
-#Version=`wget -O - http://$FRITZIP/jason_boxinfo.xml | grep Version | awk '{match($0,/>[^<>]+</); print substr($0,RSTART+4,5)}'`
-Version=`wget -O- http://$FRITZIP/jason_boxinfo.xml | grep Version | awk '{match($0,/>[^<>]+</); print substr($0,RSTART+RLENGTH-6,5)}'`
+#Version=`wget -q -O - http://$FRITZIP/jason_boxinfo.xml | grep Version | awk '{match($0,/>[^<>]+</); print substr($0,RSTART+4,5)}'`
+Version=`wget -q -O- http://$FRITZIP/jason_boxinfo.xml | grep Version | awk '{match($0,/>[^<>]+</); print substr($0,RSTART+RLENGTH-6,5)}'`
 echo "SmartHomeInfo - Fritzbox-Software V"$Version" "
 
 if [ "$Version" \< "05.50" ]; then
   echo "SmartHomeInfo - alte Login-Version <05.50"
 	# Challenge abholen
-	ChallengeXML=`wget -O - "http://$FRITZIP/cgi-bin/webcm?getpage=../html/login_sid.xml" 2>/dev/null| grep Challenge`
+	ChallengeXML=`wget -q -O - "http://$FRITZIP/cgi-bin/webcm?getpage=../html/login_sid.xml" 2>/dev/null| grep Challenge`
 	Challenge=`echo $ChallengeXML | awk '{match($0,/>[^<>]+</); print substr($0,RSTART+1,RLENGTH-2)}'`
 	# login aufbauen und hashen
 	CPSTR="$Challenge-$Passwd"
@@ -107,14 +107,14 @@ if [ "$Version" \< "05.50" ]; then
 	RESPONSE="$Challenge-$MD5"
 	POSTDATA="login:command/response=$RESPONSE&getpage=../html/de/menus/menu2.html"
 	# login senden und SID herausfischen
-	SID=`wget -O - --post-data="$POSTDATA" "http://$FRITZIP/cgi-bin/webcm" 2>/dev/null| grep "name=\"sid\"" | head -1 | awk '{match($0,/value="[^"]+"/); print substr($0,RSTART+7,RLENGTH-8)}'`
+	SID=`wget -q -O - --post-data="$POSTDATA" "http://$FRITZIP/cgi-bin/webcm" 2>/dev/null| grep "name=\"sid\"" | head -1 | awk '{match($0,/value="[^"]+"/); print substr($0,RSTART+7,RLENGTH-8)}'`
 	# refresh der daten auslösen
-	wget -O /dev/null "http://$FRITZIP//cgi-bin/webcm?sid=$SID&getpage=..%2Fhtml%2Fde%2Fmenus%2Fmenu2.html&errorpage=..%2Fhtml%2Fde%2Fmenus%2Fmenu2.html&var%3Apagename=foncalls&var%3Aerrorpagename=foncalls&var%3Amenu=home&var%3Apagemaster=&var%3Aactivtype=pppoe&var%3AtabInetstat=0&var%3Aweckernr=&logger%3Asettings%2Ffilter=2"
+	wget -q -O /dev/null "http://$FRITZIP//cgi-bin/webcm?sid=$SID&getpage=..%2Fhtml%2Fde%2Fmenus%2Fmenu2.html&errorpage=..%2Fhtml%2Fde%2Fmenus%2Fmenu2.html&var%3Apagename=foncalls&var%3Aerrorpagename=foncalls&var%3Amenu=home&var%3Apagemaster=&var%3Aactivtype=pppoe&var%3AtabInetstat=0&var%3Aweckernr=&logger%3Asettings%2Ffilter=2"
 	# CSV runterladen
-	wget -O /tmp/fb_anrufliste.csv "http://$FRITZIP/cgi-bin/webcm?sid=$SID&getpage=..%2Fhtml%2Fde%2FFRITZ%21Box_Anrufliste.csv" 2>/dev/null
+	wget -q -O /tmp/fb_anrufliste.csv "http://$FRITZIP/cgi-bin/webcm?sid=$SID&getpage=..%2Fhtml%2Fde%2FFRITZ%21Box_Anrufliste.csv" 2>/dev/null
 elif [ "$Version" \> "07.23" ]; then
   echo "SmartHomeInfo - neue Login-Version >=07.24"
-	wget -O /tmp/anrufer.tmp http://$FRITZIP/login_sid.lua
+	wget -q -O /tmp/anrufer.tmp http://$FRITZIP/login_sid.lua
 	# SID testen
 	SID=`cat /tmp/anrufer.tmp | awk '{match($0,/SID>[^<>]+</); print substr($0,RSTART+4,RLENGTH-5)}'`
 	if [ "$SID" = "0000000000000000" ]; then
@@ -136,13 +136,13 @@ elif [ "$Version" \> "07.23" ]; then
 			USERNAME=`cat /tmp/anrufer.tmp | awk '{match($0,/fritz[^<>]+</); print substr($0,RSTART+0,RLENGTH-1)}'`
 		fi
 		GETDATA="?username=$USERNAME&response=$RESPONSE"
-		echo "SmartHomeInfo - Login: "$GETDATA" !"
-		wget -O /tmp/anrufer.sid http://$FRITZIP/login_sid.lua$GETDATA 
+		#echo "SmartHomeInfo - Login: "$GETDATA" !"
+		wget -q -O /tmp/anrufer.sid http://$FRITZIP/login_sid.lua$GETDATA 
 		SID=$(sed -n '/.*<SID>\([^<]*\)<.*/s//\1/p' /tmp/anrufer.sid)
 	fi
 else
   echo "SmartHomeInfo - Login-Version >05.50 bis 7.23"
-	wget -O /tmp/anrufer.tmp http://$FRITZIP/login_sid.lua?username=${USERNAME}
+	wget -q -O /tmp/anrufer.tmp http://$FRITZIP/login_sid.lua?username=${USERNAME}
 	# SID testen
 	SID=`cat /tmp/anrufer.tmp | awk '{match($0,/SID>[^<>]+</); print substr($0,RSTART+4,RLENGTH-5)}'`
 	if [ "$SID" = "0000000000000000" ]
@@ -163,7 +163,7 @@ else
 		RESPONSE="$Challenge-$MD5"
 		GETDATA="?username=$USERNAME&response=$RESPONSE"
 		echo "SmartHomeInfo - Login: "$GETDATA" !"
-		wget -O /tmp/anrufer.sid http://$FRITZIP/login_sid.lua$GETDATA 
+		wget -q -O /tmp/anrufer.sid http://$FRITZIP/login_sid.lua$GETDATA 
 		SID=$(sed -n '/.*<SID>\([^<]*\)<.*/s//\1/p' /tmp/anrufer.sid)
 	fi
 echo "SmartHomeInfo - Login / SessionID abgeschlossen"
@@ -222,11 +222,13 @@ echo "" >> /tmp/reftemp.tmp
 
 initialdaten() {
 
+echo "SmartHomeInfo - Daten werden ermittelt"
+
 rm -f /tmp/dect*
 rm -f /tmp/anruf*
 
 #curl -L -o /tmp/test.xml "http://$FRITZIP/webservices/homeautoswitch.lua?switchcmd=getdevicelistinfos&sid=$SID"
-wget -O /tmp/dectdatendraft.xml "http://$FRITZIP/webservices/homeautoswitch.lua?switchcmd=getdevicelistinfos&sid=$SID"
+wget -q -O /tmp/dectdatendraft.xml "http://$FRITZIP/webservices/homeautoswitch.lua?switchcmd=getdevicelistinfos&sid=$SID"
 #xmllint --format /tmp/dectdatendraft.xml >> /tmp/dectdaten.xml
 
 sed -i -e 's|simpleonoff><state>1</state>|simpleonoff><status>1</status>|g' /tmp/dectdatendraft.xml
@@ -278,6 +280,17 @@ source /tmp/dectidx
 
 }
 
+#Farbcodes als Beispiel für die smarthomeinfo.conf
+#volleSättigung	orange	gelb	grsgrün	grün	türkis	cyan	hmlblau	blau	violett	magenta	pink	rot
+#HUE			35		52		92		120		160		195		212		225		266		296		335		358
+#SAT			214		153		123		160		145		179		169		204		169		140		180		180
+#mittlereSättg
+#HUE			35		52		92		120		160		195		212		225		266		296		335		358
+#SAT			140		102		79		82		84		118		110		135		110		92		107		112
+#geringeSättg
+#HUE			35		52		92		120		160		195		212		225		266		296		335		358
+#SAT			72		51		38		38		41		59		56		67		54		46		51		54
+#
 
 farbcodes() {
 
@@ -327,20 +340,20 @@ fi
 
 update() {
   echo "SmartHomeInfo - Update-Files Plugin aus Git laden"
-  	wget -O $pluginpath/smarthomeinfo.so https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo.so --no-check-certificate
-  	wget -O $pluginpath/smarthomeinfo.cfg https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo.cfg --no-check-certificate
-  	wget -O $pluginpath/smarthomeinfo_hint.png https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo_hint.png --no-check-certificate
+  	wget -q -O $pluginpath/smarthomeinfo.so https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo.so --no-check-certificate
+  	wget -q -O $pluginpath/smarthomeinfo.cfg https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo.cfg --no-check-certificate
+  	wget -q -O $pluginpath/smarthomeinfo_hint.png https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo_hint.png --no-check-certificate
 }
 
 updateconf() {
   echo "SmartHomeInfo - conf aus Git laden"
- 	wget -O /var/tuxbox/config/smarthomeinfo.conf https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo.conf --no-check-certificate
+ 	wget -q -O /var/tuxbox/config/smarthomeinfo.conf https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo.conf --no-check-certificate
 }
 
 updateseiteerstellen() {
 
   echo "SmartHomeInfo - Update-Check-Version im Git"
-	wget -O /tmp/smarthomeinfo.update https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo.so --no-check-certificate
+	wget -q -O /tmp/smarthomeinfo.update https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo.so --no-check-certificate
 
 	updatevertemp=$(cat /tmp/smarthomeinfo.update | grep "vinfo=")
 	updatevertemp2=$(echo "$updatevertemp" | cut -d '"' -f2 )
@@ -413,6 +426,8 @@ done
 ## Übersicht erstellen
 
 dectuebersicht() {
+
+echo "SmartHomeInfo - Fritz!Dect Uebersicht wird erstellt"
 
 ### Werte aller Geräte ermitteln und in Datei speichern.
 
@@ -719,6 +734,7 @@ menu() {
 initialdaten
 dectuebersicht
 
+echo "SmartHomeInfo - Fritz!Dect Uebersicht wird angezeigt"
 
 while :; do
 auswahl=2
@@ -853,6 +869,8 @@ msgbox msg=/tmp/dectuebersicht.txt size=9 icon=$path title=$titletext1"Smart Hom
 		*)
       rm -f /tmp/dect*
       rm -f /tmp/anruf*
+      echo "SmartHomeInfo - wird beendet"
+      echo "-------------------------------------"
       exit 0
 			;;
 		esac
@@ -866,6 +884,8 @@ getrennt=`echo $DECT200`
 
 menu2() {
 
+echo "SmartHomeInfo - Fritz!Dect Detailseite Steckdose wird angezeigt"
+
 while :; do
 auswahl=1
 msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart Home Info "$vinfo hide=2 select="EIN/AUS,Daten aktualisieren" size=22 default=$auswahl
@@ -874,18 +894,18 @@ msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart 
 		case $auswahl	in
 		1)
       #Fritzdect toggle (automatisch)
-			wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setswitchtoggle&sid=$SID"
+			wget -q -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setswitchtoggle&sid=$SID"
 
 			#alternativ:
       #FritzDect toggle (manuell)
-			#zustand=`wget -O - "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=getswitchstate&sid=$SID"`
+			#zustand=`wget -q -O - "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=getswitchstate&sid=$SID"`
 			#if [ "$zustand" = "1" ]
 			#then
 				#FritzDect Ausschalten
-			#	wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setswitchoff&sid=$SID" | echo "es wurde ausgeschaltet"
+			#	wget -q -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setswitchoff&sid=$SID" | echo "es wurde ausgeschaltet"
 			#else
 				#FritzDect Einschalten
-			#	wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setswitchon&sid=$SID" | echo "es wurde eingeschaltet"
+			#	wget -q -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setswitchon&sid=$SID" | echo "es wurde eingeschaltet"
 			#fi
 			sleep 1
 	    #Daten aktualisieren
@@ -909,6 +929,8 @@ done
 
 menu3() {
 
+echo "SmartHomeInfo - Fritz!Dect Detailseite Thermostat wird angezeigt"
+
 while :; do
 auswahl=1
 msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart Home Info "$vinfo hide=2 select="Temp -1~dC,Temp +1~dC,EIN/AUS,Daten aktualisieren,Temp -2~dC,Temp +2~dC" size=22 order=4 default=$auswahl
@@ -917,7 +939,7 @@ msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart 
 		1)
       solltemp=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep tsoll | cut -d ">" -f2 | cut -d "<" -f1 `
       solltempneu=`echo $((solltemp-2))`
-			wget -O /tmp/dectset.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=sethkrtsoll&param=$solltempneu&sid=$SID" | echo "Temp wurde um 1 Grad verringert"
+			wget -q -O /tmp/dectset.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=sethkrtsoll&param=$solltempneu&sid=$SID" | echo "Temp wurde um 1 Grad verringert"
 			#sleep 1
 	    #Daten aktualisieren
       rm -f /tmp/dect*
@@ -926,7 +948,7 @@ msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart 
 		2)
       solltemp=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep tsoll | cut -d ">" -f2 | cut -d "<" -f1 `
       solltempneu=`echo $((solltemp+2))`
-			wget -O /tmp/dectset.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=sethkrtsoll&param=$solltempneu&sid=$SID" | echo "Temp wurde um 1 Grad erhoeht"
+			wget -q -O /tmp/dectset.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=sethkrtsoll&param=$solltempneu&sid=$SID" | echo "Temp wurde um 1 Grad erhoeht"
 			#sleep 1
 	    #Daten aktualisieren
       rm -f /tmp/dect*
@@ -935,10 +957,10 @@ msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart 
 		3)
       solltemp=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep tsoll | cut -d ">" -f2 | cut -d "<" -f1 `
 			if [ "$solltemp" != "253" ]; then
-			wget -O /tmp/dectset.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=sethkrtsoll&param=253&sid=$SID" | echo "Regler wurde ausgeschaltet"
+			wget -q -O /tmp/dectset.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=sethkrtsoll&param=253&sid=$SID" | echo "Regler wurde ausgeschaltet"
       fi
 			if [ "$solltemp" = "253" ]; then
-			wget -O /tmp/dectset.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=sethkrtsoll&param=50&sid=$SID" | echo "Regler wurde auf 25 Grad eingeschaltet"
+			wget -q -O /tmp/dectset.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=sethkrtsoll&param=50&sid=$SID" | echo "Regler wurde auf 25 Grad eingeschaltet"
       fi
 			#sleep 1
 	    #Daten aktualisieren
@@ -953,7 +975,7 @@ msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart 
 		5)
       solltemp=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep tsoll | cut -d ">" -f2 | cut -d "<" -f1 `
       solltempneu=`echo $((solltemp-4))`
-			wget -O /tmp/dectset.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=sethkrtsoll&param=$solltempneu&sid=$SID" | echo "Temp wurde um 1 Grad verringert"
+			wget -q -O /tmp/dectset.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=sethkrtsoll&param=$solltempneu&sid=$SID" | echo "Temp wurde um 1 Grad verringert"
 			#sleep 1
 	    #Daten aktualisieren
       rm -f /tmp/dect*
@@ -962,7 +984,7 @@ msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart 
 		6)
       solltemp=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep tsoll | cut -d ">" -f2 | cut -d "<" -f1 `
       solltempneu=`echo $((solltemp+4))`
-			wget -O /tmp/dectset.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=sethkrtsoll&param=$solltempneu&sid=$SID" | echo "Temp wurde um 2 Grad erhoeht"
+			wget -q -O /tmp/dectset.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=sethkrtsoll&param=$solltempneu&sid=$SID" | echo "Temp wurde um 2 Grad erhoeht"
 			#sleep 1
 	    #Daten aktualisieren
       rm -f /tmp/dect*
@@ -979,6 +1001,8 @@ done
 }
 
 menu4() {
+
+echo "SmartHomeInfo - Fritz!Dect Detailseite Fernbedienung wird angezeigt"
 
 while :; do
 auswahl=1
@@ -1005,6 +1029,8 @@ menu5() {
 
 farbcodes
 
+echo "SmartHomeInfo - Fritz!Dect Detailseite LED-Lampe wird angezeigt"
+
 while :; do
 auswahl=1
 msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart Home Info "$vinfo hide=2 select="EIN/AUS,aktualisieren,Dimm -20%,Dimm +10%,Dimm 100%,$buttonname1,$buttonname2,$buttonname3,$buttonname4,$buttonname5" order=5 size=22 default=$auswahl
@@ -1013,7 +1039,7 @@ msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart 
 		case $auswahl	in
 		1)
       #Fritzdect toggle (automatisch)
-			wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setswitchtoggle&sid=$SID"
+			wget -q -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setswitchtoggle&sid=$SID"
 			#sleep 1
 	    #Daten aktualisieren
       rm -f /tmp/dect*
@@ -1028,7 +1054,7 @@ msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart 
 	    #Dimmen -20
       levelnow=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</levelpercentage>" | cut -d ">" -f2 | cut -d "<" -f1`
       levelneu=`echo $((levelnow-20))`
-			wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setlevelpercentage&level=$levelneu&sid=$SID"
+			wget -q -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setlevelpercentage&level=$levelneu&sid=$SID"
 			#sleep 1
 	    #Daten aktualisieren
       rm -f /tmp/dect*
@@ -1038,7 +1064,7 @@ msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart 
 	    #Dimmen +10
       levelnow=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</levelpercentage>" | cut -d ">" -f2 | cut -d "<" -f1`
       levelneu=`echo $((levelnow+10))`
-			wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setlevelpercentage&level=$levelneu&sid=$SID"
+			wget -q -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setlevelpercentage&level=$levelneu&sid=$SID"
 			#sleep 1
 	    #Daten aktualisieren
       rm -f /tmp/dect*
@@ -1046,7 +1072,7 @@ msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart 
 			;;
 		5)
 	    #Dimmen 100
-			wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setlevelpercentage&level=100&sid=$SID"
+			wget -q -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setlevelpercentage&level=100&sid=$SID"
 			#sleep 1
 	    #Daten aktualisieren
       rm -f /tmp/dect*
@@ -1055,9 +1081,9 @@ msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart 
 	  6)
 	    #Farbbutton1
 	    if [ "$buttonkelvin1" = "" ]; then
-			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolor&hue=$buttonhue1&saturation=$buttonsat1&duration=0&sid=$SID"
+			  wget -q -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolor&hue=$buttonhue1&saturation=$buttonsat1&duration=0&sid=$SID"
 			 else
-			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolortemperature&temperature=$buttonkelvin1&duration=0&sid=$SID"
+			  wget -q -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolortemperature&temperature=$buttonkelvin1&duration=0&sid=$SID"
 			fi
 			#sleep 1
 	    #Daten aktualisieren
@@ -1067,9 +1093,9 @@ msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart 
 		7)
 	    #Farbbutton2
 	    if [ "$buttonkelvin2" = "" ]; then
-			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolor&hue=$buttonhue2&saturation=$buttonsat2&duration=0&sid=$SID"
+			  wget -q -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolor&hue=$buttonhue2&saturation=$buttonsat2&duration=0&sid=$SID"
 			 else
-			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolortemperature&temperature=$buttonkelvin2&duration=0&sid=$SID"
+			  wget -q -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolortemperature&temperature=$buttonkelvin2&duration=0&sid=$SID"
 			fi
 			#sleep 1
 	    #Daten aktualisieren
@@ -1079,9 +1105,9 @@ msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart 
 		8)
 	    #Farbbutton3
 	    if [ "$buttonkelvin3" = "" ]; then
-			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolor&hue=$buttonhue3&saturation=$buttonsat3&duration=0&sid=$SID"
+			  wget -q -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolor&hue=$buttonhue3&saturation=$buttonsat3&duration=0&sid=$SID"
 			 else
-			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolortemperature&temperature=$buttonkelvin3&duration=0&sid=$SID"
+			  wget -q -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolortemperature&temperature=$buttonkelvin3&duration=0&sid=$SID"
 			fi
 			#sleep 1
 	    #Daten aktualisieren
@@ -1091,9 +1117,9 @@ msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart 
 		9)
 	    #Farbbutton4
 	    if [ "$buttonkelvin4" = "" ]; then
-			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolor&hue=$buttonhue4&saturation=$buttonsat4&duration=0&sid=$SID"
+			  wget -q -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolor&hue=$buttonhue4&saturation=$buttonsat4&duration=0&sid=$SID"
 			 else
-			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolortemperature&temperature=$buttonkelvin4&duration=0&sid=$SID"
+			  wget -q -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolortemperature&temperature=$buttonkelvin4&duration=0&sid=$SID"
 			fi
 			#sleep 1
 	    #Daten aktualisieren
@@ -1103,9 +1129,9 @@ msgbox msg=/tmp/dectdetail.txt size=20 icon=$icondetail title=$titletext1"Smart 
 		10)
 	    #Farbbutton5
 	    if [ "$buttonkelvin5" = "" ]; then
-			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolor&hue=$buttonhue5&saturation=$buttonsat5&duration=0&sid=$SID"
+			  wget -q -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolor&hue=$buttonhue5&saturation=$buttonsat5&duration=0&sid=$SID"
 			 else
-			  wget -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolortemperature&temperature=$buttonkelvin5&duration=0&sid=$SID"
+			  wget -q -O /tmp/anruf.tmp "http://$FRITZIP/webservices/homeautoswitch.lua?ain=$DECT200&switchcmd=setcolortemperature&temperature=$buttonkelvin5&duration=0&sid=$SID"
 			fi
 			#sleep 1
 	    #Daten aktualisieren
@@ -1126,7 +1152,10 @@ done
 ## Daten für Detailseite ermitteln
 
 datenauslesen() {
-wget -O /tmp/dectdatendraft.xml "http://$FRITZIP/webservices/homeautoswitch.lua?switchcmd=getdevicelistinfos&sid=$SID"
+
+echo "SmartHomeInfo - Daten fuer Detailseite werden ermittelt"
+
+wget -q -O /tmp/dectdatendraft.xml "http://$FRITZIP/webservices/homeautoswitch.lua?switchcmd=getdevicelistinfos&sid=$SID"
 #xmllint --format /tmp/dectdatendraft.xml >> /tmp/dectdaten.xml
 
 sed -i -e 's|simpleonoff><state>1</state>|simpleonoff><status>1</status>|g' /tmp/dectdatendraft.xml
@@ -1495,7 +1524,7 @@ elif [ "$produkt" = "FRITZ!DECT 500" ]
   echo "Modus (Farbe/Weiss)    ~T0600"$farbmode" ~S" >> /tmp/dectdetail.txt
   echo "Helligkeit (Prozent)   ~T0600"$levelpercentage" %  ~S" >> /tmp/dectdetail.txt
   echo "Farbtemperatur (weiss) ~T0600Kelvin: "$farbtemp" ( "$weiss" ) ~S" >> /tmp/dectdetail.txt
-  echo "Farbcode               ~T0600Hue: "$hue" / Sat.: "$saturation" ( "$farbe"~S ) ~S" >> /tmp/dectdetail.txt
+  echo "Farbcode               ~T0600Hue: "$hue" / Sat.: "$saturation" ( "$farbe" ) ~S" >> /tmp/dectdetail.txt
   echo "~s" >> /tmp/dectdetail.txt
   echo "Fritz!Dect Nummer (AIN)~T0600~Y"$getrennt"~S" >> /tmp/dectdetail.txt
   echo "ID / OrigID            ~T0600~Y"$id200" / "$origid"~S" >> /tmp/dectdetail.txt
