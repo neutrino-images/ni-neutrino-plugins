@@ -1,5 +1,9 @@
 Changelog 
 
+
+V4.02
+- bei Updateroutine die cfg entfernt, da in der cfg Personalisierungen enthalten sein können (Integration, Menübuttons, etc.), die sonst überschrieben werden.
+
 V4.01
 - Codecleaning
 - Log-Ausgaben hinzugefügt, Wget-Ausgaben deaktiviert

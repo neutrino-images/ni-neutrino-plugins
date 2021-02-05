@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * NI Fritz! Smart Home Info mit toggle V4.01   *
+# * NI Fritz! Smart Home Info mit toggle V4.02   *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team), LoginTeil zur     *
@@ -39,8 +39,8 @@ pluginpath=`echo "$CONFIG" | grep '^PLUGINPATH' | cut -d "=" -f2 | tr -d ' ' | t
 
 # ab hier keine Eintragung mehr nötig
 #################################################
-vinfo="V4.01"
-vinfo2="401"
+vinfo="V4.02"
+vinfo2="402"
 
 echo "--------------------------------------"
 echo "SmartHomeInfo "$vinfo" startet"
@@ -341,8 +341,9 @@ fi
 update() {
   echo "SmartHomeInfo - Update-Files Plugin aus Git laden"
   	wget -q -O $pluginpath/smarthomeinfo.so https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo.so --no-check-certificate
-  	wget -q -O $pluginpath/smarthomeinfo.cfg https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo.cfg --no-check-certificate
   	wget -q -O $pluginpath/smarthomeinfo_hint.png https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo_hint.png --no-check-certificate
+  	# update der cfg deaktiviert, da hier auch Personalisierungen enthalten sein können (Integration, Menübuttons, etc.)
+  	# wget -q -O $pluginpath/smarthomeinfo.cfg https://raw.githubusercontent.com/neutrino-images/ni-neutrino-plugins/master/scripts-sh/plugins/smarthomeinfo/smarthomeinfo.cfg --no-check-certificate
 }
 
 updateconf() {
