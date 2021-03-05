@@ -37,7 +37,7 @@ class CConnect
 
 		int	connect2Host(const char *adr, int port);
 		int	get2box(const char* host, int port, const char* msg, const char* upwd, const char* msgtype, int msgtimeout);
-		int	get_login(const char* fritzPW);
+		int	get_login(const char* fritzPW, const char* fritzUSER);
 		int	send_refresh(const char *sid);
 		int	get_callerlist(const char *sid, const char *file);
 		int	send_logout(const char *sid);
@@ -82,7 +82,7 @@ class CConnect
 		int	get_challenge();
 		int	get_md5(const char *challenge, char *FritzPW);
 		int	get_sid(const char *challenge, const unsigned char *md5);
-		int	get_sid_LUA(const char *challenge, const unsigned char *md5);
+		int	get_sid_LUA(const char *challenge, const unsigned char *md5, const char *FritzUSER);
 		int	get_challenge(const char* host, int port,const char* fritzPW);
 		void	setFlag(const char *flag, const int& i);
 		// send command to DECT actor

@@ -78,6 +78,8 @@ int CParser::ReadConfig(const char *fname)
 				sscanf(ptr + 12, "%127s", (char *) &addressbook);
 			else if ((ptr = strstr(line_buffer, "PASSWD=")))
 				sscanf(ptr + 7, "%63s", (char *) &FritzPW);
+			else if ((ptr = strstr(line_buffer, "USER=")))
+				sscanf(ptr + 5, "%63s", (char *) &FritzUSER);
 			else if ((ptr = strstr(line_buffer, "CITYPREFIX=")))
 				sscanf(ptr + 11, "%9s", (char *) &cityprefix);
 			else if ((ptr = strstr(line_buffer, "DIALPREFIX=")))

@@ -14,7 +14,7 @@
 #include "connect.h"
 
 #define FCMNAME "FCM"
-#define FCMVERSION "V5.1"
+#define FCMVERSION "V5.2"
 #define FCMCOPYRIGHT "2010, 2017 (c) FlatTV"
 
 #define BUFFERSIZE 1024
@@ -65,6 +65,7 @@ class CFCM
 //		string	FritzDectPW;
 		char	FritzAdr[64];
 		char	FritzPW[64];
+		char	FritzUSER[64];
 		char	msgtype[6];
 		char	addressbook[128];
 		char	execute[128];

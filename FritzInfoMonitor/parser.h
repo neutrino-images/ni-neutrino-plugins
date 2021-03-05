@@ -81,6 +81,7 @@ class CParser
 		virtual int	getSearchPort(){return SearchPort;};
 		virtual const char* getFritzAdr(){return FritzAdr;};
 		virtual const char* getFritzPW(){return FritzPW;};
+		virtual const char* getFritzUSER(){return FritzUSER;};
 		virtual const char* getSearchAdr(){return SearchAdr;};
 		virtual const char* getCityprefix(){return cityprefix;};
 		virtual const char* getDialprefix(){return dialprefix;};
@@ -105,6 +106,7 @@ class CParser
 		int	FritzPort, FritzWebPort,SearchPort;
 		char	FritzAdr[64];
 		char	FritzPW[64];
+		char	FritzUSER[64];
 		char	SearchAdr[20];
 		char	cityprefix[10];
 		char	dialprefix[20];

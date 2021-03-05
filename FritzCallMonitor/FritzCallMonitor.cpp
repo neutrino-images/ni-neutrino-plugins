@@ -515,7 +515,7 @@ int CFCM::query_loop()
 		if(searchmode)
 		{
 			printf("[%s] - %s send query\n", FCMNAME, cconnect->timestamp().c_str());
-			if(cconnect->get_login(FritzPW))
+			if(cconnect->get_login(FritzPW, FritzUSER))
 			{
 				cconnect->send_TAMquery(adflag,cconnect->getSid(),searchquery);
 			}
@@ -526,7 +526,7 @@ int CFCM::query_loop()
 			cconnect->setFritzAdr(c["DECTBOXIP"].c_str());
 			printf("[%s] - %s getdevicelistinfos %s\n", FCMNAME, cconnect->timestamp().c_str(),c["DECTBOXIP"].c_str());
 
-			if(cconnect->get_login(c["DECTPASSWD"].c_str()))
+			if(cconnect->get_login(c["DECTPASSWD"].c_str(),c["DECTUSER"].c_str()))
 			{
 				cconnect->smartHome(cconnect->getSid(),"getdevicelistinfos");
 				cconnect->checkdevice(wp,dp);
@@ -649,6 +649,8 @@ int CFCM::ReadConfig(const char *fname)
 				sscanf(ptr + 9, "%i", &easymode);
 			else if ((ptr = strstr(line_buffer, "PASSWD=")))
 				sscanf(ptr + 7, "%63s", (char *) &FritzPW);
+			else if ((ptr = strstr(line_buffer, "PASSWD=")))
+				sscanf(ptr + 5, "%63s", (char *) &FritzUSER);
 			else if ((ptr = strstr(line_buffer, "AD_FLAGFILE=")))
 				sscanf(ptr + 12, "%127s", (char *) &adflag);
 			else if ((ptr = strstr(line_buffer, "SEARCH_MODE=")))
@@ -822,7 +824,7 @@ int CFCM::run(int argc, char *argv[])
 			{
 				printf("[%s] - get FRITZ!Box_Anrufliste.csv from FritzBox\n", FCMNAME);
 
-				if(!cconnect->get_login(FritzPW)) {
+				if(!cconnect->get_login(FritzPW, FritzUSER)) {
 					exit(1);
 				}
 
@@ -835,7 +837,7 @@ int CFCM::run(int argc, char *argv[])
 			{
 				printf("[%s] - %s send query 2 FritzBox\n", FCMNAME, cconnect->timestamp().c_str());
 
-				if(!cconnect->get_login(FritzPW)) {
+				if(!cconnect->get_login(FritzPW, FritzUSER)) {
 					exit(1);
 				}
 
@@ -854,7 +856,7 @@ int CFCM::run(int argc, char *argv[])
 
 				cconnect->setFritzAdr(c["DECTBOXIP"].c_str());
 
-				if(!cconnect->get_login(c["DECTPASSWD"].c_str())) {
+				if(!cconnect->get_login(c["DECTPASSWD"].c_str(),c["DECTUSER"].c_str())) {
 					cconnect->setFritzAdr(FritzAdr);
 					exit(1);
 				}
