@@ -649,7 +649,7 @@ int CFCM::ReadConfig(const char *fname)
 				sscanf(ptr + 9, "%i", &easymode);
 			else if ((ptr = strstr(line_buffer, "PASSWD=")))
 				sscanf(ptr + 7, "%63s", (char *) &FritzPW);
-			else if ((ptr = strstr(line_buffer, "PASSWD=")))
+			else if ((ptr = strstr(line_buffer, "USER=")))
 				sscanf(ptr + 5, "%63s", (char *) &FritzUSER);
 			else if ((ptr = strstr(line_buffer, "AD_FLAGFILE=")))
 				sscanf(ptr + 12, "%127s", (char *) &adflag);
