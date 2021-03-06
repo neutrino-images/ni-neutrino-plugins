@@ -26,9 +26,12 @@
 #	Timer rules:		/var/tuxbox/config/pr-auto-timer.rules
 #	Neutrino plugin:	/usr/share/tuxbox/neutrino/plugins/pr-auto-timer.{sh,cfg}
 
-VERSION=0.42
+VERSION=0.43
 
 # Changelog:
+#
+# 0.43 by tewsbo (NI-Team)
+#	-fix displaylog output
 #
 # 0.42 by tewsbo (NI-Team)
 #	-align to new sky channels
@@ -2577,7 +2580,7 @@ for rule_file in $RULE_FILES; do
 						log "\t\tmain: --- NOT adding timer because start_secs lies in the past. ---"
 					fi
 				done
-				displaylog "~T`scale2res 0150` $channelname ~T`scale2res 0300` $dowfilter ~T`scale2res 0425` $regex ~T`scale2res 0900` $shows_found Treffer"
+				displaylog "~T`scale2res 0150` $channelname ~T`scale2res 0300` $dowfilter ~T`scale2res 0400` $shows_found Treffer ~T`scale2res 0500` $regex"
 			}
 		fi
 	done # while loop
@@ -2625,7 +2628,7 @@ if [ ! "$sky_cinema" = "" ]; then
 				if [ $start_sec_corrected -gt $(date +%s) ]; then
 					if [ "$dow" = "$dowfilter" -o "$dowfilter" = "*" -o "$dowgroup" = "true" ]; then
 						add_timer "$sky_cinema" $channelid $start_sec_corrected $stop_sec_corrected $event_type $recdir
-						displaylog "~T`scale2res 0150` $sky_cinema ~T`scale2res 0300` $(date -D %s -d ${start_sec} '+%d.%m.%Y %H:%M') ~T`scale2res 0425` $sky_movie"
+						displaylog "~T`scale2res 0150` $sky_cinema ~T`scale2res 0300` $(date -D %s -d ${start_sec} '+%d.%m.%Y %H:%M') ~T`scale2res 0500` $sky_movie"
 					else
 						log "\t\tmain: NOT adding timer because of non-matching weekday."
 					fi
