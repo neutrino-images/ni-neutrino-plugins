@@ -19,15 +19,11 @@ CParser* CParser::getInstance()
 
 CParser::CParser()
 {
-	FritzPort	= 1012;
-	FritzWebPort	= 80;
-	SearchPort	= 80;
-	debug		= 1;
-
-	strcpy(FritzAdr		, "fritz.box");
-	strcpy(SearchAdr	, "www.goyellow.de");
-	//strcpy(ddns_domain	, "keine Information gefunden");
-	strcpy(addressbook	, "/var/tuxbox/config/FritzCallMonitor.addr");
+	conf["SEARCH_PORT"]		= "80";
+	conf["DEBUG"]			= "1";
+	conf["FRITZBOXIP"]		= "fritz.box";
+	conf["SEARCH_ADDRES"]	= "www.goyellow.de";
+	conf["ADDRESSBOOK"]		= "/var/tuxbox/config/FritzCallMonitor.addr";
 
 	struct_dialport dialport_t[MAXDAILPORTS] =
 	{
@@ -51,89 +47,120 @@ CParser::~CParser()
 	//
 }
 
-int CParser::ReadConfig(const char *fname)
+int CParser::ReadConfig(const string& file)
 {
-	FILE *fd_conf;
-	char *ptr;
-	char *line_buffer;
-	ssize_t read;
-	size_t len;
-	char tmp[6];
+	fstream fh;
+	string s, key, value, inx;
 
-	line_buffer=NULL;
-	if((fd_conf = fopen(fname, "r")))
-	{
-		while ((read = getline(&line_buffer, &len, fd_conf)) != -1)
-		{
-			if (line_buffer[0] == '#')
-			continue;
+	// clean table for reload
+	conf.clear();
 
-			if ((ptr = strstr(line_buffer, "FRITZBOXIP=")))
-				sscanf(ptr + 11, "%63s", (char *) &FritzAdr);
-			else if ((ptr = strstr(line_buffer, "PORT=")))
-				sscanf(ptr + 5, "%i", &FritzPort);
-			else if ((ptr = strstr(line_buffer, "DEBUG=")))
-				sscanf(ptr + 6, "%i", &debug);
-			else if ((ptr = strstr(line_buffer, "ADDRESSBOOK=")))
-				sscanf(ptr + 12, "%127s", (char *) &addressbook);
-			else if ((ptr = strstr(line_buffer, "PASSWD=")))
-				sscanf(ptr + 7, "%63s", (char *) &FritzPW);
-			else if ((ptr = strstr(line_buffer, "USER=")))
-				sscanf(ptr + 5, "%63s", (char *) &FritzUSER);
-			else if ((ptr = strstr(line_buffer, "CITYPREFIX=")))
-				sscanf(ptr + 11, "%9s", (char *) &cityprefix);
-			else if ((ptr = strstr(line_buffer, "DIALPREFIX=")))
-				sscanf(ptr + 11, "%19s", (char *) &dialprefix);
-			else if ((ptr = strstr(line_buffer, "PORT_1="))) {
-				sscanf(ptr + 7, "%[^,],%s", (char *) &dialport[0].port_name, (char *) &tmp);
-				dialport[0].port = atoi(tmp);
-			}
-			else if ((ptr = strstr(line_buffer, "PORT_2="))) {
-				sscanf(ptr + 7, "%[^,],%29s", (char *) &dialport[1].port_name, (char *) &tmp);
-				dialport[1].port = atoi(tmp);
-			}
-			else if ((ptr = strstr(line_buffer, "PORT_3="))) {
-				sscanf(ptr + 7, "%[^,],%29s", (char *) &dialport[2].port_name, (char *) &tmp);
-				dialport[2].port = atoi(tmp);
-			}
-			else if ((ptr = strstr(line_buffer, "PORT_4="))) {
-				sscanf(ptr + 7, "%[^,],%29s", (char *) &dialport[3].port_name, (char *) &tmp);
-				dialport[3].port = atoi(tmp);
-			}
-			else if ((ptr = strstr(line_buffer, "PORT_5="))) {
-				sscanf(ptr + 7, "%[^,],%s", (char *) &dialport[4].port_name, (char *) &tmp);
-				dialport[4].port = atoi(tmp);
-			}
-			else if ((ptr = strstr(line_buffer, "PORT_6="))) {
-				sscanf(ptr + 7, "%[^,],%29s", (char *) &dialport[5].port_name, (char *) &tmp);
-				dialport[5].port = atoi(tmp);
-			}
-			else if ((ptr = strstr(line_buffer, "PORT_7="))) {
-				sscanf(ptr + 7, "%[^,],%29s", (char *) &dialport[6].port_name, (char *) &tmp);
-				dialport[6].port = atoi(tmp);
-			}
-			else if ((ptr = strstr(line_buffer, "PORT_8="))) {
-				sscanf(ptr + 7, "%[^,],%29s", (char *) &dialport[7].port_name, (char *) &tmp);
-				dialport[7].port = atoi(tmp);
-			}
-			else if ((ptr = strstr(line_buffer, "CALLERLIST_STR="))) {
-				sscanf(ptr + 15, "%127s", (char *) &liststr);
-			}
-			else if ((ptr = strstr(line_buffer, "CALLERLIST_FILE="))) {
-				sscanf(ptr + 16, "%127s", (char *) &listfile);
-			}
-		}
-		fclose(fd_conf);
-		if(line_buffer)
-			free(line_buffer);
-	}
-	else
+	fh.open(file.c_str(), ios::in);
+
+	if(!fh.is_open())
 	{
-		printf("[%s] - ERROR open %s\n", BASENAME,fname);
+		cout << "Error reading configfile \"" << file << "\"" << endl;
 		return 1;
 	}
 
+	while (getline(fh, s))
+	{
+		string::size_type begin = s.find_first_not_of(" \f\t\v");
+
+		// skip blank lines
+		if (begin == string::npos)
+			continue;
+
+		// skip commentary
+		if (string("#;").find(s[begin]) != string::npos)
+			continue;
+
+		// extract the key value
+		string::size_type end = s.find('=', begin);
+		// skip lines without "="
+		if (end == string::npos)
+			continue;
+		key = s.substr(begin, end - begin);
+
+		// trim key
+		//key.erase(key.find_last_not_of(" \f\t\v") + 1);
+		StringReplace(key," ;[;];\f;\t;\v", "");
+
+		// skip blank keys
+		if (key.empty())
+			continue;
+
+		// extract and trim value
+		begin = s.find_first_not_of(" \f\n\r\t\v", end);
+		end   = s.find_last_not_of(" \f\n\r\t\v") + 1;
+		value = s.substr(begin + 1, end - begin);
+		StringReplace(value," ;[;];\f;\t;\v", "");
+
+		// *** special maps ***
+
+		// not nice, better useing map instead of histical struct
+		if(key.find("PORT_") == 0)
+		{
+			if (value.empty())
+				continue;
+
+			stringstream is(value);
+			vector<string> tmp = split(is,',');
+			// key for struct
+			int inx = key[key.length()-1] - '1';
+
+			strcpy(dialport[inx].port_name, tmp[0].c_str());
+			if(tmp.size() > 1) dialport[inx].port = std::atoi(tmp[1].c_str());
+
+			//cout << key << "=" << value << " " << dialport[inx].port_name << "/" << dialport[inx].port << endl;
+		}
+
+		// *** config map ***
+
+		// create map for config
+		if(!key.empty()) {
+			conf[key] = value;
+			if(debug) {
+				//cout << key << "=" << value << endl;
+			}
+		}
+	}
+	fh.close();
+
+	// using atoi instead of stoi because of error handling
+	debug	= std::atoi(conf["DEBUG"].c_str());
+
 	return 0;
+}
+
+vector<string> CParser::split(stringstream& str,const char& delim)
+{
+	string line, cell;
+	vector<string> result;
+
+	while(getline(str,cell,delim))
+	{
+		result.push_back(cell);
+		//printf("cell=%s\n",cell.c_str());
+	}
+	return result;
+}
+
+void CParser::StringReplace(string &str, const string search, const string rstr)
+{
+	stringstream f(search); // stringstream f("string1;string2;stringX");
+	string s;
+	while (getline(f, s, ';'))
+	{
+		string::size_type ptr = 0;
+		string::size_type pos = 0;
+
+		while((ptr = str.find(s,pos)) != string::npos)
+		{
+			str.replace(ptr,s.length(),rstr);
+			pos = ptr + rstr.length();
+		}
+	}
 }
 
 void CParser::read_neutrino_osd_conf(int *ex,int *sx,int *ey, int *sy, const char *filename)
@@ -291,8 +318,8 @@ int CParser::search_AddrBook(const char *caller)
 		return(0);
 	}
 
-	if(!(fd = fopen(addressbook, "r"))) {
-		perror(addressbook);
+	if(!(fd = fopen(conf["ADDRESSBOOK"].c_str(), "r"))) {
+		perror(conf["ADDRESSBOOK"].c_str());
 		return(0);
 	}
 	else
@@ -317,7 +344,7 @@ int CParser::search_AddrBook(const char *caller)
 			}
 		}
 		if (debug)
-			printf("[%s] - \"%s\" not found in %s\n", BASENAME, caller, addressbook);
+			printf("[%s] - \"%s\" not found in %s\n", BASENAME, caller, conf["ADDRESSBOOK"].c_str());
 
 		fclose(fd);
 		if(line_buffer)
@@ -328,7 +355,7 @@ int CParser::search_AddrBook(const char *caller)
 
 int CParser::add_AddrBook(const char *caller)
 {
-	ofstream os(addressbook, ios::out | ios::app);
+	ofstream os(conf["ADDRESSBOOK"].c_str(), ios::out | ios::app);
 
 	if (os.is_open())
 	{

@@ -27,33 +27,38 @@ CFCM::CFCM()
 	cconnect = CConnect::getInstance();
 
 	//default parameters
-	FritzPort	= 1012;
-	msgtimeout	=-1;
-	BackwardSearch	= 1;
-	debug		= 1;
-	easymode	= 0;
-	phonebooks	= 1;
-	SearchPort	= 80;
-	searchmode	= 0;
-	searchint	= 300;
-	
-	strcpy(FritzAdr,	"fritz.box");
-	strcpy(FritzPW,		"pwd");
-	strcpy(msgtype,		"nmsg");
-	strcpy(addressbook,	"/var/tuxbox/config/FritzCallMonitor.addr");
-	strcpy(adflag,		"/var/etc/.call");
-	strcpy(SearchAdr,	"www.goyellow.de");
-	strcpy(searchquery,	"&var=tam:settings/TAM0/NumNewMessages");
+	conf["MSGTIMEOUT"]		= "-1";
+	conf["BACKWARDSEARCH"]	= "1";
+	conf["EASYMODE"]		= "0";
+	conf["SEARCH_MODE"]		= "0";
+	conf["SEARCH_INT"]		= "300";
+	conf["AD_FLAGFILE"]		= "/var/etc/.call";
+	conf["SEARCH_QUERY"]	= "&var=tam:settings/TAM0/NumNewMessages";
+	conf["MSGTYPE"]			= "nmsg";
+	conf["PORT"]			= "1012";
+	conf["WEB_PORT"]		= "80";
+	conf["SEARCH_PORT"]		= "80";
+	conf["DEBUG"]			= "1";
+	conf["FRITZBOXIP"]		= "fritz.box";
+	conf["SEARCH_ADDRESS"]	= "www.goyellow.de";
+	conf["ADDRESSBOOK"]		= "/var/tuxbox/config/FritzCallMonitor.addr";
 
-	ReadConfig((char *)CONFIGFILE);
-
-	//FIXME enable this function for all config values
 	read_conf(CONFIGFILE);
+
+	// using atoi instead of stoi because of error handling
+	debug			= std::atoi(conf["DEBUG"].c_str());
+	BackwardSearch	= std::atoi(conf["BACKWARDSEARCH"].c_str());
+	msgtimeout		= std::atoi(conf["MSGTIMEOUT"].c_str());
+	easymode		= std::atoi(conf["EASYMODE"].c_str());
+	FritzPort		= std::atoi(conf["PORT"].c_str());
+	SearchPort		= std::atoi(conf["SEARCH_PORT"].c_str());
+	searchmode		= std::atoi(conf["SEARCH_MODE"].c_str());
+	searchint		= std::atoi(conf["SEARCH_INT"].c_str());
 
 	//reinit after reading configfile
 	cconnect->setDebug(debug);
-	cconnect->setFritzAdr(FritzAdr);
-	cconnect->setFritzPort(80);
+	cconnect->setFritzAdr(conf["FRITZBOXIP"].c_str());
+	cconnect->setFritzPort(std::atoi(conf["WEB_PORT"].c_str()));
 }
 
 CFCM::~CFCM()
@@ -73,7 +78,7 @@ void CFCM::FritzCall()
 
 	while(!loop)
 	{
-		sockfd = cconnect->connect2Host(FritzAdr, FritzPort);
+		sockfd = cconnect->connect2Host(conf["FRITZBOXIP"].c_str(), FritzPort);
 
 		if (sockfd > 0) {
 			printf("[%s] - Socked (%i) connected to %s\n", FCMNAME, sockfd, easymode?"EasyBox":"FritzBox");
@@ -228,7 +233,7 @@ int CFCM::search(const char *searchNO)
 	string output ="/tmp/fim.out";
 	FILE* fd;
 
-	url	<< SearchAdr << "/suche/" << searchNO << "/-";
+	url	<< conf["SEARCH_ADDRESS"] << "/suche/" << searchNO << "/-";
 
 	memset(&address, 0, sizeof(address));
 
@@ -237,6 +242,8 @@ int CFCM::search(const char *searchNO)
 		return 0;
 	}
 
+	if (debug){printf("[%s] - searchURL: %s\n",FCMNAME, url.str().c_str());}
+
 	string s = cconnect->post2fritz(url.str().c_str(),80 ,"", output);
 
 	line=NULL;
@@ -244,9 +251,9 @@ int CFCM::search(const char *searchNO)
 	{
 		while ((read = getline(&line, &len, fd)) != -1)
 		{
-			if ((found = strstr(line, "target=\"_self\" title=\"Zur Detailseite von&#160;")))
+			if ((found = strstr(line, "title=\"Zur Detailseite von&#160;")))
 			{
-				sscanf(found + 47, "%255[^\"]", (char *) &address.name);
+				sscanf(found + 32, "%255[^\"]", (char *) &address.name);
 			}
 			else if ((found = strstr(line, "\"postalCode\" content=\"")))
 			{
@@ -266,9 +273,10 @@ int CFCM::search(const char *searchNO)
 	if(line)
 		free(line);
 
-	if(strlen(address.name)!=0) {
-		if (debug){printf("[%s] - (%s) = %s, %s, %s %s\n",FCMNAME, searchNO, address.name, address.street, address.code, address.locality);}
+	if (debug){printf("[%s] - (%s) = %s, %s, %s %s\n",FCMNAME, searchNO, address.name, address.street, address.code, address.locality);}
 
+	if(strlen(address.name)!=0)
+	{
 		sendMSG(strlen(address.name));
 
 		// Save address to addressbook
@@ -305,7 +313,7 @@ void CFCM::sendMSG(int caller_address)
 			<< "Leitung : " << (strlen(CallToName)!=0 ? CallToName : CallTo);
 	}
 
-	if(strcmp(execute,"") != 0)
+	if(!conf["EXEC"].empty())
 	{
 		pid_t pid;
 		signal(SIGCHLD, SIG_IGN);
@@ -315,8 +323,8 @@ void CFCM::sendMSG(int caller_address)
 				perror("vfork");
 				break;
 			case 0:
-				printf("[%s] - Execute -> %s\n",FCMNAME,execute);
-				if(execl("/bin/sh", "sh", execute, msg.str().c_str(), NULL))
+				printf("[%s] - Execute -> %s\n",FCMNAME,conf["EXEC"].c_str());
+				if(execl("/bin/sh", "sh", conf["EXEC"].c_str(), msg.str().c_str(), NULL))
 				{
 					perror("execl");
 				}
@@ -347,7 +355,7 @@ void CFCM::sendMSG(int caller_address)
 					else {
 						strcpy(ip,boxnum[j].BoxIP);
 					}
-					cconnect->get2box(ip, port, txt.str().c_str(), boxnum[j].logon, msgtype, msgtimeout);
+					cconnect->get2box(ip, port, txt.str().c_str(), boxnum[j].logon, conf["MSGTYPE"].c_str(), msgtimeout);
 				}
 			}
 		}
@@ -369,8 +377,8 @@ int CFCM::search_AddrBook(const char *caller)
 		return(0);
 	}
 
-	if(!(fd = fopen(addressbook, "r"))) {
-		perror(addressbook);
+	if(!(fd = fopen(conf["ADDRESSBOOK"].c_str(), "r"))) {
+		perror(conf["ADDRESSBOOK"].c_str());
 		return(0);
 	}
 	else
@@ -387,7 +395,7 @@ int CFCM::search_AddrBook(const char *caller)
 					(char *) &address.code,
 					(char *) &address.locality);
 				if (debug)
-					printf("[%s] - \"%s\" found in %s[%d]\n", FCMNAME, caller, addressbook, i);
+					printf("[%s] - \"%s\" found in %s[%d]\n", FCMNAME, caller, conf["ADDRESSBOOK"].c_str(), i);
 				fclose(fd);
 				if(line_buffer)
 					free(line_buffer);
@@ -395,7 +403,7 @@ int CFCM::search_AddrBook(const char *caller)
 			}
 		}
 		if (debug)
-			printf("[%s] - \"%s\" not found in %s\n", FCMNAME, caller, addressbook);
+			printf("[%s] - \"%s\" not found in %s\n", FCMNAME, caller, conf["ADDRESSBOOK"].c_str());
 
 		fclose(fd);
 		if(line_buffer)
@@ -406,7 +414,7 @@ int CFCM::search_AddrBook(const char *caller)
 
 int CFCM::add_AddrBook(const char *caller)
 {
-	ofstream os(addressbook, ios::out | ios::app);
+	ofstream os(conf["ADDRESSBOOK"].c_str(), ios::out | ios::app);
 
 	if (os.is_open())
 	{
@@ -467,7 +475,7 @@ string CFCM::create_map(string& k, const string& t, string& v, map<string, vecto
 		m[key].swap(tmp);
 
 		//debug
-		if(debug) cout << k << '[' << key << ']' << "=" << v << endl;
+		//if(debug) cout << k << '[' << key << ']' << "=" << v << endl;
 	}
 
 	return(key);
@@ -491,7 +499,7 @@ string CFCM::create_map(string& k, const string& t, const string& v, map<string,
 		m[key] = v;
 
 		//debug
-		cout << k << '[' << key << ']' << "=" << v << endl;
+		//if(debug) cout << k << '[' << key << ']' << "=" << v << endl;
 	}
 
 	return(key);
@@ -515,24 +523,24 @@ int CFCM::query_loop()
 		if(searchmode)
 		{
 			printf("[%s] - %s send query\n", FCMNAME, cconnect->timestamp().c_str());
-			if(cconnect->get_login(FritzPW, FritzUSER))
+			if(cconnect->get_login(conf["PASSWD"].c_str(), conf["USER"].c_str()))
 			{
-				cconnect->send_TAMquery(adflag,cconnect->getSid(),searchquery);
+				cconnect->send_TAMquery(conf["AD_FLAGFILE"].c_str(),cconnect->getSid(),conf["SEARCH_QUERY"].c_str());
 			}
 		}
 
-		if(!c["DECTBOXIP"].empty())
+		if(!conf["DECTBOXIP"].empty())
 		{
-			cconnect->setFritzAdr(c["DECTBOXIP"].c_str());
-			printf("[%s] - %s getdevicelistinfos %s\n", FCMNAME, cconnect->timestamp().c_str(),c["DECTBOXIP"].c_str());
+			cconnect->setFritzAdr(conf["DECTBOXIP"].c_str());
+			printf("[%s] - %s getdevicelistinfos %s\n", FCMNAME, cconnect->timestamp().c_str(),conf["DECTBOXIP"].c_str());
 
-			if(cconnect->get_login(c["DECTPASSWD"].c_str(),c["DECTUSER"].c_str()))
+			if(cconnect->get_login(conf["DECTPASSWD"].c_str(),conf["DECTUSER"].c_str()))
 			{
 				cconnect->smartHome(cconnect->getSid(),"getdevicelistinfos");
 				cconnect->checkdevice(wp,dp);
 				cconnect->cleardevice();
 			}
-			cconnect->setFritzAdr(FritzAdr);
+			cconnect->setFritzAdr(conf["FRITZBOXIP"].c_str());
 		}
 
 		sleep(searchint);
@@ -542,7 +550,7 @@ int CFCM::query_loop()
 
 void CFCM::start_loop()
 {
-	if (searchmode || !c["DECTBOXIP"].empty()) {
+	if (searchmode || !conf["DECTBOXIP"].empty()) {
 		if(!thrTimer) {
 			printf("[%s] - %s Start Thread for checking FRITZ!Box (reload %i seconds)\n",FCMNAME, cconnect->timestamp().c_str(), searchint);
 			pthread_create (&thrTimer, NULL, proxy_loop, this) ;
@@ -560,131 +568,13 @@ void CFCM::stop_loop()
 	}
 }
 
-int CFCM::ReadConfig(const char *fname)
-{
-	FILE *fd_conf;
-	char *ptr;
-	char *line_buffer;
-	ssize_t read;
-	size_t len;
-
-	line_buffer=NULL;
-	if((fd_conf = fopen(fname, "r")))
-	{
-		while ((read = getline(&line_buffer, &len, fd_conf)) != -1)
-		{
-			char buffer[128]="";
-
-			if (line_buffer[0] == '#')
-				continue;
-			else if ((ptr = strstr(line_buffer, "DECTBOXIP="))) {
-				sscanf(ptr + 10, "%127s",buffer);
-//				FritzDectAdr=buffer;
-			}
-			else if ((ptr = strstr(line_buffer, "DECTPASSWD="))) {
-				sscanf(ptr + 11, "%63s", buffer);
-//				FritzDectPW=buffer;
-			}
-			else if ((ptr = strstr(line_buffer, "FRITZBOXIP=")))
-				sscanf(ptr + 11, "%63s", (char *) &FritzAdr);
-			else if ((ptr = strstr(line_buffer, "PORT=")))
-				sscanf(ptr + 5, "%i", &FritzPort);
-			else if ((ptr = strstr(line_buffer, "BACKWARDSEARCH=")))
-				sscanf(ptr + 15, "%i", &BackwardSearch);
-			else if ((ptr = strstr(line_buffer, "DEBUG=")))
-				sscanf(ptr + 6, "%i", &debug);
-			else if ((ptr = strstr(line_buffer, "MSGTYPE=")))
-				sscanf(ptr + 8, "%5s", (char *) &msgtype);
-			else if ((ptr = strstr(line_buffer, "MSGTIMEOUT=")))
-				sscanf(ptr + 11, "%i", &msgtimeout);
-			else if ((ptr = strstr(line_buffer, "MSN_1="))) {
-				sscanf(ptr + 6, "%31[^|\n]", msnnum[0].msn);
-				if((ptr = strstr(line_buffer, "|")))
-					sscanf(ptr + 1, "%63[^\n]", msnnum[0].msnName);
-			}
-			else if ((ptr = strstr(line_buffer, "MSN_2="))) {
-				sscanf(ptr + 6, "%31[^|\n]", msnnum[1].msn);
-				if((ptr = strstr(line_buffer, "|")))
-					sscanf(ptr + 1, "%63[^\n]", msnnum[1].msnName);
-			}
-			else if ((ptr = strstr(line_buffer, "MSN_3="))) {
-				sscanf(ptr + 6, "%31[^|\n]", msnnum[2].msn);
-				if((ptr = strstr(line_buffer, "|")))
-					sscanf(ptr + 1, "%63[^\n]", msnnum[2].msnName);
-			}
-			else if ((ptr = strstr(line_buffer, "MSN_4="))) {
-				sscanf(ptr + 6, "%31[^|\n]", msnnum[3].msn);
-				if((ptr = strstr(line_buffer, "|")))
-					sscanf(ptr + 1, "%63[^\n]", msnnum[3].msnName);
-			}
-			else if ((ptr = strstr(line_buffer, "MSN_5="))) {
-				sscanf(ptr + 6, "%31[^|\n]", msnnum[4].msn);
-				if((ptr = strstr(line_buffer, "|")))
-					sscanf(ptr + 1, "%63[^\n]", msnnum[4].msnName);
-			}
-			else if ((ptr = strstr(line_buffer, "MSN_6="))) {
-				sscanf(ptr + 6, "%31[^|\n]", msnnum[5].msn);
-				if((ptr = strstr(line_buffer, "|")))
-					sscanf(ptr + 1, "%63[^\n]", msnnum[5].msnName);
-			}
-			else if ((ptr = strstr(line_buffer, "BOXIP_1=")))
-				sscanf(ptr + 8, "%24s", boxnum[0].BoxIP);
-			else if ((ptr = strstr(line_buffer, "BOXIP_2=")))
-				sscanf(ptr + 8, "%24s", boxnum[1].BoxIP);
-			else if ((ptr = strstr(line_buffer, "BOXIP_3=")))
-				sscanf(ptr + 8, "%24s", boxnum[2].BoxIP);
-			else if ((ptr = strstr(line_buffer, "BOXIP_4=")))
-				sscanf(ptr + 8, "%24s", boxnum[3].BoxIP);
-			else if ((ptr = strstr(line_buffer, "LOGON_1=")))
-				sscanf(ptr + 8, "%63s", boxnum[0].logon);
-			else if ((ptr = strstr(line_buffer, "LOGON_2=")))
-				sscanf(ptr + 8, "%63s", boxnum[1].logon);
-			else if ((ptr = strstr(line_buffer, "LOGON_3=")))
-				sscanf(ptr + 8, "%63s", boxnum[2].logon);
-			else if ((ptr = strstr(line_buffer, "LOGON_4=")))
-				sscanf(ptr + 8, "%63s", boxnum[3].logon);
-			else if ((ptr = strstr(line_buffer, "ADDRESSBOOK=")))
-				sscanf(ptr + 12, "%127s", (char *) &addressbook);
-			else if ((ptr = strstr(line_buffer, "EASYMODE=")))
-				sscanf(ptr + 9, "%i", &easymode);
-			else if ((ptr = strstr(line_buffer, "PASSWD=")))
-				sscanf(ptr + 7, "%63s", (char *) &FritzPW);
-			else if ((ptr = strstr(line_buffer, "USER=")))
-				sscanf(ptr + 5, "%63s", (char *) &FritzUSER);
-			else if ((ptr = strstr(line_buffer, "AD_FLAGFILE=")))
-				sscanf(ptr + 12, "%127s", (char *) &adflag);
-			else if ((ptr = strstr(line_buffer, "SEARCH_MODE=")))
-				sscanf(ptr + 12, "%i", &searchmode);
-			else if ((ptr = strstr(line_buffer, "SEARCH_QUERY=")))
-				sscanf(ptr + 13, "%99s", (char *) &searchquery);
-			else if ((ptr = strstr(line_buffer, "SEARCH_INT=")))
-				sscanf(ptr + 11, "%i", &searchint);
-			else if ((ptr = strstr(line_buffer, "CITYPREFIX=")))
-				sscanf(ptr + 11, "%9s", (char *) &cityprefix);
-			else if ((ptr = strstr(line_buffer, "EXEC=")))
-				sscanf(ptr + 5, "%127s", (char *) &execute);
-			else if ((ptr = strstr(line_buffer, "CALLERLIST_FILE=")))
-				sscanf(ptr + 16, "%127s", (char *) &listfile);
-		}
-		fclose(fd_conf);
-	}
-	else
-	{
-		printf("[%s] - ERROR open %s\n", FCMNAME,fname);
-	}
-	if(line_buffer)
-		free(line_buffer);
-
-	return(0);
-}
-
 int CFCM::read_conf(const string& file)
 {
 	fstream fh;
 	string s, key, value, inx;
 
 	// clean table for reload
-	c.clear();
+	//conf.clear();
 	wp.clear();
 	dp.clear();
 
@@ -731,6 +621,53 @@ int CFCM::read_conf(const string& file)
 
 		// *** special maps ***
 
+		// not nice, better useing map instead of histical struct
+		if(key.find("BOXIP_") == 0)
+		{
+			if (value.empty())
+				continue;
+
+			// key for struct
+			int inx = key[key.length()-1] - '1';
+
+			strcpy(boxnum[inx].BoxIP,value.c_str());
+
+			//cout << key << "=" << value << endl;
+			continue;
+		}
+		if(key.find("LOGON_") == 0)
+		{
+			if (value.empty())
+				continue;
+
+			// key for struct
+			int inx = key[key.length()-1] - '1';
+
+			strcpy(boxnum[inx].logon,value.c_str());
+
+			//cout << key << "=" << value << endl;
+			continue;
+		}
+
+		if(key.find("MSN_") == 0)
+		{
+
+			if (value.empty())
+				continue;
+
+			stringstream is(value);
+			vector<string> tmp = split(is,'|');
+			// key for struct
+			int inx = key[key.length()-1] - '1';
+
+			strcpy(msnnum[inx].msn, tmp[0].c_str());
+			if(tmp.size() > 1) strcpy(msnnum[inx].msnName, tmp[1].c_str());
+
+			//cout << key << "=" << value << endl;
+
+			continue;
+		}
+
 		// create map for Comet temp
 		inx = create_map(key, "DP", value, dp);
 		if(!inx.empty())
@@ -745,14 +682,26 @@ int CFCM::read_conf(const string& file)
 
 		// create map for config
 		if(!key.empty()) {
-			c[key] = value;
-			//debug
-			//cout << key << "=" << value << endl;
+			conf[key] = value;
+
+			cout << key << "=" << value << endl;
 		}
 	}
 	fh.close();
 
 	return 0;
+}
+
+void tokenize(std::string const &str, const char delim, std::vector<std::string> &out)
+{
+    size_t start;
+    size_t end = 0;
+ 
+    while ((start = str.find_first_not_of(delim, end)) != std::string::npos)
+    {
+        end = str.find(delim, start);
+        out.push_back(str.substr(start, end - start));
+    }
 }
 
 void Usage()
@@ -793,9 +742,10 @@ int CFCM::run(int argc, char *argv[])
 	switch (argc)
 	{
 		case 1:
-			if(searchmode || !c["DECTBOXIP"].empty())
+			if(searchmode || !conf["DECTBOXIP"].empty())
 				start_loop();
 			FritzCall();
+			
 			return 0;
 		case 2:
 			if (strstr(argv[1], "-h"))
@@ -808,7 +758,7 @@ int CFCM::run(int argc, char *argv[])
 				switch(fork())
 				{
 					case 0:
-						if(searchmode || !c["DECTBOXIP"].empty())
+						if(searchmode || !conf["DECTBOXIP"].empty())
 							start_loop();
 						FritzCall();
 						break;
@@ -824,12 +774,12 @@ int CFCM::run(int argc, char *argv[])
 			{
 				printf("[%s] - get FRITZ!Box_Anrufliste.csv from FritzBox\n", FCMNAME);
 
-				if(!cconnect->get_login(FritzPW, FritzUSER)) {
+				if(!cconnect->get_login(conf["PASSWD"].c_str(), conf["USER"].c_str())) {
 					exit(1);
 				}
 
 				//cconnect->send_refresh(cconnect->sid);
-				cconnect->get_callerlist(cconnect->getSid(),listfile);
+				cconnect->get_callerlist(cconnect->getSid(),conf["CALLERLIST_FILE"].c_str());
 				cconnect->send_logout(cconnect->getSid());
 				exit(0);
 			}
@@ -837,27 +787,27 @@ int CFCM::run(int argc, char *argv[])
 			{
 				printf("[%s] - %s send query 2 FritzBox\n", FCMNAME, cconnect->timestamp().c_str());
 
-				if(!cconnect->get_login(FritzPW, FritzUSER)) {
+				if(!cconnect->get_login(conf["PASSWD"].c_str(), conf["USER"].c_str())) {
 					exit(1);
 				}
 
-				cconnect->send_TAMquery(adflag,cconnect->getSid(),searchquery);
+				cconnect->send_TAMquery(conf["AD_FLAGFILE"].c_str(),cconnect->getSid(),conf["SEARCH_QUERY"].c_str());
 
 				exit(0);
 			}
 			else if (strstr(argv[1], "-m"))
 			{
-				cconnect->get2box(boxnum[0].BoxIP, 80, "FritzCallMonitor Testmessage", boxnum[0].logon, msgtype, msgtimeout);
+				cconnect->get2box(boxnum[0].BoxIP, 80, "FritzCallMonitor Testmessage", boxnum[0].logon, conf["MSGTYPE"].c_str(), msgtimeout);
 				return 0;
 			}
 			else if (strstr(argv[1], "-s"))
 			{
 				printf("[%s] - get smart Home infos from FritzBox\n", FCMNAME);
 
-				cconnect->setFritzAdr(c["DECTBOXIP"].c_str());
+				cconnect->setFritzAdr(conf["DECTBOXIP"].c_str());
 
-				if(!cconnect->get_login(c["DECTPASSWD"].c_str(),c["DECTUSER"].c_str())) {
-					cconnect->setFritzAdr(FritzAdr);
+				if(!cconnect->get_login(conf["DECTPASSWD"].c_str(),conf["DECTUSER"].c_str())) {
+					cconnect->setFritzAdr(conf["FRITZBOXIP"].c_str());
 					exit(1);
 				}
 
@@ -868,7 +818,7 @@ int CFCM::run(int argc, char *argv[])
 				// delete device vector
 				cconnect->cleardevice();
 
-				cconnect->setFritzAdr(FritzAdr);
+				cconnect->setFritzAdr(conf["FRITZBOXIP"].c_str());
 				exit(0);
 			}
 			else

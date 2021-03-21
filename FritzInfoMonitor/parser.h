@@ -8,6 +8,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 using namespace std;
 
@@ -18,15 +19,17 @@ class CParser
 		virtual~CParser();
 		static CParser* getInstance();
 
-		int 		ReadConfig(const char *fname);
+		int		ReadConfig(const string& file);
 		unsigned short	Percentconverter (unsigned short percent);
-		void		read_neutrino_osd_conf(int *ex,int *sx,int *ey, int *sy, const char *filename);
+		void	read_neutrino_osd_conf(int *ex,int *sx,int *ey, int *sy, const char *filename);
 		int		ReadColors (const char *filename);
 		int		search_AddrBook(const char *caller);
 		int		add_AddrBook(const char *caller);
-		void		init_caller();
-		void		init_address();
-		string		parseString(const char* var, std::string& string_to_serarch);
+		void	init_caller();
+		void	init_address();
+		string	parseString(const char* var, std::string& string_to_serarch);
+		void	StringReplace(string &str, const string search, const string rstr);
+		vector<string>	split(stringstream& str,const char& delim);
 
 		unsigned char	bgra[24][5];
 
@@ -77,17 +80,17 @@ class CParser
 		virtual string	getPppoe_ip(){return pppoe_ip;};
 
 		virtual int	getDebug(){return debug;};
-		virtual int	getFritzPort(){return FritzWebPort;};
-		virtual int	getSearchPort(){return SearchPort;};
-		virtual const char* getFritzAdr(){return FritzAdr;};
-		virtual const char* getFritzPW(){return FritzPW;};
-		virtual const char* getFritzUSER(){return FritzUSER;};
-		virtual const char* getSearchAdr(){return SearchAdr;};
-		virtual const char* getCityprefix(){return cityprefix;};
-		virtual const char* getDialprefix(){return dialprefix;};
-		virtual const char* getListfile(){return listfile;};
-		virtual const char* getListstr(){return liststr;};
-		virtual const char* getAddressbook(){return addressbook;};
+//		virtual int	getFritzPort(){return std::atoi (conf["WEB_PORT"].c_str());};
+//		virtual int	getSearchPort(){return std::atoi (conf["SEARCH_PORT"].c_str());};
+		virtual const char* getFritzAdr(){return conf["FRITZBOXIP"].c_str();};
+		virtual const char* getFritzPW(){return conf["PASSWD"].c_str();};
+		virtual const char* getFritzUSER(){return conf["USER"].c_str();};
+		virtual const char* getSearchAdr(){return conf["SEARCH_ADDRES"].c_str();};
+		virtual const char* getCityprefix(){return conf["CITYPREFIX"].c_str();};
+		virtual const char* getDialprefix(){return conf["DIALPREFIX"].c_str();};
+		virtual const char* getListfile(){return conf["CALLERLIST_FILE"].c_str();};
+		virtual const char* getListstr(){return conf["CALLERLIST_STR"].c_str();};
+		virtual const char* getAddressbook(){return conf["ADDRESSBOOK"].c_str();};
 
 		//virtual void setNspver(const char* nspver);
 		//virtual const char* getNspver(){return nspver;};
@@ -102,23 +105,15 @@ class CParser
 		string	sip1nr;
 		string	pppoe_ip;
 
-		int	debug;
-		int	FritzPort, FritzWebPort,SearchPort;
-		char	FritzAdr[64];
-		char	FritzPW[64];
-		char	FritzUSER[64];
-		char	SearchAdr[20];
-		char	cityprefix[10];
-		char	dialprefix[20];
-		char	listfile[128];
-		char	liststr[128];
-		char	addressbook[128];
+		int		debug;
 
 		enum {mBLUE, mGREEN,  mRED, mALPHA};
 		unsigned short cmh[4];	// Titelzeile		- menu_Head(SKIN0)
 		unsigned short cmht[4];	// Titeltextfarbe	- menu_Head_Text(ORANGE)
 		unsigned short cmc[4];	// Hintergrundfarbe	- menu_Content(SKIN1)
 		unsigned short cmct[4];	// Body Textfarbe	- menu_Content_Text(WHITE)
+
+		map<string, string> conf;	// config pair
 };
 
 #endif //__parser_h__

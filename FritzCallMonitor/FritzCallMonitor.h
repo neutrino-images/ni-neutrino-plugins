@@ -37,7 +37,7 @@ class CFCM
 		pthread_t	thrTimer;
 
 		vector<string> dect;
-		map<string, string> c;	// config pair
+		map<string, string> conf; // config pair
 		map<string, vector<string> > dp; // DECT time and temperatur
 		map<string, vector<string> > wp; // DECT week
 
@@ -61,35 +61,22 @@ class CFCM
 		} S_MSNNUM;
 		S_MSNNUM msnnum[6];
 
-//		string	FritzDectAdr;
-//		string	FritzDectPW;
-		char	FritzAdr[64];
-		char	FritzPW[64];
-		char	FritzUSER[64];
-		char	msgtype[6];
-		char	addressbook[128];
-		char	execute[128];
-		char	cityprefix[10];
-		char	adflag[128];
 		char	CallFrom[64];
 		char	CallTo[64];
 		char	CallToName[64];
-		char	SearchAdr[20];
-		char	searchquery[100];
-		char	listfile[128];
-		int	debug, BackwardSearch, msgtimeout,easymode, phonebooks;
-		int	FritzPort, SearchPort, searchmode, searchint;
+
+		int	debug, BackwardSearch, msgtimeout,easymode, phonebooks, FritzPort, SearchPort, searchmode, searchint;
 
 		//global functions
 		void	FritzCall();
 		void	sendMSG(int caller_address);
-		int	search(const char *searchNO);
-		int	ReadConfig(const char *fname);
-		int	read_conf(const string& file); //FIXME enable this function for all values
-		int	add_AddrBook(const char *caller);
-		int	search_AddrBook(const char *caller);
+		int		search(const char *searchNO);
+		int		read_conf(const string& file);
+		int		add_AddrBook(const char *caller);
+		int		search_AddrBook(const char *caller);
 		string	create_map(string& k, const string& t, string& v, map<string, vector<string> >& m);
 		string	create_map(string& k, const string& t, const string& v, map<string, string>& m);
+		void 	tokenize(std::string const &str, const char delim, std::vector<std::string> &out);
 
 		//query thread
 		static void*	proxy_loop(void *arg);
