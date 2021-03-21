@@ -255,17 +255,20 @@ int CFCM::search(const char *searchNO)
 			{
 				sscanf(found + 32, "%255[^\"]", (char *) &address.name);
 			}
-			else if ((found = strstr(line, "\"postalCode\" content=\"")))
+
+			if ((found = strstr(line, "\"postalCode\" content=\"")))
 			{
 				sscanf(found + 22, "%5[^\"]", (char *) &address.code);
 			}
-			else if((found = strstr(line, "\"addressLocality\" content=\"")))
+
+			if((found = strstr(line, "\"addressLocality\" content=\"")))
 			{
 				sscanf(found + 27, "%127[^\"]", (char *) &address.locality);
 			}
-			else if((found = strstr(line, "\"streetAddress\" content=\"")))
+
+			if((found = strstr(line, "address-icon ic_address svg-icon\"></span>")))
 			{
-				sscanf(found + 25, "%127[^\"]", (char *) &address.street);
+				sscanf(found + 41, "%127[^,]", (char *) &address.street);
 			}
 		}
 		fclose(fd);
@@ -286,7 +289,7 @@ int CFCM::search(const char *searchNO)
 		printf("[%s] - no results for %s\n",FCMNAME, searchNO);
 	}
 
-	sendMSG(0);
+	//sendMSG(0);
 
 	return 0;
 }
@@ -304,7 +307,7 @@ void CFCM::sendMSG(int caller_address)
 		msg	<< "Anrufer : " << CallFrom << (strlen(address.name)!=0 ? newline : "")
 			<< space << address.name << (strlen(address.street)!=0 ? newline : "")
 			<< space << address.street << (strlen(address.code)!=0 ? newline : "")
-			<< space << address.code << address.locality << newline
+			<< space << address.code << space << address.locality << newline
 			<< "Leitung : " << (strlen(CallToName)!=0 ? CallToName : CallTo);
 	}
 	else
