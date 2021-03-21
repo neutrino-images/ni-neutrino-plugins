@@ -2,7 +2,7 @@
 --
 -- Copyright 2018 Markus Volk, Sven Hoefer, Don de Deckelwech
 -- Changed for VU+ SOLO 4K, VU+ DUO 4K, VU+ ULTIMO 4K, VU+ UNO 4K, VU+ UNO 4K SE and VU+ ZERO 4K
--- by BPanther 07/Oct/2019
+-- by BPanther 03/Dec/2019
 --
 -- Redistribution and use in source and binary forms, with or without modification, 
 -- are permitted provided that the following conditions are met:
@@ -26,7 +26,7 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
-caption = "STB-Startup v1.02 - VU+ "
+caption = "STB-Startup v1.04 - VU+ "
 
 n = neutrino()
 fh = filehelpers.new()
@@ -48,7 +48,7 @@ if vumodel == "solo4k" or vumodel == "uno4k" or vumodel == "uno4kse" or vumodel 
 	root2 = 7
 	root3 = 9
 	root4 = 11
-elseif vumodel == "duo4k" then
+elseif vumodel == "duo4k" or vumodel == "duo4kse" then
 	root1 = 10
 	root2 = 12
 	root3 = 14
@@ -92,10 +92,8 @@ function reboot()
 	file:close()
 	if running_init == "/bin/systemctl" then
 		local file = assert(io.popen("systemctl reboot"))
---	elseif exists("/sbin/init") then
---		local file = assert(io.popen("sync && init 6"))
 	else
-		local file = assert(io.popen("reboot -f"))
+		local file = assert(io.popen("sync && init 6"))
 	end
 end
 
@@ -104,18 +102,76 @@ function basename(str)
 	return name
 end
 
+function mount(dev,destination)
+	local provider = fh:readlink("/bin/mount")
+	fh:mkdir("/tmp/testmount/")
+	if (provider == nil) or not string.match(provider, "busybox") then
+		os.execute("mount -l " .. dev .. " " .. destination)
+	else
+		os.execute("mount " .. dev .. " " .. destination)
+	end
+end
+
+function umount(path)
+	local provider = fh:readlink("/bin/umount")
+	if (provider == nil) or not string.match(provider, "busybox") then
+		os.execute("umount -l " .. path)
+	else
+		os.execute("umount " .. path)
+	end
+	if not fh:exist("/tmp/testmount/tmp", "d") then
+		fh:rmdir("/tmp/testmount")
+	end
+end
+
+function is_active(root)
+	if (current_root == root) then
+		active = " *"
+	else
+		active = ""
+	end
+	return active
+end
+
 function get_imagename(root)
 	imagename = ""
 	local glob = require "posix".glob
-	for _, j in pairs(glob('/boot/*', 0)) do
-		for line in io.lines(j) do
-			if (j ~= bootfile) then
-				if line:match(devbase .. root) then
-					imagename = basename(j)
+	local fh = filehelpers.new()
+	mount("/dev/mmcblk0p" .. root, "/tmp/testmount")
+	if fh:exist("/tmp/testmount/etc/image-version", "f") then
+		for line in io.lines("/tmp/testmount/etc/image-version") do
+			if line:match("distro" .. "=") then
+				local i,j = string.find(line, "distro" .. "=")
+				imagename = string.sub(line, j+1, #line)
+			end
+			if line:match("imageversion" .. "=") then
+				local i,j = string.find(line, "imageversion" .. "=")
+				imagename = imagename .. " " .. string.sub(line, j+1, #line)
+			end
+		end
+	elseif fh:exist("/tmp/testmount/.version", "f") then
+		for line in io.lines("/tmp/testmount/.version") do
+			if line:match("creator" .. "=") then
+				local i,j = string.find(line, "creator" .. "=")
+				imagename = string.sub(line, j+1, #line)
+			end
+			if line:match("git" .. "=") then
+				local i,j = string.find(line, "git" .. "=")
+				imagename = imagename .. " " .. string.sub(line, j+1, #line)
+			end
+		end
+	else
+		for _, j in pairs(glob('/boot/*', 0)) do
+			for line in io.lines(j) do
+				if (j ~= bootfile) then
+					if line:match(devbase .. root) then
+						imagename = basename(j)
+					end
 				end
 			end
 		end
 	end
+	umount("/tmp/testmount")
 	return imagename
 end
 
@@ -140,10 +196,10 @@ chooser = cwindow.new {
 	title = caption .. vumodel:upper(),
 	icon = "settings",
 	has_shadow = true,
-	btnRed = get_imagename(root1),
-	btnGreen = get_imagename(root2),
-	btnYellow = get_imagename(root3),
-	btnBlue = get_imagename(root4)
+	btnRed = get_imagename(root1) .. is_active(root1),
+	btnGreen = get_imagename(root2) .. is_active(root2),
+	btnYellow = get_imagename(root3) .. is_active(root3),
+	btnBlue = get_imagename(root4) .. is_active(root4)
 }
 
 chooser_text = ctext.new {
