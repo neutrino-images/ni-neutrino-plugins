@@ -387,7 +387,7 @@ void CFIM::DoExec(int function)
 		/*1*/
 		case PHONEBOOK:
 			ShowMessage(INFO_PHONEBOOK,1);
-			cconnect->get_login(cpars->getFritzPW());
+			cconnect->get_login(cpars->getFritzPW(), cpars->getFritzUSER());
 			cconnect->get_phonebooks(sid,CSubMenu::getInstance()->subMenu[PHONEBOOK].sel);
 			if(queryLogic==1)
 				cconnect->send_logout(sid);
@@ -400,7 +400,7 @@ void CFIM::DoExec(int function)
 			break;
 		/*3*/
 		case DIAL:
-			cconnect->get_login(cpars->getFritzPW());
+			cconnect->get_login(cpars->getFritzPW(), cpars->getFritzUSER());
 			if(dialtest) {
 				txt.str("");
 				txt << "**" << cpars->dialport[CSubMenu::getInstance()->subMenu[DIAL].sel].port;
@@ -422,7 +422,7 @@ void CFIM::DoExec(int function)
 			break;
 		/*4*/
 		case RECONNECT:
-			cconnect->get_login(cpars->getFritzPW());
+			cconnect->get_login(cpars->getFritzPW(), cpars->getFritzUSER());
 			cconnect->reconnect(sid);
 			ShowMessage(INFO_RECONNECT,0);
 			if(queryLogic==1)
@@ -433,7 +433,7 @@ void CFIM::DoExec(int function)
 			startitem = 0;
 			perpage = MAXCALLER;
 			ShowMessage(LOAD,1);
-			cconnect->get_login(cpars->getFritzPW());
+			cconnect->get_login(cpars->getFritzPW(), cpars->getFritzUSER());
 			cconnect->send_query_info(sid);
 			Mainmenu(CINFO);
 			cconnect->send_refresh(sid);
@@ -509,7 +509,7 @@ int CFIM::run(int argc, char *argv[])
 	//fclose(fopen(KBLCKFILE,"w"));
 
 	Mainmenu(LOGIN);
-	int query = cconnect->get_login(cpars->getFritzPW());
+	int query = cconnect->get_login(cpars->getFritzPW(), cpars->getFritzUSER());
 	if(!query) {
 		printf("[%s] - ERROR get_login\n",  BASENAME);
 		ShowMessage(ERR_LOGIN,0);
@@ -553,7 +553,7 @@ int CFIM::run(int argc, char *argv[])
 					startitem=0;
 				callsel=0;
 				ShowMessage(LOAD,1);
-				cconnect->get_login(cpars->getFritzPW());
+				cconnect->get_login(cpars->getFritzPW(), cpars->getFritzUSER());
 				cconnect->send_query_caller(sid, startitem, perpage);
 				Mainmenu(REPAINT);
 				if(queryLogic==1)
@@ -563,7 +563,7 @@ int CFIM::run(int argc, char *argv[])
 				startitem += perpage;
 				callsel=0;
 				ShowMessage(LOAD,1);
-				cconnect->get_login(cpars->getFritzPW());
+				cconnect->get_login(cpars->getFritzPW(), cpars->getFritzUSER());
 				cconnect->send_query_caller(sid, startitem,perpage);
 				Mainmenu(REPAINT);
 				if(queryLogic==1)

@@ -15,7 +15,7 @@ class CConnect
 
 		int	connect2Host(const char *adr, int port);
 		int	get2box(const char* host, int port, const char* msg, const char* upwd);
-		int	get_login(const char* fritzPW);
+		int	get_login(const char* fritzPW, const char* fritzUSER);
 		int	get_callerlist(const char *sid, const char *file);
 		int	get_phonebooks(const char *sid, int phonebook);
 		int	get_phonebooks_LUA(const char *sid, int phonebook);
@@ -62,7 +62,7 @@ class CConnect
 		int	get_challenge(bool lua = true);
 		int	get_md5(const char *challenge, char *fritzPW);
 		int	get_sid(const char *challenge, const unsigned char *md5);
-		int	get_sid_LUA(const char *challenge, const unsigned char *md5);
+		int	get_sid_LUA(const char *challenge, const unsigned char *md5, const char *fritzUSER);
 		int	get_caller_LUA(const char *sid, int s, int max);
 		int	get_challenge(const char* host, int port,const char* fritzPW);
 		std::string	post2fritz(const char* url, const std::string data, const std::string curlOutFile = "");

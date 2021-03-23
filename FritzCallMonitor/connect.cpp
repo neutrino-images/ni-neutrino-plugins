@@ -336,11 +336,15 @@ int CConnect::get_sid(const char *challenge, const unsigned char *md5)
 	return(0);
 }
 
-int CConnect::get_sid_LUA(const char *challenge, const unsigned char *md5)
+int CConnect::get_sid_LUA(const char *challenge, const unsigned char *md5, const char *fritzUSER)
 {
 	ostringstream url, command;
 
 	url << FritzAdr << "/login_sid.lua";
+
+	if(strlen(fritzUSER) != 0) {
+		url << "?username=" << fritzUSER;
+	}
 
 	command	<< "response="
 		<< challenge << '-' << md5;
@@ -646,7 +650,7 @@ string CConnect::parseString(string search1, string search2, string str)
  * get login to Fritz!Box
  ******************************************************************************/
 #endif
-int CConnect::get_login(const char* fritzPW)
+int CConnect::get_login(const char* fritzPW, const char* fritzUSER)
 {
 	if (!get_challenge()) {
 		printf("[%s] - ERROR get Challenge\n",  BASENAME);
@@ -655,7 +659,7 @@ int CConnect::get_login(const char* fritzPW)
 
 	get_md5(challenge,(char*)fritzPW);
 
-	if(!get_sid_LUA(challenge,md5sum)) //after 5.5x
+	if(!get_sid_LUA(challenge,md5sum,fritzUSER)) //after 5.5x
 	{
 		printf("[%s] - login_sid.lua not found\n",  BASENAME);
 		if(!get_sid(challenge,md5sum)) //before 5.5x

@@ -24,6 +24,8 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
+version = "v1.20a"
+
 on = "ein"; off = "aus"
 
 function exists(file)
@@ -305,7 +307,7 @@ function get_boot_path()
 end
 
 function main()
-	caption = "STB-Startup"
+	caption = "STB-Startup" .. " " .. version
 	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4","boot","bootoptions"}
 	n = neutrino()
 	fh = filehelpers.new()
@@ -372,7 +374,7 @@ function main()
 
 	timing_menu = neutrino_conf:getString("timing.menu", "0")
 
-	chooser_dx = n:scale2Res(700)
+	chooser_dx = n:scale2Res(800)
 	chooser_dy = n:scale2Res(200)
 	chooser_x = SCREEN.OFF_X + (((SCREEN.END_X - SCREEN.OFF_X) - chooser_dx) / 2)
 	chooser_y = SCREEN.OFF_Y + (((SCREEN.END_Y - SCREEN.OFF_Y) - chooser_dy) / 2)
@@ -388,7 +390,8 @@ function main()
 		btnRed = get_imagename(1) .. is_active(1),
 		btnGreen = get_imagename(2) .. is_active(2),
 		btnYellow = get_imagename(3) .. is_active(3),
-		btnBlue = get_imagename(4) .. is_active(4)
+		btnBlue = get_imagename(4) .. is_active(4),
+		btnSetup = "Boxmode"
 	}
 
 	chooser_text = ctext.new {
@@ -480,13 +483,18 @@ function main()
 		end
 		for line in io.lines(startup_file) do
 			if has_boxmode() then
+				-- remove existing brcm_cma entries
 				line = line:gsub(string.sub(line, string.find(line, " '")+2, string.find(line, "root=")-1), "")
+				-- re-add new brcm_cma and boxmode entries
+				if get_cfg_value("boxmode_12") == 1 then
+					line = line:gsub(" '", " 'brcm_cma=520M@248M brcm_cma=192M@768M ")
+					line = line:gsub(string.sub(line, string.find(line, "boxmode=")+8), "12'")
+				else
+					line = line:gsub(" '", " 'brcm_cma=440M@328M brcm_cma=192M@768M ")
+					line = line:gsub(string.sub(line, string.find(line, "boxmode=")+8), "1'")
+				end
 			end
-			if has_boxmode() and get_cfg_value("boxmode_12") == 1 then
-				table.insert(startup_lines, (line:gsub(" '", " 'brcm_cma=520M@248M brcm_cma=192M@768M "):gsub("boxmode=1'", "boxmode=12'")))
-			else
-				table.insert(startup_lines, line)
-			end
+			table.insert(startup_lines, line)
 		end
 		file = io.open(boot .. "/STARTUP", 'w')
 		for _, v in ipairs(startup_lines) do

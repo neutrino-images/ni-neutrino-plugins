@@ -269,7 +269,7 @@ void CPhoneBook::dialMenu()
 				CSubMenu::getInstance()->DialMenu(dialtest);
 				break;
 			case RC_OK:
-				cconnect->get_login(cpars->getFritzPW());
+				cconnect->get_login(cpars->getFritzPW(), cpars->getFritzUSER());
 
 				cfb->FBClear();
 				txt.str("");
