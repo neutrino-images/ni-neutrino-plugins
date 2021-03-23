@@ -546,7 +546,7 @@ lines=$(sed $= -n $landfile)
 
 echo "Corona-Info - Länderanzahl = "$lines". "
 
-msgbox popup="Daten werden geholt... (ca. 7 Sekunden)" icon="$icon" title="$title $vinfo ($command)" timeout=02
+msgbox popup="Daten werden geholt... (ca. 8 Sekunden)" icon="$icon" title="$title $vinfo ($command)" timeout=02
 
 echo "Corona-Info - Länderdaten-Download"
 
@@ -594,8 +594,8 @@ fi
 echo "Corona-Info - Daten werden aufbereitet zur Anzeige"
 
 echo "~s" > $msgboxfile
-echo "Land    ~T0215~YGesamt  ~T0320      ~T0395~RGesamt ~T0480 ~T0540 ~T0595~YErkrankt ~T0700~B ~T0785~GImpfung ~T0885~GTests ~T0975~YFälle  ~T1055~RTote ~T1150~S" >> $msgboxfile
-echo " ~T0215~YInfizierte  ~T0320heute      ~T0395~RTote ~T0480Quote ~T0540heute ~T0595~Ymild ~T0700~Bkritisch ~T0785~GGesamt ~T0885~GpMio. ~T0975~YpMio.  ~T1055~RpMio.  ~T1150~S" >> $msgboxfile
+echo "Land    ~T0215~YGesamt  ~T0320      ~T0395~RGesamt ~T0480 ~T0540 ~T0595~YErkrankt ~T0700~B ~T0775~GImpfung ~T0885~GTests ~T0975~YFälle  ~T1055~RTote ~T1150~S" >> $msgboxfile
+echo " ~T0215~YInfizierte  ~T0320heute      ~T0395~RTote ~T0480Quote ~T0540heute ~T0595~Ymild ~T0700~Bkritisch ~T0775~GGesamt ~T0885~GpMio. ~T0975~YpMio.  ~T1055~RpMio.  ~T1150~S" >> $msgboxfile
 echo "~s" >> $msgboxfile
 
 
