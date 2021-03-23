@@ -45,20 +45,19 @@ CFCM::CFCM()
 
 	read_conf(CONFIGFILE);
 
-	// using atoi instead of stoi because of error handling
-	debug			= std::atoi(conf["DEBUG"].c_str());
-	BackwardSearch	= std::atoi(conf["BACKWARDSEARCH"].c_str());
-	msgtimeout		= std::atoi(conf["MSGTIMEOUT"].c_str());
-	easymode		= std::atoi(conf["EASYMODE"].c_str());
-	FritzPort		= std::atoi(conf["PORT"].c_str());
-	SearchPort		= std::atoi(conf["SEARCH_PORT"].c_str());
-	searchmode		= std::atoi(conf["SEARCH_MODE"].c_str());
-	searchint		= std::atoi(conf["SEARCH_INT"].c_str());
+	debug			= str2i(conf["DEBUG"]);
+	BackwardSearch	= str2i(conf["BACKWARDSEARCH"]);
+	msgtimeout		= str2i(conf["MSGTIMEOUT"]);
+	easymode		= str2i(conf["EASYMODE"]);
+	FritzPort		= str2i(conf["PORT"]);
+	SearchPort		= str2i(conf["SEARCH_PORT"]);
+	searchmode		= str2i(conf["SEARCH_MODE"]);
+	searchint		= str2i(conf["SEARCH_INT"]);
 
 	//reinit after reading configfile
 	cconnect->setDebug(debug);
 	cconnect->setFritzAdr(conf["FRITZBOXIP"].c_str());
-	cconnect->setFritzPort(std::atoi(conf["WEB_PORT"].c_str()));
+	cconnect->setFritzPort(str2i(conf["WEB_PORT"]));
 }
 
 CFCM::~CFCM()
@@ -705,6 +704,17 @@ void tokenize(std::string const &str, const char delim, std::vector<std::string>
         end = str.find(delim, start);
         out.push_back(str.substr(start, end - start));
     }
+}
+
+int CFCM::str2i(string const &str)
+{
+	int i;
+	stringstream s;
+
+	s << str;
+	s >> i;
+
+	return i;
 }
 
 void Usage()

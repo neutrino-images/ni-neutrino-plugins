@@ -110,7 +110,7 @@ int CParser::ReadConfig(const string& file)
 			int inx = key[key.length()-1] - '1';
 
 			strcpy(dialport[inx].port_name, tmp[0].c_str());
-			if(tmp.size() > 1) dialport[inx].port = std::atoi(tmp[1].c_str());
+			if(tmp.size() > 1) dialport[inx].port = str2i(tmp[1]);
 
 			//cout << key << "=" << value << " " << dialport[inx].port_name << "/" << dialport[inx].port << endl;
 		}
@@ -127,8 +127,7 @@ int CParser::ReadConfig(const string& file)
 	}
 	fh.close();
 
-	// using atoi instead of stoi because of error handling
-	debug	= std::atoi(conf["DEBUG"].c_str());
+	debug	= str2i(conf["DEBUG"]);
 
 	return 0;
 }
@@ -405,4 +404,15 @@ string CParser::parseString(const char* var, string& string_to_serarch)
 		cout << '[' << BASENAME << "] - " << __FUNCTION__ << "(): no result for " << '"' << var << '"' << endl;
 
 	return(res);
+}
+
+int CParser::str2i(string const &str)
+{
+	int i;
+	stringstream s;
+
+	s << str;
+	s >> i;
+
+	return i;
 }

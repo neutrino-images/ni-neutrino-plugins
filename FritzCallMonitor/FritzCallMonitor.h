@@ -14,7 +14,7 @@
 #include "connect.h"
 
 #define FCMNAME "FCM"
-#define FCMVERSION "V5.2"
+#define FCMVERSION "V5.3"
 #define FCMCOPYRIGHT "2010, 2017 (c) FlatTV"
 
 #define BUFFERSIZE 1024
@@ -77,6 +77,7 @@ class CFCM
 		string	create_map(string& k, const string& t, string& v, map<string, vector<string> >& m);
 		string	create_map(string& k, const string& t, const string& v, map<string, string>& m);
 		void 	tokenize(std::string const &str, const char delim, std::vector<std::string> &out);
+		int		str2i(string const &str);
 
 		//query thread
 		static void*	proxy_loop(void *arg);

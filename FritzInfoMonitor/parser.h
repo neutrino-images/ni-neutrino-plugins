@@ -30,6 +30,7 @@ class CParser
 		string	parseString(const char* var, std::string& string_to_serarch);
 		void	StringReplace(string &str, const string search, const string rstr);
 		vector<string>	split(stringstream& str,const char& delim);
+		int		str2i(string const &str);
 
 		unsigned char	bgra[24][5];
 
