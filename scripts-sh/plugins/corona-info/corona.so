@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V2.41                            *
+# * Corona-Info V2.42                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -51,7 +51,7 @@ fi
 #################################################
 
 title="Corona-Info"
-vinfo="V2.41"
+vinfo="V2.42"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
@@ -77,6 +77,8 @@ msgboxfile2=/tmp/corona.msgbox2
 msgboxfile3=/tmp/corona.msgbox3
 countriesfile=/tmp/corona.countries
 worldfile=/tmp/corona.world
+vaccinefile=/tmp/corona.vaccine
+vacworldfile=/tmp/corona.vacworld
 updatefile=/tmp/corona.update
 htmlparser=/tmp/corona.html
 htmlparserbild1=/tmp/coronabild.tmp
@@ -523,20 +525,20 @@ if [ -e "$landfile" ]; then
 	echo "Corona-Info - corona.land ("$landpath") Datei wird genutzt"
 else 
 	landfile=/tmp/corona.land
-	echo '"DEU",Deutschland' >> $landfile
-	echo '"ITA",Italien' >> $landfile
-	echo '"ESP",Spanien' >> $landfile
-	echo '"SWE",Schweden' >> $landfile
-	echo '"PRT",Portugal' >> $landfile
-	echo '"_id":840,USA' >> $landfile
-	echo '"AUT",~Osterreich' >> $landfile
-	echo '"CHE",Schweiz' >> $landfile
-	echo '"FRA",Frankreich' >> $landfile
-	echo '"NLD",Niederlande' >> $landfile
-	echo '"CHN",China' >> $landfile
-	echo '"KOR",S~udkorea' >> $landfile
-	echo '"RUS",Russland' >> $landfile
-	echo '"GBR",Gro~zbritannien' >> $landfile
+	echo '"DEU",Deutschland,Germany' >> $landfile
+	echo '"ITA",Italien,Italy' >> $landfile
+	echo '"ESP",Spanien,Spain' >> $landfile
+	echo '"SWE",Schweden,Sweden' >> $landfile
+	echo '"PRT",Portugal,Portugal' >> $landfile
+	echo '"_id":840,USA,USA' >> $landfile
+	echo '"AUT",~Osterreich,Austria' >> $landfile
+	echo '"CHE",Schweiz,Switzerland' >> $landfile
+	echo '"FRA",Frankreich,France' >> $landfile
+	echo '"NLD",Niederlande,Netherlands' >> $landfile
+	echo '"CHN",China,China' >> $landfile
+	echo '"KOR",S~udkorea,S. Korea' >> $landfile
+	echo '"RUS",Russland,Russia' >> $landfile
+	echo '"GBR",Gro~zbritannien,UK' >> $landfile
 	echo "Corona-Info - corona.land nicht vorhanden - Default-Laender werden genutzt"
 fi
 
@@ -551,9 +553,13 @@ echo "Corona-Info - Länderdaten-Download"
 if [ $command = "WGET" ]; then
 	wget -O $countriesfile https://corona.lmao.ninja/v2/countries --no-check-certificate
 	wget -O $worldfile https://corona.lmao.ninja/v2/all --no-check-certificate
+  wget -O $vaccinefile https://disease.sh/v3/covid-19/vaccine/coverage/countries?lastdays=1 --no-check-certificate
+  wget -O $vacworldfile https://disease.sh/v3/covid-19/vaccine/coverage?lastdays=1 --no-check-certificate
 else
 	curl -k -o $countriesfile https://corona.lmao.ninja/v2/countries
 	curl -k -o $worldfile https://corona.lmao.ninja/v2/all
+	curl -k -o $vaccinefile https://disease.sh/v3/covid-19/vaccine/coverage/countries?lastdays=1
+	curl -k -o $vacworldfile https://disease.sh/v3/covid-19/vaccine/coverage?lastdays=1
 fi 
 
 if [ -e $countriesfile ]; then
@@ -569,14 +575,27 @@ else
 	echo "Corona-Info - Länderdaten-Summe in $worldfile nicht gefunden"
 fi
 
+if [ -e $vaccinefile ]; then
+	sed -i -e 's|{"country|\n{"country|g' $vaccinefile
+	echo "Corona-Info - Länderdaten Impfung erfolgreich geladen"
+else
+	echo "Corona-Info - Länderdaten Impfung in $vaccinefile nicht gefunden"
+fi
+
+if [ -e $vacworldfile ]; then
+	echo "Corona-Info - Länderdaten-Impfung-Summe erfolgreich geladen"
+else
+	echo "Corona-Info - Länderdaten-Impfung-Summe in $vacworldfile nicht gefunden"
+fi
+
 
 # Übersicht erstellen
 
 echo "Corona-Info - Daten werden aufbereitet zur Anzeige"
 
 echo "~s" > $msgboxfile
-echo "Land    ~T0215~YGesamt  ~T0320      ~T0395~RGesamt ~T0480 ~T0540 ~T0595~YErkrankt ~T0700~B ~T0785~GGeheilt ~T0885~GTests ~T0975~YFälle  ~T1055~RTote ~T1150~S" >> $msgboxfile
-echo " ~T0215~YInfizierte  ~T0320heute      ~T0395~RTote ~T0480Quote ~T0540heute ~T0595~Ymild ~T0700~Bkritisch ~T0785~Ggemeld. ~T0885~GpMio. ~T0975~YpMio.  ~T1055~RpMio.  ~T1150~S" >> $msgboxfile
+echo "Land    ~T0215~YGesamt  ~T0320      ~T0395~RGesamt ~T0480 ~T0540 ~T0595~YErkrankt ~T0700~B ~T0785~GImpfung ~T0885~GTests ~T0975~YFälle  ~T1055~RTote ~T1150~S" >> $msgboxfile
+echo " ~T0215~YInfizierte  ~T0320heute      ~T0395~RTote ~T0480Quote ~T0540heute ~T0595~Ymild ~T0700~Bkritisch ~T0785~GGesamt ~T0885~GpMio. ~T0975~YpMio.  ~T1055~RpMio.  ~T1150~S" >> $msgboxfile
 echo "~s" >> $msgboxfile
 
 
@@ -597,6 +616,7 @@ for i in $(seq 1 "$lines"); do
 	TOTEPROMILLION=0
 
 	landtemp=$(head -n"$i" $landfile | tail -n1 | cut -d "," -f1)
+	landtemp2=$(head -n"$i" $landfile | tail -n1 | cut -d "," -f3)
 	landanzeige=$(head -n"$i" $landfile | tail -n1 | cut -d "," -f2)
 
 	LAND=$(cat $countriesfile | grep "$landtemp")
@@ -613,9 +633,12 @@ for i in $(seq 1 "$lines"); do
 	TOTEPROMILLION=$(echo "$LAND" | sed 's/.*deathsPerOneMillion":\(.*\)$/\1/' | cut -d "," -f1)
 	TESTS=$(echo "$LAND" | sed 's/.*tests":\(.*\)$/\1/' | cut -d "," -f1)
 	TESTSPROMILLION=$(echo "$LAND" | sed 's/.*testsPerOneMillion":\(.*\)$/\1/' | cut -d "," -f1)
+  LANDIMPF=$(cat $vaccinefile | grep "$landtemp2")
+	IMPFUNG=$(echo "$LANDIMPF" | sed 's/.*timeline":\(.*\)$/\1/' | cut -d ":" -f2 | cut -d "}" -f1)
 #	CONTINENT=$(echo "$LAND" | sed 's/.*continent":"\(.*\)$/\1/' | cut -d "}" -f1 | cut -d '"' -f1)
 
-	echo $landanzeige" ~T0215~Y"$GESAMT" ~T0320"$NEU_HEUTE"  ~T0395~R"$TOTE"  ~T0480"$QUOTE"% ~T0540"$TOTE_HEUTE" ~T0595~Y"$ERKRANKT" ~T0700~B"$KRITISCH" ~T0785~G"$GEHEILT"  ~T0885~G"$TESTSPROMILLION" ~T0975~Y"$FALLPROMILLION" ~T1055~R"$TOTEPROMILLION"~T1150~S"$CONTINENT"" >> $msgboxfile
+#	echo $landanzeige" ~T0215~Y"$GESAMT" ~T0320"$NEU_HEUTE"  ~T0395~R"$TOTE"  ~T0480"$QUOTE"% ~T0540"$TOTE_HEUTE" ~T0595~Y"$ERKRANKT" ~T0700~B"$KRITISCH" ~T0775~G"$GEHEILT"  ~T0885~G"$TESTSPROMILLION" ~T0975~Y"$FALLPROMILLION" ~T1055~R"$TOTEPROMILLION"~T1150~S"$CONTINENT"" >> $msgboxfile
+	echo $landanzeige" ~T0215~Y"$GESAMT" ~T0320"$NEU_HEUTE"  ~T0395~R"$TOTE"  ~T0480"$QUOTE"% ~T0540"$TOTE_HEUTE" ~T0595~Y"$ERKRANKT" ~T0700~B"$KRITISCH" ~T0775~G"$IMPFUNG"  ~T0885~G"$TESTSPROMILLION" ~T0975~Y"$FALLPROMILLION" ~T1055~R"$TOTEPROMILLION"~T1150~S"$CONTINENT"" >> $msgboxfile
 done
 
 # Gesamtwerte ermitteln und in Datei speichern
@@ -639,11 +662,14 @@ ALL_TOTEPROMILLION=$(echo "$ALL" | sed 's/.*deathsPerOneMillion":\(.*\)$/\1/' | 
 ALL_KRITISCH=$(echo "$ALL" | sed 's/.*critical":\(.*\)$/\1/' | cut -d "," -f1)
 ALL_UPDATE=$(date -d @${ALL_UPDATETEMP:0:10} '+%d.%m.%Y - %H:%M')
 
+ALLIMPF=$(cat $vacworldfile)
+ALL_IMPFUNG=$(echo "$ALLIMPF" | cut -d ":" -f2 | cut -d "}" -f1)
+
 echo "~s" >> $msgboxfile
-echo "Weltweit ~T0215~Y"$ALL_GESAMT" ~T0320"$ALL_NEU_HEUTE"  ~T0395~R"$ALL_TOTE"  ~T0480"$ALL_QUOTE"% ~T0540"$ALL_TOTE_HEUTE" ~T0595~Y"$ALL_ERKRANKT" ~T0700~B"$ALL_KRITISCH" ~T0785~G"$ALL_GEHEILT" ~T0975~Y"$ALL_FALLPROMILLION" ~T1055~R"$ALL_TOTEPROMILLION" ~T1150~S"$ALL_CONTINENT" " >> $msgboxfile
+echo "Weltweit ~T0215~Y"$ALL_GESAMT" ~T0320"$ALL_NEU_HEUTE"  ~T0395~R"$ALL_TOTE"  ~T0480"$ALL_QUOTE"% ~T0540"$ALL_TOTE_HEUTE" ~T0595~Y"$ALL_ERKRANKT" ~T0700~B"$ALL_KRITISCH" ~T0775~G"$ALL_IMPFUNG" ~T0975~Y"$ALL_FALLPROMILLION" ~T1055~R"$ALL_TOTEPROMILLION" ~T1150~S"$ALL_CONTINENT" " >> $msgboxfile
 echo "Anzahl Länder ~T0215"$ALL_ANZAHL" " >> $msgboxfile
 echo "~s" >> $msgboxfile
-echo "~cQuelle: https://corona.lmao.ninja/v2/countries - Datenstand: "$ALL_UPDATE" Uhr" >> $msgboxfile 
+echo "~cQuelle: corona.lmao.ninja/v2/countries - disease.sh/v3/covid-19/vaccine - Datenstand: "$ALL_UPDATE" Uhr" >> $msgboxfile 
 #echo "~cDie Liste der L~ander kann in der Datei corona.land editiert/sortiert werden. fred_feuerstein (NI-Team)" >> $msgboxfile 
 
 echo "Corona-Info - Übersicht wurde erstellt"
