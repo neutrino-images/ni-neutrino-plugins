@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V2.42                            *
+# * Corona-Info V2.43                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
@@ -51,7 +51,7 @@ fi
 #################################################
 
 title="Corona-Info"
-vinfo="V2.42"
+vinfo="V2.43"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
@@ -92,78 +92,82 @@ chartparser() {
 
 # Generierung Dateienamen für Charts vom Wiki
 
-echo "Corona-Info - Dateiename Wiki-Charts Weltweit generieren"
+#echo "Corona-Info - Dateiename Wiki-Charts Weltweit generieren"
 
-	if [ $command = "WGET" ]; then
-		wget -O $htmlparser "https://de.wikipedia.org/wiki/COVID-19-Pandemie"
-	else
-		curl -k -o $htmlparser https://de.wikipedia.org/wiki/COVID-19-Pandemie
-	fi 
+#	if [ $command = "WGET" ]; then
+#		wget -O $htmlparser "https://de.wikipedia.org/wiki/COVID-19-Pandemie"
+#	else
+#		curl -k -o $htmlparser https://de.wikipedia.org/wiki/COVID-19-Pandemie
+#	fi 
 
-bildtemp1=`cat $htmlparser | grep "mw-graph-img"`
-echo $bildtemp1 >> $htmlparserbild1
-sed -i -e 's|"|\n|g' $htmlparserbild1
-bildtemp2=`cat $htmlparserbild1 | grep ".png" `
-echo $bildtemp2 >> $htmlparserbild2
-sed -i -e 's|/api/|\n/api/|g' $htmlparserbild2
+#bildtemp1=`cat $htmlparser | grep "mw-graph-img"`
+#echo $bildtemp1 >> $htmlparserbild1
+#sed -i -e 's|"|\n|g' $htmlparserbild1
+#bildtemp2=`cat $htmlparserbild1 | grep ".png" `
+#echo $bildtemp2 >> $htmlparserbild2
+#sed -i -e 's|/api/|\n/api/|g' $htmlparserbild2
 
 #Weltweite Fälle
-bild1=`head -n2 $htmlparserbild2 | tail -n1 `
+#bild1=`head -n2 $htmlparserbild2 | tail -n1 `
 #Weltweit Tote
-bild2=`head -n3 $htmlparserbild2 | tail -n1 `
+#bild2=`head -n3 $htmlparserbild2 | tail -n1 `
 
-echo "Corona-Info - Dateiename Wiki-Charts Deutschland generieren"
+#echo "Corona-Info - Dateiename Wiki-Charts Deutschland generieren"
 
-	if [ $command = "WGET" ]; then
-		wget -O $htmlparser2 "https://de.wikipedia.org/wiki/COVID-19-Pandemie_in_Deutschland"
-	else
-		curl -k -o $htmlparser2 https://de.wikipedia.org/wiki/COVID-19-Pandemie_in_Deutschland
-	fi 
+#	if [ $command = "WGET" ]; then
+#		wget -O $htmlparser2 "https://de.wikipedia.org/wiki/COVID-19-Pandemie_in_Deutschland"
+#	else
+#		curl -k -o $htmlparser2 https://de.wikipedia.org/wiki/COVID-19-Pandemie_in_Deutschland
+#	fi 
 
-bildtemp3=`cat $htmlparser2 | grep "mw-graph-img"`
-echo $bildtemp3 >> $htmlparserbild3
-sed -i -e 's|"|\n|g' $htmlparserbild3
-bildtemp4=`cat $htmlparserbild3 | grep ".png" `
-echo $bildtemp4 >> $htmlparserbild4
-sed -i -e 's|/api/|\n/api/|g' $htmlparserbild4
+#bildtemp3=`cat $htmlparser2 | grep "mw-graph-img"`
+#echo $bildtemp3 >> $htmlparserbild3
+#sed -i -e 's|"|\n|g' $htmlparserbild3
+#bildtemp4=`cat $htmlparserbild3 | grep ".png" `
+#echo $bildtemp4 >> $htmlparserbild4
+#sed -i -e 's|/api/|\n/api/|g' $htmlparserbild4
 
-#DE Fälle pro Tag
-bild3=`head -n2 $htmlparserbild4 | tail -n1 `
-#DE Intensiv
-bild4=`head -n4 $htmlparserbild4 | tail -n1 `
-#DE Tote pro Tag
-bild5=`head -n5 $htmlparserbild4 | tail -n1 `
-#DE Tote pro Tag/Alter
-bild6=`head -n6 $htmlparserbild4 | tail -n1 `
-#DE Tote nach Alter/Geschlecht
-bild7=`head -n6 $htmlparserbild4 | tail -n1 `
-#DE Genesen/aktive/verstorbene
-bild8=`head -n8 $htmlparserbild4 | tail -n1 `
+##DE Fälle pro Tag
+#bild3=`head -n2 $htmlparserbild4 | tail -n1 `
+##DE Intensiv
+#bild4=`head -n4 $htmlparserbild4 | tail -n1 `
+##DE Tote pro Tag
+#bild5=`head -n5 $htmlparserbild4 | tail -n1 `
+##DE Tote pro Tag/Alter
+#bild6=`head -n6 $htmlparserbild4 | tail -n1 `
+##DE Tote nach Alter/Geschlecht
+#bild7=`head -n6 $htmlparserbild4 | tail -n1 `
+##DE Genesen/aktive/verstorbene
+#bild8=`head -n8 $htmlparserbild4 | tail -n1 `
 
-fallurl="https://de.wikipedia.org$bild1"
-toteurl="https://de.wikipedia.org$bild2"
 dekarte1url="https://www.rki.de/SharedDocs/Bilder/InfAZ/neuartiges_Coronavirus/Impfquotenmonitoring_Balken.png;jsessionid=D11FE11C0E43367EC1D57F70B5D4E21B.internet052?__blob=poster&v=30"
-dekarte2url="https://www.neutrino-images.de/storage/public/corona-info/dekarte2.jpg"
+dekarte2url="https://www.rki.de/SharedDocs/Bilder/InfAZ/neuartiges_Coronavirus/Impfquotenmonitoring_BL.png;jsessionid=F696BC0CC7CA1C154A2DA1CC1CCF41EE.internet062?__blob=poster&v=83"
 dekarte3url="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/COVID-19_outbreak_Germany_per_capita_cases_map.svg/800px-COVID-19_outbreak_Germany_per_capita_cases_map.svg.png"
-defaelle="https://de.wikipedia.org$bild3"
-defaelleprotag="https://de.wikipedia.org$bild4"
-detote="https://de.wikipedia.org$bild5"
-detoteprotag="https://de.wikipedia.org$bild6"
-degenesen="https://de.wikipedia.org$bild7"
-degenesenprotag="https://de.wikipedia.org$bild8"
+dekarte4url="https://de.statista.com/graphic/1/1100739/entwicklung-der-taeglichen-fallzahl-des-coronavirus-in-deutschland.jpg"
+dekarte5url="https://de.statista.com/graphic/1/1102667/erkrankungs-und-todesfaelle-aufgrund-des-coronavirus-in-deutschland.jpg"
+#fallurl="https://de.wikipedia.org$bild1"
+#toteurl="https://de.wikipedia.org$bild2"
+#defaelle="https://de.wikipedia.org$bild3"
+#defaelleprotag="https://de.wikipedia.org$bild4"
+#detote="https://de.wikipedia.org$bild5"
+#detoteprotag="https://de.wikipedia.org$bild6"
+#degenesen="https://de.wikipedia.org$bild7"
+#degenesenprotag="https://de.wikipedia.org$bild8"
 
 repeat=""
-fallstring="PICTURE=fall,|PNG$repeat|$fallurl"
-totestring="PICTURE=tote,|PNG$repeat|$toteurl"
+#fallstring="PICTURE=fall,|PNG$repeat|$fallurl"
+#totestring="PICTURE=tote,|PNG$repeat|$toteurl"
+#defaellestring="PICTURE=fall,|PNG$repeat|$defaelle"
+#defaelleprotagstring="PICTURE=fall,|PNG$repeat|$defaelleprotag"
+#detotestring="PICTURE=tote,|PNG$repeat|$detote"
+#detoteprotagstring="PICTURE=tote,|PNG$repeat|$detoteprotag"
+#degenesenstring="PICTURE=tote,|PNG$repeat|$degenesen"
+#degenesenprotagstring="PICTURE=tote,|PNG$repeat|$degenesenprotag"
 dekarte1string="PICTURE=deu,|PNG$repeat|$dekarte1url"
-dekarte2string="PICTURE=deu,|JPG$repeat|$dekarte2url"
+dekarte2string="PICTURE=deu,|PNG$repeat|$dekarte2url"
 dekarte3string="PICTURE=deu,|PNG$repeat|$dekarte3url"
-defaellestring="PICTURE=fall,|PNG$repeat|$defaelle"
-defaelleprotagstring="PICTURE=fall,|PNG$repeat|$defaelleprotag"
-detotestring="PICTURE=tote,|PNG$repeat|$detote"
-detoteprotagstring="PICTURE=tote,|PNG$repeat|$detoteprotag"
-degenesenstring="PICTURE=tote,|PNG$repeat|$degenesen"
-degenesenprotagstring="PICTURE=tote,|PNG$repeat|$degenesenprotag"
+dekarte4string="PICTURE=deu,|PNG$repeat|$dekarte4url"
+dekarte5string="PICTURE=deu,|PNG$repeat|$dekarte5url"
 
 }
 
@@ -236,6 +240,36 @@ dekarte3grafik() {
       echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
     else
 			$tux_wetter "$dekarte3string" >/dev/null &
+			while pidof `basename $tux_wetter` >/dev/null && [ $tmout -lt $gtimeout ]; do
+			    tmout=$(($tmout+1))
+			    sleep 1
+				done
+			pidof `basename $tux_wetter` >/dev/null && killall `basename $tux_wetter`
+  fi
+}
+
+dekarte4grafik() {
+	tmout=0
+  if [ "$tux_wetter" == "" ]; then
+      msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
+      echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
+    else
+			$tux_wetter "$dekarte4string" >/dev/null &
+			while pidof `basename $tux_wetter` >/dev/null && [ $tmout -lt $gtimeout ]; do
+			    tmout=$(($tmout+1))
+			    sleep 1
+				done
+			pidof `basename $tux_wetter` >/dev/null && killall `basename $tux_wetter`
+  fi
+}
+
+dekarte5grafik() {
+	tmout=0
+  if [ "$tux_wetter" == "" ]; then
+      msgbox popup="Tuxwetter nicht installiert - keine Bildanzeige!" icon="$path" title="$titletext1 $vinfo ($command)" timeout=03
+      echo "Corona-Info - tuxwetter nicht installiert - keine Bildanzeige"
+    else
+			$tux_wetter "$dekarte5string" >/dev/null &
 			while pidof `basename $tux_wetter` >/dev/null && [ $tmout -lt $gtimeout ]; do
 			    tmout=$(($tmout+1))
 			    sleep 1
@@ -456,16 +490,16 @@ echo "Corona-Info - Chart-Seite wird angezeigt am TV"
 
 while :; do
 	auswahl=3
-	msgbox msg="$msgboxfile3" size="22" icon="$icon" title="$title $vinfo" select="Weltweit F~alle (WHO),-frei-,ZUR~UCK,DE-Impfchart,DE-F~alle p.T.(RKI),DE-F~alle Intensiv(RKI),DE-Tote p.T. (RKI),DE-Tote Alter/Sex(RKI),-frei-,DE-Genesen (RKI),DE-Karte (ntv),DE-Karte (WHO)" order=4 timeout=$pgtimeout default=$auswahl >/dev/null
+	msgbox msg="$msgboxfile3" size="22" icon="$icon" title="$title $vinfo" select="neue F~alle DE,Gesamt F~alle DE,ZUR~UCK,DE-Impfchart RKI,-frei-,-frei-,-frei-,DE-Impfkarte RKI,-frei-,-frei,-frei-,DE-Karte (WHO)" order=4 timeout=$pgtimeout default=$auswahl >/dev/null
 	auswahl=$?
 	case $auswahl in
 	  1)
-      echo "Corona-Info - Grafik-Fälle-Weltweit-WHO"
-      fallgrafik
+      echo "Corona-Info - neue Fälle DE"
+      dekarte4grafik
   		;;		
 	  2)
-      echo "Corona-Info - Grafik-Tote-Weltweit-WHO"
-      totegrafik
+      echo "Corona-Info - Gesamt Fälle DE"
+      dekarte5grafik
   		;;		
 	  3)
 		  #Zurück
@@ -474,7 +508,7 @@ while :; do
 			break
    		;;
 	  4)
-	    echo "Corona-Info - Impfübersicht"
+	    echo "Corona-Info - Impfübersicht RKI"
 	    dekarte1grafik
 	    ;;
 	  5)
@@ -490,8 +524,8 @@ while :; do
 	    detotegrafik
 	    ;;
 	  8)
-	    echo "Corona-Info - Deutschland-Tote pro Tag"
-	    detoteprotaggrafik
+	    echo "Corona-Info - Impfkarte RKI"
+	    dekarte2grafik
 	    ;;
 	  9)
 	    echo "Corona-Info - Deutschland-Genesen"
