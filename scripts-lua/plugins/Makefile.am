@@ -53,7 +53,7 @@ if ENABLE_SPIEGEL_TV_DOC
 SUBDIRS += spiegel-tv-doc
 endif
 if ENABLE_STB_STARTUP
-SUBDIRS += stb_startup
+SUBDIRS += stb_startup-ddt
 endif
 if ENABLE_TIERWELT_TV
 SUBDIRS += tierwelt-tv
