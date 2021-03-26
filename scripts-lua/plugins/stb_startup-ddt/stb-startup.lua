@@ -161,7 +161,7 @@ function is_active(root)
 end
 
 function get_cfg_value(str)
-	for line in io.lines("/var/tuxbox/plugins/stb-startup.conf") do
+	for line in io.lines("/var/tuxbox/config/stb-startup.conf") do
 		if line:match(str .. "=") then
 			local i,j = string.find(line, str .. "=")
 			r = tonumber(string.sub(line, j+1, #line))
@@ -171,7 +171,7 @@ function get_cfg_value(str)
 end
 
 function create_cfg()
-	file = io.open("/var/tuxbox/plugins/stb-startup.conf", "w")
+	file = io.open("/var/tuxbox/config/stb-startup.conf", "w")
 	file:write("boxmode_12=0", "\n")
 	file:close()
 end
@@ -180,14 +180,14 @@ function write_cfg(k, v, str)
 	local a
 	if (v == on) then a = 1 else a = 0 end
 	local cfg_content = {}
-	for line in io.lines("/var/tuxbox/plugins/stb-startup.conf") do
+	for line in io.lines("/var/tuxbox/config/stb-startup.conf") do
 		if line:match(str .. "=") then
 			table.insert (cfg_content, (string.reverse(string.gsub(string.reverse(line), string.sub(string.reverse(line), 1, 1), a, 1))))
 		else
 			table.insert (cfg_content, line)
 		end
 	end
-	file = io.open("/var/tuxbox/plugins/stb-startup.conf", 'w')
+	file = io.open("/var/tuxbox/config/stb-startup.conf", 'w')
 	for i, v in ipairs(cfg_content) do
 		file:write(v, "\n")
 	end
@@ -198,7 +198,7 @@ function set(k, v, str)
 	write_cfg(k, v, "boxmode_12")
 end
 
-if (bmbox == 1) and not fh:exist("/var/tuxbox/plugins/stb-startup.conf", "f") then
+if (bmbox == 1) and not fh:exist("/var/tuxbox/config/stb-startup.conf", "f") then
 	create_cfg()
 end
 
