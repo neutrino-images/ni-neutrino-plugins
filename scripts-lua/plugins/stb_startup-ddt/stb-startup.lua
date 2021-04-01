@@ -4,7 +4,7 @@
 -- STB-Startup for HD51/H7/BRE2ZE4K
 --
 -- Changed, now also for VU+ SOLO 4K, VU+ DUO 4K, VU+ DUO 4K SE, VU+ ULTIMO 4K, VU+ UNO 4K, VU+ UNO 4K SE and VU+ ZERO 4K
--- by BPanther 26/Mar/2021
+-- by BPanther 28/Mar/2021
 --
 -- Redistribution and use in source and binary forms, with or without modification, 
 -- are permitted provided that the following conditions are met:
@@ -28,7 +28,7 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
-caption = "STB-Startup v1.24 - "
+caption = "STB-Startup v1.25 - "
 bmbox = 0
 
 n = neutrino()
@@ -270,6 +270,7 @@ function get_imagename(root)
 		if imagename == "" then imagename = "???" end
 	end
 	umount("/tmp/testmount")
+	imagename = string.sub(imagename, 0, 22) -- max. 22 chars
 	return imagename
 end
 
