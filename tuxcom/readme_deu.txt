@@ -3,149 +3,149 @@ TuxCom:
 Historie:
 ---------
 03.03.2018 Version 1.18
- - Ansicht im Taskmanager für ps und busybox ps korrigiert
- - Hint Icon hinzugefügt
+ - Ansicht im Taskmanager fÃ¼r ps und busybox ps korrigiert
+ - Hint Icon hinzugefÃ¼gt
 
 08.04.2007 Version 1.16
- - Ein-Fenster-Anzeige auswählbar (per Info-Taste)
- - Dateigrössen werden in Kurzform (MB/GB) angezeigt (abschaltbar im Hauptmenü)
- - Dateigrösse in Bytes wird in Dateieigenschaften (Taste "1") angezeigt
+ - Ein-Fenster-Anzeige auswÃ¤hlbar (per Info-Taste)
+ - DateigrÃ¶ssen werden in Kurzform (MB/GB) angezeigt (abschaltbar im HauptmenÃ¼)
+ - DateigrÃ¶sse in Bytes wird in Dateieigenschaften (Taste "1") angezeigt
 
 30.10.2006 Version 1.15
- - Möglichkeit, Skripte in Abhängigkeit von der Dateiendung auszuführen
+ - MÃ¶glichkeit, Skripte in AbhÃ¤ngigkeit von der Dateiendung auszufÃ¼hren
  - zwei kleine Korrekturen (Dank an murks)
 
 06.03.2006 Version 1.14
 - Beim Starten des Plugins wird die Datei /tmp/keyboard.lck angelegt und nach dem Beenden wieder
-  gelöscht, dies dient zur Unterstützung des kb2rcd (von robspr1)
+  gelÃ¶scht, dies dient zur UnterstÃ¼tzung des kb2rcd (von robspr1)
 
 22.01.2006 Version 1.13
- - Überschreiben von Verzeichnissen korrigiert
+ - Ãœberschreiben von Verzeichnissen korrigiert
  
 27.12.2005 Version 1.12
- - Portugiesische Übersetzung eingebaut (Dank an jlmota)
+ - Portugiesische Ãœbersetzung eingebaut (Dank an jlmota)
  - zwei kleine Fehler im Editor behoben
  
 22.11.2005 Version 1.11
  - Bessere Tastaturabfrage bei Exit/Enter auf DMM-Tastatur
  - kleinere Fehler im Editor ausgebessert
  - weniger Speicherverbrauch 
- - Datei /tmp/tuxcom.out wird beim Beenden des Plugins gelöscht
+ - Datei /tmp/tuxcom.out wird beim Beenden des Plugins gelÃ¶scht
 
 01.10.2005 Version 1.10a
  - Zahlentasten auf USB-Tastatur funktionieren wieder
 
 24.09.2005 Version 1.10
- - Verweise auf Dateien in schreibgeschützen Verzeichnissen erstellbar
+ - Verweise auf Dateien in schreibgeschÃ¼tzen Verzeichnissen erstellbar
  - Meldung beim Verzeichnis erstellen, wenn Datei bereits existiert
  
 11.09.2005 Version 1.9a
- - Schwedische Übersetzung eingebaut (Dank an yeager)
+ - Schwedische Ãœbersetzung eingebaut (Dank an yeager)
 
 10.08.2005 Version 1.9
- - Unterstützung für Dbox2-Tastaturen (von robspr1)
+ - UnterstÃ¼tzung fÃ¼r Dbox2-Tastaturen (von robspr1)
 
 15.07.2005 Version 1.8a
- - Italienische Übersetzung eingebaut (Dank an fbrassin)
+ - Italienische Ãœbersetzung eingebaut (Dank an fbrassin)
 
 11.06.2005 Version 1.8
- - direkter Sprung ins Rootverzeichnis möglich (Eintrag '/' selektieren)
+ - direkter Sprung ins Rootverzeichnis mÃ¶glich (Eintrag '/' selektieren)
  - erweiterte Dateiinformationen im Rechte-Dialog (Taste 1)
- - Druck auf OK bei Dateien, die nicht ausführbar sind, öffnet den Viewer
+ - Druck auf OK bei Dateien, die nicht ausfÃ¼hrbar sind, Ã¶ffnet den Viewer
  - Bei Neuanlegen einer Datei oder eines Verzeichnisses wird diese Datei danach automatisch selektiert.
  - Bugfix: manchmal wurde beim Editieren einer Zeile das \n am Ende entfernt
 
 12.01.2005 Version 1.7
  - kosmetische Fehler bei Farbgebung behoben
  - Bugfix: Absturz bei Eingabe in letzter Zeile im Editor
- - Speichern der aktuellen Einstellungen nicht automatisch beim Beenden (einstellbar im Hauptmenü)
- - Auswahl der Sprache im Hauptmenü (für Neutrino, da dort automatische Auswahl nicht funktioniert)
- - Neue Funktionalität im Editor: mehrere Zeilen markieren/kopieren/verschieben/löschen (analog Midnight-Commander)
+ - Speichern der aktuellen Einstellungen nicht automatisch beim Beenden (einstellbar im HauptmenÃ¼)
+ - Auswahl der Sprache im HauptmenÃ¼ (fÃ¼r Neutrino, da dort automatische Auswahl nicht funktioniert)
+ - Neue FunktionalitÃ¤t im Editor: mehrere Zeilen markieren/kopieren/verschieben/lÃ¶schen (analog Midnight-Commander)
 
 10.10.2004 Version 1.6
  - Bugfix: Fehlerhafter Text in Zwischenablage
- - neues Hauptmenü (über Dream-Taste)
- - neue Funktion: Dateien suchen (im Hauptmenü)
+ - neues HauptmenÃ¼ (Ã¼ber Dream-Taste)
+ - neue Funktion: Dateien suchen (im HauptmenÃ¼)
  - Editieren von .ftp-Dateien in eigener Maske
  - Bugfix: korrekt selektierte Datei nach Umbenennung
- - Bugfix: unter Umständen Abschneiden des letzten Zeichens bei Texteingabe möglich
+ - Bugfix: unter UmstÃ¤nden Abschneiden des letzten Zeichens bei Texteingabe mÃ¶glich
  - Textfarbe schwarz bei gelbem Hintergrund
- - Bugfix: Ändern der Dateirechte auch mit Taste rot möglich
+ - Bugfix: Ã„ndern der Dateirechte auch mit Taste rot mÃ¶glich
  
 22.09.2004 Version 1.5a
  - Bugfix: Absturz im Editor / nach Schliessen des Editors
  - Bugfix: Absturz bei Verschieben (Button 6) von einzelnen Dateien
 
 30.08.2004 Version 1.5
- - Passwortschutz eingebaut (über Info->Blau änderbar)
- - Möglichkeit, beim Kopieren/Verschieben die Datei umzubenennen
+ - Passwortschutz eingebaut (Ã¼ber Info->Blau Ã¤nderbar)
+ - MÃ¶glichkeit, beim Kopieren/Verschieben die Datei umzubenennen
  - Anzeigefehler in Taskmanager bereinigt
  - Bugfixes in Editor
  - Anzeigefehler in Dateirechten bereinigt
- - Abbruch eines FTP-Downloads möglich (und Wiederaufnahme des unterbrochenen Downloads, wenn der Server das unterstützt)
+ - Abbruch eines FTP-Downloads mÃ¶glich (und Wiederaufnahme des unterbrochenen Downloads, wenn der Server das unterstÃ¼tzt)
  - Bugfixes in FTP-Client
  
 26.08.2004 Version 1.4b
- - Texteingabe: Möglichkeit, Text zu markieren (Taste grün ) und einzufügen (Taste blau) (sozusagen eine mini-Zwischenablage :-) )
- - Editor: Anzeigen von \r als weisses Kästchen (DOS/Win-Textdatei) (blaue Taste -> Umwandeln in Linux Format)
+ - Texteingabe: MÃ¶glichkeit, Text zu markieren (Taste grÃ¼n ) und einzufÃ¼gen (Taste blau) (sozusagen eine mini-Zwischenablage :-) )
+ - Editor: Anzeigen von \r als weisses KÃ¤stchen (DOS/Win-Textdatei) (blaue Taste -> Umwandeln in Linux Format)
  - FTP-Client: Entfernen von Whitespace-Zeichen am Ende des Dateinamens beim Download
  - FTP-Client: Verbesserung der Download-Geschwindigkeit
 
 11.08.2004 Version 1.4a
- - Unterstützung für USB-Tastaturen (benötigt wird das Kernel-Modul hid.ko von BoxMan)
- - Lesen von .ftp-Dateien, auch wenn sie über Windows erstellt wurden...
- - Bugfix: Einfügen einer Zeile in eine leere Datei im Editor
+ - UnterstÃ¼tzung fÃ¼r USB-Tastaturen (benÃ¶tigt wird das Kernel-Modul hid.ko von BoxMan)
+ - Lesen von .ftp-Dateien, auch wenn sie Ã¼ber Windows erstellt wurden...
+ - Bugfix: EinfÃ¼gen einer Zeile in eine leere Datei im Editor
  - kleinere Bugfixes im Editor
  - eine Menge Bugfixes in FTP-Client
- - Änderungen an Tastaturabfrage 
- - BugFix: Falsche Anzeige nach drücken von rot (löschen) beim Editieren
+ - Ã„nderungen an Tastaturabfrage 
+ - BugFix: Falsche Anzeige nach drÃ¼cken von rot (lÃ¶schen) beim Editieren
  - BugFix: Absturz bei Verlassen des Plugins mit offener FTP-Verbindung
 
 25.07.2004 Version 1.4
- - Taskmanager eingebaut (über Info-Taste aufrufbar)
- - vor-/zurück-scrollen bei Kommandoausführung/Skriptausführung möglich
- - vor-/zurück-scrollen in Dateiansicht nicht mehr auf 100k-Dateien beschränkt
- - aktuell ausgewählte Datei merken bei Verlassen des Plugins
- - Tastaturunterstützung für DMM-Tastatur eingebaut
- - Verzögerung bei gedrückter Taste eingebaut
- - Bugfix: Workaround für Tastendruck-Fehler von Enigma
- - Bei Verweis-erstellen (Taste 0) wird automatisch der ausgewählte Dateiname vorgeschlagen
+ - Taskmanager eingebaut (Ã¼ber Info-Taste aufrufbar)
+ - vor-/zurÃ¼ck-scrollen bei KommandoausfÃ¼hrung/SkriptausfÃ¼hrung mÃ¶glich
+ - vor-/zurÃ¼ck-scrollen in Dateiansicht nicht mehr auf 100k-Dateien beschrÃ¤nkt
+ - aktuell ausgewÃ¤hlte Datei merken bei Verlassen des Plugins
+ - TastaturunterstÃ¼tzung fÃ¼r DMM-Tastatur eingebaut
+ - VerzÃ¶gerung bei gedrÃ¼ckter Taste eingebaut
+ - Bugfix: Workaround fÃ¼r Tastendruck-Fehler von Enigma
+ - Bei Verweis-erstellen (Taste 0) wird automatisch der ausgewÃ¤hlte Dateiname vorgeschlagen
 
 21.06.2004 Version 1.3
  - FTP-Client eingebaut
  - kleinere Fehler im Editor beseitigt
- - Texteingabe: Sprung zum nächsten Zeichen, wenn eine andere Ziffer gedrückt wird.
- - Texteingabe: letztes Zeichen wird entfernt wenn am Ende der Zeile volume- gedrückt wird.
- - Umschalten zwischen 4:3 und 16:9-Modus über Dream-Taste
- - Dateiansicht : Scrollen wie im Editor möglich (bei Dateien, die maximal 100k gross sind).
+ - Texteingabe: Sprung zum nÃ¤chsten Zeichen, wenn eine andere Ziffer gedrÃ¼ckt wird.
+ - Texteingabe: letztes Zeichen wird entfernt wenn am Ende der Zeile volume- gedrÃ¼ckt wird.
+ - Umschalten zwischen 4:3 und 16:9-Modus Ã¼ber Dream-Taste
+ - Dateiansicht : Scrollen wie im Editor mÃ¶glich (bei Dateien, die maximal 100k gross sind).
 
 05.06.2004 Version 1.2a
- - BugFix: Fehlende Sonderzeichen bei Eingabe ergänzt.
+ - BugFix: Fehlende Sonderzeichen bei Eingabe ergÃ¤nzt.
  - Texteingabe im "SMS-Stil" eingebaut
  
 29.05.2004 Version 1.2
- - Unterstützung zum Extrahieren aus "tar", "tar.Z", "tar.gz" und "tar.bz2" Archiven
+ - UnterstÃ¼tzung zum Extrahieren aus "tar", "tar.Z", "tar.gz" und "tar.bz2" Archiven
    funktioniert leider im Original-Image 1.07.4 mit vielen Archiven nicht (zu alte BusyBox-Version :( )
  - Anzeige der aktuellen Zeilennummer im Editor
  - Positionierung anhand der TuxTxt-Koordinaten
  - grosse Schrift beim Editieren einer Zeile
  - Scrollen in Zeichen im Editiermodus an Enigma-Standard angepasst (hoch/runter vertauscht)
- - Versionsnummer über Info-Taste abrufbar
- - Sicherheitsabfrage, falls durch kopieren/verschieben bestehende Dateien überschrieben werden.
+ - Versionsnummer Ã¼ber Info-Taste abrufbar
+ - Sicherheitsabfrage, falls durch kopieren/verschieben bestehende Dateien Ã¼berschrieben werden.
 
 08.05.2004 Version 1.1a
- - BugFix: Keine angehängten Leerzeichen mehr beim Umbenennen von Dateien
+ - BugFix: Keine angehÃ¤ngten Leerzeichen mehr beim Umbenennen von Dateien
 
 02.05.2004 Version 1.1
- - einige Farbänderungen
+ - einige FarbÃ¤nderungen
  - Deutsche Texte eingebaut
- - Möglichkeit, Tasten gedrückt zu halten (hoch/runter, rechts/links, volume+/-, grüne Taste)
+ - MÃ¶glichkeit, Tasten gedrÃ¼ckt zu halten (hoch/runter, rechts/links, volume+/-, grÃ¼ne Taste)
  - 3 Tranzparenzstufen 
- - Dateien markieren, sodass man mehrere Dateien auf einmal kopieren/verschieben oder löschen kann
- - Tranzparanzmodus wird jetzt durch die 'mute'- Taste gewechselt (analog zu TuxTxt) (grüne Taste wird zum Dateien markieren verwendet)
+ - Dateien markieren, sodass man mehrere Dateien auf einmal kopieren/verschieben oder lÃ¶schen kann
+ - Tranzparanzmodus wird jetzt durch die 'mute'- Taste gewechselt (analog zu TuxTxt) (grÃ¼ne Taste wird zum Dateien markieren verwendet)
 
 03.04.2004 Version 1.0 : 
-   erste Veröffentlichung
+   erste VerÃ¶ffentlichung
    
      
 Installation:
@@ -153,111 +153,111 @@ Installation:
 Wie bei jedem Plugin, einfach tuxcom.so und tuxcom.cfg nach /var/tuxbox/plugins kopieren
 
 Wenn die Font-Datei 'pakenham.ttf' nicht in /share/fonts/ liegt 
-bitte diese in /var/tuxbox/config/enigma/fonts/ kopieren
+bitte diese nach /var/tuxbox/fonts/ kopieren
 
 Tasten:
 ---------------
 
-links/rechts		linkes/rechtes Fenster wählen
-hoch/runter 		nächsten/vorherigen Eintrag im aktuellen Fenster wählen
+links/rechts		linkes/rechtes Fenster wÃ¤hlen
+hoch/runter 		nÃ¤chsten/vorherigen Eintrag im aktuellen Fenster wÃ¤hlen
 volume -/+		Eine Seite hoch/runter im aktuellen Fenster
-ok			gewählte Datei ausführen / Verzeichnis wechseln im aktuellen Fenster / Archiv zum Lesen öffnen
-1			Eigenschaften (Rechte) von gewählter Datei anzeigen/ändern
-2			gewählte Datei umbenennen
-3			gewählte Datei anzeigen
-4			gewählte Datei bearbeiten
-5			gewählte Datei von aktuellem Fenster ins andere Fenster kopieren
-6			gewählte Datei von aktuellem Fenster ins andere Fenster verschieben
+ok			gewÃ¤hlte Datei ausfÃ¼hren / Verzeichnis wechseln im aktuellen Fenster / Archiv zum Lesen Ã¶ffnen
+1			Eigenschaften (Rechte) von gewÃ¤hlter Datei anzeigen/Ã¤ndern
+2			gewÃ¤hlte Datei umbenennen
+3			gewÃ¤hlte Datei anzeigen
+4			gewÃ¤hlte Datei bearbeiten
+5			gewÃ¤hlte Datei von aktuellem Fenster ins andere Fenster kopieren
+6			gewÃ¤hlte Datei von aktuellem Fenster ins andere Fenster verschieben
 7			neues Verzeichnis in aktuellem Fenster erstellen
-8			gewählte Datei löschen
+8			gewÃ¤hlte Datei lÃ¶schen
 9			neue Datei in aktuellem Fenster erstellen
-0			symbolischen Verweis zur gewählten Datei im aktuellen Verzeichnis des anderen Fensters erstellen
-rot			linux Kommando ausführen
-grün			Datei markieren/Markierung aufheben
-gelb			Sortierung der Einträge im aktuellen Fenster umkehren
+0			symbolischen Verweis zur gewÃ¤hlten Datei im aktuellen Verzeichnis des anderen Fensters erstellen
+rot			linux Kommando ausfÃ¼hren
+grÃ¼n			Datei markieren/Markierung aufheben
+gelb			Sortierung der EintrÃ¤ge im aktuellen Fenster umkehren
 blau			Ansicht aktualisieren
 mute			Transparenzmodus wechseln
-dream			Hauptmenü aufrufen
+dream			HauptmenÃ¼ aufrufen
 info			Ein-Fenster-Ansicht an/ausschalten
 
 in Mitteilungsfenstern:
 
-links/rechts		Auswahl ändern
-ok			Auswahl bestätigen
-rot/grün/gelb		Auswahl ändern
+links/rechts		Auswahl Ã¤ndern
+ok			Auswahl bestÃ¤tigen
+rot/grÃ¼n/gelb		Auswahl Ã¤ndern
 
 in Texteingabe:
 
 links/rechts		Position wechseln
 hoch/runter		Zeichen wechseln
-ok			bestätigen
-volume +		neues Zeichen einfügen
+ok			bestÃ¤tigen
+volume +		neues Zeichen einfÃ¼gen
 volume -		Zeichen entfernen
-rot			Eingabe löschen
-grün			in Markierungsmodus wechseln
+rot			Eingabe lÃ¶schen
+grÃ¼n			in Markierungsmodus wechseln
 gelb			Wechseln zwischen Gross und Kleinbuchstaben
-blau			Text aus Zwischenablage einfügen
+blau			Text aus Zwischenablage einfÃ¼gen
 0..9			Zeichenauswahl im "SMS-Stil" ( wie in der Enigma Texteingabe)
 
 in Markierungsmodus:
 
 links/rechts		Position wechseln
-ok			markierten Text in Zwischenablage übernehmen
+ok			markierten Text in Zwischenablage Ã¼bernehmen
 lame			Markierungsmodus verlassen
 
 in Eigenschaften:
 
-hoch/runter		Auswahl ändern
-ok			Recht gewähren/entziehen
-rot			Änderungen bestätigen
-grün			Änderungen verwerfen
+hoch/runter		Auswahl Ã¤ndern
+ok			Recht gewÃ¤hren/entziehen
+rot			Ã„nderungen bestÃ¤tigen
+grÃ¼n			Ã„nderungen verwerfen
 
 
 in Editor:
 
-links/rechts		Seite zurück/vor
-hoch/runter		Zeile zurück/vor
+links/rechts		Seite zurÃ¼ck/vor
+hoch/runter		Zeile zurÃ¼ck/vor
 ok			Zeile bearbeiten
 volume +		Sprung zur 1. Zeile
 volume -		Sprung zur letzten Zeile
-rot			Zeile löschen
-grün			Zeile einfügen
+rot			Zeile lÃ¶schen
+grÃ¼n			Zeile einfÃ¼gen
 blau			Umwandeln einer DOS/Win Textdatei in Linux-Format
 3			Starten/Beenden des Markierungsmodus
 5			Markierte Zeilen kopieren
 6			Markierte Zeilen verschieben
-8			Markierte Zeilen löschen
+8			Markierte Zeilen lÃ¶schen
 
 in Viewer:
 
-ok, rechts		nächste Seite
-links/rechts		Seite zurück/vor
-hoch/runter		Zeile zurück/vor
+ok, rechts		nÃ¤chste Seite
+links/rechts		Seite zurÃ¼ck/vor
+hoch/runter		Zeile zurÃ¼ck/vor
 volume +		Sprung zur 1. Zeile
 volume -		Sprung zur letzten Zeile
 
 in Taskmanager:
 
-ok, rechts		nächste Seite
-links/rechts		Seite zurück/vor
-hoch/runter		Zeile zurück/vor
+ok, rechts		nÃ¤chste Seite
+links/rechts		Seite zurÃ¼ck/vor
+hoch/runter		Zeile zurÃ¼ck/vor
 volume +		Sprung zur 1. Zeile
 volume -		Sprung zur letzten Zeile
 rot			Prozess beenden 
 
 in Suchergebnis:
 
-links/rechts		Seite zurück/vor
-hoch/runter		Zeile zurück/vor
+links/rechts		Seite zurÃ¼ck/vor
+hoch/runter		Zeile zurÃ¼ck/vor
 volume +		Sprung zur 1. Zeile
 volume -		Sprung zur letzten Zeile
 ok			zur Datei springen
 
-in Hauptmenü:
+in HauptmenÃ¼:
 
-hoch/runter		Menüpunkt wählen
-links/rechts		Einstellung ändern
-ok			Menüpunkt ausführen
+hoch/runter		MenÃ¼punkt wÃ¤hlen
+links/rechts		Einstellung Ã¤ndern
+ok			MenÃ¼punkt ausfÃ¼hren
 
 in allen Dialogen: 
 
@@ -274,45 +274,45 @@ blau    : aktuelles Verzeichnis hat Lese/Schreibzugriff
 Dateiname:
 weiss : Eintrag ist Verzeichnis
 orange: Eintrag ist Verweis
-gelb  : Eintrag ist ausführbar
+gelb  : Eintrag ist ausfÃ¼hrbar
 grau  : Eintrag hat Schreibzugriff
-grün  : Eintrag hat Lesezugriff
+grÃ¼n  : Eintrag hat Lesezugriff
 
 
 Nutzung des FTP-Client:
 -----------------------
 1.) Eine Datei mit der Endung .ftp erstellen. 
 2.) Diese Datei editieren:
-Folgende Einträge in dieser Datei sind möglich:
+Folgende EintrÃ¤ge in dieser Datei sind mÃ¶glich:
 host=<ftp-Adresse>	(muss immer angegeben werden, z.B.: host=ftp.gnu.org)
 user=<username> 	(optional)
 pass=<password> 	(optional)
-port=<ftpport>  	(optional, standardmässig 21)
-dir=<Unterverzeichnis>	(optional, standardmässig /)
-3.) Datei auswählen und OK drücken. 
+port=<ftpport>  	(optional, standardmÃ¤ssig 21)
+dir=<Unterverzeichnis>	(optional, standardmÃ¤ssig /)
+3.) Datei auswÃ¤hlen und OK drÃ¼cken. 
 Es wird eine FTP-Verbindung zur angegebenen Adresse aufgebaut.
 
 
-Tastaturbelegung für USB-Tastaturen:
+Tastaturbelegung fÃ¼r USB-Tastaturen:
 ------------------------------------
 lame			Esc
 volume+/-	PgUp/PgDn
 OK				Enter
 rot				F5
-grün			F6
+grÃ¼n			F6
 gelb			F7
 blau			F8
 dream			F9
 info			F10
 mute			F11
 
-Tastaturbelegung für Dbox2-Tastaturen:
+Tastaturbelegung fÃ¼r Dbox2-Tastaturen:
 --------------------------------------
 home			Esc
 volume+/-	PgUp/PgDn
 OK				Enter
 rot				F1
-grün			F2
+grÃ¼n			F2
 gelb			F3
 blau			F4
 dbox			F5
@@ -320,22 +320,23 @@ dbox			F5
 mute			F7
 
 Um eine Ziffer mit der Dbox2-Tastatur direkt einzugeben, 
-ist die entsprechende Zifferntaste in Verbindung mit der Alt-Taste zu drücken. 
-Die Sonderzeichen bei den Zifferntasten (²³{[]}\) erhält man über Ziffer und ALTGR-Taste.
+ist die entsprechende Zifferntaste in Verbindung mit der Alt-Taste zu drÃ¼cken. 
+Die Sonderzeichen bei den Zifferntasten (Â²Â³{[]}\) erhÃ¤lt man Ã¼ber Ziffer und ALTGR-Taste.
 
 Nutzung des Passwortschutzes:
 -----------------------------
-Wenn man ein Passwort vergeben hat (im Hauptmenü),
+Wenn man ein Passwort vergeben hat (im HauptmenÃ¼),
 dann wird beim Starten des Plugins dieses Passwort abgefragt.
-Die Passwortabfrage kann wieder gelöscht werden, indem einfach ein leeres Passwort gesetzt wird.
-Wenn man das Passwort vergessen hat, kann man durch Löschen der Datei /var/tuxbox/config/tuxcom.conf das Passwort wieder löschen.
+Die Passwortabfrage kann wieder gelÃ¶scht werden, indem einfach ein leeres Passwort gesetzt wird.
+Wenn man das Passwort vergessen hat, kann man durch LÃ¶schen der Datei
+/var/tuxbox/config/tuxcom/tuxcom.conf das Passwort wieder lÃ¶schen.
 
-Skripte mit Dateiendungen verknüpfen:
+Skripte mit Dateiendungen verknÃ¼pfen:
 -------------------------------------
-Um ein Skript mit einer bestimmten Dateiendung zu verknüpfen, muss das Skript in /var/tuxbox/config/tuxcom/ liegen,
-den Namen der Dateiendung haben (Endung ".mp3" -> "mp3") und ausführbar sein.
-Bei Druck auf OK wird überprüft, ob es ein entsprechendes Skript gibt und, falls ja, 
-das Skript im Hintergrund ausgeführt. 
-Dabei werden dem Skript der Pfad zur Datei und der Dateiname als Parameter $1 und $2 übergeben
+Um ein Skript mit einer bestimmten Dateiendung zu verknÃ¼pfen, muss das Skript in /var/tuxbox/config/tuxcom/ liegen,
+den Namen der Dateiendung haben (Endung ".mp3" -> "mp3") und ausfÃ¼hrbar sein.
+Bei Druck auf OK wird Ã¼berprÃ¼ft, ob es ein entsprechendes Skript gibt und, falls ja, 
+das Skript im Hintergrund ausgefÃ¼hrt. 
+Dabei werden dem Skript der Pfad zur Datei und der Dateiname als Parameter $1 und $2 Ã¼bergeben
 (siehe Beispielskript zum Start von mp3-Dateien).
 

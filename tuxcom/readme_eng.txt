@@ -152,7 +152,7 @@ Installation:
 As any plugin, just copy tuxcom.so and tuxcom.cfg to /var/tuxbox/plugins
 
 if the font-file 'pakenham.ttf' is not in /share/fonts/
-please copy it to /var/tuxbox/config/enigma/fonts/
+please copy it to /var/tuxbox/fonts/
 
 
 
@@ -322,7 +322,7 @@ mute			F7
 
 If you want to put in a number with the dbox2-keyboard directly,
 you have to press the number-key together with the ALT-key.
-You get the special characters at the number-keys (²³{[]}\), if you press ALTGR and the number-key.
+You get the special characters at the number-keys (Â²Â³{[]}\), if you press ALTGR and the number-key.
 
 
 use of password protection:
@@ -330,7 +330,7 @@ use of password protection:
 if you have entered a password (in main menu),
 you will be asked for the password after starting the plugin.
 you can remove the password protection by simply setting an empty password.
-if you have forgotten your password, you can reset it by deleting /var/tuxbox/config/tuxcom.conf.
+if you have forgotten your password, you can reset it by deleting /var/tuxbox/config/tuxcom/tuxcom.conf.
 
 Connect scripts to file extension:
 ----------------------------------
