@@ -164,7 +164,7 @@ void CParser::StringReplace(string &str, const string search, const string rstr)
 
 void CParser::read_neutrino_osd_conf(int *ex,int *sx,int *ey, int *sy, const char *filename)
 {
-	const char spres[][4]={"","crt","lcd"};
+	const char spres[][4]={"","a","b"};
 	char sstr[4][32];
 	int pres=-1, resolution=-1, loop, *sptr[4]={ex, sx, ey, sy};
 	char *buffer;

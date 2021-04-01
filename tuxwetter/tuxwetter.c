@@ -2855,7 +2855,7 @@ int llev=m->headerlevels[m->act_header], lmen=m->act_header, lentr=m->lastheader
 void read_neutrino_osd_conf(int *_ex,int *_sx,int *_ey, int *_sy)
 {
 	const char *filename=NCF_FILE;
-	const char spres[][4]={"","crt","lcd"};
+	const char spres[][4]={"","a","b"};
 	char sstr[4][32]={{0}};
 	int pres=-1, resolution=-1, loop, *sptr[4]={_ex, _sx, _ey, _sy};
 	char *buffer;

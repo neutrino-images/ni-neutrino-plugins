@@ -67,7 +67,7 @@ static char menucoltxt[][25]={
 	"Head_Text",
 	"Head"
 };
-static char spres[][4]={"","crt","lcd"};
+static char spres[][4]={"","a","b"};
 
 char *line_buffer=NULL, *title=NULL, *icon=NULL;
 int size=24, type=0, timeout=0, refresh=3, flash=0, selection=0, tbuttons=0, buttons=0, bpline=3, echo=0, absolute=0, mute=1, header=1, cyclic=1;

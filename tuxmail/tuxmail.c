@@ -8,7 +8,7 @@
 void read_neutrino_osd_conf ( int *ex,int *sx,int *ey, int *sy, int *preset)
 {
 	const char *filename = CONFIGDIR "/neutrino.conf";
-	const char spres[][4]={"","crt","lcd"};
+	const char spres[][4]={"","a","b"};
 	char sstr[4][32];
 	int pres=-1, resolution=-1, loop, *sptr[5]={ex, sx, ey, sy, preset};
 	char *buffer;

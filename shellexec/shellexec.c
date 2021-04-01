@@ -61,7 +61,7 @@ static char menucoltxt[][25]={
 	"Head_Text",
 	"Head"
 };
-static char spres[][4]={"","crt","lcd"};
+static char spres[][4]={"","a","b"};
 
 #define LIST_STEP 	10
 #define BUFSIZE 	4095
