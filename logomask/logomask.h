@@ -80,7 +80,7 @@
 #define KEY_STOP				128
 #define KEY_PLAY				207
 
-#ifdef HAVE_COOL_HARDWARE
+#ifdef HAVE_CST_HARDWARE
 #define KEY_FWD					0x09f
 #endif
 #ifdef HAVE_ARM_HARDWARE

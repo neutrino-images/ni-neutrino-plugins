@@ -1,6 +1,6 @@
 #include <config.h>
 
-#if HAVE_COOL_HARDWARE
+#if HAVE_CST_HARDWARE
 #ifndef RC_DEVICE
 #define RC_DEVICE "/dev/input/nevis_ir"
 #endif

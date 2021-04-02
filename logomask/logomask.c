@@ -274,7 +274,7 @@ int main (int argc, char **argv)
 				return 0;
 			}
 		}
-#if HAVE_COOL_HARDWARE
+#if HAVE_CST_HARDWARE
 		printf("logomask Version %s for Coolstream\n",CL_VERSION);
 #elif HAVE_ARM_HARDWARE
 		printf("logomask Version %s for Armbox\n",CL_VERSION);
