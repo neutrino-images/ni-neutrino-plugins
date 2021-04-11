@@ -127,7 +127,7 @@ do
 	fi
 	if [ "$parm" == "-m1" ]; then
 		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 0 ] && rootmtd=mmcblk0p3 && multi=1
-		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 1 ] && kernelnumber=2 && rootsubdir="linuxrootfs1" && rootmtd=mmcblk0p3 && multi=1
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 1 ] && kernelnumber=2 && rootsubdir="linuxrootfs1" && rootmtd=$(readlink /dev/block/by-name/linuxrootfs | cut -d"/" -f3) && multi=1
 		[ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ] && rootmtd=mmcblk0p5 && multi=1
 		[ "$model" == "zero4k" ] && rootmtd=mmcblk0p8 && multi=1
 		[ "$model" == "duo4k" -o "$model" == "duo4kse" ] && rootmtd=mmcblk0p10 && multi=1
@@ -135,7 +135,7 @@ do
 		B_PART=`echo "Backup Partition: ${parm:2:3}"`
 	elif [ "$parm" == "-m2" ]; then
 		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 0 ] && rootmtd=mmcblk0p5 && multi=1
-		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 1 ] && kernelnumber=4 && rootsubdir="linuxrootfs2" && rootmtd=mmcblk0p7 && multi=1
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 1 ] && kernelnumber=4 && rootsubdir="linuxrootfs2" && rootmtd=$(readlink /dev/block/by-name/userdata | cut -d"/" -f3) && multi=1
 		[ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ] && rootmtd=mmcblk0p7 && multi=1
 		[ "$model" == "zero4k" ] && rootmtd=mmcblk0p10 && multi=1
 		[ "$model" == "duo4k" -o "$model" == "duo4kse" ] && rootmtd=mmcblk0p12 && multi=1
@@ -143,7 +143,7 @@ do
 		B_PART=`echo "Backup Partition: ${parm:2:3}"`
 	elif [ "$parm" == "-m3" ]; then
 		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 0 ] && rootmtd=mmcblk0p7 && multi=1
-		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 1 ] && kernelnumber=5 && rootsubdir="linuxrootfs3" && rootmtd=mmcblk0p7 && multi=1
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 1 ] && kernelnumber=5 && rootsubdir="linuxrootfs3" && rootmtd=$(readlink /dev/block/by-name/userdata | cut -d"/" -f3) && multi=1
 		[ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ] && rootmtd=mmcblk0p9 && multi=1
 		[ "$model" == "zero4k" ] && rootmtd=mmcblk0p12 && multi=1
 		[ "$model" == "duo4k" -o "$model" == "duo4kse" ] && rootmtd=mmcblk0p14 && multi=1
@@ -151,7 +151,7 @@ do
 		B_PART=`echo "Backup Partition: ${parm:2:3}"`
 	elif [ "$parm" == "-m4" ]; then
 		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 0 ] && rootmtd=mmcblk0p9 && multi=1
-		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 1 ] && kernelnumber=6 && rootsubdir="linuxrootfs4" && rootmtd=mmcblk0p7 && multi=1
+		[ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ] && [ $new_layout == 1 ] && kernelnumber=6 && rootsubdir="linuxrootfs4" && rootmtd=$(readlink /dev/block/by-name/userdata | cut -d"/" -f3) && multi=1
 		[ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ] && rootmtd=mmcblk0p11 && multi=1
 		[ "$model" == "zero4k" ] && rootmtd=mmcblk0p14 && multi=1
 		[ "$model" == "duo4k" -o "$model" == "duo4kse" ] && rootmtd=mmcblk0p16 && multi=1
