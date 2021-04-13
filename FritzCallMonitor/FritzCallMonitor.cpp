@@ -286,9 +286,8 @@ int CFCM::search(const char *searchNO)
 	}
 	else {
 		printf("[%s] - no results for %s\n",FCMNAME, searchNO);
+		sendMSG(0);
 	}
-
-	//sendMSG(0);
 
 	return 0;
 }
@@ -623,7 +622,7 @@ int CFCM::read_conf(const string& file)
 
 		// *** special maps ***
 
-		// not nice, better useing map instead of histical struct
+		// not nice, better useing map instead of historical struct
 		if(key.find("BOXIP_") == 0)
 		{
 			if (value.empty())
@@ -666,7 +665,6 @@ int CFCM::read_conf(const string& file)
 			if(tmp.size() > 1) strcpy(msnnum[inx].msnName, tmp[1].c_str());
 
 			//cout << key << "=" << value << endl;
-
 			continue;
 		}
 
@@ -686,7 +684,7 @@ int CFCM::read_conf(const string& file)
 		if(!key.empty()) {
 			conf[key] = value;
 
-			cout << key << "=" << value << endl;
+			//cout << key << "=" << value << endl;
 		}
 	}
 	fh.close();
