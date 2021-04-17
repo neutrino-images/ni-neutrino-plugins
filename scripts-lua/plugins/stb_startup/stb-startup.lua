@@ -24,7 +24,7 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
-version = "v1.20c"
+version = "v1.20d"
 
 on = "ein"; off = "aus"
 
@@ -192,7 +192,7 @@ function get_imagename(root)
 			if not isdir(j) and not islink(j) then
 				for line in io.lines(j) do
 					io.write(string.format("j =  %s \n", j))
-					if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("android") then
+					if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("boxmode=12") and not line:match("android") then
 						if line:match(devbase .. image_to_devnum(root)) then
 							imagename = basename(j)
 						end
@@ -474,7 +474,7 @@ function main()
 		io.write(string.format("boot =  %s \n", boot))
 		for _, j in pairs(glob(boot .. '/*')) do
 			for line in io.lines(j) do
-				if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("android") then
+				if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("boxmode=12") and not line:match("android") then
 					if line:match(devbase .. image_to_devnum(root)) then
 						startup_file = j
 					end
@@ -490,7 +490,6 @@ function main()
 					line = line:gsub(" '", " 'brcm_cma=520M@248M brcm_cma=192M@768M ")
 					line = line:gsub(string.sub(line, string.find(line, "boxmode=")+8), "12'")
 				else
-					line = line:gsub(" '", " 'brcm_cma=440M@328M brcm_cma=192M@768M ")
 					line = line:gsub(string.sub(line, string.find(line, "boxmode=")+8), "1'")
 				end
 			end
