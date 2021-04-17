@@ -24,7 +24,7 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
-version = "v1.20a"
+version = "v1.20c"
 
 on = "ein"; off = "aus"
 
@@ -192,7 +192,7 @@ function get_imagename(root)
 			if not isdir(j) and not islink(j) then
 				for line in io.lines(j) do
 					io.write(string.format("j =  %s \n", j))
-					if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("boxmode=12") then
+					if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("android") then
 						if line:match(devbase .. image_to_devnum(root)) then
 							imagename = basename(j)
 						end
@@ -472,7 +472,7 @@ function main()
 		local startup_lines = {}
 
 		io.write(string.format("boot =  %s \n", boot))
-		for _, j in pairs(glob(boot .. '/STARTUP*')) do
+		for _, j in pairs(glob(boot .. '/*')) do
 			for line in io.lines(j) do
 				if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("android") then
 					if line:match(devbase .. image_to_devnum(root)) then
