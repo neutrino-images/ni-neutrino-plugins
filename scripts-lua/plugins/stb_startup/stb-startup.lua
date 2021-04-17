@@ -474,7 +474,7 @@ function main()
 		io.write(string.format("boot =  %s \n", boot))
 		for _, j in pairs(glob(boot .. '/STARTUP*')) do
 			for line in io.lines(j) do
-				if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("boxmode=12") and not line:match("android") then
+				if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("android") then
 					if line:match(devbase .. image_to_devnum(root)) then
 						startup_file = j
 					end
