@@ -11,7 +11,7 @@
 #include "gfx.h"
 #include "pngw.h"
 
-#define SH_VERSION 2.16
+#define SH_VERSION 2.17
 
 #ifndef CONFIGDIR
 #define CONFIGDIR "/var/tuxbox/config"
@@ -59,7 +59,7 @@ static char menucoltxt[][25]={
 	"Head_Text",
 	"Head"
 };
-static char spres[][4]={"","crt","lcd"};
+static char spres[][4]={"", "crt", "lcd", "a", "b"};
 
 #define LIST_STEP 	10
 #define BUFSIZE 	4095
@@ -1594,7 +1594,7 @@ int llev=m->headerlevels[m->act_header], lmen=m->act_header, lentr=m->lastheader
 
 int main (int argc, char **argv)
 {
-	int index=0,cindex=0,mainloop=1,tv, spr, resolution;
+	int index=0, cindex=0, mainloop=1, step=0, tv, spr, resolution;
 	char tstr[BUFSIZE]={0}, *rptr;
 	PLISTENTRY pl;
 
@@ -1646,7 +1646,9 @@ int main (int argc, char **argv)
 		return -1;
 	}
 
-	spr=Read_Neutrino_Cfg("screen_preset")+1;
+	if(Read_Neutrino_Cfg("screen_EndX_a_0")>=0)
+		step = 2;
+	spr=Read_Neutrino_Cfg("screen_preset") + 1 + step;
 	resolution=Read_Neutrino_Cfg("osd_resolution");
 
 	if (resolution == -1)
