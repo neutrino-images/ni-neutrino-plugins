@@ -27,9 +27,9 @@
 void read_neutrino_osd_conf(int *Ex,int *Sx,int *Ey, int *Sy)
 {
 	const char *filename= CONFIGDIR "/neutrino.conf";
-	const char spres[][4]={"","crt","lcd"};
+	const char spres[][4]={"", "crt", "lcd", "a", "b"};
 	char sstr[4][32];
-	int pres=-1, resolution=-1, loop, *sptr[4]={Ex, Sx, Ey, Sy};
+	int step=0, pres=-1, resolution=-1, loop, *sptr[4]={Ex, Sx, Ey, Sy};
 	char *buffer;
 	size_t len;
 	ssize_t read;
@@ -40,6 +40,8 @@ void read_neutrino_osd_conf(int *Ex,int *Sx,int *Ey, int *Sy)
 		buffer=NULL;
 		len = 0;
 		while ((read = getline(&buffer, &len, fd)) != -1){
+			if(strstr(buffer, "screen_EndX_a"))
+				step = 2;
 			sscanf(buffer, "screen_preset=%d", &pres);
 			sscanf(buffer, "osd_resolution=%d", &resolution);
 		}
@@ -47,6 +49,7 @@ void read_neutrino_osd_conf(int *Ex,int *Sx,int *Ey, int *Sy)
 			free(buffer);
 		rewind(fd);
 		++pres;
+		pres += step;
 		if (resolution == -1)
 		{
 			sprintf(sstr[0], "screen_EndX_%s=%%d", spres[pres]);
@@ -2628,7 +2631,7 @@ void SaveDatabase(void)
 */
 int main ( void )
 {
-	char cvs_revision[] = "$Revision: 1.09 $";
+	char cvs_revision[] = "$Revision: 1.10 $";
 	FILE *fd_run;
 	FT_Error error;
 
