@@ -28,28 +28,36 @@
 
 #define SCRIPT __plugin__
 
-void main()
+void main(int argc, char **argv)
 {
         int ret, pid, status;
+        char buf[128]={0};
         pid=fork();
         if (pid == -1) {
                 fprintf(stderr, "[%s.so] fork\n", SCRIPT);
                 return;
         } else
-        if (pid == 0) {
-                fprintf(stderr, "[%s.so] forked, executing %s\n", SCRIPT, SCRIPT);
-                for (ret=3 ; ret < 255; ret++)
-                       close (ret);
-                        ret = system(SCRIPT);
-                        if (ret)
-                                fprintf(stderr, "[%s.so] script return code: %d (%m)\n", SCRIPT, ret);
-                        else
-                                fprintf(stderr, "[%s.so] script return code: %d\n", SCRIPT, ret);
-                _exit(ret);
-       }
-        fprintf(stderr, "[%s.so] parent, waiting for child with pid %d...\n", SCRIPT, pid);
-        waitpid(pid, &status, 0);
-        fprintf(stderr, "[%s.so] parent, waitpid() returned..\n", SCRIPT);
-        if (WIFEXITED(status))
-                fprintf(stderr, "[%s.so] child returned with status %d\n", SCRIPT, WEXITSTATUS(status));
+		if (pid == 0) {
+			if (argc > 1) {
+				sprintf(buf,"%s %s", SCRIPT, argv[1]);
+				fprintf(stderr, "[%s.so] forked, executing %s %s\n", SCRIPT, SCRIPT, argv[1]);
+			}
+			else {
+				sprintf(buf,"%s", SCRIPT);
+				fprintf(stderr, "[%s.so] forked, executing %s\n", SCRIPT, SCRIPT);
+			}
+			for (ret=3 ; ret < 255; ret++)
+				close (ret);
+			ret = system(buf);
+			if (ret)
+				fprintf(stderr, "[%s.so] script return code: %d (%m)\n", SCRIPT, ret);
+			else
+				fprintf(stderr, "[%s.so] script return code: %d\n", SCRIPT, ret);
+            _exit(ret);
+		}
+		fprintf(stderr, "[%s.so] parent, waiting for child with pid %d...\n", SCRIPT, pid);
+		waitpid(pid, &status, 0);
+		fprintf(stderr, "[%s.so] parent, waitpid() returned..\n", SCRIPT);
+		if (WIFEXITED(status))
+			fprintf(stderr, "[%s.so] child returned with status %d\n", SCRIPT, WEXITSTATUS(status));
 }
