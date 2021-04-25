@@ -17,7 +17,7 @@
 	typeof (b) __b = (b); \
 	__a > __b ? __a : __b; })
 
-#define M_VERSION 2.14
+#define M_VERSION 2.15
 
 #ifndef CONFIGDIR
 #define CONFIGDIR "/var/tuxbox/config"
@@ -66,7 +66,7 @@ static char menucoltxt[][25]={
 	"Head_Text",
 	"Head"
 };
-static char spres[][4]={"","crt","lcd"};
+static char spres[][4]={"", "crt", "lcd", "a", "b"};
 
 char *line_buffer=NULL, *title=NULL, *icon=NULL;
 int size=24, type=0, timeout=0, refresh=3, flash=0, selection=0, tbuttons=0, buttons=0, bpline=3, echo=0, absolute=0, mute=1, header=1, cyclic=1;
@@ -503,7 +503,7 @@ void ShowUsage(void)
 
 int main (int argc, char **argv)
 {
-int ix,tv,found=0, spr, resolution;
+int ix, tv , found=0, step=0, spr, resolution;
 int dloop=1, rcc=-1;
 char rstr[BUFSIZE]={0}, *rptr=NULL, *aptr=NULL;
 time_t tm1,tm2;
@@ -778,8 +778,10 @@ FILE *fh;
 			printf(NOMEM);
 			return -1;
 		}
-	
-		spr=Read_Neutrino_Cfg("screen_preset")+1;
+
+		if(Read_Neutrino_Cfg("screen_EndX_a_0")>=0)
+			step = 2;
+		spr=Read_Neutrino_Cfg("screen_preset") + 1 + step;
 		resolution=Read_Neutrino_Cfg("osd_resolution");
 
 		if (resolution == -1)
