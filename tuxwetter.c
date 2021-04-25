@@ -45,7 +45,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.31"
+#define P_VERSION "4.32"
 #define S_VERSION ""
 
 
@@ -2852,9 +2852,9 @@ int llev=m->headerlevels[m->act_header], lmen=m->act_header, lentr=m->lastheader
 void read_neutrino_osd_conf(int *_ex,int *_sx,int *_ey, int *_sy)
 {
 	const char *filename=NCF_FILE;
-	const char spres[][4]={"","crt","lcd"};
+	const char spres[][4]={"","crt","lcd", "a", "b"};
 	char sstr[4][32]={{0}};
-	int pres=-1, resolution=-1, loop, *sptr[4]={_ex, _sx, _ey, _sy};
+	int step=0, pres=-1, resolution=-1, loop, *sptr[4]={_ex, _sx, _ey, _sy};
 	char *buffer;
 	size_t len;
 	ssize_t r;
@@ -2865,6 +2865,8 @@ void read_neutrino_osd_conf(int *_ex,int *_sx,int *_ey, int *_sy)
 		buffer=NULL;
 		len = 0;
 		while ((r = getline(&buffer, &len, fd)) != -1){
+			if(strstr(buffer, "screen_EndX_a"))
+				step = 2;
 			sscanf(buffer, "screen_preset=%d", &pres);
 			sscanf(buffer, "osd_resolution=%d", &resolution);
 		}
@@ -2872,6 +2874,7 @@ void read_neutrino_osd_conf(int *_ex,int *_sx,int *_ey, int *_sy)
 			free(buffer);
 		rewind(fd);
 		++pres;
+		pres += step;
 		if (resolution == -1)
 		{
 			sprintf(sstr[0], "screen_EndX_%s=%%d", spres[pres]);
