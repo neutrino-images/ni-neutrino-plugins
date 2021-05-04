@@ -11,7 +11,7 @@
 #include "gfx.h"
 #include "pngw.h"
 
-#define SH_VERSION 2.17
+#define SH_VERSION 2.18
 
 #ifndef CONFIGDIR
 #define CONFIGDIR "/var/tuxbox/config"
@@ -25,6 +25,17 @@
 char FONT[128]= FONTDIR "/neutrino.ttf";
 // if font is not in usual place, we look here:
 #define FONT2 FONTDIR "/pakenham.ttf"
+
+#if HAVE_ARM_HARDWARE || HAVE_MIPS_HARDWARE
+#define DISPLAY_DEV			"/dev/dbox/oled0"
+#define DISPLAY_OPMODE O_RDWR
+#endif
+#if HAVE_CST_HARDWARE
+#define DISPLAY_DEV			"/dev/display"
+#define DISPLAY_OPMODE O_RDONLY
+/* set a text to be displayed on the display. If arg == NULL, the text is cleared */
+#define IOC_FP_SET_TEXT		_IOW(0xDE,  3, char*)
+#endif
 
 static char CFG_FILE[128]= CONFIGDIR "/shellexec.conf";
 
@@ -89,16 +100,40 @@ static void ShowInfo(MENU *m, int knew);
 
 uint32_t *lfb = NULL, *lbb = NULL;
 char title[256];
-char VFD[256]="";
 char url[256]="time.fu-berlin.de";
 char *line_buffer=NULL;
 char *trstr;
-int paging=1, mtmo=120, vfd=0, radius=0, radius_small=0;
+int paging=1, mtmo=120, vfd=1, radius=0, radius_small=0;
 int ixw, iyw, xoffs;
 char INST_FILE[]="/tmp/rc.locked";
 int instance=0;
 int rclocked=0;
 int swidth;
+
+static inline int dev_open()
+{
+	int fd = open(DISPLAY_DEV, DISPLAY_OPMODE);
+	if (fd < 0)
+		fprintf(stderr, "[shellexec] display: open " DISPLAY_DEV ": %m\n");
+	return fd;
+}
+
+void ShowText(const char * str)
+{
+	int fd = dev_open();
+	int len = strlen(str);
+	if (fd < 0)
+		return;
+	printf("%s '%s'\n", __func__, str);
+#if HAVE_ARM_HARDWARE || HAVE_MIPS_HARDWARE
+	write(fd, str, len);
+#elif HAVE_CST_HARDWARE
+	int ret = ioctl(fd, IOC_FP_SET_TEXT, len > 1 ? str : NULL);
+	if(ret < 0)
+		perror("IOC_FP_SET_TEXT");
+#endif
+	close(fd);
+}
 
 int get_instance(void)
 {
@@ -506,12 +541,14 @@ int Check_Config(void)
 					{
 						strcpy(FONT,strchr(line_buffer,'=')+1);
 					}
+#if 0
 					if(strstr(line_buffer,"VFD=")==line_buffer)
 					{
 						strcpy(VFD,strchr(line_buffer,'=')+1);
 						if(access(VFD,1)!=-1)
 							vfd=1;
 					}
+#endif
 					if(strstr(line_buffer,"FONTSIZE=")==line_buffer)
 					{
 						sscanf(strchr(line_buffer,'=')+1,"%d",&FSIZE_MED);
@@ -1553,8 +1590,7 @@ static void ShowInfo(MENU *m, int knew )
 			{
 				lcstr=strdup(trstr);
 				clean_string(trstr,lcstr);
-				sprintf(tstr,"%s -t\"%s\"",VFD,lcstr);
-				system(tstr);
+				ShowText(lcstr);
 				free(lcstr);
 			}
 		}
@@ -1738,7 +1774,6 @@ int main (int argc, char **argv)
 		bgra[index] = (tr[index] << 24) | (rd[index] << 16) | (gn[index] << 8) | bl[index];
 
 	InitRC();
-	//InitVFD();
 
 	//init fontlibrary
 	if((error = FT_Init_FreeType(&library)))
@@ -1839,11 +1874,10 @@ int main (int argc, char **argv)
 	signal(SIGSEGV, quit_signal);
 
 	index=0;
+#if 0
 	if(vfd)
-	{
-		sprintf(tstr,"%s -c", VFD);
-		system(tstr);
-	}
+		ShowText(" ");
+#endif
 	ShowInfo(&menu, 1);
 	//main loop
 	menu.act_entry=0;
@@ -1966,7 +2000,6 @@ int main (int argc, char **argv)
 	}
 #endif
 	CloseRC();
-	//CloseVFD();
 
 	free(line_buffer);
 	free(trstr);
