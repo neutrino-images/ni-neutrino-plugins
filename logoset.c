@@ -19,6 +19,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
+// ISO 8859-1
 
 #include <config.h>
 #include <string.h>
@@ -900,7 +901,7 @@ int main (int argc, char **argv)
 					RenderString("Gelb     :  Umschalten auf Größeneinstellung", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("Grün     :  Maske hinzufügen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("Rot       :  Maske löschen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
-#if HAVE_COOL_HARDWARE
+#if HAVE_CST_HARDWARE
 					RenderString("PgUp    :  nächste Maske auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("PgDn    :  vorherige Maske auswählen", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
 					RenderString("Fav      :  Maske aktivieren/deaktivieren", tsx, tsy+=tdy, txw, LEFT, tsz, tcol);
