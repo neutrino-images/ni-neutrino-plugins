@@ -45,7 +45,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.32"
+#define P_VERSION "4.33"
 #define S_VERSION ""
 
 
@@ -73,6 +73,17 @@ static char TCF_FILE[128]="";
 #define MAX_COLUMNS	MAX_DAYS + 1		// current day + 7 days
 #define LCD_CPL 	12
 #define LCD_RDIST 	10
+
+#if HAVE_ARM_HARDWARE || HAVE_MIPS_HARDWARE
+#define DISPLAY_DEV			"/dev/dbox/oled0"
+#define DISPLAY_OPMODE O_RDWR
+#endif
+#if HAVE_CST_HARDWARE
+#define DISPLAY_DEV			"/dev/display"
+#define DISPLAY_OPMODE O_RDONLY
+/* set a text to be displayed on the display. If arg == NULL, the text is cleared */
+#define IOC_FP_SET_TEXT		_IOW(0xDE,  3, char*)
+#endif
 
 void blit(void) {
 	memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
@@ -151,6 +162,31 @@ int instance=0;
 int rclocked=0;
 int swidth;
 int stride;
+
+static inline int dev_open()
+{
+	int fd = open(DISPLAY_DEV, DISPLAY_OPMODE);
+	if (fd < 0)
+		fprintf(stderr, "[shellexec] display: open " DISPLAY_DEV ": %m\n");
+	return fd;
+}
+
+void ShowText(const char * str)
+{
+	int fd = dev_open();
+	int len = strlen(str);
+	if (fd < 0)
+		return;
+	printf("%s '%s'\n", __func__, str);
+#if HAVE_ARM_HARDWARE || HAVE_MIPS_HARDWARE
+	write(fd, str, len);
+#elif HAVE_CST_HARDWARE
+	int ret = ioctl(fd, IOC_FP_SET_TEXT, len > 1 ? str : NULL);
+	if(ret < 0)
+		perror("IOC_FP_SET_TEXT");
+#endif
+	close(fd);
+}
 
 int get_instance(void)
 {
@@ -831,6 +867,7 @@ char *lcptr = NULL, *lcstr= NULL, *lcdptr = NULL;
 			}
 			*(lcdptr++)=*(lcptr++);
 		}
+		ShowText(lcstr);
 #if 0
 		*lcptr=0;
 		LCD_Clear();
@@ -919,11 +956,13 @@ char *lcptr = NULL, *lcstr= NULL, *lcdptr = NULL;
 					break;
 
 			case KEY_LEFT:
-			case KEY_PAGEUP:	m->act_entry-=10;
+			case KEY_PAGEUP:
+			case KEY_CHANNELUP:	m->act_entry-=10;
 					break;
 
 			case KEY_RIGHT:
-			case KEY_PAGEDOWN:	m->act_entry+=10;
+			case KEY_PAGEDOWN:
+			case KEY_CHANNELDOWN:	m->act_entry+=10;
 					break;
 
 			case KEY_OK:
@@ -2580,6 +2619,7 @@ int pyw=ey-sy-((preset)?scale2res(60):scale2res(20));		//box height old 510
 					   (rcp != KEY_LEFT)     && (rcp != KEY_RIGHT)     &&
 					   (rcp != KEY_DOWN)     && (rcp != KEY_UP)        &&
 					   (rcp != KEY_VOLUMEUP) && (rcp != KEY_VOLUMEDOWN)&&
+					   (rcp != KEY_CHANNELUP) && (rcp != KEY_CHANNELDOWN) &&
 					   (rcp != KEY_RED))
 				{
 					rcp=GetRCCode(-1);
@@ -2588,13 +2628,15 @@ int pyw=ey-sy-((preset)?scale2res(60):scale2res(20));		//box height old 510
 				{
 					rcp=KEY_OK;
 				}
-				if( (rcp != KEY_PAGEUP) && (rcp != KEY_PAGEDOWN) &&
+				if( (rcp != KEY_CHANNELUP) && (rcp != KEY_CHANNELDOWN) &&
+					(rcp != KEY_PAGEUP) && (rcp != KEY_PAGEDOWN) &&
 					(rcp != KEY_LEFT)   && (rcp != KEY_RIGHT) )
 				{
 					return rcp;
 				}
 				switch(rcp)
 				{
+					case KEY_CHANNELDOWN:
 					case KEY_PAGEDOWN:
 					case KEY_RIGHT:
 						if((action=cut)!=0)
@@ -2602,7 +2644,8 @@ int pyw=ey-sy-((preset)?scale2res(60):scale2res(20));		//box height old 510
 							line+=5;
 						}
 						break;
-						
+
+					case KEY_CHANNELUP:
 					case KEY_PAGEUP:
 					case KEY_LEFT:
 						if(line)
