@@ -39,7 +39,7 @@ static int sync_blitter = 0;
  * GetRCCode  (Code from Tuxmail)
  ******************************************************************************/
 
-#if defined HAVE_COOL_HARDWARE || HAVE_TRIPLEDRAGON || HAVE_SPARK_HARDWARE || defined(HAVE_DUCKBOX_HARDWARE) || HAVE_ARM_HARDWARE
+#if defined HAVE_CST_HARDWARE || HAVE_TRIPLEDRAGON || HAVE_SPARK_HARDWARE || defined(HAVE_DUCKBOX_HARDWARE) || HAVE_ARM_HARDWARE
 int GetRCCode()
 {
 	static int count = 0;
@@ -955,7 +955,7 @@ int main()
 	}
 
 	int yyRes = 720;
-#if HAVE_COOL_HARDWARE
+#if HAVE_CST_HARDWARE
 	if (fix_screeninfo.line_length == 7680 && var_screeninfo.xres == 1280) {
 		var_screeninfo.yres = yyRes = 1080;
 	}
