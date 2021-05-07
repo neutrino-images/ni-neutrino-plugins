@@ -350,7 +350,7 @@ int ControlDaemon(int command)
  * GetRCCode
  ******************************************************************************/
 
-#if defined HAVE_COOL_HARDWARE || HAVE_TRIPLEDRAGON || HAVE_SPARK_HARDWARE || defined(HAVE_DUCKBOX_HARDWARE) || HAVE_ARM_HARDWARE
+#if defined HAVE_CST_HARDWARE || HAVE_TRIPLEDRAGON || HAVE_SPARK_HARDWARE || defined(HAVE_DUCKBOX_HARDWARE) || HAVE_ARM_HARDWARE
 int GetRCCode()
 {
 	static int count = 0;
