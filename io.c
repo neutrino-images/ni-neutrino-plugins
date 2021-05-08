@@ -18,7 +18,7 @@
 #include <poll.h>
 
 #include "io.h"
-#include "tuxwetter.h"
+#include "current.h"
 #include "rc_device.h"
 
 extern int instance;
@@ -35,7 +35,7 @@ int InitRC(void)
 	rc = open(rc_device, O_RDONLY | O_CLOEXEC);
 	if(rc == -1)
 	{
-		perror("tuxwetter <open remote control>");
+		perror(__plugin__ " <open remote control>");
 		exit(1);
 	}
 	fcntl(rc, F_SETFL, O_NONBLOCK | O_SYNC);

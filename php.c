@@ -3,7 +3,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "text.h"
-#include "tuxwetter.h"
+#include "current.h"
 
 #define FH_ERROR_OK 0
 #define FH_ERROR_FILE 1		/* read/access error */
@@ -146,7 +146,7 @@ FILE *fh;
 
 								if((tptr=strchr(tptr,';'))==NULL)
 								{
-									printf("Tuxwetter <Parser Error in PHP>\n");
+									printf("%s <Parser Error in PHP>\n", __plugin__);
 									fclose(fh);
 									return -1;
 								}

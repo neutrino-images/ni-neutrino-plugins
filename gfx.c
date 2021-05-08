@@ -1,7 +1,7 @@
 //getline needed #define _GNU_SOURCE
 #define _GNU_SOURCE
 
-#include "tuxwetter.h"
+#include "current.h"
 #include "gfx.h"
 #include "resize.h"
 #include "pngw.h"
@@ -28,14 +28,14 @@ void RenderBox(int rsx, int rsy, int rex, int rey, int rad, int col)
 
 	if (dxx<0)
 	{
-		printf("[tuxwetter] %s called with dxx < 0 (%d)\n", __func__, dxx);
+		printf("[%s] %s called with dxx < 0 (%d)\n", __plugin__, __func__, dxx);
 		dxx=0;
 	}
 
 	int dyy_max = var_screeninfo.yres;
 	if (ssy + dyy > dyy_max)
 	{
-		printf("[tuxwetter] %s called with height = %d (max. %d)\n", __func__, ssy + dyy, dyy_max);
+		printf("[%s] %s called with height = %d (max. %d)\n", __plugin__, __func__, ssy + dyy, dyy_max);
 		dyy = dyy_max - ssy;
 	}
 
@@ -137,7 +137,7 @@ int paintIcon(const char *const fname, int xstart, int ystart, int xsize, int ys
 	{
 		if(png_getsize(fname, &x1, &y1))
 		{
-			perror("tuxwetter <invalid PNG-Format>\n");
+			perror(__plugin__ " <invalid PNG-Format>\n");
 			fclose(tfh);
 			return -1;
 		}

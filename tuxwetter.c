@@ -30,7 +30,7 @@
 #include <time.h>
 #include <math.h>
 //#include <linux/delay.h>
-#include "tuxwetter.h"
+#include "current.h"
 #include "parser.h"
 #include "text.h"
 #include "io.h"
@@ -167,7 +167,7 @@ static inline int dev_open()
 {
 	int fd = open(DISPLAY_DEV, DISPLAY_OPMODE);
 	if (fd < 0)
-		fprintf(stderr, "[shellexec] display: open " DISPLAY_DEV ": %m\n");
+		fprintf(stderr, "[%s] display: open " DISPLAY_DEV ": %m\n", __plugin__);
 	return fd;
 }
 
@@ -264,7 +264,7 @@ static void quit_signal(int sig)
 			txt=strdup("UNKNOWN"); break;
 	}
 
-	printf("Tuxwetter Version %s%s killed, signal %s(%d)\n", P_VERSION, S_VERSION, txt, sig);
+	printf("%s v%s%s killed, signal %s(%d)\n",__plugin__, P_VERSION, S_VERSION, txt, sig);
 	put_instance(get_instance()-1);
 	free(txt);
 	exit(1);
@@ -326,7 +326,7 @@ int rv=-1,styp=0;
 			{
 				if(strstr(tstr+1, "XXX") == NULL)
 				{
-					printf("[tuxwetter] API Key found in neutrino.conf\n");
+					printf("[%s] API Key found in neutrino.conf\n", __plugin__);
 					sscanf(tstr, "weather_api_key=%63s", key);
 					rv = 1;
 				}
@@ -356,7 +356,7 @@ int ReadConf(char *iscmd)
 		{
 			if(iscmd==NULL)
 			{
-				printf("Tuxwetter <unable to open Config-File>\n");
+				printf("%s <unable to open Config-File>\n", __plugin__);
 				return 0;
 			}
 		}
@@ -423,9 +423,9 @@ int ReadConf(char *iscmd)
 					{
 						TrimString(key);
 						if(cfgfile == 0)
-							printf("[tuxwetter] API Key found in tuxwetter.mcfg\n");
+							printf("[%s] API Key found in %s.mcfg\n", __plugin__, __plugin__);
 						else
-							printf("[tuxwetter] API Key found in tuxwetter.conf\n");
+							printf("[%s] API Key found in %s.conf\n", __plugin__, __plugin__);
 					}
 				}
 			if(strstr(line_buffer,"InetConnection") == line_buffer)
@@ -1330,7 +1330,7 @@ int res;
 		cpos=(tptr-menu.list[menu.act_entry]->entry);
 		safe_strncpy(city_code, ++tptr, len-cpos);
 		safe_strncpy(city_name, menu.list[menu.act_entry]->entry, cpos+1);
-		printf("Tuxwetter <Citycode %s selected>\n",city_code);
+		printf("%s <Citycode %s selected>\n", city_code, __plugin__);
 		if((res=parser(city_code,CONVERT_LIST,metric,intype,ctmo))!=0)
 		{
 			ShowMessage((res==-1)?prs_translate("keine Daten vom Wetterserver erhalten!",CONVERT_LIST):prs_translate("Datei convert.list nicht gefunden",CONVERT_LIST),1);
@@ -1783,7 +1783,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 
 					if (HTTP_downloadFile(iconUrl, ICON_FILE, 0, intype, ctmo, 2) != 0)
 					{
-						printf("Tuxwetter <unable to get icon>\n");
+						printf("%s <unable to get icon>\n", __plugin__);
 					}
 				}
 
@@ -2028,7 +2028,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 					if (HTTP_downloadFile(iconUrl, ICON_FILE,0,intype,ctmo,2) != 0)
 
 					{
-						printf("Tuxwetter <unable to get icon file \n");
+						printf("%s <unable to get icon file \n", __plugin__);
 					}
 				}
 
@@ -2254,7 +2254,7 @@ unsigned char *buffer=NULL;
 		fclose(tfh);
 		if(fh_jpeg_getsize(name, &x1, &y1, xsize, ysize))
 		{
-			printf("Tuxwetter <invalid JPG-Format>\n");
+			printf("%s <invalid JPG-Format>\n", __plugin__);
 			return -1;
 		}
 		if((buffer=(unsigned char *) malloc(x1*y1*4))==NULL)
@@ -2310,7 +2310,7 @@ unsigned char *buffer=NULL;
 		fclose(tfh);
 		if(png_getsize(name, &x1, &y1))
 		{
-			printf("Tuxwetter <invalid PNG-Format>\n");
+			printf("%s <invalid PNG-Format>\n", __plugin__);
 			return -1;
 		}
 		if((buffer=(unsigned char *) malloc(x1*y1*4))==NULL)
@@ -2378,7 +2378,7 @@ unsigned char *buffer=NULL;
 		}
 		if(count<1)
 		{
-			printf("Tuxwetter <invalid GIF-Format>\n");
+			printf("%s <invalid GIF-Format>\n", __plugin__);
 			return -1;
 		}
 		cloop=0;
@@ -2387,7 +2387,7 @@ unsigned char *buffer=NULL;
 			sprintf(fname,"%s%03d.gif",GIF_MFILE,cloop++);
 			if(fh_gif_getsize(fname, &x1, &y1, xsize, ysize))
 			{
-				printf("Tuxwetter <invalid GIF-Format>\n");
+				printf("%s <invalid GIF-Format>\n", __plugin__);
 				return -1;
 			}
 			if((buffer=(unsigned char *) malloc(x1*y1*4))==NULL)
@@ -2462,7 +2462,7 @@ unsigned char *buffer=NULL/*,*gbuf*/;
 
 		if(fh_gif_getsize(ICON_FILE, &x1, &y1, xsize, ysize))
 		{
-			printf("Tuxwetter <invalid GIF-Format>\n");
+			printf("%s <invalid GIF-Format>\n", __plugin__);
 			return -1;
 		}
 
@@ -2530,7 +2530,7 @@ unsigned char *buffer=NULL/*,*gbuf*/;
 
 		if(png_getsize(ICON_FILE, &x1, &y1))
 		{
-			printf("Tuxwetter <invalid PNG-Format>\n");
+			printf("%s <invalid PNG-Format>\n", __plugin__);
 			return -1;
 		}
 
@@ -2584,7 +2584,7 @@ int pyw=ey-sy-((preset)?scale2res(60):scale2res(20));		//box height old 510
 		//RenderString("X", psx+pxw/2, psy+pyw/2, scale2res(100), LEFT, FSIZE_SMALL, CMCT);
 		if(fh_php_getsize(name, plain, &x1, &y1))
 		{
-			printf("Tuxwetter <invalid PHP-Format>\n");
+			printf("%s <invalid PHP-Format>\n", __plugin__);
 			return -1;
 		}
 		cs=FSIZE_MED*((double)(pxw-1.5*(double)(col1-psx))/(double)x1);
@@ -2689,7 +2689,7 @@ long flength = 0;
 		{
 			*pt3=0;
 			++pt3;
-			printf("Tuxwetter <%s Downloading %s>\n", __func__, pt1);
+			printf("%s <%s Downloading %s>\n",__plugin__, __func__, pt1);
 			if(!HTTP_downloadFile(pt1, TRANS_FILE, 1, intype, ctmo, 2))
 			{
 				if((fh=fopen(TRANS_FILE,"r"))!=NULL)
@@ -2966,7 +2966,7 @@ PLISTENTRY pl=&epl;
 	{
 		if((strstr(argv[tv],"-v")==argv[tv])||(strstr(argv[tv],"--Version")==argv[tv]))
 		{
-			printf("Tuxwetter Version %s%s\n",P_VERSION,S_VERSION);
+			printf("%s v%s%s\n", __plugin__, P_VERSION, S_VERSION);
 			return 0;
 		}
 		if(*argv[tv]=='/')
@@ -2991,22 +2991,22 @@ PLISTENTRY pl=&epl;
 		fb=open(FB_DEVICE_FALLBACK, O_RDWR);
 	if(fb == -1)
 	{
-		perror("tuxwetter <open framebuffer device>");
+		perror(__plugin__ " <open framebuffer device>\n");
 		exit(1);
 	}
 	if(ioctl(fb, FBIOGET_FSCREENINFO, &fix_screeninfo) == -1)
 	{
-		perror("tuxwetter <FBIOGET_FSCREENINFO>\n");
+		perror(__plugin__ " <FBIOGET_FSCREENINFO>\n");
 		return -1;
 	}
 	if(ioctl(fb, FBIOGET_VSCREENINFO, &var_screeninfo) == -1)
 	{
-		perror("tuxwetter <FBIOGET_VSCREENINFO>\n");
+		perror(__plugin__ " <FBIOGET_VSCREENINFO>\n");
 		return -1;
 	}
 	if(!(lfb = (uint32_t*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0)))
 	{
-		perror("tuxwetter <mapping of Framebuffer>\n");
+		perror(__plugin__ " <mapping of Framebuffer>\n");
 		return -1;
 	}
 
@@ -3018,7 +3018,7 @@ PLISTENTRY pl=&epl;
 	}
 	if (!ReadConf(cmdline))
 	{
-		printf("Tuxwetter <Configuration failed>\n");
+		printf("%s <Configuration failed>\n", __plugin__);
 		return -1;
 	}
 
@@ -3052,7 +3052,7 @@ PLISTENTRY pl=&epl;
 	{
 		if(Check_Config())
 		{
-			printf("<tuxwetter> Unable to read tuxwetter.conf\n");
+			printf("<%s> Unable to read tuxwetter.conf\n", __plugin__);
 			Clear_List(&menu,-1);
 			free(line_buffer);
 			return -1;
@@ -3144,14 +3144,14 @@ PLISTENTRY pl=&epl;
 
 	if((error = FT_Init_FreeType(&library)))
 	{
-		printf("tuxwetter <FT_Init_FreeType failed with Errorcode 0x%.2X>", error);
+		printf("%s <FT_Init_FreeType failed with Errorcode 0x%.2X>", __plugin__, error);
 		munmap(lfb, fix_screeninfo.smem_len);
 		return -1;
 	}
 
 	if((error = FTC_Manager_New(library, 1, 2, 0, &MyFaceRequester, NULL, &manager)))
 	{
-		printf("tuxwetter <FTC_Manager_New failed with Errorcode 0x%.2X>\n", error);
+		printf("%s <FTC_Manager_New failed with Errorcode 0x%.2X>\n", __plugin__, error);
 		FT_Done_FreeType(library);
 		munmap(lfb, fix_screeninfo.smem_len);
 		return -1;
@@ -3159,7 +3159,7 @@ PLISTENTRY pl=&epl;
 
 	if((error = FTC_SBitCache_New(manager, &cache)))
 	{
-		printf("tuxwetter <FTC_SBitCache_New failed with Errorcode 0x%.2X>\n", error);
+		printf("%s <FTC_SBitCache_New failed with Errorcode 0x%.2X>\n", __plugin__, error);
 		FTC_Manager_Done(manager);
 		FT_Done_FreeType(library);
 		munmap(lfb, fix_screeninfo.smem_len);
@@ -3170,7 +3170,7 @@ PLISTENTRY pl=&epl;
 	{
 		if((error = FTC_Manager_LookupFace(manager, FONT2, &face)))
 		{
-			printf("tuxwetter <FTC_Manager_LookupFace failed with Errorcode 0x%.2X>\n", error);
+			printf("%s <FTC_Manager_LookupFace failed with Errorcode 0x%.2X>\n", __plugin__, error);
 			FTC_Manager_Done(manager);
 			FT_Done_FreeType(library);
 			munmap(lfb, fix_screeninfo.smem_len);
@@ -3181,7 +3181,7 @@ PLISTENTRY pl=&epl;
 	}
 	else
 		desc.face_id = FONT;
-	printf("tuxwetter <FTC_Manager_LookupFace Font \"%s\" loaded>\n", (char*)desc.face_id);
+	printf("%s <FTC_Manager_LookupFace Font \"%s\" loaded>\n", __plugin__, (char*)desc.face_id);
 
 	use_kerning = FT_HAS_KERNING(face);
 	desc.flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT;
@@ -3194,7 +3194,7 @@ PLISTENTRY pl=&epl;
 	}
 	if(!(lbb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
 	{
-		perror("tuxwetter <allocating of Backbuffer>\n");
+		perror(__plugin__ " <allocating of Backbuffer>\n");
 		FTC_Manager_Done(manager);
 		FT_Done_FreeType(library);
 		munmap(lfb, fix_screeninfo.smem_len);
@@ -3252,7 +3252,7 @@ PLISTENTRY pl=&epl;
 	{
 		if(Get_Menu())
 		{
-			printf("Tuxwetter <unable to read tuxwetter.conf>\n");
+			printf("%s <unable to read tuxwetter.conf>\n", __plugin__);
 			FTC_Manager_Done(manager);
 			FT_Done_FreeType(library);
 			munmap(lfb, fix_screeninfo.smem_len);
@@ -3449,7 +3449,7 @@ PLISTENTRY pl=&epl;
 									{
 										++rptr;
 									}
-									printf("Tuxwetter <%s Downloading %s>\n",__func__, rptr);
+									printf("%s <%s Downloading %s>\n", __plugin__, __func__, rptr);
 									ferr=HTTP_downloadFile(rptr, (pl->pictype==PTYP_JPG)?JPG_FILE:(pl->pictype==PTYP_PNG)?PNG_FILE:(pl->pictype==PTYP_GIF)?GIF_FILE:PHP_FILE, 1, intype, ctmo, 2);
 								}
 					
