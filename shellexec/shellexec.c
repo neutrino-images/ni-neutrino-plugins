@@ -112,6 +112,7 @@ int instance=0;
 int rclocked=0;
 int swidth;
 
+#if !HAVE_GENERIC_HARDWARE
 static inline int dev_open()
 {
 	int fd = open(DISPLAY_DEV, DISPLAY_OPMODE);
@@ -136,6 +137,7 @@ void ShowText(const char * str)
 #endif
 	close(fd);
 }
+#endif
 
 int get_instance(void)
 {
@@ -1592,7 +1594,9 @@ static void ShowInfo(MENU *m, int knew )
 			{
 				lcstr=strdup(trstr);
 				clean_string(trstr,lcstr);
+#if !HAVE_GENERIC_HARDWARE
 				ShowText(lcstr);
+#endif
 				free(lcstr);
 			}
 		}
