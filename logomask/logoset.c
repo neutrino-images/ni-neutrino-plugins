@@ -19,6 +19,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
+// ISO 8859-1
 
 #include <config.h>
 #include <string.h>
