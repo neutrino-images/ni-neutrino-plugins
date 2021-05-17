@@ -1,5 +1,6 @@
 -- The Tuxbox Copyright
 --
+-- Copyright 2021 GetAway (get-away@t-online.de)
 -- Copyright 2018 - 2019 Markus Volk (f_l_k@t-online.de)
 -- Copyright 2018 Sven Hoefer, Don de Deckelwech
 -- Redistribution and use in source and binary forms, with or without modification, 
@@ -258,8 +259,8 @@ function image_to_devnum(root)
 	return ret
 end
 
-function get_cfg_value(str)
-	for line in io.lines(tuxbox_config .. "/stb-startup.conf") do
+function get_cfg_value(str, part)
+	for line in io.lines("/tmp/testmount/".. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf") do
 		if line:match(str .. "=") then
 			local i,j = string.find(line, str .. "=")
 			r = tonumber(string.sub(line, j+1, #line))
@@ -268,32 +269,69 @@ function get_cfg_value(str)
 	return r
 end
 
-function create_cfg()
-	file = io.open(tuxbox_config .. "/stb-startup.conf", "w")
+function tableOnOff(part)
+	t = {off, on}
+	if tuxbox_cfg[part] == nil then
+		return t
+	end
+
+	local cfg_enabled = off
+	if exists("/tmp/testmount/" .. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf") then
+		if (get_cfg_value("boxmode_12", part, tuxbox_cfg[part]) == 1) then
+			t = {on, off}
+		end
+	end
+	return t
+end
+
+function create_cfg(part)
+	file = io.open("/tmp/testmount/" .. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf", "w")
 	file:write("boxmode_12=0", "\n")
 	file:close()
 end
 
 function write_cfg(k, v, str)
+	local part = tonumber(k)
 	local a
 	if (v == on) then a = 1 else a = 0 end
 	local cfg_content = {}
-	for line in io.lines(tuxbox_config .. "/stb-startup.conf") do
+	for line in io.lines("/tmp/testmount/".. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf") do
 		if line:match(str .. "=") then
 			table.insert (cfg_content, (string.reverse(string.gsub(string.reverse(line), string.sub(string.reverse(line), 1, 1), a, 1))))
 		else
 			table.insert (cfg_content, line)
 		end
 	end
-	file = io.open(tuxbox_config .. "/stb-startup.conf", 'w')
+	file = io.open("/tmp/testmount/".. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf", 'w')
 	for i, v in ipairs(cfg_content) do
 		file:write(v, "\n")
 	end
 	io.close(file)
 end
 
-function set(k, v, str)
+function get_cmdline_value(str)
+	for line in io.lines("/proc/cmdline") do
+		if line:match(str) then
+			return true
+		end
+	end
+	return false
+end
+
+function set(k, v)
 	write_cfg(k, v, "boxmode_12")
+end
+
+function get_tuxbox_cfgdir(part)
+	if isdir("/tmp/testmount/" .. devbase .. part .. tuxbox_config) then
+		return tuxbox_config
+	elseif exists("/tmp/testmount/" .. devbase .. part .. tuxbox_config) then
+		return fh:readlink("/tmp/testmount/" .. devbase .. part .. tuxbox_config)
+	elseif isdir("/tmp/testmount/" .. devbase .. part .. "/etc/neutrino/config") then
+		return "/etc/neutrino/config"
+	else
+		return ""
+	end
 end
 
 function get_boot_path()
@@ -306,40 +344,8 @@ function get_boot_path()
 	return ret
 end
 
-function main()
-	caption = "STB-Startup" .. " " .. version
-	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4","boot","bootoptions"}
-	n = neutrino()
-	fh = filehelpers.new()
-
-	locale = {}
-	locale["deutsch"] = {
-		current_boot_partition = "Die aktuelle Startpartition ist: ",
-		choose_partition = "\n\nBitte wählen Sie die neue Startpartition aus",
-		start_partition = "Rebooten und die gewählte Partition starten?",
-		empty_partition = "Das gewählte Image ist nicht vorhanden",
-		options = "Einstellungen",
-		boxmode = "Boxmode 12"
-	}
-
-	locale["english"] = {
-		current_boot_partition = "The current boot partition is: ",
-		choose_partition = "\n\nPlease choose the new boot partition",
-		start_partition = "Reboot and start the chosen partition?",
-		empty_partition = "No image available",
-		options = "Options",
-		boxmode = "Boxmode 12"
-	}
-
-	tuxbox_config = "/var/tuxbox/config"
-	neutrino_conf = configfile.new()
-	neutrino_conf:loadConfig(tuxbox_config .. "/neutrino.conf")
-	lang = neutrino_conf:getString("language", "english")
-
-	if locale[lang] == nil then
-		lang = "english"
-	end
-
+function get_devbase()
+	local devbase
 	if isdir("/dev/disk/by-partlabel") then
 		partitions_by_name = "/dev/disk/by-partlabel"
 	elseif isdir("/dev/block/by-name") then
@@ -356,7 +362,52 @@ function main()
 	else
 		devbase = "linuxrootfs"
 	end
+	return devbase
+end
 
+function main()
+	caption = "STB-Startup" .. " " .. version
+	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4","boot","bootoptions"}
+	n = neutrino()
+	fh = filehelpers.new()
+
+	locale = {}
+	locale["deutsch"] = {
+		current_boot_partition = "Die aktuelle Startpartition ist: ",
+		choose_partition = "\n\nBitte wählen Sie die neue Startpartition aus",
+		start_partition = "Rebooten und die gewählte Partition starten?",
+		empty_partition = "Das gewählte Image ist nicht vorhanden",
+		options = "Einstellungen",
+		boxmode = "Boxmode 12",
+		image = "Imagewechsel",
+		boxmode = "Boxmodewechsel",
+		image_and_boxmode = "Image- und Boxmodewechsel",
+		hinttext = " %s in STARTUP geschrieben!!\n\nReboot des Images >> %s <<\n\nmit Boxmode %s in %s Sek."
+	}
+
+	locale["english"] = {
+		current_boot_partition = "The current boot partition is: ",
+		choose_partition = "\n\nPlease choose the new boot partition",
+		start_partition = "Reboot and start the chosen partition?",
+		empty_partition = "No image available",
+		options = "Options",
+		boxmode = "Boxmode 12",
+		image = "Wrote Image changing",
+		boxmode = "Wrote Image changing",
+		image_and_boxmode = "Wrote Image- and Boxmode changing",
+		hinttext = " %s to STARTUP!!\n\nReboot of Image >> %s <<\n\nwith Boxmode %s in %s sec."
+	}
+
+	tuxbox_config = "/var/tuxbox/config"
+	neutrino_conf = configfile.new()
+	neutrino_conf:loadConfig(tuxbox_config .. "/neutrino.conf")
+	lang = neutrino_conf:getString("language", "english")
+
+	if locale[lang] == nil then
+		lang = "english"
+	end
+
+	devbase = get_devbase()
 	boot = get_boot_path()
 
 	for line in io.lines("/proc/cmdline") do
@@ -364,10 +415,6 @@ function main()
 		if (j ~= nil) then
 			current_root = devnum_to_image(tonumber(string.sub(line,j+1,j+1)))
 		end
-	end
-
-	if not exists(tuxbox_config .. "/stb-startup.conf") and has_boxmode() then
-		create_cfg()
 	end
 
 	mount_filesystems()
@@ -379,6 +426,29 @@ function main()
 	chooser_x = SCREEN.OFF_X + (((SCREEN.END_X - SCREEN.OFF_X) - chooser_dx) / 2)
 	chooser_y = SCREEN.OFF_Y + (((SCREEN.END_Y - SCREEN.OFF_Y) - chooser_dy) / 2)
 
+	local imagename = {}
+	tuxbox_cfg = {}
+	for n=1, 4 do
+		imagename[n] = get_imagename(n) .. is_active(n)
+		tuxbox_cfg[n] = get_tuxbox_cfgdir(n)
+		if tuxbox_cfg[n] ~= "" and not exists("/tmp/testmount/" .. devbase .. n .. tuxbox_cfg[n] .. "/stb-startup.conf") and has_boxmode() then
+			create_cfg(n)
+		end
+	end
+
+	local current_mode = off
+	local cfg_mode = off
+	if (get_cmdline_value("boxmode=12")) then
+		current_mode = on
+	end
+	if (get_cfg_value("boxmode_12", current_root, tuxbox_cfg[current_root]) == 1) then
+		cfg_mode = on
+	end
+	--print(current_mode, cfg_mode, current_root)
+	if (current_mode ~= cfg_mode) then
+		write_cfg(current_root, current_mode, "boxmode_12")
+	end
+
 	chooser = cwindow.new {
 		x = chooser_x,
 		y = chooser_y,
@@ -387,10 +457,10 @@ function main()
 		title = caption,
 		icon = "settings",
 		has_shadow = true,
-		btnRed = get_imagename(1) .. is_active(1),
-		btnGreen = get_imagename(2) .. is_active(2),
-		btnYellow = get_imagename(3) .. is_active(3),
-		btnBlue = get_imagename(4) .. is_active(4),
+		btnRed = imagename[1],
+		btnGreen = imagename[2],
+		btnYellow = imagename[3],
+		btnBlue = imagename[4],
 		btnSetup = "Boxmode"
 	}
 
@@ -434,12 +504,11 @@ function main()
 			chooser:hide()
 			menu = menu.new{icon="settings", name=locale[lang].options}
 			menu:addItem{type="back"}
-			menu:addItem{type="separatorline"}
-			if (get_cfg_value("boxmode_12") == 1) then
-				menu:addItem{type="chooser", action="set", options={on, off}, directkey=RC["setup"], name=locale[lang].boxmode}
-			elseif (get_cfg_value("boxmode_12") == 0) then
-				menu:addItem{type="chooser", action="set", options={off, on}, directkey=RC["setup"], name=locale[lang].boxmode}
-			end
+			menu:addItem{type="separatorline", name="Boxmode 12"}
+			menu:addItem{type="chooser", action="set", id="1", options=tableOnOff(1), enabled=isdir("/tmp/testmount/" .. devbase .. "1" .. tuxbox_cfg[1]), directkey=RC["red"], name=imagename[1]}
+			menu:addItem{type="chooser", action="set", id="2", options=tableOnOff(2), enabled=isdir("/tmp/testmount/" .. devbase .. "2" .. tuxbox_cfg[2]), directkey=RC["green"], name=imagename[2]}
+			menu:addItem{type="chooser", action="set", id="3", options=tableOnOff(3), enabled=isdir("/tmp/testmount/" .. devbase .. "3" .. tuxbox_cfg[3]), directkey=RC["yellow"], name=imagename[3]}
+			menu:addItem{type="chooser", action="set", id="4", options=tableOnOff(4), enabled=isdir("/tmp/testmount/" .. devbase .. "4" .. tuxbox_cfg[4]), directkey=RC["blue"], name=imagename[4]}
 			menu:exec()
 			chooser:paint()
 		end
@@ -486,20 +555,41 @@ function main()
 				-- remove existing brcm_cma entries
 				line = line:gsub(string.sub(line, string.find(line, " '")+2, string.find(line, "root=")-1), "")
 				-- re-add new brcm_cma and boxmode entries
-				if get_cfg_value("boxmode_12") == 1 then
+				if get_cfg_value("boxmode_12", root, tuxbox_cfg[root]) == 1 then
 					line = line:gsub(" '", " 'brcm_cma=520M@248M brcm_cma=192M@768M ")
 					line = line:gsub(string.sub(line, string.find(line, "boxmode=")+8), "12'")
+					cfg_mode = on
+					mode = "12"
 				else
 					line = line:gsub(string.sub(line, string.find(line, "boxmode=")+8), "1'")
+					cfg_mode = off
+					mode = "1"
 				end
+			else
+				cfg_mode = off
+				mode = "1"
 			end
-			table.insert(startup_lines, line)
 		end
+
 		file = io.open(boot .. "/STARTUP", 'w')
 		for _, v in ipairs(startup_lines) do
 			file:write(v, "\n")
 		end
 		file:close()
+
+		if (current_root ~= root and current_mode ~= cfg_mode ) then
+			txt = locale[lang].image_and_boxmode
+		elseif (current_root ~= root) then
+			txt = locale[lang].image
+		else
+			txt = locale[lang].boxmode
+		end
+		local stime = 5
+		hbtext = string.format(locale[lang].hinttext, txt, imagename[root], mode, tostring(stime))
+		local hb = hintbox.new{ title="Info", text=hbtext, icon="info", has_shadow=true, show_footer=false}
+		hb:paint()
+		sleep(stime)
+		hb:hide()
 		reboot()
 	end
 	umount_filesystems()
