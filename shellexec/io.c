@@ -82,6 +82,12 @@ int RCTranslate(int code)
 		case KEY_PAGEDOWN:	rccode = RC_PAGEDOWN;
 			break;
 
+		case KEY_CHANNELUP:	rccode = RC_PAGEUP;
+			break;
+
+		case KEY_CHANNELDOWN:	rccode = RC_PAGEDOWN;
+			break;
+
 		case KEY_OK:		rccode = RC_OK;
 			break;
 
