@@ -18,7 +18,7 @@
 	typeof (b) __b = (b); \
 	__a > __b ? __a : __b; })
 
-#define M_VERSION 2.14
+#define M_VERSION 2.15
 
 #ifndef CONFIGDIR
 #define CONFIGDIR "/var/tuxbox/config"
@@ -504,7 +504,7 @@ void ShowUsage(void)
 
 int main (int argc, char **argv)
 {
-int ix,tv,found=0, spr, resolution;
+int ix, tv , found=0, spr, resolution;
 int dloop=1, rcc=-1;
 char rstr[BUFSIZE]={0}, *rptr=NULL, *aptr=NULL;
 time_t tm1,tm2;
@@ -779,8 +779,8 @@ FILE *fh;
 			printf(NOMEM);
 			return -1;
 		}
-	
-		spr=Read_Neutrino_Cfg("screen_preset")+1;
+
+		spr=Read_Neutrino_Cfg("screen_preset") + 1;
 		resolution=Read_Neutrino_Cfg("osd_resolution");
 
 		if (resolution == -1)
