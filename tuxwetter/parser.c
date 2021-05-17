@@ -10,7 +10,7 @@
 #include <curl/curl.h>
 #include <math.h>
 //#include <strings.h>
-#include "tuxwetter.h"
+#include "current.h"
 #include "parser.h"
 #include "http.h"
 
@@ -399,7 +399,7 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 
 	if(exit_ind != 0)
 	{
-		printf("Tuxwetter <Download data from server failed. Errorcode: %d>\n",exit_ind);
+		printf("%s <Download data from server failed. Errorcode: %d>\n", __plugin__, exit_ind);
 		exit_ind=-1;
 		return exit_ind;
 	}
@@ -408,7 +408,7 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 
 	if ((wxfile = fopen("/tmp/tuxwettr.tmp","r"))==NULL)
 	{
-		printf("Tuxwetter <Missing tuxwettr.tmp File>\n");
+		printf("%s <Missing tuxwettr.tmp File>\n", __plugin__);
 		return exit_ind;
 	}
 	else
@@ -548,7 +548,7 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	
 	if ((wxfile = fopen(trans,"r"))==NULL)
 	{
-		printf("Tuxwetter <File %s not found.>\n",trans);
+		printf("%s <File %s not found.>\n", __plugin__, trans);
 		return exit_ind;
 	}
 	else

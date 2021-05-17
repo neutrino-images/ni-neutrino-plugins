@@ -100,6 +100,8 @@ FT_Bool			use_kerning;
 #define KEY_VF					0x175
 
 #define KEY_SAT					0x17D
+#define KEY_CHANNELUP			0x192
+#define KEY_CHANNELDOWN			0x193
 #define KEY_SKIPP				0x197
 #define KEY_SKIPM				0x19C
 #define KEY_TS					0x167
