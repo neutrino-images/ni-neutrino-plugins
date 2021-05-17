@@ -347,7 +347,11 @@ int ControlDaemon(int command)
  * GetRCCode
  ******************************************************************************/
 
+<<<<<<< HEAD
 #if defined HAVE_CST_HARDWARE || HAVE_TRIPLEDRAGON || HAVE_SPARK_HARDWARE || defined(HAVE_DUCKBOX_HARDWARE) || HAVE_ARM_HARDWARE || HAVE_MIPS_HARDWARE || HAVE_GENERIC_HARDWARE
+=======
+#if defined HAVE_CST_HARDWARE || HAVE_TRIPLEDRAGON || HAVE_SPARK_HARDWARE || defined(HAVE_DUCKBOX_HARDWARE) || HAVE_ARM_HARDWARE
+>>>>>>> 251da7ef6a950e6f18c6215acf642f75756a31ae
 int GetRCCode()
 {
 	static int count = 0;
@@ -2599,7 +2603,11 @@ void SaveDatabase(void)
 */
 int main ( void )
 {
+<<<<<<< HEAD
 	char cvs_revision[] = "$Revision: 1.11 $";
+=======
+	char cvs_revision[] = "$Revision: 1.10 $";
+>>>>>>> 251da7ef6a950e6f18c6215acf642f75756a31ae
 	FILE *fd_run;
 	FT_Error error;
 
