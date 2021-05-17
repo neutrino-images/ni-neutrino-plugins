@@ -3638,7 +3638,7 @@ void SaveAndReloadDB ( int iSave )
 //void plugin_exec(PluginParam *par)
 int main ( void )
 {
-	char cvs_revision[] = "$Revision: 1.03 $";
+	char cvs_revision[] = "$Revision: 1.04 $";
 	int loop, account, mailindex;
 	FILE *fd_run;
 	FT_Error error;
