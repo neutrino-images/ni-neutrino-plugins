@@ -11,7 +11,7 @@
 #include "gfx.h"
 #include "inputd.h"
 
-#define I_VERSION	2.14
+#define I_VERSION	2.15
 
 #ifndef CONFIGDIR
 #define CONFIGDIR "/var/tuxbox/config"
@@ -239,7 +239,7 @@ void ShowUsage(void)
 
 int main (int argc, char **argv)
 {
-int tv,cols=25,tmo=0,ix, spr, resolution;
+int ix, tv, cols=25, tmo=0, spr, resolution;
 const char ttl[]="Eingabe";
 int dloop=1,keys=0,frame=1,mask=0,bhelp=0;
 char rstr[512]={0}, *title=NULL, *format=NULL, *defstr=NULL, *aptr=NULL, *rptr=NULL;
@@ -400,7 +400,7 @@ char rstr[512]={0}, *title=NULL, *format=NULL, *defstr=NULL, *aptr=NULL, *rptr=N
 			return 0;
 		}
 
-		spr=Read_Neutrino_Cfg("screen_preset")+1;
+		spr=Read_Neutrino_Cfg("screen_preset") + 1;
 		resolution=Read_Neutrino_Cfg("osd_resolution");
 
 		if (resolution == -1)
