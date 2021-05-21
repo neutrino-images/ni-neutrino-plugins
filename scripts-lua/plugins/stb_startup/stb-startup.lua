@@ -25,7 +25,7 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
-version = "v1.20d"
+version = "v1.20f"
 
 on = "ein"; off = "aus"
 
@@ -569,6 +569,7 @@ function main()
 				cfg_mode = off
 				mode = "1"
 			end
+			table.insert(startup_lines, line)
 		end
 
 		file = io.open(boot .. "/STARTUP", 'w')
