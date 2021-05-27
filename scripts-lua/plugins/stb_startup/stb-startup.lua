@@ -25,7 +25,7 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
-version = "v1.20f"
+version = "v1.20g"
 
 on = "ein"; off = "aus"
 
@@ -260,10 +260,13 @@ function image_to_devnum(root)
 end
 
 function get_cfg_value(str, part)
-	for line in io.lines("/tmp/testmount/".. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf") do
-		if line:match(str .. "=") then
-			local i,j = string.find(line, str .. "=")
-			r = tonumber(string.sub(line, j+1, #line))
+	local r = 0
+	if exists("/tmp/testmount/" .. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf") then
+		for line in io.lines("/tmp/testmount/".. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf") do
+			if line:match(str .. "=") then
+				local i,j = string.find(line, str .. "=")
+				r = tonumber(string.sub(line, j+1, #line))
+			end
 		end
 	end
 	return r
@@ -274,12 +277,8 @@ function tableOnOff(part)
 	if tuxbox_cfg[part] == nil then
 		return t
 	end
-
-	local cfg_enabled = off
-	if exists("/tmp/testmount/" .. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf") then
-		if (get_cfg_value("boxmode_12", part, tuxbox_cfg[part]) == 1) then
-			t = {on, off}
-		end
+	if (get_cfg_value("boxmode_12", part, tuxbox_cfg[part]) == 1) then
+		t = {on, off}
 	end
 	return t
 end
