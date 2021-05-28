@@ -336,7 +336,7 @@ AC_ARG_WITH(boxtype,
 AC_ARG_WITH(boxmodel,
 	AS_HELP_STRING([--with-boxmodel], [valid for generic: generic, raspi])
 AS_HELP_STRING([], [valid for coolstream: hd1, hd2])
-AS_HELP_STRING([], [valid for armbox: hd60, hd61, hd51, bre2ze4k, h7, osmini4k, osmio4k, osmio4kplus, vusolo4k, vuduo4k, vuduo4kse, vuultimo4k, vuuno4k, vuuno4kse, vuzero4k])
+AS_HELP_STRING([], [valid for armbox: hd60, hd61, multiboxse, hd51, bre2ze4k, h7, osmini4k, osmio4k, osmio4kplus, vusolo4k, vuduo4k, vuduo4kse, vuultimo4k, vuuno4k, vuuno4kse, vuzero4k])
 AS_HELP_STRING([], [valid for mipsbox: vuduo, vuduo2]),
 	[case "${withval}" in
 		generic|raspi)
@@ -365,7 +365,7 @@ AS_HELP_STRING([], [valid for mipsbox: vuduo, vuduo2]),
 				AC_MSG_ERROR([unknown model $withval for boxtype $BOXTYPE])
 			fi
 		;;
-		hd60|hd61|hd51|bre2ze4k|h7|osmini4k|osmio4k|osmio4kplus|vusolo4k|vuduo4k|vuduo4kse|vuultimo4k|vuuno4k|vuuno4kse|vuzero4k)
+		hd60|hd61|multiboxse|hd51|bre2ze4k|h7|osmini4k|osmio4k|osmio4kplus|vusolo4k|vuduo4k|vuduo4kse|vuultimo4k|vuuno4k|vuuno4kse|vuzero4k)
 			if test "$BOXTYPE" = "armbox"; then
 				BOXMODEL="$withval"
 			else
@@ -404,6 +404,7 @@ AM_CONDITIONAL(BOXMODEL_CST_HD2, test "$BOXMODEL" = "hd2")
 # armbox
 AM_CONDITIONAL(BOXMODEL_HD60, test "$BOXMODEL" = "hd60")
 AM_CONDITIONAL(BOXMODEL_HD61, test "$BOXMODEL" = "hd61")
+AM_CONDITIONAL(BOXMODEL_MULTIBOXSE, test "$BOXMODEL" = "multiboxse")
 
 AM_CONDITIONAL(BOXMODEL_HD51, test "$BOXMODEL" = "hd51")
 AM_CONDITIONAL(BOXMODEL_BRE2ZE4K, test "$BOXMODEL" = "bre2ze4k")
@@ -458,6 +459,8 @@ elif test "$BOXMODEL" = "hd60"; then
 	AC_DEFINE(BOXMODEL_HD60, 1, [hd60])
 elif test "$BOXMODEL" = "hd61"; then
 	AC_DEFINE(BOXMODEL_HD61, 1, [hd61])
+elif test "$BOXMODEL" = "multiboxse"; then
+	AC_DEFINE(BOXMODEL_MULTIBOXSE, 1, [multiboxse])
 
 elif test "$BOXMODEL" = "hd51"; then
 	AC_DEFINE(BOXMODEL_HD51, 1, [hd51])
