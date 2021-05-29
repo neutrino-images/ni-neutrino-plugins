@@ -285,6 +285,7 @@ function init()
 			[21] = { code = 21, name = "Zgemma H7"				},
 			[23] = { code = 23, name = "Bre2ze 4K"				},
 			[26] = { code = 26, name = "HD61"				},
+			[27] = { code = 27, name = "Multibox SE 4K"			},
 			[29] = { code = 29, name = "HD60"				}
 		}
 	end
