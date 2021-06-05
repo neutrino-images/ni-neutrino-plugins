@@ -25,6 +25,8 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
+version = "v1.20h"
+
 on = "ein"; off = "aus"
 
 function exists(file)
@@ -131,26 +133,46 @@ end
 
 function get_value(str,root,etcdir)
 	local value = ""
+	local testmount = ""
 	if is_mounted("/tmp/testmount/userdata") then
-		for line in io.lines("/tmp/testmount/linuxrootfs" .. root  .. etcdir .. "/image-version") do
-			if line:match(str .. "=") then
-				local i,j = string.find(line, str .. "=")
-				value = string.sub(line, j+1, #line)
-			end
-		end
+		testmount = "/tmp/testmount/linuxrootfs" .. root
 	elseif is_mounted("/tmp/testmount/rootfs" .. root) then
-		for line in io.lines("/tmp/testmount/rootfs" .. root  .. etcdir .. "/image-version") do
+		testmount = "/tmp/testmount/rootfs" .. root
+	else
+		return value
+	end
+
+	-- image-version file
+	if exists(testmount .. etcdir .. "/image-version") then
+		for line in io.lines(testmount .. etcdir .. "/image-version") do
 			if line:match(str .. "=") then
 				local i,j = string.find(line, str .. "=")
 				value = string.sub(line, j+1, #line)
 			end
 		end
 	end
+	-- default neutrino .version file
+	if value == "" and exists(testmount .. "/.version") then
+		for line in io.lines(testmount .. "/.version") do
+			if line:match(str .. "=") then
+				local i,j = string.find(line, str .. "=")
+				value = string.sub(line, j+1, #line)
+			end
+		end
+	end
+	-- BlackHole image
+	if value == "" and exists(testmount .. etcdir .. "/bhversion") then
+		for line in io.lines(testmount .. etcdir .. "/bhversion") do
+			if line:match(str) then
+				value = line
+			end
+		end
+	end
+
 	return value
 end
 
 function get_imagename(root)
-	local etc_isdir = false
 	local imagename = ""
 	local imageversion = ""
 	local tmp_version = ""
@@ -158,27 +180,46 @@ function get_imagename(root)
 
 	local etc = "/etc"
 	if isdir("/tmp/testmount/linuxrootfs" .. root .. etc) or isdir("/tmp/testmount/rootfs" .. root .. etc) then
-		etc_isdir = true
+		-- do nothing
+	else
+		etc = "/var/etc"
 	end
 
-	if etc_isdir and (exists("/tmp/testmount/linuxrootfs" .. root .. "/etc/image-version") or exists("/tmp/testmount/rootfs" .. root  .. "/etc/image-version")) then
-		tmp_name = get_value("distro", root, etc)
+	tmp_name = get_value("distro", root, etc)
+	if tmp_name == "" then
+		tmp_name = get_value("creator", root, etc)
+		if tmp_name:match("VTi") then
+			-- shorten VTi
+			tmp_name = "VTi"
+		elseif tmp_name:match("BPanther") then
+			-- shorten BPanther
+			tmp_name = "BP"
+		end
+		-- BlackHole image
 		if tmp_name == "" then
-			tmp_name = get_value("creator", root, etc)
+			tmp_name = get_value("BlackHole", root, etc)
 		end
-		tmp_version = get_value("imageversion", root, etc)
-		if tmp_version == "" then
-			tmp_version = get_value("version", root, etc)
-		end
-	elseif exists("/tmp/testmount/linuxrootfs" .. root .. "/var/etc/image-version") or exists("/tmp/testmount/rootfs" .. root  .. "/var/etc/image-version") then
-		etc = "/var/etc"
-		tmp_name = get_value("distro", root, etc)
-		if tmp_name == "" then
-			tmp_name = get_value("creator", root, etc)
-		end
-		tmp_version = get_value("imageversion", root, etc)
-		if tmp_version == "" then
-			tmp_version = get_value("version", root, etc)
+	end
+	tmp_version = get_value("imageversion", root, etc)
+	if tmp_version == "" then
+		tmp_version = get_value("version", root, etc)
+		local v = ""
+		if tmp_name == "VTi" then
+			-- get VTi version
+			v = string.sub(tmp_version, 2, 3)
+			v = v .. "." .. string.sub(tmp_version, 4, 4)
+			v = v .. "." .. string.sub(tmp_version, 5, 5)
+			tmp_version = v
+		elseif tmp_name == "BP" then
+			-- get BP version
+			tmp_version = get_value("git", root, etc)
+		elseif tmp_name:match("BlackHole") then
+			-- do nothing
+		elseif tmp_name ~= "" then
+			-- get neutrino version
+			v = string.sub(tmp_version, 2, 2)
+			v = v .. "." .. string.sub(tmp_version, 3, 4)
+			tmp_version = v
 		end
 	end
 
@@ -191,7 +232,7 @@ function get_imagename(root)
 			if not isdir(j) and not islink(j) then
 				for line in io.lines(j) do
 					io.write(string.format("j =  %s \n", j))
-					if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("boxmode=12") then
+					if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("boxmode=12") and not line:match("android") then
 						if line:match(devbase .. image_to_devnum(root)) then
 							imagename = basename(j)
 						end
@@ -258,10 +299,13 @@ function image_to_devnum(root)
 end
 
 function get_cfg_value(str, part)
-	for line in io.lines("/tmp/testmount/".. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf") do
-		if line:match(str .. "=") then
-			local i,j = string.find(line, str .. "=")
-			r = tonumber(string.sub(line, j+1, #line))
+	local r = 0
+	if exists("/tmp/testmount/" .. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf") then
+		for line in io.lines("/tmp/testmount/".. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf") do
+			if line:match(str .. "=") then
+				local i,j = string.find(line, str .. "=")
+				r = tonumber(string.sub(line, j+1, #line))
+			end
 		end
 	end
 	return r
@@ -272,12 +316,8 @@ function tableOnOff(part)
 	if tuxbox_cfg[part] == nil then
 		return t
 	end
-
-	local cfg_enabled = off
-	if exists("/tmp/testmount/" .. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf") then
-		if (get_cfg_value("boxmode_12", part, tuxbox_cfg[part]) == 1) then
-			t = {on, off}
-		end
+	if (get_cfg_value("boxmode_12", part, tuxbox_cfg[part]) == 1) then
+		t = {on, off}
 	end
 	return t
 end
@@ -364,7 +404,7 @@ function get_devbase()
 end
 
 function main()
-	caption = "STB-Startup"
+	caption = "STB-Startup" .. " " .. version
 	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4","boot","bootoptions"}
 	n = neutrino()
 	fh = filehelpers.new()
@@ -539,7 +579,7 @@ function main()
 		local startup_lines = {}
 
 		io.write(string.format("boot =  %s \n", boot))
-		for _, j in pairs(glob(boot .. '/STARTUP*')) do
+		for _, j in pairs(glob(boot .. '/*')) do
 			for line in io.lines(j) do
 				if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("boxmode=12") and not line:match("android") then
 					if line:match(devbase .. image_to_devnum(root)) then
@@ -550,17 +590,24 @@ function main()
 		end
 		for line in io.lines(startup_file) do
 			if has_boxmode() then
+				-- remove existing brcm_cma entries
 				line = line:gsub(string.sub(line, string.find(line, " '")+2, string.find(line, "root=")-1), "")
-			end
-			if has_boxmode() and get_cfg_value("boxmode_12", root, tuxbox_cfg[root]) == 1 then
-				table.insert(startup_lines, (line:gsub(" '", " 'brcm_cma=520M@248M brcm_cma=192M@768M "):gsub("boxmode=1'", "boxmode=12'")))
-				cfg_mode = on
-				mode = "12"
+				-- re-add new brcm_cma and boxmode entries
+				if get_cfg_value("boxmode_12", root, tuxbox_cfg[root]) == 1 then
+					line = line:gsub(" '", " 'brcm_cma=520M@248M brcm_cma=192M@768M ")
+					line = line:gsub(string.sub(line, string.find(line, "boxmode=")+8), "12'")
+					cfg_mode = on
+					mode = "12"
+				else
+					line = line:gsub(string.sub(line, string.find(line, "boxmode=")+8), "1'")
+					cfg_mode = off
+					mode = "1"
+				end
 			else
-				table.insert(startup_lines, line)
 				cfg_mode = off
 				mode = "1"
 			end
+			table.insert(startup_lines, line)
 		end
 
 		file = io.open(boot .. "/STARTUP", 'w')
