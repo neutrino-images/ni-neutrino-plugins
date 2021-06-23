@@ -153,14 +153,12 @@ function media.getVideoUrl(yurl)
 	for i = 1,6 do
 		countx = 0
 		local data = getdata(yurl)
-		if data:find('player%-age%-gate%-content') then
+		local age_formats = false
+		if data:find('LOGIN_REQUIRED') then
 			local id = yurl:match("/watch%?v=([%w+%p+]+)")
 			if id then
-				data = getdata('https://www.youtube.com/embed/' .. id)
-				local sts = data:match('"sts":(%d+)')
-				if sts then
-					data = getdata('https://www.youtube.com/get_video_info?video_id=' .. id .. '&eurl=https%3A%2F%2Fyoutube.googleapis.com%2Fv%2F' .. id .. '&sts=' .. sts)
-				end
+			data = getdata('https://www.youtube.com/get_video_info?html5=1&video_id=' .. id .. '&eurl=https%3A%2F%2Fyoutube.googleapis.com%2Fv%2F' .. id .. '&c=TVHTML5&cver=7.20210621')
+				if data then data = unescape_uri(data) age_formats = true end
 			end
 		end
 
@@ -194,7 +192,7 @@ function media.getVideoUrl(yurl)
 			local player_map = data:match("ytplayer.config%s-=%s-({.-});")
 			local map_urls = {}
 			local ucount = 0
-			if player_map then
+			if player_map or age_formats then
 				local formats_data = data:match('"formats%p-:(%[{.-}])')
 				if formats_data then
 					formats_data = formats_data:gsub('\\\\\\"','')
