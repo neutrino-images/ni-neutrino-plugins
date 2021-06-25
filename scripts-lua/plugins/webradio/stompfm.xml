@@ -1,4 +1,4 @@
 <?xml version="1.0"?>
 <webradios name="StompFM">
-	<webradio title="StompFM" url="http://51.255.104.137:8057/" description="stompfm.de ... so klingt Berlin!" />
+	<webradio title="StompFM" url="https://stompfm-stream.de/mainstream" description="stompfm.de ... so klingt Berlin!" />
 </webradios>
