@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <webradios name="80s80s">
-	<webradio title="80s80s - Main Stream" url="http://streams.80s80s.de/web/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Bowie" url="http://streams.80s80s.de/bowie/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Depeche Mode (Radio For The Masses)" url="http://streams.80s80s.de/dm/mp3-192/streams.80s80s.de/" />
+	<webradio title="80s80s - Main Stream" url="https://streams.80s80s.de/web/mp3-192/streams.80s80s.de/" />
+	<webradio title="80s80s - Bowie" url="https://streams.80s80s.de/bowie/mp3-192/streams.80s80s.de/" />
+	<webradio title="80s80s - Depeche Mode (Radio For The Masses)" url="https://streams.80s80s.de/dm/mp3-192/streams.80s80s.de/" />
 	<webradio title="80s80s - In the Mix" url="https://streams.80s80s.de/mix/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Italo Hits" url="http://streams.80s80s.de/italohits/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Love" url="http://streams.80s80s.de/love/mp3-192/streams.80s80s.de/" />
+	<webradio title="80s80s - Italo Hits" url="https://streams.80s80s.de/italohits/mp3-192/streams.80s80s.de/" />
+	<webradio title="80s80s - Love" url="https://streams.80s80s.de/love/mp3-192/streams.80s80s.de/" />
 	<webradio title="80s80s - Maxis" url="https://streams.80s80s.de/maxis/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Michael Jackson" url="http://streams.80s80s.de/mj/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - NDW" url="http://streams.80s80s.de/ndw/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Partyhits" url="http://streams.80s80s.de/party/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Prince" url="http://streams.80s80s.de/100/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Rock" url="http://streams.80s80s.de/rock/mp3-192/streams.80s80s.de/" />
+	<webradio title="80s80s - Michael Jackson" url="https://streams.80s80s.de/mj/mp3-192/streams.80s80s.de/" />
+	<webradio title="80s80s - NDW" url="https://streams.80s80s.de/ndw/mp3-192/streams.80s80s.de/" />
+	<webradio title="80s80s - Partyhits" url="https://streams.80s80s.de/party/mp3-192/streams.80s80s.de/" />
+	<webradio title="80s80s - Prince" url="https://streams.80s80s.de/100/mp3-192/streams.80s80s.de/" />
+	<webradio title="80s80s - Rock" url="https://streams.80s80s.de/rock/mp3-192/streams.80s80s.de/" />
 	<webradio title="80s80s - Soul" url="https://streams.80s80s.de/soul/mp3-192/streams.80s80s.de/" />
 	<webradio title="80s80s - Summerhits" url="https://streams.80s80s.de/summerhits/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Wave" url="http://streams.80s80s.de/wave/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Christmas" url="http://streams.80s80s.de/christmas/mp3-192/streams.80s80s.de/" />
+	<webradio title="80s80s - Wave" url="https://streams.80s80s.de/wave/mp3-192/streams.80s80s.de/" />
+	<webradio title="80s80s - Christmas" url="https://streams.80s80s.de/christmas/mp3-192/streams.80s80s.de/" />
 </webradios>

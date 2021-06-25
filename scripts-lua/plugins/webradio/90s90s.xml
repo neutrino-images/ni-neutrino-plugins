@@ -1,17 +1,17 @@
 <?xml version="1.0"?>
 <webradios name="90s90s">
-	<webradio title="90s90s - Main Stream" url="http://streams.90s90s.de/main/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - Beat" url="http://streams.90s90s.de/main/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - Boygroups" url="http://streams.90s90s.de/boygroup/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - Dance" url="http://streams.90s90s.de/eurodance/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - Grunge" url="http://streams.90s90s.de/grunge/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - HipHop deutsch" url="http://streams.90s90s.de/hiphop-german/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - HipHop" url="http://streams.90s90s.de/hiphop/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - Hits" url="http://streams.90s90s.de/pop/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - In the mix" url="http://streams.90s90s.de/inthemix/mp3-192/streams.90s90s.de/" />
+	<webradio title="90s90s - Main Stream" url="https://streams.90s90s.de/main/mp3-192/streams.90s90s.de/" />
+	<webradio title="90s90s - Beat" url="https://streams.90s90s.de/main/mp3-192/streams.90s90s.de/" />
+	<webradio title="90s90s - Boygroups" url="https://streams.90s90s.de/boygroup/mp3-192/streams.90s90s.de/" />
+	<webradio title="90s90s - Dance" url="https://streams.90s90s.de/eurodance/mp3-192/streams.90s90s.de/" />
+	<webradio title="90s90s - Grunge" url="https://streams.90s90s.de/grunge/mp3-192/streams.90s90s.de/" />
+	<webradio title="90s90s - HipHop deutsch" url="https://streams.90s90s.de/hiphop-german/mp3-192/streams.90s90s.de/" />
+	<webradio title="90s90s - HipHop" url="https://streams.90s90s.de/hiphop/mp3-192/streams.90s90s.de/" />
+	<webradio title="90s90s - Hits" url="https://streams.90s90s.de/pop/mp3-192/streams.90s90s.de/" />
+	<webradio title="90s90s - In the mix" url="https://streams.90s90s.de/inthemix/mp3-192/streams.90s90s.de/" />
 	<webradio title="90s90s - Lovesongs" url="https://streams.90s90s.de/love/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - RnB" url="http://streams.90s90s.de/rnb/mp3-192/streams.90s90s.de/" />
+	<webradio title="90s90s - RnB" url="https://streams.90s90s.de/rnb/mp3-192/streams.90s90s.de/" />
 	<webradio title="90s90s - Summerhits" url="https://streams.90s90s.de/90s90s-sommerhits/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - Techno" url="http://streams.90s90s.de/techno/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - Xmas" url="http://streams.90s90s.de/xmas/mp3-192/streams.90s90s.de/" />
+	<webradio title="90s90s - Techno" url="https://streams.90s90s.de/techno/mp3-192/streams.90s90s.de/" />
+	<webradio title="90s90s - Xmas" url="https://streams.90s90s.de/xmas/mp3-192/streams.90s90s.de/" />
 </webradios>
