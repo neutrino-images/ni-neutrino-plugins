@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.91"
+rssReaderVersion="Lua RSS READER v0.92"
 local CONF_PATH = "/var/tuxbox/config/"
 local n = neutrino()
 local FontMenu = FONT.MENU
@@ -1296,18 +1296,19 @@ function gen_MT_ard()
 	if h then
 		h:paint()
 	end
-	for i, v in ipairs(az) do
-		local url = "https://classic.ardmediathek.de/tv/sendungen-a-z?sendungsTyp=sendung&buchstabe=" .. v
+	for i, z in ipairs(az) do
+		local url = "https://www.ardmediathek.de/sendungen-a-bis-z/" .. z
 		local data = getdata(url)
-		for  _data in  data:gmatch('<div class=\"teaser\"(.-</h4>)') do
-			if allT[_url]  ~= true then
-				local _url = _data:match('<a href="/(.-)"')
-				if _url then
-					local title = _data:match("<h4.->(.-)<")
-					_url = xml_entities(_url)
-					title = convHTMLentities(title)
-					title = xml_entities(title)
-					table.insert(tab,{name=title, url="https://classic.ardmediathek.de/" .. _url .. "&rss=true", az=v})
+		local json = require "json"
+		data = data:match('<script id="fetchedContextValue" type="application/json">(.-)</script>')
+		local jnTab = json:decode(data )
+		for k, v in pairs(jnTab) do
+			if v.teasers then
+				for kk, vv in pairs(v.teasers) do
+					if vv.shortTitle then
+						local title = vv.shortTitle:gsub(" ","%%20")
+						table.insert(tab,{name=vv.shortTitle, url="https://mediathekviewweb.de/feed?query=!ard%20" .. title , az=z})
+					end
 				end
 			end
 		end
@@ -1348,7 +1349,9 @@ function rssurlmenu(url)
 	glob.feedpersed = getFeedDataFromUrl(url)
 	if glob.feedpersed == nil then return end
 	local d = 0 -- directkey
-	local m = menu.new{name=glob.feedpersed.feed.title, icon="icon_blue"}
+	local head_title = glob.feedpersed.feed.title
+	if head_title then head_title = head_title:gsub("!ard","") end
+	local m = menu.new{name=head_title, icon="icon_blue"}
 	glob.m=m
 	m:addKey{directkey=RC.home, id="home", action="home"}
 	m:addKey{directkey=RC.info, id="FEED Version: " .. fp.version, action="info"}
