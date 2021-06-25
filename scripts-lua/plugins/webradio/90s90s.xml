@@ -1,8 +1,7 @@
 <?xml version="1.0"?>
 <webradios name="90s90s">
-	<webradio title="90s90s - Main Stream" url="https://streams.90s90s.de/main/mp3-192/streams.90s90s.de/" />
 	<webradio title="90s90s - Beat" url="https://streams.90s90s.de/main/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - Boygroups" url="https://streams.90s90s.de/boygroup/mp3-192/streams.90s90s.de/" />
+	<webradio title="90s90s - Boygroup" url="https://streams.90s90s.de/boygroup/mp3-192/streams.90s90s.de/" />
 	<webradio title="90s90s - Dance" url="https://streams.90s90s.de/eurodance/mp3-192/streams.90s90s.de/" />
 	<webradio title="90s90s - Grunge" url="https://streams.90s90s.de/grunge/mp3-192/streams.90s90s.de/" />
 	<webradio title="90s90s - HipHop deutsch" url="https://streams.90s90s.de/hiphop-german/mp3-192/streams.90s90s.de/" />
