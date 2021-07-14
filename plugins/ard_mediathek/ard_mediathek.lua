@@ -526,7 +526,12 @@ function checkDayIsActiv(selectedChannelId, tagId)
 			lRet[tonumber(r[i])+1] = true
 		end
 	end
-
+	if tagId == 0 and #s == 0 then
+		for i = 1, 7 do
+			lRet[i] = true
+		end
+		lRet[1] = false
+	end
 	return lRet
 end
 
