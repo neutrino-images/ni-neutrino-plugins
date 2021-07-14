@@ -107,7 +107,7 @@ function init()
 	config				= configfile.new()
 	loadConfig()
 
-	baseUrl				= "http://www-origin.ardmediathek.de"
+	baseUrl				= "https://www-origin.ardmediathek.de"
 	tmpPath 			= "/tmp/ard_mediathek"
 	os.execute("rm -fr " .. tmpPath)
 	os.execute("sync")
