@@ -265,6 +265,15 @@ function saveData(name, data)
 	end
 end
 
+
+function read_file(filename)
+	local fp = io.open(filename, "r")
+	if fp == nil then error("Error opening file '" .. filename .. "'.") end
+	local data = fp:read("*a")
+	fp:close()
+	return data
+end
+
 function makeAreaFileName(cId, tId, area)
 	local tmpDataBody = tmpPath .. "/data1_" .. cId .. "_" .. tId
 	return tmpDataBody .. "_area" .. area .. ".htm"
@@ -290,11 +299,7 @@ function getTmpData1(selectedChannelId, tagId)
 		if debugmode >= 1 then print("[getTmpData1] " .. wget_cmd .. tmpData .. " '" .. baseUrl .. "/tv/sendungVerpasst?kanal=" .. tmp1 .. "'"); end
 		os.execute(wget_cmd .. tmpData .. " '" .. baseUrl .. "/tv/sendungVerpasst?kanal=" .. tmp1 .. "'");
 		
-		local fp, s
-		fp = io.open(tmpData, "r")
-		if fp == nil then error("Error opening file '" .. tmpData .. "'.") end
-		s = fp:read("*a")
-		fp:close()
+		local s = read_file(tmpData)
 
 		local i
 		local sLen = #s
@@ -428,11 +433,7 @@ function listMissingContent(selectedChannelId, tagId, areaId)
 	local tmpDataArea = makeAreaFileName(selectedChannelId, tagId, areaId)
 	if fileExist(tmpDataArea) == nil then return end
 
-	local fp = io.open(tmpDataArea, "r")
-	if fp == nil then error("Error opening file '" .. tmpDataArea .. "'.") end
-	local s = fp:read("*a")
-	fp:close()
-
+	local s = read_file(tmpDataArea)
 
 	local lRet = {}
 	local p = -1
@@ -515,10 +516,7 @@ function checkDayIsActiv(selectedChannelId, tagId)
 	end
 	lRet[1] = true
 
-	local fp = io.open(tmpData, "r")
-	if fp == nil then error("Error opening file '" .. tmpData .. "'.")end
-	local s = fp:read("*a")
-	fp:close()
+	local s = read_file(tmpData)
 
 	local r = miniGMatch(s, "?kanal=" .. selectedChannelId .. "&amp;tag=", "\">", 0)
 	for i = 1, 7 do
@@ -930,13 +928,10 @@ function getStream(_id)
 
 	local streamUrl = "x"
 	local streamQuality = "-1"
-	local fp = io.open(tmpData, "r")
-	if fp == nil then
+	local s = read_file(tmpData)
+	if s == nil then
 		hideInfoBox()
-		error("Error opening file '" .. tmpData .. "'.")
 	end
-	local s = fp:read("*a")
-	fp:close()
 
 	local j_table = json:decode(s)
 	if debugmode == 2 then print("#####[ard_mediathek] Inhalt von j_table:")
