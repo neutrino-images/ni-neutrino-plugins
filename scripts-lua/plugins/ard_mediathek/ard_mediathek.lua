@@ -463,11 +463,12 @@ function listMissingContent(selectedChannelId, tagId, areaId)
 			else
 				nextP = #s
 			end
-			local d, p = miniMatch(s, "<span class=\"date\">", "</span>", p)
-			local t, p = miniMatch(s, "<span class=\"titel\">", "</span>", p)
+			local data = s:sub(p,nextP)
+			local d, p = miniMatch(data, "<span class=\"date\">", "</span>", 0)
+			local t, p = miniMatch(data, "<span class=\"titel\">", "</span>", p)
 			if t == nil then t = "" end
 			t = conv_str(t)
-			local dId, p = miniMatch(s, "documentId=", '" class=', p)
+			local dId, p = miniMatch(data, "documentId=", '" class=', p)
 			if old_dId ~= dId then
 				old_dId = dId
 				if d == nil then d = "" end
@@ -479,20 +480,21 @@ function listMissingContent(selectedChannelId, tagId, areaId)
 
 			local count2 = 1
 			local im, vi, hl, st
-			local mandant = s:match('##width##(?%w+=%w+)&#039;')
+			local mandant = data:match('##width##(?%w+=%w+)&#039;')
 			if mandant ==  nil then
 				mandant=""
 			end
 			lRet[i].streams = {}
 			repeat
-				im, p = miniMatch(s, "urlScheme&#039;:&#039;", "##width##" .. mandant .. "&#039;}\"/>", p)
 				if p == nil or p > nextP then break end
-				dId, p = miniMatch(s, "documentId=", '" class=', p)
+				im, p = miniMatch(data, "urlScheme&#039;:&#039;", "##width##" .. mandant .. "&#039;}\"/>", p)
 				if p == nil or p > nextP then break end
-				hl, p = miniMatch(s, "<h4 class=\"headline\">", "</h4>", p)
+				dId, p = miniMatch(data, "documentId=", '" class=', p)
+				if p == nil or p > nextP then break end
+				hl, p = miniMatch(data, "<h4 class=\"headline\">", "</h4>", p)
 				if p == nil or p > nextP then break end
 				hl = conv_str(hl)
-				st, p = miniMatch(s, "<p class=\"subtitle\">", "</p>", p)
+				st, p = miniMatch(data, "<p class=\"subtitle\">", "</p>", p)
 				if p == nil or p > nextP then break end
 				st = conv_str(st)
 				st = string.gsub(st, " | UT", "");
@@ -530,7 +532,12 @@ function checkDayIsActiv(selectedChannelId, tagId)
 			lRet[tonumber(r[i])+1] = true
 		end
 	end
-
+	if tagId == 0 and #s == 0 then
+		for i = 1, 7 do
+			lRet[i] = true
+		end
+		lRet[1] = false
+	end
 	return lRet
 end
 
@@ -631,7 +638,9 @@ function programMissedMenu4(_id)
 			_icon = ""
 			_directkey = ""
 		end
-		m_missed4:addItem{type="forwarder", value=listContent[i].date, name=listContent[i].title, action="listStreams", id=i, icon=_icon, directkey=_directkey};
+		local stream_active = true
+		if listContent[i].streamCount == 0 then stream_active = false end
+		m_missed4:addItem{type="forwarder",enabled=stream_active, value=listContent[i].date, name=listContent[i].title, action="listStreams", id=i, icon=_icon, directkey=_directkey};
 	end
 
 	m_missed4:exec()
