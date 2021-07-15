@@ -23,6 +23,7 @@
 debugmode = 0 -- 0->no debug output, 1->debug output enabled, 2->debug output plus json-printout
 
 local json = require "json"
+
 local bor = bit and bit.bor
 	or bit32 and bit32.bor
 	or load[[return function(a, b) return a | b end]]()
@@ -101,6 +102,13 @@ function init()
 
 	playQuality 			= "auto"
 
+	livelist = {}
+	firstLiveInit = true
+	vPlay = nil
+	muteStatusNeutrino	= false
+	volumeNeutrino		= 0
+	M = misc.new()
+
 	conf = {}
 	confChanged 			= 0
 	confFile			= "/var/tuxbox/config/ard_mediathek.conf";
@@ -138,8 +146,8 @@ function init()
 	searchData_1[3] = searchData_1_0 .. "VORABENDS" .. searchData_1_1
 	searchData_1[4] = searchData_1_0 .. "ABENDS" .. searchData_1_1
 
-	if fileExist(script_path().."ard_mediathek.jpg") == true then BGP = video.new() end
-	showBGPicture(false)
+	if fileExist(script_path().."ard_mediathek.jpg") == true then if vPlay == nil then vPlay = video.new() end end
+	showBGPicture()
 end
 
 function get_timing_menu()
@@ -163,18 +171,28 @@ function get_timing_menu()
 	return ret
 end
 
-function showBGPicture(_sleep)
-	os.execute("pzapit -mute")
-	if _sleep == true then sleep (1) end
-	BGP:ShowPicture(script_path().."ard_mediathek.jpg")
-	--n:ShowPicture(script_path().."ard_mediathek.jpg")
+local M = misc.new()
+
+function showBGPicture()
+	vPlay:zapitStopPlayBack()
+	vPlay:ShowPicture(script_path().."ard_mediathek.jpg")
+
+	muteStatusNeutrino = M:isMuted()
+	volumeNeutrino = M:getVolume()
+	M:enableMuteIcon(false)
+	M:AudioMute(true, false)
 end
 
 function hideBGPicture(rezap)
-	BGP:StopPicture()
-	if rezap == true then os.execute("pzapit -rz") end
-	os.execute("{ sleep 1; pzapit -unmute; } &")
---	os.execute("pzapit -unmute")
+	if (rezap == false) then
+		vPlay:channelRezap()
+	end
+	local rev, box = M:GetRevision()
+	if rev == 1 and box == "Spark" then V:StopPicture() end
+
+	M:enableMuteIcon(true)
+	M:AudioMute(muteStatusNeutrino, true)
+	M:setVolume(volumeNeutrino)
 end
 
 function setChannels()
@@ -223,8 +241,7 @@ function getFirstMenu()
 	m_modes:addItem{type="separator"};
 
 	m_modes:addItem{type="forwarder", name=langStr_programMissed, action="programMissedMenu1", icon=1, directkey=RC["1"]};
-	m_modes:addItem{type="forwarder", name="Einslike", enabled=false, action="programMissedMenu1", icon=2, directkey=RC["2"]};
-	m_modes:addItem{type="forwarder", name="Livestreams", enabled=false, action="programMissedMenu1", icon=3, directkey=RC["3"]};
+	m_modes:addItem{type="forwarder", name="Livestreams", enabled=true, action="livestreamsMenu", icon=2, directkey=RC["2"]};
 
 	m_modes:addItem{type="separatorline"};
 	m_modes:addItem{type="forwarder", name=langStr_options, action="setOptions", id="-2", icon="blau", directkey=RC["blue"]};
@@ -275,10 +292,195 @@ function read_file(filename)
 end
 
 
-function sleep (a)
+function sleep(a)
 	local sec = tonumber(os.clock() + a)
 	while (os.clock() < sec) do
 	end
+end
+
+
+function getdata(Url,outputfile)
+	if Url == nil then return nil end
+	if Curl == nil then
+		Curl = curl.new()
+	end
+
+	if Url:sub(1, 2) == '//' then
+		Url =  'https:' .. Url
+	end
+
+	local ret, data = Curl:download{url=Url,A="Mozilla/5.0;",connectTimeout=5,maxRedirs=5,followRedir=true,o=outputfile }
+	if ret == CURL.OK then
+		if outputfile then
+			return 1
+		end
+		return data
+	else
+		return nil
+	end
+end
+
+function getLiveList()
+	local data = getdata(baseUrl .. "/tv/live")
+	if data then
+		for link in data:gmatch('(/tv/[%w+%p+]+/live%?kanal=%d+)" class="mediaLink"') do
+			local channel = link:match('/tv/([%w+%p+]+)/live%?kanal=%d+')
+			table.insert(livelist,{name=channel, url=link, stream=nil,audiostream=nil})
+		end
+	end
+end
+
+function getMaxVideoRes()
+	local maxRes = 1920
+	local quali = tonumber(conf.streamQuality)
+	if quali == 3 then
+		maxRes = 1280
+	elseif quali == 2 then
+		maxRes = 960
+	elseif quali == 1 then
+		maxRes = 640
+	elseif quali == 0 then
+		maxRes = 480
+	end
+	return maxRes
+end
+
+function getVideoUrlM3U8(m3u8_url)
+	if m3u8_url == nil then return nil end
+	local res = 0
+	local videoUrl = nil
+	local audioUrl = nil
+	local data = getdata(m3u8_url)
+	if data then
+		local host = m3u8_url:match('([%a]+[:]?//[_%w%-%.]+)/')
+		local lastpos = (m3u8_url:reverse()):find("/")
+		local hosttmp = m3u8_url:sub(1,#m3u8_url-lastpos)
+		if hosttmp then
+			host = hosttmp .."/"
+		end
+		local revision = 0
+		if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
+			revision = M:GetRevision()
+		end
+
+		local audio_url = nil
+		if revision == 1 then -- separate audio for hd51 and co
+			local Nconfig	= configfile.new()
+			local lang1,lang2,lang3 = nil,nil,nil
+			Nconfig:loadConfig("/var/tuxbox/config/neutrino.conf")
+			lang1 = Nconfig:getString("pref_lang_0", "#")
+			lang2 = Nconfig:getString("pref_lang_1", "#")
+			lang3 = Nconfig:getString("pref_lang_2", "#")
+			if lang1 == "#" then lang1 = nil end
+			if lang2 == "#" then lang2 = nil end
+			if lang3 == "#" then lang3 = nil end
+			if lang1 == nil then
+				lang1 = Nconfig:getString("language", "english")
+				if lang1 == nil then
+					lang1 = "english"
+				end
+			end
+
+			local l1,l2,l3,l4,l = nil,nil,nil,nil,nil
+			for adata in data:gmatch('TYPE%=AUDIO.GROUP%-ID=".-",(.-)\n') do
+				local lname = adata:match('NAME="(.-)"')
+				local lang = adata:match('LANGUAGE="(.-)"')
+				local aurl = adata:match('URI="(.-)"')
+				if aurl then
+					if lname and lang1 and lang:lower() == lang1:lower() then
+						l1 = aurl
+					elseif lname and lang2 and lang:lower() == lang2:lower() then
+						l2 = aurl
+					elseif lname and lang3 and lang:lower() == lang3:lower() then
+						l3 = aurl
+					elseif lname and lang:lower() == "deu" then
+						l4 = aurl
+					elseif l == nil then
+						l = aurl
+					end
+				end
+			end
+			audio_url = l1 or l2 or l3 or l4 or l
+		end
+		local first = true
+		local maxRes = getMaxVideoRes()
+		for band, res1, res2, url in data:gmatch('BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-\n(.-)\n') do
+			if url and res1 then
+				local nr = tonumber(res1)
+				if (nr <= maxRes and nr > res) or first then
+					first = false
+					res=nr
+					if host and url:sub(1,4) ~= "http" then
+						url = host .. url
+					end
+					if audio_url and host and audio_url:sub(1,4) ~= "http" then
+						audio_url = host .. audio_url
+					end
+					videoUrl  = url
+					audioUrl  = audio_url
+				end
+			end
+		end
+	else
+		return m3u8_url, nil
+	end
+	return videoUrl, audioUrl
+end
+
+function getLiveStream(id)
+	local url = livelist[id].url
+	local data = getdata(baseUrl .. url)
+	if data then
+		local pat1 = "/play/media/"
+		local chid = data:match( pat1 .. '(%d+)')
+		print(chid)
+		print(baseUrl .. pat1 .. chid .. '?devicetype=pc&features=flash')
+		local jdata = getdata(baseUrl .. pat1 .. chid .. '?devicetype=pc&features=flash')
+		if jdata then
+			local jnTab = json:decode(jdata )
+			if jnTab and jnTab._mediaArray[1] and jnTab._mediaArray[1] and jnTab._mediaArray[1]._mediaStreamArray[1] 
+			and jnTab._mediaArray[1]._mediaStreamArray[1]._stream then
+				livelist[id].stream , livelist[id].audiostream = getVideoUrlM3U8(jnTab._mediaArray[1]._mediaStreamArray[1]._stream)
+			end
+		end
+	end
+	return livelist[id].stream
+end
+
+function play_live(_id)
+	local id = tonumber(_id)
+	if livelist[id].stream == nil then
+		livelist[id].stream = getLiveStream(id)
+	end
+	if livelist[id].stream then
+		hideMenu(live_listen_menu)
+		hideBGPicture(false)
+		if vPlay == nil then vPlay = video.new() end
+		vPlay:PlayFile(livelist[id].name, livelist[id].stream, "Live","",livelist[id].audiostream or "")
+		collectgarbage();
+		showBGPicture()
+	end
+end
+
+function livestreamsMenu()
+	if firstLiveInit then
+		firstLiveInit = false
+		getLiveList()
+	end
+	if #livelist == 0 then
+		return
+	end
+	hideMenu(m_modes)
+	live_listen_menu  = menu.new{name="Live", icon=pluginIcon}
+	local menu = live_listen_menu
+	menu:addItem{type="back"}
+	menu:addItem{type="separatorline"}
+	for i, v in ipairs(livelist) do
+		menu:addItem{type="forwarder", name=v.name, action="play_live",enabled=true,id=i}
+	end
+	menu:exec()
+	menu:hide()
+	return MENU_RETURN.EXIT_REPAINT
 end
 
 function makeAreaFileName(cId, tId, area)
@@ -1076,9 +1278,10 @@ function getStream(_id)
 		if info2 == nil then info2 = "" end
 		hideBGPicture(false)
 --		n:PlayFile(title, streamUrl, conv_str(info1), conv_str(info2));
-		video = video.new(); video:PlayFile(title, streamUrl, conv_str(info1), conv_str(info2))
+		if vPlay == nil then vPlay = video.new() end
+		vPlay:PlayFile(title, streamUrl, conv_str(info1), conv_str(info2))
 		collectgarbage();
-		showBGPicture(true)
+		showBGPicture()
 	end
 end
 
