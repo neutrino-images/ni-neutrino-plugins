@@ -115,15 +115,12 @@ function init()
 	config				= configfile.new()
 	loadConfig()
 
-	baseUrl				= "http://www-origin.ardmediathek.de"
+	baseUrl				= "https://www-origin.ardmediathek.de"
 	tmpPath 			= "/tmp/ard_mediathek"
 	os.execute("rm -fr " .. tmpPath)
 	os.execute("sync")
 	os.execute("mkdir -p " .. tmpPath)
 	user_agent 			= "\"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:31.0) Gecko/20100101 Firefox/31.0\""
-	if debugmode >= 1 then wget_cmd = "wget -U " .. user_agent .. " -O " else
-		wget_cmd = "wget -q -U " .. user_agent .. " -O "
-	end
 	pluginIcon			= decodeImage("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA8dJREFUeNrsV21IU1EYPufc25y6qegsCCTDUMzEjNA+tMylRIUlFmYlUUIfv4ISIgm3O6WghPoXBRFlJX1QlM5+SdqXLZKCvjaxMq0fFWbprW1u957OXTq3u4977yz608su527n7H2e857347xQV9kEZIjB590osdZ3npFSTMsENwL5Il7LRErAEEKhEgtIWoOWuWtFZh0XGEQPI4dAMHBGwRF41yIEIc/jetEm/HRRMfNKQ4ELY6dCcD/B2PN/QHjcwwAsJ69F41NdXpJhwJmmGr0pUvCrB8tnTOyYx7geTm7E6BtVKJSCusqlsPZMB1YCam6oStpftrBMp41urjjYctpsqkrwWsPzCe2EfrtflpViOnz5gSxwy4kaeLPbVtj20FqiP3A+nx11ZNFqFYyPUTmiaModxDeMvv5Ai8FpgE13Xw5Kgh+tKS5st/Tp5+85XfzDbs+iaApp1GqUrIsDLo7DFPE+QUI4qJdEQBS4AQwJfm5fWebFOy+2PH41kLej6VbaNJpK1cSqQZJa6/E47HE8LDw8iUIXhNIWlMyEV+o2zGzttq40W/rWl9W3ZGMKzomOmgaSErTEuydB/bxfgd/QYs/3naxeka1fU3t2px1RCzUxUbqkRK1GUM9xwgYFcKgQLvAYULiVn0Z/TLdTKFcXH63ieA58GR4FrH2MJBiCT7AxxGCqEvYIEE9c4rud+4aotzmpusHVizI6Rn4640/dfno8NoomJFAkFvDHCDeZHBc7uLs839DeuHnb+yF260lzz9nMlGSrg1jBY33wly3Q3Pn8ERkeXet54/1tjONVAjgEf0YQ+MfynwAS5QGDdI0dv2pgsRNC7zdIYlTITTwJVIn7hpFWztmT9vjfHKCXC/TUfeKkbh6MjDh4NYV75RhYMQEIsYsMLE+UIyQUWQhcbg6MOkhoOt39ukTNUMWS9PuVxdnXSususHIIBC2TYSi4IYKskAVZ1gnsTjfQxqisJTlpT0pzZ3UdufqwvfP1ByA8UuafKMdBy+Ta/AxTm8UWkGmcLk6Fh1k8RtO2rNTpfRsL5rbpF8x+sOrQpa89fR/lXu+9dSfkIQng1cXzYGB2jB7YvrGg1txYtan/8/ddx653twrgkUYBFHVGYpawfHF6w43uXi5iAAiN4+XaEKzqim/FE7fVoonH+mEIJ6hV9w3VRajj2TteUYxDyBBwg89t2Ch1LReT8IwON4cJ+DLhfe+6vC6LLfxZk3NbIazFgT0lI3UEf7o1A1KRRcvpcMK0aXIaVWaqiYiZggUku6pfAgwAu5p23B5ofWAAAAAASUVORK5CYII=", tmpPath)
 
 	selectedChannel			= ""
@@ -433,8 +430,6 @@ function getLiveStream(id)
 	if data then
 		local pat1 = "/play/media/"
 		local chid = data:match( pat1 .. '(%d+)')
-		print(chid)
-		print(baseUrl .. pat1 .. chid .. '?devicetype=pc&features=flash')
 		local jdata = getdata(baseUrl .. pat1 .. chid .. '?devicetype=pc&features=flash')
 		if jdata then
 			local jnTab = json:decode(jdata )
@@ -505,9 +500,8 @@ function getTmpData1(selectedChannelId, tagId)
 		else
 			tmp1 = selectedChannelId .. "&tag=" .. tagId
 		end
-		if debugmode >= 1 then print("[getTmpData1] " .. wget_cmd .. tmpData .. " '" .. baseUrl .. "/tv/sendungVerpasst?kanal=" .. tmp1 .. "'"); end
-		os.execute(wget_cmd .. tmpData .. " '" .. baseUrl .. "/tv/sendungVerpasst?kanal=" .. tmp1 .. "'");
-		
+		if debugmode >= 1 then print("[getTmpData1] "  .. tmpData .. " '" .. baseUrl .. "/tv/sendungVerpasst?kanal=" .. tmp1 .. "'"); end
+		getdata(baseUrl .. "/tv/sendungVerpasst?kanal=" .. tmp1,tmpData)
 		local s = read_file(tmpData)
 
 		local i
@@ -929,8 +923,8 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 			local frameY = boxY - SCREEN.OFF_Y
 
 			if fileExist(picName) == false then
-				if debugmode >= 1 then printf("#####[ard_mediathek] %s%s '%s'", wget_cmd, picName, picUrl); end
-				os.execute(wget_cmd .. picName .. " '" .. picUrl .. "'");
+				if debugmode >= 1 then printf("#####[ard_mediathek] %s '%s'", picName, picUrl); end
+				getdata(picUrl, picName)
 			end
 
 			-- Number of lines Text1
@@ -1131,8 +1125,8 @@ function getStream(_id)
 	local tmpData = tmpPath .. "/json1_" .. dId .. ".txt"
 	if fileExist(tmpData) ~= true then
 		paintInfoBox(langStr_contentLoad)
-		if debugmode >= 1 then print("[getStream] " .. wget_cmd .. tmpData .. " '" .. baseUrl .. "/play/media/" .. dId .. "?devicetype=pc&features=flash'"); end
-		os.execute(wget_cmd .. tmpData .. " '" .. baseUrl .. "/play/media/" .. dId .. "?devicetype=pc&features=flash'");
+		if debugmode >= 1 then print("[getStream] "  .. tmpData .. " '" .. baseUrl .. "/play/media/" .. dId .. "?devicetype=pc&features=flash'"); end
+		getdata(baseUrl .. "/play/media/" .. dId .. "?devicetype=pc&features=flash", tmpData)
 	end
 
 	local streamUrl = "x"
