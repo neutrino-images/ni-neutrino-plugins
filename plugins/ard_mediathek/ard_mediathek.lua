@@ -23,13 +23,13 @@
 debugmode = 0 -- 0->no debug output, 1->debug output enabled, 2->debug output plus json-printout
 
 local json = require "json"
-local posix = require "posix"
 local bor = bit and bit.bor
 	or bit32 and bit32.bor
 	or load[[return function(a, b) return a | b end]]()
 
 function script_path()
-	return posix.dirname(debug.getinfo(2, "S").source:sub(2)).."/"
+	local path = (debug.getinfo(2, "S").source:sub(2))
+	return path:match("(.*[/\\])")
 end
 
 ret = nil -- global return value
@@ -163,9 +163,9 @@ function get_timing_menu()
 	return ret
 end
 
-function showBGPicture(sleep)
+function showBGPicture(_sleep)
 	os.execute("pzapit -mute")
-	if sleep == true then posix.sleep(1) end
+	if _sleep == true then sleep (1) end
 	BGP:ShowPicture(script_path().."ard_mediathek.jpg")
 	--n:ShowPicture(script_path().."ard_mediathek.jpg")
 end
@@ -272,6 +272,13 @@ function read_file(filename)
 	local data = fp:read("*a")
 	fp:close()
 	return data
+end
+
+
+function sleep (a)
+	local sec = tonumber(os.clock() + a)
+	while (os.clock() < sec) do
+	end
 end
 
 function makeAreaFileName(cId, tId, area)
@@ -945,7 +952,7 @@ function getStream(_id)
 		local j_geoblocked = j_table.geoblocked
 		if j_geoblocked == true then
 			paintInfoBox("geoblocked: " .. tostring(j_geoblocked) .. "???\nPlease info the plugin author.")
-			posix.sleep(5)
+			sleep(5)
 			hideInfoBox()
 			return
 		end
@@ -1184,9 +1191,10 @@ function hideInfoBox()
 	end
 end
 
+
 function fileExist(file)
-	if posix.access(file, f) == nil then return false end
-	return true
+	local fh = filehelpers.new()
+	return fh:exist(file, "f")
 end
 
 function trim(s)
@@ -1294,7 +1302,7 @@ function saveConfig()
 
 		config:saveConfig(confFile)
 		confChanged = 0
-		posix.sleep(1)
+		sleep (1)
 		hideInfoBox()
 	end
 	return MENU_RETURN.EXIT_REPAINT
@@ -1345,5 +1353,5 @@ getFirstMenu()
 config:saveConfig(confFile)
 hideBGPicture(true)
 os.execute("rm -fr " .. tmpPath)
-posix.sync()
+os.execute("sync")
 collectgarbage();
