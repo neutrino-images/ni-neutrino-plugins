@@ -59,7 +59,7 @@ function getVideoUrl(m3u8_url)
 				end
 			end
 
-			local l1,l2,l3,l = nil,nil,nil,nil
+			local l1,l2,l3,l4,l = nil,nil,nil,nil,nil
 			for adata in data:gmatch('TYPE%=AUDIO.GROUP%-ID=".-",(.-)\n') do
 				local lname = adata:match('NAME="(.-)"')
 				local lang = adata:match('LANGUAGE="(.-)"')
@@ -71,18 +71,21 @@ function getVideoUrl(m3u8_url)
 						l2 = aurl
 					elseif lname and lang3 and lang:lower() == lang3:lower() then
 						l3 = aurl
+					elseif lname and lang:lower() == "deu" then
+						l4 = aurl
 					elseif l == nil then
 						l = aurl
 					end
 				end
 			end
-			audio_url = l1 or l2 or l3 or l
+			audio_url = l1 or l2 or l3 or l4 or l
 		end
-
+		local first = true
 		for band, res1, res2, url in data:gmatch('BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-\n(.-)\n') do
 			if url and res1 then
 				local nr = tonumber(res1)
-				if nr <= maxRes and nr > res then
+				if (nr <= maxRes and nr > res) or first then
+					first = false
 					res=nr
 					if host and url:sub(1,4) ~= "http" then
 						url = host .. url
