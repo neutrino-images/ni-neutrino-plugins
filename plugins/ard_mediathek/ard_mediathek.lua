@@ -320,9 +320,14 @@ end
 function getLiveList()
 	local data = getdata(baseUrl .. "/tv/live")
 	if data then
-		for link in data:gmatch('(/tv/[%w+%p+]+/live%?kanal=%d+)" class="mediaLink"') do
-			local channel = link:match('/tv/([%w+%p+]+)/live%?kanal=%d+')
-			table.insert(livelist,{name=channel, url=link, stream=nil,audiostream=nil})
+		local ids= {}
+		for link in data:gmatch('(/tv/%S+/live%?kanal=%d+)"') do
+			local id = link:match('kanal=(%d+)')
+			if ids[id] ~= true then
+				ids[id] = true
+				local channel = link:match('/tv/(%S+)/live%?kanal=%d+')
+				table.insert(livelist,{name=channel, url=link, stream=nil,audiostream=nil})
+			end
 		end
 	end
 end
