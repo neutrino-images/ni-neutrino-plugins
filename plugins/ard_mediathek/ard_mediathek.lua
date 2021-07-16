@@ -502,6 +502,7 @@ function getTmpData1(selectedChannelId, tagId)
 		end
 		if debugmode >= 1 then print("[getTmpData1] "  .. tmpData .. " '" .. baseUrl .. "/tv/sendungVerpasst?kanal=" .. tmp1 .. "'"); end
 		getdata(baseUrl .. "/tv/sendungVerpasst?kanal=" .. tmp1,tmpData)
+		if fileExist(tmpData) == false then return end
 		local s = read_file(tmpData)
 
 		local i
@@ -634,8 +635,7 @@ function listMissingContent(selectedChannelId, tagId, areaId)
 	tmpData = getTmpData1(selectedChannelId, tagId)
 
 	local tmpDataArea = makeAreaFileName(selectedChannelId, tagId, areaId)
-	if fileExist(tmpDataArea) == nil then return end
-
+	if fileExist(tmpDataArea) == false then return end
 	local s = read_file(tmpDataArea)
 
 	local lRet = {}
@@ -718,6 +718,15 @@ function checkDayIsActiv(selectedChannelId, tagId)
 		lRet[i] = false
 	end
 	lRet[1] = true
+	if fileExist(tmpData) == false then
+		if tagId == 0 then
+			for i = 1, 7 do
+				lRet[i] = true
+			end
+			lRet[1] = false
+		end
+		return lRet
+	end
 
 	local s = read_file(tmpData)
 
@@ -726,12 +735,6 @@ function checkDayIsActiv(selectedChannelId, tagId)
 		if r[i] ~= nil and string.len(r[i]) < 3 then 
 			lRet[tonumber(r[i])+1] = true
 		end
-	end
-	if tagId == 0 and #s == 0 then
-		for i = 1, 7 do
-			lRet[i] = true
-		end
-		lRet[1] = false
 	end
 	return lRet
 end
@@ -1131,10 +1134,9 @@ function getStream(_id)
 
 	local streamUrl = "x"
 	local streamQuality = "-1"
+
+	if fileExist(tmpData) == false then hideInfoBox() return end
 	local s = read_file(tmpData)
-	if s == nil then
-		hideInfoBox()
-	end
 
 	local j_table = json:decode(s)
 	if debugmode == 2 then print("#####[ard_mediathek] Inhalt von j_table:")
