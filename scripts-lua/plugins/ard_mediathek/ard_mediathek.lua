@@ -23,13 +23,14 @@
 debugmode = 0 -- 0->no debug output, 1->debug output enabled, 2->debug output plus json-printout
 
 local json = require "json"
-local posix = require "posix"
+
 local bor = bit and bit.bor
 	or bit32 and bit32.bor
 	or load[[return function(a, b) return a | b end]]()
 
 function script_path()
-	return posix.dirname(debug.getinfo(2, "S").source:sub(2)).."/"
+	local path = (debug.getinfo(2, "S").source:sub(2))
+	return path:match("(.*[/\\])")
 end
 
 ret = nil -- global return value
@@ -101,6 +102,13 @@ function init()
 
 	playQuality 			= "auto"
 
+	livelist = {}
+	firstLiveInit = true
+	vPlay = nil
+	muteStatusNeutrino	= false
+	volumeNeutrino		= 0
+	M = misc.new()
+
 	conf = {}
 	confChanged 			= 0
 	confFile			= "/var/tuxbox/config/ard_mediathek.conf";
@@ -113,11 +121,6 @@ function init()
 	os.execute("sync")
 	os.execute("mkdir -p " .. tmpPath)
 	user_agent 			= "\"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:31.0) Gecko/20100101 Firefox/31.0\""
-	if debugmode >= 1 then
-		wget_cmd = "wget -U " .. user_agent .. " --no-check-certificate -O "
-	else
-		wget_cmd = "wget -q -U " .. user_agent .. " --no-check-certificate -O "
-	end
 	pluginIcon			= decodeImage("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA8dJREFUeNrsV21IU1EYPufc25y6qegsCCTDUMzEjNA+tMylRIUlFmYlUUIfv4ISIgm3O6WghPoXBRFlJX1QlM5+SdqXLZKCvjaxMq0fFWbprW1u957OXTq3u4977yz608su527n7H2e857347xQV9kEZIjB590osdZ3npFSTMsENwL5Il7LRErAEEKhEgtIWoOWuWtFZh0XGEQPI4dAMHBGwRF41yIEIc/jetEm/HRRMfNKQ4ELY6dCcD/B2PN/QHjcwwAsJ69F41NdXpJhwJmmGr0pUvCrB8tnTOyYx7geTm7E6BtVKJSCusqlsPZMB1YCam6oStpftrBMp41urjjYctpsqkrwWsPzCe2EfrtflpViOnz5gSxwy4kaeLPbVtj20FqiP3A+nx11ZNFqFYyPUTmiaModxDeMvv5Ai8FpgE13Xw5Kgh+tKS5st/Tp5+85XfzDbs+iaApp1GqUrIsDLo7DFPE+QUI4qJdEQBS4AQwJfm5fWebFOy+2PH41kLej6VbaNJpK1cSqQZJa6/E47HE8LDw8iUIXhNIWlMyEV+o2zGzttq40W/rWl9W3ZGMKzomOmgaSErTEuydB/bxfgd/QYs/3naxeka1fU3t2px1RCzUxUbqkRK1GUM9xwgYFcKgQLvAYULiVn0Z/TLdTKFcXH63ieA58GR4FrH2MJBiCT7AxxGCqEvYIEE9c4rud+4aotzmpusHVizI6Rn4640/dfno8NoomJFAkFvDHCDeZHBc7uLs839DeuHnb+yF260lzz9nMlGSrg1jBY33wly3Q3Pn8ERkeXet54/1tjONVAjgEf0YQ+MfynwAS5QGDdI0dv2pgsRNC7zdIYlTITTwJVIn7hpFWztmT9vjfHKCXC/TUfeKkbh6MjDh4NYV75RhYMQEIsYsMLE+UIyQUWQhcbg6MOkhoOt39ukTNUMWS9PuVxdnXSususHIIBC2TYSi4IYKskAVZ1gnsTjfQxqisJTlpT0pzZ3UdufqwvfP1ByA8UuafKMdBy+Ta/AxTm8UWkGmcLk6Fh1k8RtO2rNTpfRsL5rbpF8x+sOrQpa89fR/lXu+9dSfkIQng1cXzYGB2jB7YvrGg1txYtan/8/ddx653twrgkUYBFHVGYpawfHF6w43uXi5iAAiN4+XaEKzqim/FE7fVoonH+mEIJ6hV9w3VRajj2TteUYxDyBBwg89t2Ch1LReT8IwON4cJ+DLhfe+6vC6LLfxZk3NbIazFgT0lI3UEf7o1A1KRRcvpcMK0aXIaVWaqiYiZggUku6pfAgwAu5p23B5ofWAAAAAASUVORK5CYII=", tmpPath)
 
 	selectedChannel			= ""
@@ -140,8 +143,8 @@ function init()
 	searchData_1[3] = searchData_1_0 .. "VORABENDS" .. searchData_1_1
 	searchData_1[4] = searchData_1_0 .. "ABENDS" .. searchData_1_1
 
-	BGP = video.new()
-	showBGPicture(false)
+	if fileExist(script_path().."ard_mediathek.jpg") == true then if vPlay == nil then vPlay = video.new() end end
+	showBGPicture()
 end
 
 function get_timing_menu()
@@ -165,20 +168,28 @@ function get_timing_menu()
 	return ret
 end
 
-function showBGPicture(sleep)
-	os.execute("pzapit -mute")
-	if sleep == true then posix.sleep(1) end
-	if fileExist(script_path().."ard_mediathek.jpg") then
-		BGP:ShowPicture(script_path().."ard_mediathek.jpg")
-		--n:ShowPicture(script_path().."ard_mediathek.jpg")
-	end
+local M = misc.new()
+
+function showBGPicture()
+	vPlay:zapitStopPlayBack()
+	vPlay:ShowPicture(script_path().."ard_mediathek.jpg")
+
+	muteStatusNeutrino = M:isMuted()
+	volumeNeutrino = M:getVolume()
+	M:enableMuteIcon(false)
+	M:AudioMute(true, false)
 end
 
 function hideBGPicture(rezap)
-	BGP:StopPicture()
-	if rezap == true then os.execute("pzapit -rz") end
-	os.execute("{ sleep 1; pzapit -unmute; } &")
---	os.execute("pzapit -unmute")
+	if (rezap == false) then
+		vPlay:channelRezap()
+	end
+	local rev, box = M:GetRevision()
+	if rev == 1 and box == "Spark" then V:StopPicture() end
+
+	M:enableMuteIcon(true)
+	M:AudioMute(muteStatusNeutrino, true)
+	M:setVolume(volumeNeutrino)
 end
 
 function setChannels()
@@ -227,8 +238,7 @@ function getFirstMenu()
 	m_modes:addItem{type="separator"};
 
 	m_modes:addItem{type="forwarder", name=langStr_programMissed, action="programMissedMenu1", icon=1, directkey=RC["1"]};
-	m_modes:addItem{type="forwarder", name="Einslike", enabled=false, action="programMissedMenu1", icon=2, directkey=RC["2"]};
-	m_modes:addItem{type="forwarder", name="Livestreams", enabled=false, action="programMissedMenu1", icon=3, directkey=RC["3"]};
+	m_modes:addItem{type="forwarder", name="Livestreams", enabled=true, action="livestreamsMenu", icon=2, directkey=RC["2"]};
 
 	m_modes:addItem{type="separatorline"};
 	m_modes:addItem{type="forwarder", name=langStr_options, action="setOptions", id="-2", icon="blau", directkey=RC["blue"]};
@@ -269,6 +279,213 @@ function saveData(name, data)
 	end
 end
 
+
+function read_file(filename)
+	local fp = io.open(filename, "r")
+	if fp == nil then error("Error opening file '" .. filename .. "'.") end
+	local data = fp:read("*a")
+	fp:close()
+	return data
+end
+
+
+function sleep(a)
+	local sec = tonumber(os.clock() + a)
+	while (os.clock() < sec) do
+	end
+end
+
+
+function getdata(Url,outputfile)
+	if Url == nil then return nil end
+	if Curl == nil then
+		Curl = curl.new()
+	end
+
+	if Url:sub(1, 2) == '//' then
+		Url =  'https:' .. Url
+	end
+
+	local ret, data = Curl:download{url=Url,A="Mozilla/5.0;",connectTimeout=5,maxRedirs=5,followRedir=true,o=outputfile }
+	if ret == CURL.OK then
+		if outputfile then
+			return 1
+		end
+		return data
+	else
+		return nil
+	end
+end
+
+function getLiveList()
+	local data = getdata(baseUrl .. "/tv/live")
+	if data then
+		local ids= {}
+		for link in data:gmatch('(/tv/%S+/live%?kanal=%d+)"') do
+			local id = link:match('kanal=(%d+)')
+			if ids[id] ~= true then
+				ids[id] = true
+				local channel = link:match('/tv/(%S+)/live%?kanal=%d+')
+				table.insert(livelist,{name=channel, url=link, stream=nil,audiostream=nil})
+			end
+		end
+	end
+end
+
+function getMaxVideoRes()
+	local maxRes = 1920
+	local quali = tonumber(conf.streamQuality)
+	if quali == 3 then
+		maxRes = 1280
+	elseif quali == 2 then
+		maxRes = 960
+	elseif quali == 1 then
+		maxRes = 640
+	elseif quali == 0 then
+		maxRes = 480
+	end
+	return maxRes
+end
+
+function getVideoUrlM3U8(m3u8_url)
+	if m3u8_url == nil then return nil end
+	local res = 0
+	local videoUrl = nil
+	local audioUrl = nil
+	local data = getdata(m3u8_url)
+	if data then
+		local host = m3u8_url:match('([%a]+[:]?//[_%w%-%.]+)/')
+		local lastpos = (m3u8_url:reverse()):find("/")
+		local hosttmp = m3u8_url:sub(1,#m3u8_url-lastpos)
+		if hosttmp then
+			host = hosttmp .."/"
+		end
+		local revision = 0
+		if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
+			revision = M:GetRevision()
+		end
+
+		local audio_url = nil
+		if revision == 1 then -- separate audio for hd51 and co
+			local Nconfig	= configfile.new()
+			local lang1,lang2,lang3 = nil,nil,nil
+			Nconfig:loadConfig("/var/tuxbox/config/neutrino.conf")
+			lang1 = Nconfig:getString("pref_lang_0", "#")
+			lang2 = Nconfig:getString("pref_lang_1", "#")
+			lang3 = Nconfig:getString("pref_lang_2", "#")
+			if lang1 == "#" then lang1 = nil else lang1 = lang1:lower() lang1 = lang1:sub(1,3) end
+			if lang2 == "#" then lang2 = nil else lang2 = lang2:lower() lang2 = lang2:sub(1,3) end
+			if lang3 == "#" then lang3 = nil else lang3 = lang3:lower() lang3 = lang3:sub(1,3) end
+			if lang1 == nil then
+				lang1 = Nconfig:getString("language", "english")
+				if lang1 == nil then
+					lang1 = "eng"
+				else
+					lang1 = lang1:lower() lang1 = lang1:sub(1,3)
+				end
+			end
+
+			local l1,l2,l3,l4,l = nil,nil,nil,nil,nil
+			for adata in data:gmatch('TYPE%=AUDIO.GROUP%-ID=".-",(.-)\n') do
+				local lname = adata:match('NAME="(.-)"')
+				local lang = adata:match('LANGUAGE="(.-)"')
+				local aurl = adata:match('URI="(.-)"')
+				if aurl then
+					local low_lang = lang:lower()
+					if l1 == nil and lname and lang1 and low_lang == lang1 then
+						l1 = aurl
+					elseif l2 == nil and lname and lang2 and low_lang == lang2 then
+						l2 = aurl
+					elseif l3 == nil and lname and lang3 and low_lang == lang3 then
+						l3 = aurl
+					elseif l4 == nil and lname and low_lang == "deu" then
+						l4 = aurl
+					elseif l == nil then
+						l = aurl
+					end
+				end
+			end
+			audio_url = l1 or l2 or l3 or l4 or l
+		end
+		local first = true
+		local maxRes = getMaxVideoRes()
+		for band, res1, res2, url in data:gmatch('BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-\n(.-)\n') do
+			if url and res1 then
+				local nr = tonumber(res1)
+				if (nr <= maxRes and nr > res) or first then
+					first = false
+					res=nr
+					if host and url:sub(1,4) ~= "http" then
+						url = host .. url
+					end
+					if audio_url and host and audio_url:sub(1,4) ~= "http" then
+						audio_url = host .. audio_url
+					end
+					videoUrl  = url
+					audioUrl  = audio_url
+				end
+			end
+		end
+	else
+		return m3u8_url, nil
+	end
+	return videoUrl, audioUrl
+end
+
+function getLiveStream(id)
+	local url = livelist[id].url
+	local data = getdata(baseUrl .. url)
+	if data then
+		local pat1 = "/play/media/"
+		local chid = data:match( pat1 .. '(%d+)')
+		local jdata = getdata(baseUrl .. pat1 .. chid .. '?devicetype=pc&features=flash')
+		if jdata then
+			local jnTab = json:decode(jdata )
+			if jnTab and jnTab._mediaArray[1] and jnTab._mediaArray[1] and jnTab._mediaArray[1]._mediaStreamArray[1] 
+			and jnTab._mediaArray[1]._mediaStreamArray[1]._stream then
+				livelist[id].stream , livelist[id].audiostream = getVideoUrlM3U8(jnTab._mediaArray[1]._mediaStreamArray[1]._stream)
+			end
+		end
+	end
+	return livelist[id].stream
+end
+
+function play_live(_id)
+	local id = tonumber(_id)
+	if livelist[id].stream == nil then
+		livelist[id].stream = getLiveStream(id)
+	end
+	if livelist[id].stream then
+		hideMenu(live_listen_menu)
+		hideBGPicture(false)
+		if vPlay == nil then vPlay = video.new() end
+		vPlay:PlayFile(livelist[id].name, livelist[id].stream, "Live","",livelist[id].audiostream or "")
+		collectgarbage();
+		showBGPicture()
+	end
+end
+
+function livestreamsMenu()
+	if firstLiveInit then
+		firstLiveInit = false
+		getLiveList()
+	end
+	if #livelist == 0 then
+		return
+	end
+	hideMenu(m_modes)
+	live_listen_menu  = menu.new{name="Live", icon=pluginIcon}
+	local menu = live_listen_menu
+	menu:addItem{type="back"}
+	menu:addItem{type="separatorline"}
+	for i, v in ipairs(livelist) do
+		menu:addItem{type="forwarder", name=v.name, action="play_live",enabled=true,id=i}
+	end
+	menu:exec()
+	menu:hide()
+	return MENU_RETURN.EXIT_REPAINT
+end
+
 function makeAreaFileName(cId, tId, area)
 	local tmpDataBody = tmpPath .. "/data1_" .. cId .. "_" .. tId
 	return tmpDataBody .. "_area" .. area .. ".htm"
@@ -291,16 +508,10 @@ function getTmpData1(selectedChannelId, tagId)
 		else
 			tmp1 = selectedChannelId .. "&tag=" .. tagId
 		end
-		if debugmode >= 1 then
-			print("[getTmpData1] " .. wget_cmd .. tmpData .. " '" .. baseUrl .. "/tv/sendungVerpasst?kanal=" .. tmp1 .. "'");
-		end
-		os.execute(wget_cmd .. tmpData .. " '" .. baseUrl .. "/tv/sendungVerpasst?kanal=" .. tmp1 .. "'");
-		
-		local fp, s
-		fp = io.open(tmpData, "r")
-		if fp == nil then error("Error opening file '" .. tmpData .. "'.") end
-		s = fp:read("*a")
-		fp:close()
+		if debugmode >= 1 then print("[getTmpData1] "  .. tmpData .. " '" .. baseUrl .. "/tv/sendungVerpasst?kanal=" .. tmp1 .. "'"); end
+		getdata(baseUrl .. "/tv/sendungVerpasst?kanal=" .. tmp1,tmpData)
+		if fileExist(tmpData) == false then return end
+		local s = read_file(tmpData)
 
 		local i
 		local sLen = #s
@@ -432,13 +643,8 @@ function listMissingContent(selectedChannelId, tagId, areaId)
 	tmpData = getTmpData1(selectedChannelId, tagId)
 
 	local tmpDataArea = makeAreaFileName(selectedChannelId, tagId, areaId)
-	if fileExist(tmpDataArea) == nil then return end
-
-	local fp = io.open(tmpDataArea, "r")
-	if fp == nil then error("Error opening file '" .. tmpDataArea .. "'.") end
-	local s = fp:read("*a")
-	fp:close()
-
+	if fileExist(tmpDataArea) == false then return end
+	local s = read_file(tmpDataArea)
 
 	local lRet = {}
 	local p = -1
@@ -520,23 +726,23 @@ function checkDayIsActiv(selectedChannelId, tagId)
 		lRet[i] = false
 	end
 	lRet[1] = true
+	if fileExist(tmpData) == false then
+		if tagId == 0 then
+			for i = 1, 7 do
+				lRet[i] = true
+			end
+			lRet[1] = false
+		end
+		return lRet
+	end
 
-	local fp = io.open(tmpData, "r")
-	if fp == nil then error("Error opening file '" .. tmpData .. "'.")end
-	local s = fp:read("*a")
-	fp:close()
+	local s = read_file(tmpData)
 
 	local r = miniGMatch(s, "?kanal=" .. selectedChannelId .. "&amp;tag=", "\">", 0)
 	for i = 1, 7 do
 		if r[i] ~= nil and string.len(r[i]) < 3 then 
 			lRet[tonumber(r[i])+1] = true
 		end
-	end
-	if tagId == 0 and #s == 0 then
-		for i = 1, 7 do
-			lRet[i] = true
-		end
-		lRet[1] = false
 	end
 	return lRet
 end
@@ -728,10 +934,8 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 			local frameY = boxY - SCREEN.OFF_Y
 
 			if fileExist(picName) == false then
-				if debugmode >= 1 then
-					printf("#####[ard_mediathek] %s%s '%s'", wget_cmd, picName, picUrl);
-				end
-				os.execute(wget_cmd .. picName .. " '" .. picUrl .. "'");
+				if debugmode >= 1 then printf("#####[ard_mediathek] %s '%s'", picName, picUrl); end
+				getdata(picUrl, picName)
 			end
 
 			-- Number of lines Text1
@@ -934,21 +1138,15 @@ function getStream(_id)
 	local tmpData = tmpPath .. "/json1_" .. dId .. ".txt"
 	if fileExist(tmpData) ~= true then
 		paintInfoBox(langStr_contentLoad)
-		if debugmode >= 1 then
-			print("[getStream] " .. wget_cmd .. tmpData .. " '" .. baseUrl .. "/play/media/" .. dId .. "?devicetype=pc&features=flash'");
-		end
-		os.execute(wget_cmd .. tmpData .. " '" .. baseUrl .. "/play/media/" .. dId .. "?devicetype=pc&features=flash'");
+		if debugmode >= 1 then print("[getStream] "  .. tmpData .. " '" .. baseUrl .. "/play/media/" .. dId .. "?devicetype=pc&features=flash'"); end
+		getdata(baseUrl .. "/play/media/" .. dId .. "?devicetype=pc&features=flash", tmpData)
 	end
 
 	local streamUrl = "x"
 	local streamQuality = "-1"
-	local fp = io.open(tmpData, "r")
-	if fp == nil then
-		hideInfoBox()
-		error("Error opening file '" .. tmpData .. "'.")
-	end
-	local s = fp:read("*a")
-	fp:close()
+
+	if fileExist(tmpData) == false then hideInfoBox() return end
+	local s = read_file(tmpData)
 
 	local j_table = json:decode(s)
 	if debugmode == 2 then
@@ -963,7 +1161,7 @@ function getStream(_id)
 		local j_geoblocked = j_table.geoblocked
 		if j_geoblocked == true then
 			paintInfoBox("geoblocked: " .. tostring(j_geoblocked) .. "???\nPlease info the plugin author.")
-			posix.sleep(5)
+			sleep(5)
 			hideInfoBox()
 			return
 		end
@@ -1088,9 +1286,10 @@ function getStream(_id)
 		if info2 == nil then info2 = "" end
 		hideBGPicture(false)
 --		n:PlayFile(title, streamUrl, conv_str(info1), conv_str(info2));
-		video = video.new(); video:PlayFile(title, streamUrl, conv_str(info1), conv_str(info2))
+		if vPlay == nil then vPlay = video.new() end
+		vPlay:PlayFile(title, streamUrl, conv_str(info1), conv_str(info2))
 		collectgarbage();
-		showBGPicture(true)
+		showBGPicture()
 	end
 end
 
@@ -1203,9 +1402,10 @@ function hideInfoBox()
 	end
 end
 
+
 function fileExist(file)
-	if posix.access(file, f) == nil then return false end
-	return true
+	local fh = filehelpers.new()
+	return fh:exist(file, "f")
 end
 
 function trim(s)
@@ -1313,7 +1513,7 @@ function saveConfig()
 
 		config:saveConfig(confFile)
 		confChanged = 0
-		posix.sleep(1)
+		sleep (1)
 		hideInfoBox()
 	end
 	return MENU_RETURN.EXIT_REPAINT
@@ -1364,5 +1564,5 @@ getFirstMenu()
 config:saveConfig(confFile)
 hideBGPicture(true)
 os.execute("rm -fr " .. tmpPath)
-posix.sync()
+os.execute("sync")
 collectgarbage();

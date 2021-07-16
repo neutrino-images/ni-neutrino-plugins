@@ -49,40 +49,46 @@ function getVideoUrl(m3u8_url)
 			lang1 = Nconfig:getString("pref_lang_0", "#")
 			lang2 = Nconfig:getString("pref_lang_1", "#")
 			lang3 = Nconfig:getString("pref_lang_2", "#")
-			if lang1 == "#" then lang1 = nil end
-			if lang2 == "#" then lang2 = nil end
-			if lang3 == "#" then lang3 = nil end
+			if lang1 == "#" then lang1 = nil else lang1 = lang1:lower() lang1 = lang1:sub(1,3) end
+			if lang2 == "#" then lang2 = nil else lang2 = lang2:lower() lang2 = lang2:sub(1,3) end
+			if lang3 == "#" then lang3 = nil else lang3 = lang3:lower() lang3 = lang3:sub(1,3) end
 			if lang1 == nil then
 				lang1 = Nconfig:getString("language", "english")
 				if lang1 == nil then
-					lang1 = "english"
+					lang1 = "eng"
+				else
+					lang1 = lang1:lower() lang1 = lang1:sub(1,3)
 				end
 			end
 
-			local l1,l2,l3,l = nil,nil,nil,nil
+			local l1,l2,l3,l4,l = nil,nil,nil,nil,nil
 			for adata in data:gmatch('TYPE%=AUDIO.GROUP%-ID=".-",(.-)\n') do
 				local lname = adata:match('NAME="(.-)"')
 				local lang = adata:match('LANGUAGE="(.-)"')
 				local aurl = adata:match('URI="(.-)"')
 				if aurl then
-					if lname and lang1 and lang:lower() == lang1:lower() then
+					local low_lang = lang:lower()
+					if l1 == nil and lname and lang1 and low_lang == lang1 then
 						l1 = aurl
-					elseif lname and lang2 and lang:lower() == lang2:lower() then
+					elseif l2 == nil and lname and lang2 and low_lang == lang2 then
 						l2 = aurl
-					elseif lname and lang3 and lang:lower() == lang3:lower() then
+					elseif l3 == nil and lname and lang3 and low_lang == lang3 then
 						l3 = aurl
+					elseif l4 == nil and lname and low_lang == "deu" then
+						l4 = aurl
 					elseif l == nil then
 						l = aurl
 					end
 				end
 			end
-			audio_url = l1 or l2 or l3 or l
+			audio_url = l1 or l2 or l3 or l4 or l
 		end
-
+		local first = true
 		for band, res1, res2, url in data:gmatch('BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-\n(.-)\n') do
 			if url and res1 then
 				local nr = tonumber(res1)
-				if nr <= maxRes and nr > res then
+				if (nr <= maxRes and nr > res) or first then
+					first = false
 					res=nr
 					if host and url:sub(1,4) ~= "http" then
 						url = host .. url
