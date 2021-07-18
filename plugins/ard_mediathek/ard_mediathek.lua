@@ -957,7 +957,9 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 			local picH = picHmax
 
 			local tmpW, tmpH = n:GetSize(picName)
-			picW, picH = rescaleImageDimensions(tmpW, tmpH, picWmax, picHmax)
+			if tmpW > picWmax or tmpH > picHmax then
+				picW, picH = rescaleImageDimensions(tmpW, tmpH, picWmax, picHmax)
+			end
 			picX = (boxW - picW) / 2
 			picY = ((picHmax - picH) / 2) + fontHeight/2
 
