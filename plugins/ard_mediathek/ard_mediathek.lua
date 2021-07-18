@@ -104,11 +104,14 @@ function init()
 
 	livelist = {}
 	firstLiveInit = true
-	vPlay = nil
 	muteStatusNeutrino	= false
 	volumeNeutrino		= 0
-	M = misc.new()
 
+	n = neutrino()
+	nMisc = misc.new()
+	vPlay = video.new()
+	bigPicBG = script_path().."ard_mediathek.jpg"
+	haveBigPicBG = fileExist(bigPicBG)
 	conf = {}
 	confChanged 			= 0
 	confFile			= "/var/tuxbox/config/ard_mediathek.conf";
@@ -130,8 +133,6 @@ function init()
 	infoBox_h				= nil
 	streamWindow			= nil
 
-	n = neutrino()
-	nMisc = misc.new()
 	setChannels()
 	setTimeArea()
 
@@ -142,8 +143,6 @@ function init()
 	searchData_1[2] = searchData_1_0 .. "NACHMITTAGS" .. searchData_1_1
 	searchData_1[3] = searchData_1_0 .. "VORABENDS" .. searchData_1_1
 	searchData_1[4] = searchData_1_0 .. "ABENDS" .. searchData_1_1
-
-	if fileExist(script_path().."ard_mediathek.jpg") == true then if vPlay == nil then vPlay = video.new() end end
 	showBGPicture()
 end
 
@@ -168,28 +167,26 @@ function get_timing_menu()
 	return ret
 end
 
-local M = misc.new()
-
 function showBGPicture()
 	vPlay:zapitStopPlayBack()
-	vPlay:ShowPicture(script_path().."ard_mediathek.jpg")
+	if haveBigPicBG then vPlay:ShowPicture(bigPicBG) end
 
-	muteStatusNeutrino = M:isMuted()
-	volumeNeutrino = M:getVolume()
-	M:enableMuteIcon(false)
-	M:AudioMute(true, false)
+	muteStatusNeutrino = nMisc:isMuted()
+	volumeNeutrino = nMisc:getVolume()
+	nMisc:enableMuteIcon(false)
+	nMisc:AudioMute(true, false)
 end
 
 function hideBGPicture(rezap)
 	if (rezap == false) then
 		vPlay:channelRezap()
 	end
-	local rev, box = M:GetRevision()
-	if rev == 1 and box == "Spark" then V:StopPicture() end
+	local rev, box = nMisc:GetRevision()
+	if haveBigPicBG and rev == 1 and box == "Spark" then vPlay:StopPicture() end
 
-	M:enableMuteIcon(true)
-	M:AudioMute(muteStatusNeutrino, true)
-	M:setVolume(volumeNeutrino)
+	nMisc:enableMuteIcon(true)
+	nMisc:AudioMute(muteStatusNeutrino, true)
+	nMisc:setVolume(volumeNeutrino)
 end
 
 function setChannels()
@@ -362,7 +359,7 @@ function getVideoUrlM3U8(m3u8_url)
 		end
 		local revision = 0
 		if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
-			revision = M:GetRevision()
+			revision = nMisc:GetRevision()
 		end
 
 		local audio_url = nil
@@ -458,7 +455,6 @@ function play_live(_id)
 	if livelist[id].stream then
 		hideMenu(live_listen_menu)
 		hideBGPicture(false)
-		if vPlay == nil then vPlay = video.new() end
 		vPlay:PlayFile(livelist[id].name, livelist[id].stream, "Live","",livelist[id].audiostream or "")
 		collectgarbage();
 		showBGPicture()
@@ -1282,7 +1278,6 @@ function getStream(_id)
 		if info2 == nil then info2 = "" end
 		hideBGPicture(false)
 --		n:PlayFile(title, streamUrl, conv_str(info1), conv_str(info2));
-		if vPlay == nil then vPlay = video.new() end
 		vPlay:PlayFile(title, streamUrl, conv_str(info1), conv_str(info2))
 		collectgarbage();
 		showBGPicture()
