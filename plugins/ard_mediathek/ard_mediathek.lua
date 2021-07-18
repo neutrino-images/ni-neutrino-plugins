@@ -168,8 +168,10 @@ function get_timing_menu()
 end
 
 function showBGPicture()
-	vPlay:zapitStopPlayBack()
-	if haveBigPicBG then vPlay:ShowPicture(bigPicBG) end
+	if haveBigPicBG then
+		vPlay:zapitStopPlayBack()
+		vPlay:ShowPicture(bigPicBG)
+	end
 
 	muteStatusNeutrino = nMisc:isMuted()
 	volumeNeutrino = nMisc:getVolume()
@@ -178,7 +180,7 @@ function showBGPicture()
 end
 
 function hideBGPicture(rezap)
-	if (rezap == false) then
+	if (rezap == true) then
 		vPlay:channelRezap()
 	end
 	local rev, box = nMisc:GetRevision()
@@ -1539,9 +1541,9 @@ function setOptions()
 	opt = { "DE" ,"EN" }
 	m_conf:addItem{type="chooser", action="setString", options={opt[1], opt[2]}, id="language", value=conf.language, icon=1, directkey=RC["1"], name=langStr_language}
 	opt = { langStr_on, langStr_off }
-	m_conf:addItem{type="chooser", enabled=hdsAvailable, action="setString", options={opt[1], opt[2]}, id="auto", value=conf.auto, icon=2, directkey=RC["2"], name=langStr_auto}
+--	m_conf:addItem{type="chooser", enabled=hdsAvailable, action="setString", options={opt[1], opt[2]}, id="auto", value=conf.auto, icon=2, directkey=RC["2"], name=langStr_auto}
 	opt = { 0 ,1, 2 ,3 }
-	m_conf:addItem{type="chooser", action="setInt", options={opt[1], opt[2], opt[3], opt[4]}, id="streamQuality", value=conf.streamQuality, icon=3, directkey=RC["3"], name=langStr_quality}
+	m_conf:addItem{type="chooser", action="setInt", options={opt[1], opt[2], opt[3], opt[4]}, id="streamQuality", value=conf.streamQuality, icon=2, directkey=RC["2"], name=langStr_quality}
 --	m_conf:addItem{type="numeric", action="setInt", range="0,3", id="streamQuality", value=conf.streamQuality, name=langStr_quality}
 
 	m_conf:exec()
