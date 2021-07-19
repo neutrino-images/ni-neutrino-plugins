@@ -184,7 +184,7 @@ function hideBGPicture(rezap)
 		vPlay:channelRezap()
 	end
 	local rev, box = nMisc:GetRevision()
-	if haveBigPicBG and rev == 1 and box == "Spark" then vPlay:StopPicture() end
+	if haveBigPicBG and rev == 1 then vPlay:StopPicture() end
 
 	nMisc:enableMuteIcon(true)
 	nMisc:AudioMute(muteStatusNeutrino, true)
@@ -855,22 +855,6 @@ function programMissedMenu4(_id)
 	return MENU_RETURN.REPAINT;
 end
 
-function rescaleImageDimensions(width, height, max_width, max_height)
-	local aspect;
-	if width <= max_width and height <= max_height then return width, height end
-
-	aspect = width / height
-
-	if (width / max_width) > (height / max_height) then
-		width = max_width
-		height = max_width / aspect
-	else
-		height = max_height
-		width = max_height * aspect
-	end
-	return width, height
-end
-
 function paintFrame(x, y, w, h, f, c)
 	-- top
 	n:PaintBox(x-f, y-f, w+(f*3), f, c, CORNER.RADIUS_LARGE, bor(CORNER.TOP_LEFT, CORNER.TOP_RIGHT))
@@ -949,20 +933,11 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 			local txtH1 = fontHeight*lines1
 			local txtH2 = fontHeight
 
-			local picX = 2
-			local picY = 2
-			local picWmax = boxW-4
+			local picWmax = boxW
 			local picHmax = boxH - txtH1 - txtH2 - fontHeight/2
-			local picW = picWmax
-			local picH = picHmax
 
-			local tmpW, tmpH = n:GetSize(picName)
-			if tmpW > picWmax or tmpH > picHmax then
-				picW, picH = rescaleImageDimensions(tmpW, tmpH, picWmax, picHmax)
-			end
-			picX = (boxW - picW) / 2
-			picY = ((picHmax - picH) / 2) + fontHeight/2
-
+			local picX = n:scale2Res(8)
+			local picY = n:scale2Res(8)
 			if (tmpAStream == -1) then
 				local tmpTxt
 				if (n:getRenderWidth(FONT.MENU, hl) > txtW) then
