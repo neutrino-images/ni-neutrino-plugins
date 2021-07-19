@@ -936,8 +936,8 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 			local picWmax = boxW
 			local picHmax = boxH - txtH1 - txtH2 - fontHeight/2
 
-			local picX = n:scale2Res(9)
-			local picY = n:scale2Res(9)
+			local picX = n:scale2Res(8)
+			local picY = n:scale2Res(8)
 			if (tmpAStream == -1) then
 				local tmpTxt
 				if (n:getRenderWidth(FONT.MENU, hl) > txtW) then
@@ -963,7 +963,7 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 				local w1 = cwindow.new{x=boxX, y=boxY, dx=boxW, dy=boxH, show_header=false, show_footer=false, color_body=colBgBack}
 				ctext.new{parent=w1, x=txtX, y=txtY1, dx=txtW, dy=txtH1, text=tmpTxt, color_text=colText, color_body=colBgBack, mode="ALIGN_CENTER ALIGN_BOTTOM ALIGN_NO_AUTO_LINEBREAK"}
 				ctext.new{parent=w1, x=txtX, y=txtY2, dx=txtW, dy=txtH2, text=st, color_text=colText, color_body=colBgBack, mode="ALIGN_CENTER ALIGN_TOP"}
-				cp = cpicture.new{parent=w1, x=picX, y=picY , dx=picWmax, dy=picHmax, image=picName}
+				cpicture.new{parent=w1, x=picX, y=picY , dx=picWmax, dy=picHmax, image=picName}
 				w1:paint{do_save_bg=false}
 				if (aStream == aktBox) then
 					paintFrame(frameX, frameY, boxW, boxH, 12, colBgTmp)
