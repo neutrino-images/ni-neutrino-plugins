@@ -14,10 +14,10 @@ local itags_avc1_30 = {[137]='1920x1080',[136]='1280x720',[135]='854x480'}
 local itags_av01 = {[401]='3840x2160',[400]='2560x1440',[399]='1920x1080',[398]='1280x720',[397]='854x480'}
 -- disable or enable format
 local vp9_60 = true --webm
-local vp9_30 = false --webm
+local vp9_30 = true --webm
 local vp9_HDR = false --webm, HDR dont work on HD51
 local avc1_60 = true -- mp4
-local avc1_30 = false -- mp4
+local avc1_30 = true -- mp4
 
 json = require "json"
 
