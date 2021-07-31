@@ -2,48 +2,31 @@
 	freeze - Freezes screen
 
 	Copyright (C) 2021 Jacek Jendrzej 'satbaby'
+	Copyright (C) 2021 Sven Hoefer 'vanhofen'
 
 	License: WTFPLv2
 ]]
 
-function getdata(Url,outputfile)
-	if Url == nil then return nil end
-	if Curl == nil then
-		Curl = curl.new()
-	end
-	local ret, data = Curl:download{url=Url,A="Mozilla/5.0;",maxRedirs=5,followRedir=true,o=outputfile }
-	if ret == CURL.OK then
-		if outputfile then
-			return 1
-		end
-		return data
-	else
-		return nil
-	end
+local n = neutrino()
+
+if _curl == nil then
+	_curl = curl.new()
 end
 
-	local n = neutrino()
-	local ok = getdata("http://127.0.0.1/control/screenshot")
-	if ok == "ok" then
-		local fh = filehelpers.new()
-		local namepic = "/tmp/screenshot"
-		local fpic = namepic .. ".png"
-		local hpic = false
-		if fh:exist(fpic, "f") then
-			hpic = true
-		else
-			fpic = namepic .. ".jpg"
-			if fh:exist(fpic, "f") then
-				hpic = true
-			end
-		end
-		if fpic then
-			local cp = cpicture.new{parent=nill, x=0, y=0, dx=0, dy=0, image=fpic}
-			cp:paint()
-			local msg, data = nil,nil
-			repeat
+local ret, data = _curl:download {url = "http://127.0.0.1/control/screenshot", A = "Mozilla/5.0;", maxRedirs = 5, followRedir = true}
+if ret == CURL.OK and data == "ok" then
+	local fh = filehelpers.new()
+	local ss = "/tmp/screenshot.png"
+	local sf = "/tmp/screenfreeze.png"
+	if fh:exist(ss, "f") then
+		local cp = cpicture.new{parent = nil, x = 0, y = 0, dx = 0, dy = 0, image = ss}
+		cp:paint()
+		fh:cp(ss, sf, "a")
+		os.remove(ss)
+		local msg, data = nil, nil
+		repeat
 			msg, data = n:GetInput(500)
-			until msg == RC.home or msg == RC.setup
-			os.remove(fpic)
-		end
+		until msg == RC.ok or msg == RC.home or msg == RC.setup
+		cp:hide()
 	end
+end
