@@ -195,6 +195,12 @@ AC_ARG_ENABLE(favorites2bin,
 	[enable_favorites2bin="yes"])
 AM_CONDITIONAL(ENABLE_FAVORITES2BIN, test "$enable_favorites2bin" = "yes")
 
+AC_ARG_ENABLE(freeze,
+	AS_HELP_STRING([--enable-freeze], [enable freeze @<:@default=yes@:>@]),
+	[enable_freeze="$enableval"],
+	[enable_freeze="yes"])
+AM_CONDITIONAL(ENABLE_FREEZE, test "$enable_freeze" = "yes")
+
 AC_ARG_ENABLE(fritzinfomonitor-setup,
 	AS_HELP_STRING([--enable-fritzinfomonitor-setup], [enable fritzinfomonitor-setup @<:@default=yes@:>@]),
 	[enable_fritzinfomonitor_setup="$enableval"],
@@ -357,6 +363,7 @@ scripts-lua/plugins/ard_mediathek/Makefile
 scripts-lua/plugins/epgfilter/Makefile
 scripts-lua/plugins/EPGscan-setup/Makefile
 scripts-lua/plugins/favorites2bin/Makefile
+scripts-lua/plugins/freeze/Makefile
 scripts-lua/plugins/FritzInfoMonitor-setup/Makefile
 scripts-lua/plugins/heizoelpreise/Makefile
 scripts-lua/plugins/LocalTV/Makefile
