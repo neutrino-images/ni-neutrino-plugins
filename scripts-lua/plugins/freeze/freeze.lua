@@ -19,14 +19,14 @@ if ret == CURL.OK and data == "ok" then
 	local ss = "/tmp/screenshot.png"
 	local sf = "/tmp/screenfreeze.png"
 	if fh:exist(ss, "f") then
-		local cp = cpicture.new{parent = nil, x = 0, y = 0, dx = 0, dy = 0, image = ss}
-		cp:paint()
+		local picW,picH = n:GetSize(ss)
+		n:DisplayImage(ss,0,0,picW,picH)
 		fh:cp(ss, sf, "a")
 		os.remove(ss)
 		local msg, data = nil, nil
 		repeat
 			msg, data = n:GetInput(500)
 		until msg == RC.ok or msg == RC.home or msg == RC.setup
-		cp:hide()
+		n:PaintBox(-1,-1,-1,-1,COL.BACKGROUND)
 	end
 end
