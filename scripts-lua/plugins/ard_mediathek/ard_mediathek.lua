@@ -938,7 +938,7 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 
 			local picX = n:scale2Res(8)
 			local picY = n:scale2Res(8)
-			if (tmpAStream == -1) then
+			if tmpAStream == -1 or tmpAStream == -2 then
 				local tmpTxt
 				if (n:getRenderWidth(FONT.MENU, hl) > txtW) then
 					local pos=0
@@ -966,7 +966,11 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 				cpicture.new{parent=w1, x=picX, y=picY , dx=picWmax, dy=picHmax, image=picName}
 				w1:paint{do_save_bg=false}
 				if (aStream == aktBox) then
-					paintFrame(frameX, frameY, boxW, boxH, 12, colBgTmp)
+					local colBgAkt = colBgTmp
+					if tmpAStream == -2 then
+						colBgAkt = COL.RED
+					end
+					paintFrame(frameX, frameY, boxW, boxH, 12, colBgAkt)
 				end
 			else
 				if ((aStream == aktBox) or (tmpAStream == aktBox)) then
@@ -1072,6 +1076,26 @@ function listStreams(_id)
 			getStream(listContent[dId].streams[activStream].id)
 			streamWindow = newWinListContent(x, y, w, h, dId)
 			paintListContent(x, y, w, h, dId, activStream, -1)
+		elseif (msg == RC.record) then
+			if conf.dlPath and conf.dlPath ~= "/" and conf.dlPath:sub(-4) ~= "/tmp" then
+				local dls  = "/tmp/.ard_dl.sh"
+				local fh = filehelpers.new()
+				if fh:exist(dls, "f") == false then
+					local recActiv = -1
+					local dl = getStream(listContent[dId].streams[activStream].id, true)
+						if dl then
+						if dl_stream(dl) then
+							recActiv = -2
+						end
+					end
+					streamWindow = newWinListContent(x, y, w, h, dId)
+					paintListContent(x, y, w, h, dId, activStream, recActiv)
+				else
+					paintInfoBox(langStr_DLWait)
+					sleep(2)
+					hideInfoBox()
+				end
+			end
 		end
 		ret = msg
 	until msg == RC.home or msg == RC.setup or i == t;
@@ -1083,7 +1107,101 @@ function listStreams(_id)
 	return MENU_RETURN.REPAINT
 end
 
-function getStream(_id)
+function toUcode(s)
+	s=s:gsub("'","&apos;")
+	s=s:gsub("<","&lt;")
+	s=s:gsub(">","&gt;")
+	s=s:gsub('"',"&quot;")
+	s=s:gsub("\x0a","&#x0a;")
+	s=s:gsub("\x0d","&#x0d;")
+	s=s:gsub("&","&amp;")
+	return s
+end
+
+function writeXML(ch, title, info1, info2, quali, filename)
+	ch = ch or ""
+	title = title or ""
+	info1 = info1 or ""
+	info2 = info2 or ""
+	quali = quali or "0"
+local xml='<?xml version="1.0" encoding="UTF-8"?>\
+\
+<neutrino commandversion="1">\
+	<record command="record">\
+		<channelname>' .. ch .. '</channelname>\
+		<epgtitle>' .. toUcode(title) .. '</epgtitle>\
+		<id>0</id>\
+		<info1>' .. toUcode(info1) .. '</info1>\
+		<info2>' .. info2 .. '</info2>\
+		<epgid>0</epgid>\
+		<mode>1</mode>\
+		<videopid>0</videopid>\
+		<videotype>1</videotype>\
+		<audiopids>\
+			<audio pid="1" audiotype="0" selected="0" name=""/>\
+		</audiopids>\
+		<vtxtpid>0</vtxtpid>\
+		<genremajor>0</genremajor>\
+		<genreminor>0</genreminor>\
+		<seriename></seriename>\
+		<length>0</length>\
+		<productioncountry></productioncountry>\
+		<productiondate>0</productiondate>\
+		<rating>0</rating>\
+		<quality>' .. quali .. '</quality>\
+		<parentallockage>0</parentallockage>\
+		<dateoflastplay>0</dateoflastplay>\
+		<bookmark>\
+			<bookmarkstart>0</bookmarkstart>\
+			<bookmarkend>0</bookmarkend>\
+			<bookmarklast>0</bookmarklast>\
+			<bookmarkuser bookmarkuserpos="0" bookmarkusertype="0" bookmarkusername=""/>\
+		</bookmark>\
+	</record>\
+</neutrino>\n'
+
+	local file = io.open(filename,'w')
+	file:write(xml)
+	file:close()
+end
+
+function dl_stream(dl)
+	if dl and dl.streamUrl and dl.streamUrl:sub(-4) == ".mp4" then
+		local dlname = nil
+		if dl.ch and dl.name and dl.date and dl.info1 then
+			dlname = dl.ch .. "_" .. dl.name .. "_" .. dl.info1 .. "_" .. dl.date
+			dlname = dlname:gsub("[%p%s/]", "_")
+		end
+		if dlname then
+			local dls  = "/tmp/.ard_dl.sh"
+			local filenamexml = "/tmp/.ard_dl_xml"
+			writeXML(dl.ch, dl.name, dl.info1, dl.info2, dl.quali, filenamexml)
+			dlname = conf.dlPath .. "/" .. dlname
+			local script=io.open(dls,"w")
+-- write script
+			script:write
+(
+'echo "download start" ; \
+wget -q --continue ' .. dl.streamUrl .. ' -O ' .. dlname .. '.mp4 ; \
+if [ $? -eq 0 ]; then \
+	wget -q http://127.0.0.1/control/message?popup="Video ' .. dl.name .. ' wurde heruntergeladen." -O /dev/null ; \
+	mv ' .. filenamexml .. ' ' .. dlname .. '.xml ; \
+else \
+	wget -q http://127.0.0.1/control/message?popup="Download ' .. dl.name .. ' FEHLGESCHLAGEN" -O /dev/null ; \
+	rm ' .. filenamexml .. ' ; \
+fi \
+rm ' .. dls .. '; \n'
+)
+---
+			script:close()
+			os.execute('sh ' .. dls .. ' &')
+			return true
+		end
+	end
+	return false
+end
+
+function getStream(_id, dlmode)
 	local tmpId = tonumber(_id);
 	if streamWindow ~= nil then streamWindow:hide{} end
 
@@ -1259,11 +1377,24 @@ function getStream(_id)
 		if title == nil then title = "" end
 		if info1 == nil then info1 = "" end
 		if info2 == nil then info2 = "" end
-		hideBGPicture(false)
---		n:PlayFile(title, streamUrl, conv_str(info1), conv_str(info2));
-		vPlay:PlayFile(title, streamUrl, conv_str(info1), conv_str(info2))
-		collectgarbage();
-		showBGPicture()
+		if dlmode then
+			local dl = {}
+			dl.name = title
+			dl.streamUrl = streamUrl
+			dl.info1 = conv_str(info1)
+			dl.info2 = listContent[id1].prev_date
+			dl.ch = selectedChannel
+			dl.quali = playQuality
+			local d,m,y = listContent[id1].prev_date:match('(%d%d)%.(%d%d)%.(%d%d%d%d)')
+			local t1,t2 = listContent[id1].date:match('(%d%d):(%d%d)')
+			dl.date = y .. m .. d .. "_" .. t1 .. t2 .. "00"
+			return dl
+		else
+			hideBGPicture(false)
+			vPlay:PlayFile(title, streamUrl, conv_str(info1), conv_str(info2))
+			collectgarbage();
+			showBGPicture()
+		end
 	end
 end
 
@@ -1327,6 +1458,8 @@ function setLangStrings(lang)
 		langStr_Sunday			= "Sonntag"
 		langStr_on			= "ein"
 		langStr_off			= "aus"
+		langStr_DLPath		= "Pfad für Downloads:"
+		langStr_DLWait		= "Andere Download ist schon aktiv"
 	elseif lang == "EN" then
 		langStr_caption			= "ARD Mediathek"
 		langStr_modeSelection		= "Selection"
@@ -1353,6 +1486,8 @@ function setLangStrings(lang)
 		langStr_Sunday			= "Sunday"
 		langStr_on			= "on"
 		langStr_off			= "off"
+		langStr_DLPath		= "Path for Downloads:"
+		langStr_DLWait		= "Other download is already active"
 	else
 		error("No language selected!");
 	end
@@ -1466,6 +1601,7 @@ end
 function loadConfig()
 	config:loadConfig(confFile)
 
+	conf.dlPath   = config:getString('dlPath',      '/')
 	conf.language = config:getString("language", "DE")
 	setLangStrings(conf.language)
 	conf.streamQuality = config:getInt32("streamQuality", 3)
@@ -1480,6 +1616,7 @@ function saveConfig()
 	if confChanged == 1 then
 		paintInfoBox(langStr_saveSettings)
 
+		config:setString('dlPath', conf.dlPath)
 		config:setString("language", conf.language)
 		config:setInt32("streamQuality", conf.streamQuality)
 		if conf.auto == langStr_on then tmp = true else tmp = false end
@@ -1510,6 +1647,13 @@ function handle_key(a)
 	return MENU_RETURN.EXIT_REPAINT
 end
 
+function set_path(id,value)
+	if conf[id] ~= value then
+		conf[id]=value
+		confChanged = 1
+	end
+end
+
 function setOptions()
 	hideMenu(m_modes)
 
@@ -1526,6 +1670,7 @@ function setOptions()
 	opt = { 0 ,1, 2 ,3 }
 	m_conf:addItem{type="chooser", action="setInt", options={opt[1], opt[2], opt[3], opt[4]}, id="streamQuality", value=conf.streamQuality, icon=2, directkey=RC["2"], name=langStr_quality}
 --	m_conf:addItem{type="numeric", action="setInt", range="0,3", id="streamQuality", value=conf.streamQuality, name=langStr_quality}
+	m_conf:addItem{type="filebrowser", dir_mode="1", action="set_path", id="dlPath", value=conf.dlPath, directkey=RC["2"], name=langStr_DLPath}
 
 	m_conf:exec()
 	return MENU_RETURN.EXIT_REPAINT;

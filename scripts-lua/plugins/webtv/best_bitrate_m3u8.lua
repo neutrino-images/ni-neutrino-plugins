@@ -97,8 +97,12 @@ function getVideoUrl(m3u8_url)
 						audio_url = host .. audio_url
 					end
 					entry = {}
+					url = url:gsub("\x0d","")
 					entry['url']  = url
-					if audio_url then entry['url2']  = audio_url end
+					if audio_url then
+						audio_url = audio_url:gsub("\x0d","")
+						entry['url2'] = audio_url
+					end
 					if agent then entry['header']  = agent end
 					entry['band'] = band
 					entry['res1'] = res1

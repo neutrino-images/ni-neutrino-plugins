@@ -196,6 +196,7 @@ function getVideoData(yurl)
 						if nr <= maxRes then
 							url = url:gsub("/keepalive/yes","")--fix for new ffmpeg
 							entry = {}
+							url = url:gsub("\x0d","")
 							entry['url']  = url
 							entry['band'] = band
 							entry['res1'] = res1

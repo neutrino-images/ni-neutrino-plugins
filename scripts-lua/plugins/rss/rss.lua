@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.92"
+rssReaderVersion="Lua RSS READER v0.93"
 local CONF_PATH = "/var/tuxbox/config/"
 local n = neutrino()
 local FontMenu = FONT.MENU
@@ -149,6 +149,7 @@ function getVideoUrlM3U8(m3u8_url)
 					if host and url:sub(1,4) ~= "http" then
 						url = host .. url
 					end
+					url = url:gsub("\x0d","")
 					videoUrl = url
 				end
 			end
