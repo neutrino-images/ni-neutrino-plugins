@@ -195,14 +195,12 @@ function setChannels()
 	channels = {}
 	channels[1]  = {channel = "Das Erste",                   id = 208,       enabled = true}
 	channels[2]  = {channel = "tagesschau24",                id = 5878,      enabled = true}
-	channels[3]  = {channel = "EinsPlus",                    id = 4178842,   enabled = false}
 	channels[4]  = {channel = "ONE",                         id = 673348,    enabled = true}
-	channels[5]  = {channel = "DW-TV",                       id = 5876,      enabled = false}
 	channels[6]  = {channel = "BR",                          id = 2224,      enabled = true}
 	channels[7]  = {channel = "HR",                          id = 5884,      enabled = true}
 	channels[8]  = {channel = "MDR",                         id = 5882,      enabled = true}
 	channels[9]  = {channel = "MDR Thüringen",               id = 1386988,   enabled = false}
-	channels[10] = {channel = "MDR Sachsen-Anhalt",          id = 1386898,   enabled = true}
+	channels[10] = {channel = "MDR Sachsen-Anhalt",          id = 1386898,   enabled = false}
 	channels[11] = {channel = "MDR Sachsen",                 id = 1386804,   enabled = false}
 	channels[12] = {channel = "NDR",                         id = 5906,      enabled = true}
 	channels[13] = {channel = "NDR Hamburg",                 id = 21518348,  enabled = false}
@@ -211,8 +209,6 @@ function setChannels()
 	channels[16] = {channel = "NDR Schleswig-Holstein",      id = 21518354,  enabled = false}
 	channels[17] = {channel = "RB",                          id = 5898,      enabled = true}
 	channels[18] = {channel = "RBB",                         id = 5874,      enabled = true}
-	channels[19] = {channel = "RBB Brandenburg",             id = 21518356,  enabled = false}
-	channels[20] = {channel = "RBB Berlin",                  id = 21518358,  enabled = false}
 	channels[21] = {channel = "SR",                          id = 5870,      enabled = true}
 	channels[22] = {channel = "SWR",                         id = 5310,      enabled = true}
 	channels[23] = {channel = "SWR Rheinland-Pfalz",         id = 5872,      enabled = false}
