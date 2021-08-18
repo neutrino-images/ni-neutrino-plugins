@@ -913,7 +913,10 @@ function paintListContent(x, y, w, h, dId, aStream, tmpAStream)
 
 			if fileExist(picName) == false then
 				if debugmode >= 1 then printf("#####[ard_mediathek] %s '%s'", picName, picUrl); end
-				getdata(picUrl, picName)
+				local ok = getdata(picUrl, picName)
+				if haveBigPicBG and ok == nil then
+						picName = bigPicBG
+				end
 			end
 
 			-- Number of lines Text1
