@@ -79,7 +79,9 @@ function youporn_updatefeed(feed,friendly_name)
 					if check_if_double(urls,urn) and urn and name then
 						urls[#urls+1] =  urn
 						local id = urn:match('/watch/(%d+)/')
-						urn = '/api/video/media_definitions/' .. id .. '/'
+						if id then
+							urn = '/api/video/media_definitions/' .. id .. '/'
+						end
 						local f = nil
 						if logo then
 							f = string.find(logo, 'blankvideobox.png')
