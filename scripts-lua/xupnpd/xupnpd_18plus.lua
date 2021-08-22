@@ -2,7 +2,7 @@
 -- Attention!!! Adult only      *
 -- 18+                          *
 -- ******************************
--- 06.01.2020
+-- 22.08.2021
 cfg.user_age=18
 cfg.youporn_max_pages=5
 
@@ -79,7 +79,9 @@ function youporn_updatefeed(feed,friendly_name)
 					if check_if_double(urls,urn) and urn and name then
 						urls[#urls+1] =  urn
 						local id = urn:match('/watch/(%d+)/')
-						urn = '/api/video/media_definitions/' .. id .. '/'
+						if id then
+							urn = '/api/video/media_definitions/' .. id .. '/'
+						end
 						local f = nil
 						if logo then
 							f = string.find(logo, 'blankvideobox.png')
@@ -139,7 +141,6 @@ function youporn_sendurl(youporn_url,range)
 					if res and res  > maxRes then
 						maxRes = res
 						url = v.videoUrl
-						print(url)
 					end
 				end
 			end
