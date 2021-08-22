@@ -2,7 +2,7 @@
 -- Attention!!! Adult only      *
 -- 18+                          *
 -- ******************************
--- 06.01.2020
+-- 22.08.2021
 cfg.user_age=18
 cfg.youporn_max_pages=5
 
@@ -139,7 +139,6 @@ function youporn_sendurl(youporn_url,range)
 					if res and res  > maxRes then
 						maxRes = res
 						url = v.videoUrl
-						print(url)
 					end
 				end
 			end
