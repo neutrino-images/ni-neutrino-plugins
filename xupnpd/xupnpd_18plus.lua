@@ -78,8 +78,8 @@ function youporn_updatefeed(feed,friendly_name)
 					local logo = entry:match('data%-thumbnail="(.-)"')
 					if check_if_double(urls,urn) and urn and name then
 						urls[#urls+1] =  urn
-						local m=string.find(urn,'?',1,true)
-						if m then urn=urn:sub(1,m-1) end
+						local id = urn:match('/watch/(%d+)/')
+						urn = '/api/video/media_definitions/' .. id .. '/'
 						local f = nil
 						if logo then
 							f = string.find(logo, 'blankvideobox.png')
@@ -129,32 +129,19 @@ function youporn_sendurl(youporn_url,range)
 	local url=nil
 	local data=http.download(youporn_url)
 	if data then
-		local tmpurl = data:match('videoUrl["\']:["\'](.-)["\']')
-		local skipto = data.find(data, "page_params.video.mediaDefinition =")
-		if skipto and #data > skipto then
-			data = string.sub(data,skipto,#data)
-		end
-		if data then
-			if url == nil or #url == 0 then
-				url = data:match('1080["\'].["\']videoUrl["\']:["\'](.-)["\']')
-			end
-			if url == nil or #url == 0 then
-				url = data:match('720_60["\'].["\']videoUrl["\']:["\'](.-)["\']')
-			end
-			if url == nil or #url == 0 then
-				url = data:match('720["\'].["\']videoUrl["\']:["\'](.-)["\']')
-			end
-			if url == nil or #url == 0 then
-				url = data:match('480["\'].["\']videoUrl["\']:["\'](.-)["\']')
-			end
-			if url == nil or #url == 0 then
-				url = data:match('240["\'].["\']videoUrl["\']:["\'](.-)["\']')
-			end
-			if url and #url == 0 then
-				url = nil
-			end
-			if url == nil then
-				url = tmpurl
+		local jnTab = json.decode(data)
+		local maxRes = 0
+		if jnTab then
+			local maxRes = 0
+			for k, v in pairs(jnTab) do
+				if v.videoUrl and #v.videoUrl > 6 then
+					local res =  tonumber(v.quality)
+					if res and res  > maxRes then
+						maxRes = res
+						url = v.videoUrl
+						print(url)
+					end
+				end
 			end
 		end
 	else
