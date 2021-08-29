@@ -35,8 +35,8 @@ function js_extract(data,patern)
 end
 
 function js_descramble( sig, js )
-	local descrambler = js_extract( js, "[=%(,&|](..)%(decodeURIComponent%(.%.s%)%)" )
-	if descrambler == nil then return sig end
+	local descrambler = js_extract( js, "[=%(,&|](...?.?)%(decodeURIComponent%(.%.s%)%)" )
+	if descrambler == nil then print("decodeURIComponent error") return sig end
 	local rules = js_extract( js, descrambler.."=function%([^)]*%){(.-)};" )
 	if rules == nil then return sig end
 	local helper = rules:match(";(..)%...%(" )
