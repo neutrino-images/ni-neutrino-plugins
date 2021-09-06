@@ -1,4 +1,10 @@
 
+if #arg < 1 then return nil end
+json = require "json"
+local _url = arg[1]
+local ret = {}
+local Curl = nil
+
 local itags = {[37]='1920x1080',[96]='1920x1080',[22]='1280x720',[95]='1280x720',[94]='854x480',[35]='854x480',
 		[18]='640x360',[93]='640x360',[34]='640x360',[5]='400x240',[6]='450x270',[36]='320x240',
 		[92]='320x240',[17]='176x144',[13]='176x144',
@@ -19,20 +25,21 @@ local vp9_HDR = false --webm, HDR dont work on HD51
 local avc1_60 = true -- mp4
 local avc1_30 = true -- mp4
 
-json = require "json"
-
-if #arg < 1 then return nil end
-local _url = arg[1]
-local ret = {}
-local Curl = nil
-
-function getdata(Url)
+function getdata(Url,outputfile,Postfields,pass_headers,httpheaders)
 	if Url == nil then return nil end
 	if Curl == nil then
 		Curl = curl.new()
 	end
-	local ret, data = Curl:download{ url=Url, A="Mozilla/5.0"}
+
+	if Url:sub(1, 2) == '//' then
+		Url =  'http:' .. Url
+	end
+
+	local ret, data = Curl:download{ url=Url, A="Mozilla/5.0",maxRedirs=5,followRedir=false,postfields=Postfields,header=pass_headers,o=outputfile,httpheader=httpheaders }
 	if ret == CURL.OK then
+		if outputfile then
+			return 1
+		end
 		return data
 	else
 		return nil
@@ -158,6 +165,12 @@ function getVideoData(yurl)
 		revision = M:GetRevision()
 		if revision == 1 then maxRes = 3840 end
 	end
+	local CONF_PATH = "/var/tuxbox/config/"
+	local Nconfig	= configfile.new()
+	Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
+	local key = Nconfig:getString("youtube_dev_id", '#')
+	local youtube_dev_id = nil
+	if key ~= '#' then youtube_dev_id = key end
 	local count,countx = 0,0
 	local tmp_res = 0
 	local stop = false
@@ -168,11 +181,13 @@ function getVideoData(yurl)
 		local data = getdata(yurl)
 		local age_formats = false
 
-		if data:find('LOGIN_REQUIRED') then
+		if data:find('LOGIN_REQUIRED') and youtube_dev_id then
 			local id = yurl:match("/watch%?v=([%w+%p+]+)")
 			if id then
-			data = getdata('https://www.youtube.com/get_video_info?html5=1&video_id=' .. id .. '&eurl=https%3A%2F%2Fyoutube.googleapis.com%2Fv%2F' .. id .. '&c=TVHTML5&cver=7.20210621')
-				if data then data = unescape_uri(data) age_formats = true end
+				local postdat='{"context": {"client": {"clientName": "ANDROID", "clientVersion": "16.20", "hl": "en", "clientScreen": "EMBED"}, "thirdParty": {"embedUrl": "https://google.com"}}, "videoId": "' .. id .. '", "playbackContext": {"contentPlaybackContext": {"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": 18872}}, "contentCheckOk": true, "racyCheckOk": true}'
+				local header_opt ={'content-type:application/json'}
+				data = getdata('https://www.youtube.com/youtubei/v1/player?key=' .. youtube_dev_id, nil, postdat, 0, header_opt)
+				if data then age_formats = true end
 			end
 		end
 
@@ -224,7 +239,13 @@ function getVideoData(yurl)
 			local map_urls = {}
 			local ucount = 0
 			if player_map or age_formats then
-				local formats_data = data:match('"formats%p-:(%[{.-}])')
+				local formats_data = nil
+				if player_map then
+					formats_data = data:match('"formats%p-:(%[{.-}])')
+				end
+				if age_formats then
+					formats_data = data:match('"formats":%s(%[.-])')
+				end
 				if formats_data then
 					formats_data = formats_data:gsub('\\\\\\"','')
 					if formats_data:find('\\"itag\\":') then
@@ -245,7 +266,13 @@ function getVideoData(yurl)
 								end
 							end
 						end
-						local adaptiveFormats_data = data:match('adaptiveFormats%p-:(%[{.-}])')
+						local adaptiveFormats_data = nil
+						if player_map then
+							adaptiveFormats_data = data:match('"adaptiveFormats%p-:(%[{.-}])')
+						end
+						if age_formats then
+							adaptiveFormats_data = data:match('"adaptiveFormats":%s(%[.-])')
+						end
 						if adaptiveFormats_data then
 							adaptiveFormats_data = adaptiveFormats_data:gsub('\\\\\\"','')
 							if adaptiveFormats_data:find('\\"itag\\":') then
