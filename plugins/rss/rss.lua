@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.94"
+rssReaderVersion="Lua RSS READER v0.95"
 local CONF_PATH = "/var/tuxbox/config/"
 local n = neutrino()
 local FontMenu = FONT.MENU
@@ -1356,7 +1356,7 @@ function gen_MT_zdf()
 		end
 	end
 	h:hide()
-	save_gen_con(tab,"ZDF","mediathekviewweb")
+	save_gen_con(tab,"ZDF","zdf")
 end
 
 ----
