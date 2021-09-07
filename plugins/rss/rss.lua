@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.93"
+rssReaderVersion="Lua RSS READER v0.94"
 local CONF_PATH = "/var/tuxbox/config/"
 local n = neutrino()
 local FontMenu = FONT.MENU
@@ -133,7 +133,7 @@ function getVideoUrlM3U8(m3u8_url)
 	local data = getdata(m3u8_url)
 	if data then
 		local host = m3u8_url:match('([%a]+[:]?//[_%w%-%.]+)/')
-		if m3u8_url:find('/master.m3u8') then
+		if m3u8_url:find('/master.m3u8') or m3u8_url:find('/manifest.m3u8') then
 			local lastpos = (m3u8_url:reverse()):find("/")
 			local hosttmp = m3u8_url:sub(1,#m3u8_url-lastpos)
 			if hosttmp then
@@ -142,18 +142,24 @@ function getVideoUrlM3U8(m3u8_url)
 		end
 		local maxRes = getMaxVideoRes()
 		for band, res1, res2, url in data:gmatch('BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-\n(.-)\n') do
-			if url and res1 then
-				local nr = tonumber(res1)
-				if nr <= maxRes and nr > res then
-					res=nr
-					if host and url:sub(1,4) ~= "http" then
-						url = host .. url
+			if res1 .. 'x' .. res2 ~= '2560x1440' then -- skip not supported format
+				if url and res1 then
+					local nr = tonumber(res1)
+					if nr <= maxRes and nr > res then
+						res=nr
+						if host and url:sub(1,4) ~= "http" then
+							url = host .. url
+						end
+						url = url:gsub("\x0d","")
+						videoUrl = url
 					end
-					url = url:gsub("\x0d","")
-					videoUrl = url
 				end
 			end
 		end
+	end
+
+	if videoUrl == nil then
+		videoUrl = m3u8_url
 	end
 	return videoUrl,res
 end
@@ -172,7 +178,7 @@ function getdata(Url,outputfile)
 	end
 
 	if Url:sub(1, 2) == '//' then
-		Url =  'http:' .. Url
+		Url =  'https:' .. Url
 	end
 	if 1 > conf.ctimeout then conf.ctimeout=1 end
 
@@ -690,6 +696,14 @@ function getMediUrls(idNr)
 	if not UrlVideo and not UrlAudio and not UrlExtra and fp.entries[idNr].link:find("www.youtube.com")then
 		UrlExtra = fp.entries[idNr].link
 	end
+	if fp.entries[idNr].links and not UrlExtra then
+		for i,v in ipairs(fp.entries[idNr].links) do
+			if v.websiteUrl and not UrlExtra then
+				UrlExtra = v.websiteUrl
+			end
+		end
+	end
+
 	glob.urlPicUrls = picUrl
 
 	return UrlVideo , UrlAudio , UrlExtra
@@ -1315,7 +1329,7 @@ function gen_MT_ard()
 		end
 	end
 	h:hide()
-	save_gen_con(tab,"ARD","ard")
+	save_gen_con(tab,"ARD","mediathekviewweb")
 
 end
 
@@ -1342,20 +1356,21 @@ function gen_MT_zdf()
 		end
 	end
 	h:hide()
-	save_gen_con(tab,"ZDF","zdf")
+	save_gen_con(tab,"ZDF","mediathekviewweb")
 end
 
 ----
 function rssurlmenu(url)
 	glob.feedpersed = getFeedDataFromUrl(url)
 	if glob.feedpersed == nil then return end
+	local feedparser = require "feedparser"
 	local d = 0 -- directkey
 	local head_title = glob.feedpersed.feed.title
 	if head_title then head_title = head_title:gsub("!ard","") end
 	local m = menu.new{name=head_title, icon="icon_blue"}
 	glob.m=m
 	m:addKey{directkey=RC.home, id="home", action="home"}
-	m:addKey{directkey=RC.info, id="FEED Version: " .. fp.version, action="info"}
+	m:addKey{directkey=RC.info, id="Version: " .. feedparser._VERSION, action="info"}
 	m:addItem{type="back"}
 	m:addItem{type="separator"}
 
