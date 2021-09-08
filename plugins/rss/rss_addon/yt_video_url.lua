@@ -139,18 +139,6 @@ function media.getVideoUrl(yurl)
 		yurl = 'https://www.youtube.com' .. youtube_live_url
 	end
 
-	local revision = 0
-	if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
-		M = misc.new()
-		revision = M:GetRevision()
-	end
-	local Nconfig	= configfile.new()
-	local CONF_PATH = "/var/tuxbox/config/"
-	Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
-	local key = Nconfig:getString("youtube_dev_id", '#')
-	local youtube_dev_id = nil
-	if key ~= '#' then youtube_dev_id = key end
-
 	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
 	if h then
 		h:paint()

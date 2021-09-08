@@ -1,6 +1,6 @@
 --[[
 	RSS READER Plugin
-	Copyright (C) 2014-2019,  Jacek Jendrzej 'satbaby'
+	Copyright (C) 2014-2021,  Jacek Jendrzej 'satbaby'
 
 	License: GPL
 
@@ -21,16 +21,17 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.95"
+rssReaderVersion="Lua RSS READER v0.96 by satbaby"
 local CONF_PATH = "/var/tuxbox/config/"
+revision = 0
+youtube_dev_id = nil
+feedentries = {}
+
 local n = neutrino()
 local FontMenu = FONT.MENU
 local FontTitle = FONT.MENU_TITLE
-local revision = 0
-
 local glob = {}
 local conf = {}
-feedentries = {} --don't make
 local S_Key = {fav_setup=1,fav=2,setup=3}
 local addon = nil
 local nothing,hva,hvb,hvc,hve,hvf="nichts",nil,nil,nil,nil,"reader"
@@ -271,10 +272,11 @@ function info(infotxt,cap)
 	h = nil
 end
 
-function get_input(ct,bRed,bGreen,bYellow,bBlue)
+function get_input(ct,B)
 	local stop = false
 	local ret = nil
 	local msg, data = nil,nil
+	if B == nil then B = {btnOk=''} end
 	repeat
 		msg, data = n:GetInput(500)
 
@@ -282,18 +284,15 @@ function get_input(ct,bRed,bGreen,bYellow,bBlue)
 			ct:scroll{dir="up"}
 		elseif ct and (msg == RC.down or msg == RC.page_down) then
 			ct:scroll{dir="down"}
-		elseif bRed and msg == RC.red then
-			stop = true
-		elseif bGreen and msg == RC.green then
-			stop = true
-		elseif bYellow and msg == RC.yellow then
-			stop = true
-		elseif bBlue and msg == RC.blue then
-			stop = true
 		elseif msg == RC.left then
 			stop = true
 		elseif msg == RC.right then
 			stop = true
+		end
+		for k,v in pairs(B) do
+			if k and msg == RC[k:sub(4):lower()] then
+				stop = true
+			end
 		end
 	until msg == RC.home or msg == RC.setup or stop
 	if stop then
@@ -496,7 +495,8 @@ function paintText(x,y,w,h,picW,picH,CPos,text,window) --ALIGN_AUTO_WIDTH
 	return ct,x,y,w,h
 end
 
-function paintWindow(x,y,w,h,CPos,Title,Icon,RedBtn,GreBtn,YelBtn,BluBtn)
+function paintWindow(x,y,w,h,CPos,Title,Icon,B)
+	if B == nil then B = {} end
 	local defaultW = math.floor(getMaxScreenWidth()- getMaxScreenWidth()/3)
 	local defaultH = n:FontHeight(FontMenu)
 	if w < 1 then
@@ -505,8 +505,11 @@ function paintWindow(x,y,w,h,CPos,Title,Icon,RedBtn,GreBtn,YelBtn,BluBtn)
 	if h < 1 then
 		h = defaultH
 	end
-	local window = cwindow.new{x=x, y=y, dx=w, dy=h, title=Title, icon=Icon,
-		btnRed=RedBtn, btnGreen=GreBtn,btnYellow=YelBtn,btnBlue=BluBtn}
+	local opt = {x=x, y=y, dx=w, dy=h, title=Title, icon=Icon}
+	for k,v in pairs(B) do
+		opt[k]=v
+	end
+	local window = cwindow.new(opt)
 	h = h + window:footerHeight() + window:headerHeight()
 	if Title and #Title > 1 then
 		w = n:getRenderWidth(FontTitle,Title .. "wW")
@@ -523,12 +526,10 @@ function paintWindow(x,y,w,h,CPos,Title,Icon,RedBtn,GreBtn,YelBtn,BluBtn)
 	if CPos and CPos > 0 and CPos < 4 then
 		window:setCenterPos{CPos}
 	end
--- 		window:setCaption{title=Title, alignment=TEXT_ALIGNMENT.CENTER}
-
 	return window,x,y,w,h
 end
 
-function showWindow(title,text,fpic,icon,bRed,bGreen,bYellow,bBlue)
+function showWindow(title,text,fpic,icon,B)
 	local x,y,w,h = 0,0,0,0
 	local picW,picH = 0,0
 	local maxW = getMaxScreenWidth()
@@ -558,7 +559,7 @@ function showWindow(title,text,fpic,icon,bRed,bGreen,bYellow,bBlue)
 	end
 
 	local wPosition = 3
-	local cw,x,y,w,h = paintWindow(x,y,w,h,-1,title,icon,bRed,bGreen,bYellow,bBlue)
+	local cw,x,y,w,h = paintWindow(x,y,w,h,-1,title,icon,B)
 
 	local ct,x,y,w,h = paintText(x,y,w,h,picW,picH,wPosition,text,cw)
 	if fpic and picW > 1 and picH > 1 then
@@ -569,7 +570,7 @@ function showWindow(title,text,fpic,icon,bRed,bGreen,bYellow,bBlue)
 	end
 
 	cw:paint()
-	local selected =  get_input(ct,bRed,bGreen,bYellow,bBlue)
+	local selected =  get_input(ct,B)
 	return cw , selected
 end
 
@@ -612,6 +613,7 @@ function getMediUrls(idNr)
 	local UrlVideo,UrlAudio, UrlExtra = nil,nil,nil
 	local picUrl =  {}
 	local feed = fp.entries[idNr]
+	local rev = revision
 	for i, link in ipairs(feed.enclosures) do
 		local urlType =link.type
 		local mediaUrlFound = false
@@ -624,13 +626,15 @@ function getMediUrls(idNr)
 			UrlVideo =  link.url
 			mediaUrlFound = true
 		end
-		if revision == 1 and urlType == 'video/webm' then
+		if rev == 1 and urlType == 'video/webm' then
 			UrlVideo =  link.url
 			mediaUrlFound = true
 		end
 		if urlType == 'audio/mp3' or urlType == 'audio/mpeg' then
-			UrlAudio =  link.url
-			mediaUrlFound = true
+			if rev == 1 or rev == 0x09 or rev == 0x0B or rev == 0x0C or rev == 0x0D or rev == 0x0E then
+				UrlAudio =  link.url
+				mediaUrlFound = true
+			end
 		end
 
 		if mediaUrlFound == false and link.url then
@@ -821,7 +825,7 @@ function showMenuItem(id)
 				nr = 1
 			end
 			selected = paintMenuItem(nr)
-		elseif selected == RC.red or selected == RC.green or selected == RC.yellow or selected == RC.blue or selected then
+		elseif selected then
 			selected = paintMenuItem(nr)
 		else
 			stop = true
@@ -932,39 +936,43 @@ function paintMenuItem(idNr)
 
 	if text == nil then
 		if vPlay and UrlVideo then
-if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
-		vPlay:PlayFile(title,UrlVideo,UrlVideo,"",UrlVideoAudio or "")
-else
-		vPlay:PlayFile(title,UrlVideo,UrlVideo)
-end
+			if revision then
+				vPlay:PlayFile(title,UrlVideo,UrlVideo,"",UrlVideoAudio or "")
+			else
+				vPlay:PlayFile(title,UrlVideo,UrlVideo)
+			end
 		elseif vPlay and UrlAudio then
 			vPlay:PlayFile(title,UrlAudio,UrlAudio)
--- 			vPlay:PlayAudioFile(UrlAudio)
 		end
 		collectgarbage()
 		return
 	end
-
-	local bRed,bGreen,bYellow,bBlue =  nil,nil,nil,nil
-	if UrlVideo then bRed = "Play Video" end
-	if UrlLink and checkHaveViewer() then bGreen = "Read Seite" end
+	local B = {btnRed = nil, btnGreen = nil, btnYellow = nil, btnBlue = nil, btn0 = nil, btn1 = nil, btnOk = nil, btnSetup = nil}
+	if UrlVideo then B.btnOk = "Play Video" end
+	if UrlLink and checkHaveViewer() then B.btnGreen = "Read Seite" end
 	if glob.urlPicUrls and #glob.urlPicUrls > 0 then
-		bYellow = "Show Pic"
+		B.btnYellow = "Show Pic"
 		if #glob.urlPicUrls > 1 then
-			bYellow = bYellow .. "s"
+			B.btnYellow = B.btnYellow .. "s"
 		end
 	end
-	if UrlAudio then bBlue = "Play Audio" end
-	local cw,selected =  showWindow(title,text,fpic,"hint_info",bRed,bGreen,bYellow,bBlue)
+	if UrlAudio then
+		local bnt = "Play Audio"
+		if UrlVideo == nil then
+			B.btnOk  = bnt
+		else
+			B.btnBlue  = bnt
+		end
+	end
+	local cw,selected =  showWindow(title,text,fpic,"hint_info",B)
 	cw:hide()
 	cw = nil
-
-	if selected == RC.red and vPlay and UrlVideo then
-if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
-		vPlay:PlayFile(title,UrlVideo,UrlVideo,"",UrlVideoAudio or "")
-else
-		vPlay:PlayFile(title,UrlVideo,UrlVideo)
-end
+	if selected == RC.ok and vPlay and UrlVideo then
+			if revision then
+				vPlay:PlayFile(title,UrlVideo,UrlVideo,"",UrlVideoAudio or "")
+			else
+				vPlay:PlayFile(title,UrlVideo,UrlVideo)
+			end
 	elseif checkHaveViewer() and selected == RC.green and UrlLink then
 	if hva == conf.htmlviewer and UrlLink then
 		os.execute(conf.linksbrowserdir .. LinksBrowser .. " -g " .. UrlLink)
@@ -979,11 +987,12 @@ end
 		end
 	end
 
-	elseif selected == RC.yellow and  bYellow then
+	elseif selected == RC.yellow and  B.btnYellow then
 		picviewer(idNr,1)
-	elseif selected == RC.blue and UrlAudio and vPlay then
-		vPlay:PlayFile(title,UrlAudio,UrlAudio)
--- 		vPlay:PlayAudioFile(UrlAudio)
+	elseif vPlay and UrlAudio then
+		if selected == RC.blue or (UrlVideo == nil and selected == RC.ok) then
+			vPlay:PlayFile(title,UrlAudio,UrlAudio)
+		end
 	end
 	epgtext = nil
 	epgtitle = nil
@@ -1104,7 +1113,7 @@ function picviewer(id,nr)
 					end
 				end
 			end
-		until msg == RC.home or msg == RC.setup or stop
+		until msg == RC.home or msg == RC.setup or msg == RC.ok or stop
 		n:PaintBox(-1,-1,-1,-1,COL.BACKGROUND)
 	end
 end
@@ -1166,6 +1175,8 @@ function loadConfig()
 	if LOC == nil then
 		LOC = locale["english"]
 	end
+	local key = Nconfig:getString("youtube_dev_id", '#')
+	if key ~= '#' then youtube_dev_id = key end
 	conf.changed = false
 	checkhtmlviewer()
 end
@@ -1274,7 +1285,6 @@ function LoadMediatheken()
 	end
 end
 function loadMediathek(filename)
-	print(filename)
 	local data = read_file(filename)
 	for _line in data:gmatch('(title.-)\n') do
 		local _name = _line:match('title="(.-)"')
@@ -1589,6 +1599,11 @@ function main()
 	if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
 		M = misc.new()
 		revision = M:GetRevision()
+		local procmodel = "/proc/stb/info/model"
+		if fh:exist(procmodel , "f") then
+			local model = read_file(procmodel)
+			if model and model:find("ufs913") then revision = 0x0E end
+		end
 	end
 
 	start()
