@@ -73,16 +73,11 @@ end
 
 local jsdata = nil
 
+local jsdata = nil
 function newsig(sig,js_url)
 	if sig and js_url then
-		local filename = '/tmp/jsdate'
-		if jsdata == nil and fh:exist(filename, "f") == true then
-			jsdata = read_file(filename)
-		end
-
-		if jsdata == nil then
-			getdata("https://www.youtube.com" .. js_url, filename)
-			jsdata = read_file(filename)
+		if jsdata ==  nil then
+			jsdata = getdata("https://www.youtube.com" .. js_url)
 		end
 		if jsdata then
 			return js_descramble( sig, jsdata )
@@ -124,18 +119,6 @@ function media.getVideoUrl(yurl)
 		if youtube_live_url == nil then return end
 		yurl = 'https://www.youtube.com' .. youtube_live_url
 	end
-
-	local revision = 0
-	if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
-		M = misc.new()
-		revision = M:GetRevision()
-	end
-	local Nconfig	= configfile.new()
-	local CONF_PATH = "/var/tuxbox/config/"
-	Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
-	local key = Nconfig:getString("youtube_dev_id", '#')
-	local youtube_dev_id = nil
-	if key ~= '#' then youtube_dev_id = key end
 
 	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
 	if h then
