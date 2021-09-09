@@ -21,13 +21,14 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.96 by satbaby"
+rssReaderVersion="Lua RSS READER v0.97 by satbaby"
 local CONF_PATH = "/var/tuxbox/config/"
 revision = 0
 youtube_dev_id = nil
 feedentries = {}
 
 local n = neutrino()
+local fh = filehelpers.new()
 local FontMenu = FONT.MENU
 local FontTitle = FONT.MENU_TITLE
 local glob = {}
@@ -44,7 +45,7 @@ local LinksBrowser = "/links.so"
 locale = {}
 locale["english"] = {
 	picdir = "Picture directory: ",
-	picdirhint = "In which directory should the images be saved ?",
+	picdirhint = "In which directory should images be saved ?",
 	bindirhint = "In which directory are HTML viewer ?",
 	addonsdir = "Addons directory: ",
 	addonsdirhint = "In which directory are rss addons ?",
@@ -63,7 +64,9 @@ locale["english"] = {
 	maxReshint = "Max. Video Resolution",
 	mt_ard = "Generate ARD Media Library List",
 	mt_zdf = "Generate ZDF Media Library List",
-	mt_hint = "The list is only loaded after rss restart"
+	mt_hint = "The list is only loaded after rss restart",
+	dldir = "Path for Downloads:",
+	dlhint = "In which directory should videos be saved ?"
 }
 locale["deutsch"] = {
 	picdir = "Bildverzeichnis: ",
@@ -86,11 +89,13 @@ locale["deutsch"] = {
 	maxReshint = "Max. Auflösung für Video",
 	mt_ard = "Generiere ARD Mediathek Liste",
 	mt_zdf = "Generiere ZDF Mediathek Liste",
-	mt_hint = "Die Liste wird erst nach rss neustart geladen"
+	mt_hint = "Die Liste wird erst nach rss neustart geladen",
+	dldir= "Pfad für Downloads:",
+	dlhint = "In welchem Verzeichnis sollen die Videos gespeichert werden ?"
 }
 locale["polski"] = {
-	picdir = "katalog zdjęć: ",
-	picdirhint = "W którym folderze obrazy mają być zapisane ?",
+	picdir = "folder dla zdjęć: ",
+	picdirhint = "W którym folderze zdjęcia (pics) mają być zapisane ?",
 	bindirhint = "W którym folderze znajduje się przeglądarka HTML?",
 	addonsdir = "Addons folder: ",
 	addonsdirhint = "W którym folderze znajdują się rss addons ?",
@@ -109,7 +114,9 @@ locale["polski"] = {
 	maxReshint = "Maksymalna rozdzielczość dla Video",
 	mt_ard = "Generowanie listy bibliotek ARD Media",
 	mt_zdf = "Generowanie listy bibliotek ZDF Media",
-	mt_hint = "Lista jest ładowana dopiero po restarcie rss"
+	mt_hint = "Lista jest ładowana dopiero po restarcie rss",
+	dldir = "folder dla downloads:",
+	dlhint = "W którym folderze downloads mają być zapisane ?"
 }
 
 function get_confFile()
@@ -118,8 +125,157 @@ end
 
 function __LINE__() return debug.getinfo(2, 'l').currentline end
 
+function toUcode(s)
+	s=s:gsub("'","&apos;")
+	s=s:gsub("<","&lt;")
+	s=s:gsub(">","&gt;")
+	s=s:gsub('"',"&quot;")
+	s=s:gsub("\x0a","&#x0a;")
+	s=s:gsub("\x0d","&#x0d;")
+	s=s:gsub("&","&amp;")
+	return s
+end
+
+function writeXML(ch, title, info1, info2, filename)
+	ch = ch or ""
+	title = title or ""
+	info1 = info1 or ""
+	info2 = info2 or ""
+local xml='<?xml version="1.0" encoding="UTF-8"?>\
+\
+<neutrino commandversion="1">\
+	<record command="record">\
+		<channelname>' .. ch .. '</channelname>\
+		<epgtitle>' .. toUcode(title) .. '</epgtitle>\
+		<id>0</id>\
+		<info1>' .. toUcode(info1) .. '</info1>\
+		<info2>' .. info2 .. '</info2>\
+		<epgid>0</epgid>\
+		<mode>1</mode>\
+		<videopid>0</videopid>\
+		<videotype>1</videotype>\
+		<audiopids>\
+			<audio pid="1" audiotype="0" selected="0" name=""/>\
+		</audiopids>\
+		<vtxtpid>0</vtxtpid>\
+		<genremajor>0</genremajor>\
+		<genreminor>0</genreminor>\
+		<seriename></seriename>\
+		<length>0</length>\
+		<productioncountry></productioncountry>\
+		<productiondate>0</productiondate>\
+		<rating>0</rating>\
+		<quality>0</quality>\
+		<parentallockage>0</parentallockage>\
+		<dateoflastplay>0</dateoflastplay>\
+		<bookmark>\
+			<bookmarkstart>0</bookmarkstart>\
+			<bookmarkend>0</bookmarkend>\
+			<bookmarklast>0</bookmarklast>\
+			<bookmarkuser bookmarkuserpos="0" bookmarkusertype="0" bookmarkusername=""/>\
+		</bookmark>\
+	</record>\
+</neutrino>\n'
+
+	local file = io.open(filename,'w')
+	file:write(xml)
+	file:close()
+end
+
+function dl_stream(dl)
+	local Format = nil
+	if dl and dl.streamUrl then
+		if dl.streamUrl:sub(-4) == ".mp4" then
+			Format = 'mp4'
+		elseif dl.streamUrl:find("m3u8") then
+			Format = 'ts'
+		elseif dl.streamUrl:find("googlevideo.com/videoplaybac") then
+			Format = 'mkv'
+		end
+		local dlname = nil
+		if dl.ch and dl.name and dl.date and dl.info1 then
+			dlname = dl.ch .. "_" .. dl.name .. "_" .. dl.info1 .. "_" .. dl.date
+			dlname = dlname:gsub("[%p%s/]", "_")
+		end
+		if dlname and Format then
+			local dls  = "/tmp/.rss_dl.sh"
+			local filenamexml = "/tmp/.rss_dl_xml"
+			writeXML(dl.ch, dl.name, dl.info1, dl.info2, filenamexml)
+			dlname = conf.dlPath .. "/" .. dlname
+			local script=io.open(dls,"w")
+			script:write('echo "download start" ;\n')
+			if Format == 'mp4' then
+				script:write('wget -q --continue ' .. dl.streamUrl .. ' -O ' .. dlname .. '.mp4 ;\n')
+			elseif Format == 'hls' or Format == 'mkv' then
+				if dl.streamUrl2 then
+					script:write("ffmpeg -y -nostdin -loglevel 30 -i '" .. dl.streamUrl .. "' -i '" .. dl.streamUrl2  .. "' -c copy  " .. dlname   .. "." .. Format .. "\n")
+				else
+					script:write("ffmpeg -y -nostdin -loglevel 30 -i '" .. dl.streamUrl .. "' -c copy  " .. dlname   .. "." .. Format .. "\n")
+				end
+			end
+			script:write('if [ $? -eq 0 ]; then \n')
+			script:write('wget -q http://127.0.0.1/control/message?popup="Video ' .. dl.name .. ' wurde heruntergeladen." -O /dev/null ; \n')
+			script:write('mv ' .. filenamexml .. ' ' .. dlname .. '.xml ; \n')
+			script:write('else \n')
+			script:write('wget -q http://127.0.0.1/control/message?popup="Download ' .. dl.name .. ' FEHLGESCHLAGEN" -O /dev/null ; \n')
+			script:write('rm ' .. filenamexml .. ' ; \n')
+			script:write('fi \n')
+			script:write('rm ' .. dls .. '; \n')
+			script:close()
+			os.execute('sh  ' .. dls .. ' &')
+			return true
+		end
+	end
+	return false
+end
+
+function dl_check(streamUrl)
+	local check = false
+	local dl_not_possible = conf.dlPath == '/tmp' or conf.dlPath == '/'
+	if dl_not_possible then return check end
+	if fh:exist('/tmp/.rss_dl.sh', 'f') then return check end
+	if streamUrl:sub(-4) == ".mp4" then
+		check = true
+	elseif glob.have_ffmpeg and (streamUrl:find('m3u8') or streamUrl:find("googlevideo.com/videoplaybac")) then
+		check = true
+	end
+	return check
+end
+
+function gen_dl(streamUrl,streamUrl2,title,info1,idNr)
+	local dl = {}
+	dl.name = title
+	dl.streamUrl = streamUrl
+	dl.streamUrl2 = streamUrl2
+	dl.info1 = ''
+	dl.ch = ''
+	dl.date = ''
+	if info1 then
+		dl.info2 = toUcode(info1)
+	end
+	if fp.entries[idNr].author_detail and fp.entries[idNr].author_detail.name then
+		dl.ch = fp.entries[idNr].author_detail.name
+	end
+	if fp.entries[idNr].updated_parsed then
+		dl.date = os.date("%Y%m%d_%H%M%S",fp.entries[idNr].updated_parsed)
+	end
+
+	return dl
+end
+
+function which(bin_name)
+	local path = os.getenv("PATH") or "/bin"
+	for v in path:gmatch("([^:]+):?") do
+		local file = v .. "/" .. bin_name
+		if fh:exist(file , "f") then
+			return true
+		end
+	end
+	return false
+end
+
 function getMaxVideoRes()
-	local maxRes = 1920
+	local maxRes = 1280
 	if conf.maxRes then
 		local maxResStr = conf.maxRes:match("(%d+)x")
 		maxRes = tonumber(maxResStr)
@@ -129,6 +285,8 @@ end
 
 function getVideoUrlM3U8(m3u8_url)
 	if m3u8_url == nil then return nil end
+	if not m3u8_url:find('m3u8') then return m3u8_url end
+
 	local videoUrl = nil
 	local res = 0
 	local data = getdata(m3u8_url)
@@ -833,6 +991,7 @@ function showMenuItem(id)
 	until stop
 
 end
+
 local tmpUrlLink,tmpUrlVideo,tmpUrlAudio,tmpUrlExtra,tmpUrlVideoAudio,tmpText = nil,nil,nil,nil,nil,nil
 function paintMenuItem(idNr)
 	glob.m:hide()
@@ -948,7 +1107,14 @@ function paintMenuItem(idNr)
 		return
 	end
 	local B = {btnRed = nil, btnGreen = nil, btnYellow = nil, btnBlue = nil, btn0 = nil, btn1 = nil, btnOk = nil, btnSetup = nil}
-	if UrlVideo then B.btnOk = "Play Video" end
+	local dl_possible = false
+	if UrlVideo then
+		B.btnOk = "Play Video"
+		dl_possible = dl_check(UrlVideo)
+		if dl_possible then
+			B.btn0 = "Download Video"
+		end
+	end
 	if UrlLink and checkHaveViewer() then B.btnGreen = "Read Seite" end
 	if glob.urlPicUrls and #glob.urlPicUrls > 0 then
 		B.btnYellow = "Show Pic"
@@ -964,34 +1130,38 @@ function paintMenuItem(idNr)
 			B.btnBlue  = bnt
 		end
 	end
-	local cw,selected =  showWindow(title,text,fpic,"hint_info",B)
+	local cw,selected =  showWindow(title, text, fpic, "hint_info", B)
 	cw:hide()
 	cw = nil
 	if selected == RC.ok and vPlay and UrlVideo then
-			if revision then
-				vPlay:PlayFile(title,UrlVideo,UrlVideo,"",UrlVideoAudio or "")
-			else
-				vPlay:PlayFile(title,UrlVideo,UrlVideo)
-			end
+		if revision then
+			vPlay:PlayFile(title, UrlVideo, UrlVideo, "", UrlVideoAudio or "")
+		else
+			vPlay:PlayFile(title,UrlVideo,UrlVideo)
+		end
 	elseif checkHaveViewer() and selected == RC.green and UrlLink then
-	if hva == conf.htmlviewer and UrlLink then
-		os.execute(conf.linksbrowserdir .. LinksBrowser .. " -g " .. UrlLink)
-	else
-		local data = getdata(UrlLink)
-		if data then
-			local txt = showWithHtmlViewer(data)
-			data = nil
-			if txt then
-				show_textWindow(title,txt)
+		if hva == conf.htmlviewer and UrlLink then
+			os.execute(conf.linksbrowserdir .. LinksBrowser .. " -g " .. UrlLink)
+		else
+			local data = getdata(UrlLink)
+			if data then
+				local txt = showWithHtmlViewer(data)
+				data = nil
+				if txt then
+					show_textWindow(title,txt)
+				end
 			end
 		end
-	end
-
 	elseif selected == RC.yellow and  B.btnYellow then
 		picviewer(idNr,1)
 	elseif vPlay and UrlAudio then
 		if selected == RC.blue or (UrlVideo == nil and selected == RC.ok) then
-			vPlay:PlayFile(title,UrlAudio,UrlAudio)
+			vPlay:PlayFile(title, UrlAudio, UrlAudio)
+		end
+	elseif dl_possible and selected == RC['0'] and  B.btn0 then
+		local dl = gen_dl(UrlVideo, UrlVideoAudio, title, text or "", idNr)
+		if dl then
+			dl_stream(dl)
 		end
 	end
 	epgtext = nil
@@ -1002,7 +1172,6 @@ function paintMenuItem(idNr)
 			fh:rmdir(picdir)
 			fh:mkdir(picdir)
 		end
-		fh = nil
 	end
 	collectgarbage()
 	return selected
@@ -1025,7 +1194,6 @@ function downloadPic(idNr,nr)
 			id2 = idNr
 		end
 		fpic = conf.picdir .. "/" .. id2 .. picname
-		local fh = filehelpers.new()
 		if fh:exist(fpic, "f") == false then
 			if nr > 1 then
 				n:PaintIcon("icon_red", 20 + SCREEN.OFF_X, 40 + SCREEN.OFF_Y, 30,30)
@@ -1036,7 +1204,6 @@ function downloadPic(idNr,nr)
 				fpic = nil
 			end
 		end
-		fh = nil
 	end
 	return fpic
 end
@@ -1133,23 +1300,11 @@ function saveConfig()
 			config:setInt32("set_key", conf.set_key)
 			config:setInt32("ctimeout", conf.ctimeout)
 			config:setString("linksbrowserdir", conf.linksbrowserdir)
+			config:setString('dlPath', conf.dlPath)
 			config:saveConfig(get_confFile())
 			config = nil
 		end
 		conf.changed = false
-	end
-end
-function checkhtmlviewer()
-	local fh = filehelpers.new()
-	if fh:exist(conf.linksbrowserdir .. LinksBrowser, "f") == true then
-		hva="links browser"
-		hve="links viewer"
-	end
-	if fh:exist(conf.bindir .. "/" .. "html2text", "f") == true then
-		hvb="html2text"
-	end
-	if fh:exist(conf.bindir .. "/" .. "w3m" , "f") == true then
-		hvc="w3m"
 	end
 end
 
@@ -1165,6 +1320,7 @@ function loadConfig()
 		conf.maxRes = config:getString("maxRes", "1280x720")
 		conf.set_key = config:getInt32("set_key", 1)
 		conf.ctimeout = config:getInt32("ctimeout", 5)
+		conf.dlPath = config:getString('dlPath', '/')
 		config = nil
 	end
 
@@ -1178,7 +1334,21 @@ function loadConfig()
 	local key = Nconfig:getString("youtube_dev_id", '#')
 	if key ~= '#' then youtube_dev_id = key end
 	conf.changed = false
+	glob.have_ffmpeg = which("ffmpeg")
 	checkhtmlviewer()
+end
+
+function checkhtmlviewer()
+	if fh:exist(conf.linksbrowserdir .. LinksBrowser, "f") == true then
+		hva="links browser"
+		hve="links viewer"
+	end
+	if fh:exist(conf.bindir .. "/" .. "html2text", "f") == true then
+		hvb="html2text"
+	end
+	if fh:exist(conf.bindir .. "/" .. "w3m" , "f") == true then
+		hvc="w3m"
+	end
 end
 
 function set_action(id,value)
@@ -1220,6 +1390,11 @@ function settings(id,a)
 	menu:addItem{ type="filebrowser", dir_mode="1", id="picdir", name= LOC.picdir, action="set_action",
 		   enabled=true,value=conf.picdir,directkey=godirectkey(d),
 		   hint_icon="hint_service",hint= LOC.picdirhint
+		 }
+	d=d+1
+	menu:addItem{ type="filebrowser", dir_mode="1", id="dlPath", name= LOC.dldir, action="set_action",
+		   enabled=true,value=conf.dlPath,directkey=godirectkey(d),
+		   hint_icon="hint_service",hint= LOC.dlhint
 		 }
 	d=d+1
 	menu:addItem{ type="filebrowser", dir_mode="1", id="bindir", name="HtmlViewer: ", action="set_action",
@@ -1564,7 +1739,6 @@ end
 
 function main()
 	local config= CONF_PATH .. "/rssreader.conf"
-	local fh = filehelpers.new()
 	if fh:exist(config, "f") == false and fh:exist(config, "l") == false then
 		feedentries = {
 			{ name = "rssreader.conf Beispiel",		exec = "SEPARATORLINE" },
@@ -1602,7 +1776,7 @@ function main()
 		local procmodel = "/proc/stb/info/model"
 		if fh:exist(procmodel , "f") then
 			local model = read_file(procmodel)
-			if model and model:find("ufs913") then revision = 0x0E end
+			if model and model:find("ufs%d+") then revision = 0x0E end
 		end
 	end
 
