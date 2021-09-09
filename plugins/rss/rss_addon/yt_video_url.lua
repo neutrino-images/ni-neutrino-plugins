@@ -1,26 +1,5 @@
 json = require "json"
 
-function getdata(Url,outputfile,Postfields,pass_headers,httpheaders)
-	if Url == nil then return nil end
-	if Curl == nil then
-		Curl = curl.new()
-	end
-
-	if Url:sub(1, 2) == '//' then
-		Url =  'https:' .. Url
-	end
-
-	local ret, data = Curl:download{ url=Url, A="Mozilla/5.0",maxRedirs=5,followRedir=false,postfields=Postfields,header=pass_headers,o=outputfile,httpheader=httpheaders }
-	if ret == CURL.OK then
-		if outputfile then
-			return 1
-		end
-		return data
-	else
-		return nil
-	end
-end
-
 function hex2char(hex)
   return string.char(tonumber(hex, 16))
 end
@@ -93,10 +72,17 @@ function js_descramble( sig, js )
 end
 
 local jsdata = nil
+
 function newsig(sig,js_url)
 	if sig and js_url then
-		if jsdata ==  nil then
-			jsdata = getdata("https://www.youtube.com" .. js_url)
+		local filename = '/tmp/jsdate'
+		if jsdata == nil and fh:exist(filename, "f") == true then
+			jsdata = read_file(filename)
+		end
+
+		if jsdata == nil then
+			getdata("https://www.youtube.com" .. js_url, filename)
+			jsdata = read_file(filename)
 		end
 		if jsdata then
 			return js_descramble( sig, jsdata )
@@ -138,6 +124,18 @@ function media.getVideoUrl(yurl)
 		if youtube_live_url == nil then return end
 		yurl = 'https://www.youtube.com' .. youtube_live_url
 	end
+
+	local revision = 0
+	if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
+		M = misc.new()
+		revision = M:GetRevision()
+	end
+	local Nconfig	= configfile.new()
+	local CONF_PATH = "/var/tuxbox/config/"
+	Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
+	local key = Nconfig:getString("youtube_dev_id", '#')
+	local youtube_dev_id = nil
+	if key ~= '#' then youtube_dev_id = key end
 
 	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
 	if h then
