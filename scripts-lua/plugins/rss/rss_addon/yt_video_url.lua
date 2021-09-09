@@ -1,26 +1,5 @@
 json = require "json"
 
-function getdata(Url,outputfile,Postfields,pass_headers,httpheaders)
-	if Url == nil then return nil end
-	if Curl == nil then
-		Curl = curl.new()
-	end
-
-	if Url:sub(1, 2) == '//' then
-		Url =  'https:' .. Url
-	end
-
-	local ret, data = Curl:download{ url=Url, A="Mozilla/5.0",maxRedirs=5,followRedir=false,postfields=Postfields,header=pass_headers,o=outputfile,httpheader=httpheaders }
-	if ret == CURL.OK then
-		if outputfile then
-			return 1
-		end
-		return data
-	else
-		return nil
-	end
-end
-
 function hex2char(hex)
   return string.char(tonumber(hex, 16))
 end
@@ -91,6 +70,8 @@ function js_descramble( sig, js )
 	end
 	return sig
 end
+
+local jsdata = nil
 
 local jsdata = nil
 function newsig(sig,js_url)

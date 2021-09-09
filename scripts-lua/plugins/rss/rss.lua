@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.97 by satbaby"
+rssReaderVersion="Lua RSS READER v0.98 by satbaby"
 local CONF_PATH = "/var/tuxbox/config/"
 revision = 0
 youtube_dev_id = nil
@@ -330,7 +330,8 @@ function pop(cmd)
        return s
 end
 
-function getdata(Url,outputfile)
+
+function getdata(Url,outputfile,Postfields,pass_headers,httpheaders)
 	if Url == nil then return nil end
 	if Curl == nil then
 		Curl = curl.new()
@@ -341,7 +342,8 @@ function getdata(Url,outputfile)
 	end
 	if 1 > conf.ctimeout then conf.ctimeout=1 end
 
-	local ret, data = Curl:download{url=Url,A="Mozilla/5.0;",connectTimeout=conf.ctimeout,maxRedirs=5,followRedir=true,o=outputfile }
+	local ret, data = Curl:download{ url=Url, A="Mozilla/5.0",connectTimeout=conf.ctimeout,maxRedirs=5,
+		followRedir=false,postfields=Postfields,header=pass_headers,o=outputfile,httpheader=httpheaders }
 	if ret == CURL.OK then
 		if outputfile then
 			return 1
