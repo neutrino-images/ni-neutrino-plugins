@@ -1,11 +1,16 @@
 json = require "json"
 
-function getdata(Url,outputfile)
+function getdata(Url,outputfile,Postfields,pass_headers,httpheaders)
 	if Url == nil then return nil end
 	if Curl == nil then
 		Curl = curl.new()
 	end
-	local ret, data = Curl:download{url=Url,A="Mozilla/5.0;",maxRedirs=5,followRedir=true,o=outputfile }
+
+	if Url:sub(1, 2) == '//' then
+		Url =  'https:' .. Url
+	end
+
+	local ret, data = Curl:download{ url=Url, A="Mozilla/5.0",maxRedirs=5,followRedir=false,postfields=Postfields,header=pass_headers,o=outputfile,httpheader=httpheaders }
 	if ret == CURL.OK then
 		if outputfile then
 			return 1
@@ -134,11 +139,6 @@ function media.getVideoUrl(yurl)
 		yurl = 'https://www.youtube.com' .. youtube_live_url
 	end
 
-	local revision = 0
-	if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
-		M = misc.new()
-		revision = M:GetRevision()
-	end
 	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
 	if h then
 		h:paint()
@@ -154,11 +154,13 @@ function media.getVideoUrl(yurl)
 		countx = 0
 		local data = getdata(yurl)
 		local age_formats = false
-		if data:find('LOGIN_REQUIRED') then
+		if data:find('LOGIN_REQUIRED') and youtube_dev_id then
 			local id = yurl:match("/watch%?v=([%w+%p+]+)")
 			if id then
-			data = getdata('https://www.youtube.com/get_video_info?html5=1&video_id=' .. id .. '&eurl=https%3A%2F%2Fyoutube.googleapis.com%2Fv%2F' .. id .. '&c=TVHTML5&cver=7.20210621')
-				if data then data = unescape_uri(data) age_formats = true end
+				local postdat='{"context": {"client": {"clientName": "ANDROID", "clientVersion": "16.20", "hl": "en", "clientScreen": "EMBED"}, "thirdParty": {"embedUrl": "https://google.com"}}, "videoId": "' .. id .. '", "playbackContext": {"contentPlaybackContext": {"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": 18872}}, "contentCheckOk": true, "racyCheckOk": true}'
+				local header_opt ={'content-type:application/json'}
+				data = getdata('https://www.youtube.com/youtubei/v1/player?key=' .. youtube_dev_id, nil, postdat, 0, header_opt)
+				if data then age_formats = true end
 			end
 		end
 
@@ -193,7 +195,13 @@ function media.getVideoUrl(yurl)
 			local map_urls = {}
 			local ucount = 0
 			if player_map or age_formats then
-				local formats_data = data:match('"formats%p-:(%[{.-}])')
+				local formats_data = nil
+				if player_map then
+					formats_data = data:match('"formats%p-:(%[{.-}])')
+				end
+				if age_formats then
+					formats_data = data:match('"formats":%s(%[.-])')
+				end
 				if formats_data then
 					formats_data = formats_data:gsub('\\\\\\"','')
 					if formats_data:find('\\"itag\\":') then
@@ -214,7 +222,13 @@ function media.getVideoUrl(yurl)
 								end
 							end
 						end
-						local adaptiveFormats_data = data:match('adaptiveFormats%p-:(%[{.-}])')
+						local adaptiveFormats_data = nil
+						if player_map then
+							adaptiveFormats_data = data:match('"adaptiveFormats%p-:(%[{.-}])')
+						end
+						if age_formats then
+							adaptiveFormats_data = data:match('"adaptiveFormats":%s(%[.-])')
+						end
 						if adaptiveFormats_data then
 							adaptiveFormats_data = adaptiveFormats_data:gsub('\\\\\\"','')
 							if adaptiveFormats_data:find('\\"itag\\":') then
