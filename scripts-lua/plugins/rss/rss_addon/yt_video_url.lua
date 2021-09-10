@@ -304,7 +304,12 @@ function media.getVideoUrl(yurl)
 			end
 		end
 		local res = 0
-		for k, video in pairs(urls) do
+		local sIdes = {}
+		for k in pairs(urls) do table.insert(sIdes, k) end
+		table.sort(sIdes)
+
+		for _, k in ipairs(sIdes) do
+			local video = urls[k]
 			if itags[k] then
 				tmp_res = tonumber(itags[k]:match('(%d+)x'))
 				if tmp_res > res and tmp_res <= maxRes then

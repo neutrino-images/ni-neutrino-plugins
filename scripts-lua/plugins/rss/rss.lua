@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.98 by satbaby"
+rssReaderVersion="Lua RSS READER v1.00 by satbaby"
 local CONF_PATH = "/var/tuxbox/config/"
 revision = 0
 youtube_dev_id = nil
@@ -34,6 +34,7 @@ local FontTitle = FONT.MENU_TITLE
 local glob = {}
 local conf = {}
 local S_Key = {fav_setup=1,fav=2,setup=3}
+local P_Key = {btnOk=1,btnRed=2,btnPlay=3}
 local addon = nil
 local nothing,hva,hvb,hvc,hve,hvf="nichts",nil,nil,nil,nil,"reader"
 local picdir = "/tmp/rssPics"
@@ -66,7 +67,12 @@ locale["english"] = {
 	mt_zdf = "Generate ZDF Media Library List",
 	mt_hint = "The list is only loaded after rss restart",
 	dldir = "Path for Downloads:",
-	dlhint = "In which directory should videos be saved ?"
+	dlhint = "In which directory should videos be saved ?",
+	set_keyp = "Select Settings Play",
+	set_keyp_hint = "Set key for Play",
+	set_keyp_ok = "OK",
+	set_keyp_red = "Red",
+	set_keyp_play = "Play"
 }
 locale["deutsch"] = {
 	picdir = "Bildverzeichnis: ",
@@ -91,7 +97,12 @@ locale["deutsch"] = {
 	mt_zdf = "Generiere ZDF Mediathek Liste",
 	mt_hint = "Die Liste wird erst nach rss neustart geladen",
 	dldir= "Pfad für Downloads:",
-	dlhint = "In welchem Verzeichnis sollen die Videos gespeichert werden ?"
+	dlhint = "In welchem Verzeichnis sollen die Videos gespeichert werden ?",
+	set_keyp = "Play Taste",
+	set_keyp_hint = "Taste für Play",
+	set_keyp_ok = "OK",
+	set_keyp_red = "Rot",
+	set_keyp_play = "Play"
 }
 locale["polski"] = {
 	picdir = "folder dla zdjęć: ",
@@ -116,7 +127,12 @@ locale["polski"] = {
 	mt_zdf = "Generowanie listy bibliotek ZDF Media",
 	mt_hint = "Lista jest ładowana dopiero po restarcie rss",
 	dldir = "folder dla downloads:",
-	dlhint = "W którym folderze downloads mają być zapisane ?"
+	dlhint = "W którym folderze downloads mają być zapisane ?",
+	set_keyp = "Wybierz Klawisz dla Play",
+	set_keyp_hint = "Wybór klawisza dla Play",
+	set_keyp_ok = "OK",
+	set_keyp_red = "Czerwony",
+	set_keyp_play = "Play"
 }
 
 function get_confFile()
@@ -191,6 +207,16 @@ function dl_stream(dl)
 			Format = 'ts'
 		elseif dl.streamUrl:find("googlevideo.com/videoplaybac") then
 			Format = 'mkv'
+			local itag = dl.streamUrl:match('itag=(%d+)') or dl.streamUrl:match('itag%%3D(%d+)')
+			if itag then
+				local inr = tonumber(itag)
+				if inr == 315 or inr == 308 or inr == 303 or inr == 302 or inr == 313
+						   or inr == 271 or inr == 248 or inr == 247 or inr == 244 then
+					Format = 'mkv'
+				else
+					Format = 'ts'
+				end
+			end
 		end
 		local dlname = nil
 		if dl.ch and dl.name and dl.date and dl.info1 then
@@ -206,7 +232,7 @@ function dl_stream(dl)
 			script:write('echo "download start" ;\n')
 			if Format == 'mp4' then
 				script:write('wget -q --continue ' .. dl.streamUrl .. ' -O ' .. dlname .. '.mp4 ;\n')
-			elseif Format == 'hls' or Format == 'mkv' then
+			elseif Format == 'ts' or Format == 'mkv' then
 				if dl.streamUrl2 then
 					script:write("ffmpeg -y -nostdin -loglevel 30 -i '" .. dl.streamUrl .. "' -i '" .. dl.streamUrl2  .. "' -c copy  " .. dlname   .. "." .. Format .. "\n")
 				else
@@ -228,6 +254,7 @@ function dl_stream(dl)
 	end
 	return false
 end
+
 
 function dl_check(streamUrl)
 	local check = false
@@ -994,6 +1021,16 @@ function showMenuItem(id)
 
 end
 
+function setBtnPlay(B, strPlay)
+		if conf.playKey == P_Key.btnOk then
+			B.btnOk = strPlay
+		elseif conf.playKey == P_Key.btnRed then
+			B.btnRed = strPlay
+		elseif conf.playKey == P_Key.btnPlay then
+			B.btnPlay = strPlay
+		end
+end
+
 local tmpUrlLink,tmpUrlVideo,tmpUrlAudio,tmpUrlExtra,tmpUrlVideoAudio,tmpText = nil,nil,nil,nil,nil,nil
 function paintMenuItem(idNr)
 	glob.m:hide()
@@ -1089,10 +1126,10 @@ function paintMenuItem(idNr)
 		text = fp.entries[idNr].content
 	end
 	if UrlVideo and UrlVideo:sub(1, 2) == '//' then
-		UrlVideo =  'http:' .. UrlVideo
+		UrlVideo =  'https:' .. UrlVideo
 	end
 	if UrlAudio and UrlAudio:sub(1, 2) == '//' then
-		UrlAudio =  'http:' .. UrlAudio
+		UrlAudio =  'https:' .. UrlAudio
 	end
 
 	if text == nil then
@@ -1108,10 +1145,10 @@ function paintMenuItem(idNr)
 		collectgarbage()
 		return
 	end
-	local B = {btnRed = nil, btnGreen = nil, btnYellow = nil, btnBlue = nil, btn0 = nil, btn1 = nil, btnOk = nil, btnSetup = nil}
+	local B = {btnRed = nil, btnGreen = nil, btnYellow = nil, btnBlue = nil, btn0 = nil, btn1 = nil, btnOk = nil, btnSetup = nil, btnPlay = nil}
 	local dl_possible = false
 	if UrlVideo then
-		B.btnOk = "Play Video"
+		setBtnPlay(B,"Play Video")
 		dl_possible = dl_check(UrlVideo)
 		if dl_possible then
 			B.btn0 = "Download Video"
@@ -1127,7 +1164,7 @@ function paintMenuItem(idNr)
 	if UrlAudio then
 		local bnt = "Play Audio"
 		if UrlVideo == nil then
-			B.btnOk  = bnt
+			setBtnPlay(B,bnt)
 		else
 			B.btnBlue  = bnt
 		end
@@ -1135,7 +1172,8 @@ function paintMenuItem(idNr)
 	local cw,selected =  showWindow(title, text, fpic, "hint_info", B)
 	cw:hide()
 	cw = nil
-	if selected == RC.ok and vPlay and UrlVideo then
+	local isPlayRC = selected == RC.ok or selected == RC.red or selected == RC.play
+	if isPlayRC and vPlay and UrlVideo then
 		if revision then
 			vPlay:PlayFile(title, UrlVideo, UrlVideo, "", UrlVideoAudio or "")
 		else
@@ -1157,7 +1195,7 @@ function paintMenuItem(idNr)
 	elseif selected == RC.yellow and  B.btnYellow then
 		picviewer(idNr,1)
 	elseif vPlay and UrlAudio then
-		if selected == RC.blue or (UrlVideo == nil and selected == RC.ok) then
+		if selected == RC.blue or (UrlVideo == nil and isPlayRC) then
 			vPlay:PlayFile(title, UrlAudio, UrlAudio)
 		end
 	elseif dl_possible and selected == RC['0'] and  B.btn0 then
@@ -1303,6 +1341,7 @@ function saveConfig()
 			config:setInt32("ctimeout", conf.ctimeout)
 			config:setString("linksbrowserdir", conf.linksbrowserdir)
 			config:setString('dlPath', conf.dlPath)
+			config:setInt32("playKey", conf.playKey)
 			config:saveConfig(get_confFile())
 			config = nil
 		end
@@ -1323,6 +1362,7 @@ function loadConfig()
 		conf.set_key = config:getInt32("set_key", 1)
 		conf.ctimeout = config:getInt32("ctimeout", 5)
 		conf.dlPath = config:getString('dlPath', '/')
+		conf.playKey = config:getInt32("playKey", 1)
 		config = nil
 	end
 
@@ -1366,6 +1406,15 @@ function set_action(id,value)
 		elseif LOC.setup_key == value then
 			conf.set_key = S_Key.setup
 		end
+
+		if LOC.set_keyp_ok == value then
+			conf.playKey = 1
+		elseif LOC.set_keyp_red == value then
+			conf.playKey = 2
+		elseif LOC.set_keyp_play == value then
+			conf.playKey = 3
+		end
+		conf.changed = true
 		return
 	end
 	conf.changed = true
@@ -1419,6 +1468,10 @@ function settings(id,a)
 	d=d+1
 	local set_key_opt={ LOC.fav_and_setup_key,LOC.fav_key,LOC.setup_key }
 	menu:addItem{type="chooser", action="set_action", options=set_key_opt, id="set_key", value=set_key_opt[conf.set_key], name=LOC.set_key ,directkey=godirectkey(d),hint_icon="hint_service",hint=LOC.set_key_hint}
+
+	d=d+1
+	local set_keyp_opt={ LOC.set_keyp_ok, LOC.set_keyp_red, LOC.set_keyp_play}
+	menu:addItem{type="chooser", action="set_action", options=set_keyp_opt, id="set_key", value=set_keyp_opt[conf.playKey], name=LOC.set_keyp ,directkey=godirectkey(d),hint_icon="hint_service",hint=LOC.set_keyp_hint}
 
 	d=d+1
 	menu:addItem{type="stringinput", action="set_action", id="ctimeout", name=LOC.curlTimeout, value=conf.ctimeout, valid_chars="0123456789",size=2,hint_icon="hint_service",hint=LOC.curlTimeouthint}
