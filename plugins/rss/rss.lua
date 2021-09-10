@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v0.98 by satbaby"
+rssReaderVersion="Lua RSS READER v0.99 by satbaby"
 local CONF_PATH = "/var/tuxbox/config/"
 revision = 0
 youtube_dev_id = nil
@@ -191,6 +191,16 @@ function dl_stream(dl)
 			Format = 'ts'
 		elseif dl.streamUrl:find("googlevideo.com/videoplaybac") then
 			Format = 'mkv'
+			local itag = dl.streamUrl:match('itag=(%d+)') or dl.streamUrl:match('itag%%3D(%d+)')
+			if itag then
+				local inr = tonumber(itag)
+				if inr == 315 or inr == 308 or inr == 303 or inr == 302 or inr == 313
+						   or inr == 271 or inr == 248 or inr == 247 or inr == 244 then
+					Format = 'mkv'
+				else
+					Format = 'ts'
+				end
+			end
 		end
 		local dlname = nil
 		if dl.ch and dl.name and dl.date and dl.info1 then
@@ -206,7 +216,7 @@ function dl_stream(dl)
 			script:write('echo "download start" ;\n')
 			if Format == 'mp4' then
 				script:write('wget -q --continue ' .. dl.streamUrl .. ' -O ' .. dlname .. '.mp4 ;\n')
-			elseif Format == 'hls' or Format == 'mkv' then
+			elseif Format == 'ts' or Format == 'mkv' then
 				if dl.streamUrl2 then
 					script:write("ffmpeg -y -nostdin -loglevel 30 -i '" .. dl.streamUrl .. "' -i '" .. dl.streamUrl2  .. "' -c copy  " .. dlname   .. "." .. Format .. "\n")
 				else
