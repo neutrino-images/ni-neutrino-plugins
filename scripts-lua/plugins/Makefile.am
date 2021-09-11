@@ -46,6 +46,9 @@ endif
 if ENABLE_OPENVPN_SETUP
 SUBDIRS += openvpn-setup
 endif
+if ENABLE_PLUTOTV_UPDATE
+SUBDIRS += plutotv-update
+endif
 if ENABLE_RCU_SWITCHER
 SUBDIRS += rcu_switcher
 endif

@@ -243,6 +243,18 @@ AC_ARG_ENABLE(openvpn-setup,
 	[enable_openvpn_setup="yes"])
 AM_CONDITIONAL(ENABLE_OPENVPN_SETUP, test "$enable_openvpn_setup" = "yes")
 
+AC_ARG_ENABLE(plutotv,
+	AS_HELP_STRING([--enable-plutotv], [enable plutotv @<:@default=yes@:>@]),
+	[enable_plutotv="$enableval"],
+	[enable_plutotv="yes"])
+AM_CONDITIONAL(ENABLE_PLUTOTV, test "$enable_plutotv" = "yes")
+
+AC_ARG_ENABLE(plutotv-update,
+	AS_HELP_STRING([--enable-plutotv-update], [enable plutotv-update @<:@default=yes@:>@]),
+	[enable_plutotv_update="$enableval"],
+	[enable_plutotv_update="yes"])
+AM_CONDITIONAL(ENABLE_PLUTOTV_UPDATE, test "$enable_plutotv_update" = "yes" -a "$enable_plutotv" = "yes")
+
 AC_ARG_ENABLE(rcu_switcher,
 	AS_HELP_STRING([--enable-rcu_switcher], [enable rcu_switcher @<:@default=yes@:>@]),
 	[enable_rcu_switcher="$enableval"],
@@ -372,6 +384,7 @@ scripts-lua/plugins/mtv/Makefile
 scripts-lua/plugins/netzkino/Makefile
 scripts-lua/plugins/openvpn-setup/Makefile
 scripts-lua/plugins/openvpn-setup/openvpn-setup/Makefile
+scripts-lua/plugins/plutotv-update/Makefile
 scripts-lua/plugins/rcu_switcher/Makefile
 scripts-lua/plugins/rss/Makefile
 scripts-lua/plugins/spiegel-tv-doc/Makefile
