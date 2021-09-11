@@ -4,6 +4,7 @@ webtv_DATA = \
 	best_bitrate_m3u8.lua \
 	filmon.lua \
 	filmon.xml \
+	plutotv.epgmap \
 	plutotv.lua \
 	plutotv.xml \
 	yt_live.lua \
