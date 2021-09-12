@@ -243,18 +243,6 @@ AC_ARG_ENABLE(openvpn-setup,
 	[enable_openvpn_setup="yes"])
 AM_CONDITIONAL(ENABLE_OPENVPN_SETUP, test "$enable_openvpn_setup" = "yes")
 
-AC_ARG_ENABLE(plutotv,
-	AS_HELP_STRING([--enable-plutotv], [enable webtv plutotv @<:@default=yes@:>@]),
-	[enable_plutotv="$enableval"],
-	[enable_plutotv="yes"])
-AM_CONDITIONAL(ENABLE_PLUTOTV, test "$enable_plutotv" = "yes")
-
-AC_ARG_ENABLE(plutotv-update,
-	AS_HELP_STRING([--enable-plutotv-update], [enable plutotv-update @<:@default=yes@:>@]),
-	[enable_plutotv_update="$enableval"],
-	[enable_plutotv_update="yes"])
-AM_CONDITIONAL(ENABLE_PLUTOTV_UPDATE, test "$enable_plutotv_update" = "yes" -a "$enable_plutotv" = "yes")
-
 AC_ARG_ENABLE(rcu_switcher,
 	AS_HELP_STRING([--enable-rcu_switcher], [enable rcu_switcher @<:@default=yes@:>@]),
 	[enable_rcu_switcher="$enableval"],
@@ -290,12 +278,6 @@ AC_ARG_ENABLE(userbouquets,
 	[enable_userbouquets="$enableval"],
 	[enable_userbouquets="yes"])
 AM_CONDITIONAL(ENABLE_USERBOUQUETS, test "$enable_userbouquets" = "yes")
-
-AC_ARG_ENABLE(webchannels,
-	AS_HELP_STRING([--enable-webchannels], [enable webchannels @<:@default=yes@:>@]),
-	[enable_webchannels="$enableval"],
-	[enable_webchannels="yes"])
-AM_CONDITIONAL(ENABLE_WEBCHANNELS, test "$enable_webchannels" = "yes")
 
 AC_ARG_ENABLE(autoreboot,
 	AS_HELP_STRING([--enable-autoreboot], [enable autoreboot @<:@default=yes@:>@]),
@@ -350,6 +332,30 @@ AC_ARG_ENABLE(wortraten,
 	[enable_wortraten="yes"],
 	[enable_wortraten="$enableval"])
 AM_CONDITIONAL(ENABLE_WORTRATEN, test "$enable_wortraten" = "yes")
+
+AC_ARG_ENABLE(filmon,
+	AS_HELP_STRING([--enable-filmon], [enable webtv filmon @<:@default=yes@:>@]),
+	[enable_filmon="$enableval"],
+	[enable_filmon="yes"])
+AM_CONDITIONAL(ENABLE_FILMON, test "$enable_filmon" = "yes")
+
+AC_ARG_ENABLE(plutotv,
+	AS_HELP_STRING([--enable-plutotv], [enable webtv plutotv @<:@default=yes@:>@]),
+	[enable_plutotv="$enableval"],
+	[enable_plutotv="yes"])
+AM_CONDITIONAL(ENABLE_PLUTOTV, test "$enable_plutotv" = "yes")
+
+AC_ARG_ENABLE(plutotv-update,
+	AS_HELP_STRING([--enable-plutotv-update], [enable plutotv-update @<:@default=yes@:>@]),
+	[enable_plutotv_update="$enableval"],
+	[enable_plutotv_update="yes"])
+AM_CONDITIONAL(ENABLE_PLUTOTV_UPDATE, test "$enable_plutotv_update" = "yes" -a "$enable_plutotv" = "yes")
+
+AC_ARG_ENABLE(yt_live,
+	AS_HELP_STRING([--enable-yt_live], [enable webtv yt_live @<:@default=yes@:>@]),
+	[enable_yt_live="$enableval"],
+	[enable_yt_live="yes"])
+AM_CONDITIONAL(ENABLE_YT_LIVE, test "$enable_yt_live" = "yes")
 
 AC_CONFIG_FILES([
 Makefile
