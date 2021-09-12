@@ -244,7 +244,7 @@ AC_ARG_ENABLE(openvpn-setup,
 AM_CONDITIONAL(ENABLE_OPENVPN_SETUP, test "$enable_openvpn_setup" = "yes")
 
 AC_ARG_ENABLE(plutotv,
-	AS_HELP_STRING([--enable-plutotv], [enable plutotv @<:@default=yes@:>@]),
+	AS_HELP_STRING([--enable-plutotv], [enable webtv plutotv @<:@default=yes@:>@]),
 	[enable_plutotv="$enableval"],
 	[enable_plutotv="yes"])
 AM_CONDITIONAL(ENABLE_PLUTOTV, test "$enable_plutotv" = "yes")

@@ -46,9 +46,12 @@ function getVideoData(url) -- Generate stream address and evaluate it according 
 	local count = 0
 	if data then
 		local name = "auf Pluto TV"
+--[[
 		local start = os.date('%Y-%m-%dT%H:%M:%S.000Z')
 		local stop = os.date('%Y-%m-%dT%H:%M:%S.000Z', os.time() + 60 * 60 * 2)
-		local channels_data = getdata("http://api.pluto.tv/v2/channels?start=" .. start .. "&stop=" .. stop )
+		local channels_data = getdata("http://api.pluto.tv/v2/channels?start=" .. start .. "&stop=" .. stop)
+]]
+		local channels_data = getdata("http://api.pluto.tv/v2/channels")
 		if channels_data then
 			local jd = json:decode(channels_data)
 			if jd then
@@ -61,7 +64,6 @@ function getVideoData(url) -- Generate stream address and evaluate it according 
 						end
 						break
 					end
-					-- TODO: inject EPG
 				end
 			end
 		end

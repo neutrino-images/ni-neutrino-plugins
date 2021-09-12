@@ -9,7 +9,6 @@ webtv_DATA = \
 
 if ENABLE_PLUTOTV
 webtv_DATA += \
-	plutotv.epgmap \
 	plutotv.lua \
 	plutotv.xml
 endif
