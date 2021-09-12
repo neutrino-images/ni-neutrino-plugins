@@ -5,13 +5,15 @@
 	License: WTFPLv2
 ]]
 
-plugin = "Pluto TV Update v1.1"
+plugin = "Pluto TV Update v1.2"
 
 json = require "json"
 n = neutrino()
 
 configdir = "/var/tuxbox/config"
 webtvdir = "/usr/share/tuxbox/neutrino/webtv"
+
+xmltv = "https://i.mjh.nz/PlutoTV/de.xml"
 
 locale = {}
 locale["deutsch"] = {
@@ -63,7 +65,7 @@ function get_channels()
 							if jd[i].category then
 								category = convert(jd[i].category:gsub(" auf Pluto TV",""))
 							end
-							xml:write('	<webtv genre="' .. category .. '" title="' .. convert(jd[i].name) ..  '" url="' .. jd[i]._id .. '" epgmap="' .. jd[i]._id .. '" script="plutotv.lua" description="' .. summary .. '" />\n')
+							xml:write('	<webtv genre="' .. category .. '" title="' .. convert(jd[i].name) ..  '" url="' .. jd[i]._id .. '" xmltv="' .. xmltv .. '" epgmap="' .. jd[i]._id .. '" script="plutotv.lua" description="' .. summary .. '" />\n')
 						end
 					end
 				end
