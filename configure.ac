@@ -351,6 +351,12 @@ AC_ARG_ENABLE(plutotv-update,
 	[enable_plutotv_update="yes"])
 AM_CONDITIONAL(ENABLE_PLUTOTV_UPDATE, test "$enable_plutotv_update" = "yes" -a "$enable_plutotv" = "yes")
 
+AC_ARG_ENABLE(rakutentv,
+	AS_HELP_STRING([--enable-rakutentv], [enable webtv rakutentv @<:@default=yes@:>@]),
+	[enable_rakutentv="$enableval"],
+	[enable_rakutentv="yes"])
+AM_CONDITIONAL(ENABLE_RAKUTENTV, test "$enable_rakutentv" = "yes")
+
 AC_ARG_ENABLE(yt_live,
 	AS_HELP_STRING([--enable-yt_live], [enable webtv yt_live @<:@default=yes@:>@]),
 	[enable_yt_live="$enableval"],

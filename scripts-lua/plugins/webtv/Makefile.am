@@ -13,6 +13,10 @@ webtv_DATA += \
 	plutotv.lua \
 	plutotv.xml
 endif
+if ENABLE_RAKUTENTV
+webtv_DATA += \
+	rakutentv.xml
+endif
 if ENABLE_YT_LIVE
 webtv_DATA += \
 	yt_live.lua \
