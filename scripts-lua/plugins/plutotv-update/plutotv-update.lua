@@ -5,7 +5,7 @@
 	License: WTFPLv2
 ]]
 
-plugin = "Pluto TV Update v1.0"
+plugin = "Pluto TV Update v1.1"
 
 json = require "json"
 n = neutrino()
@@ -63,26 +63,11 @@ function get_channels()
 							if jd[i].category then
 								category = convert(jd[i].category:gsub(" auf Pluto TV",""))
 							end
-							xml:write('	<webtv genre="' .. category .. '" title="' .. convert(jd[i].name) ..  '" url="' .. jd[i]._id .. '" script="plutotv.lua" description="' .. summary .. '" />\n')
+							xml:write('	<webtv genre="' .. category .. '" title="' .. convert(jd[i].name) ..  '" url="' .. jd[i]._id .. '" epgmap="' .. jd[i]._id .. '" script="plutotv.lua" description="' .. summary .. '" />\n')
 						end
 					end
 				end
 				xml:write('</webtvs>\n')
-				xml:close()
-			end
-			xml = io.open(webtvdir .. "/plutotv.epgmap", 'w+')
-			if xml then
-				xml:write('<?xml version="1.0" encoding="UTF-8"?>\n')
-				xml:write('<zapit api="4">\n')
-				for i = 1, #jd do
-					if jd[i] then
-						if jd[i]._id and jd[i].name then
-							local video = video.new()
-							xml:write('	<filter channel_id="' .. video:createChannelIDfromUrl(jd[i]._id) .. '">' .. jd[i]._id .. '</filter> -- ' .. convert(jd[i].name) .. '\n')
-						end
-					end
-				end
-				xml:write('</zapit>\n')
 				xml:close()
 				r = true
 			end
