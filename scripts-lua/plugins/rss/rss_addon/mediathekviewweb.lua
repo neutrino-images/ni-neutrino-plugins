@@ -12,7 +12,7 @@ function media.getAddonMedia(url,exturl)
 			end
 			video_url = data:match('"(https://[%w-_%.%?%.:/%+=&]+m3u8)"')
 			if video_url then
-				video_url = getVideoUrlM3U8(video_url)
+				video_url = getVideoUrlM3U8(video_url,1920) -- workaround 3940 and 2560 dont work on box
 			end
 		end
 	elseif exturl and exturl:find('zdf.de') then

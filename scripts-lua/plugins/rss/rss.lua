@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v1.00 by satbaby"
+rssReaderVersion="Lua RSS READER v1.03 by satbaby"
 local CONF_PATH = "/var/tuxbox/config/"
 revision = 0
 youtube_dev_id = nil
@@ -310,7 +310,7 @@ function getMaxVideoRes()
 	return maxRes
 end
 
-function getVideoUrlM3U8(m3u8_url)
+function getVideoUrlM3U8(m3u8_url,tmpMaxRes)
 	if m3u8_url == nil then return nil end
 	if not m3u8_url:find('m3u8') then return m3u8_url end
 
@@ -327,18 +327,17 @@ function getVideoUrlM3U8(m3u8_url)
 			end
 		end
 		local maxRes = getMaxVideoRes()
+		if tmpMaxRes and maxRes > tmpMaxRes then maxRes = tmpMaxRes end
 		for band, res1, res2, url in data:gmatch('BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-\n(.-)\n') do
-			if res1 .. 'x' .. res2 ~= '2560x1440' then -- skip not supported format
 				if url and res1 then
-					local nr = tonumber(res1)
-					if nr <= maxRes and nr > res then
-						res=nr
-						if host and url:sub(1,4) ~= "http" then
-							url = host .. url
-						end
-						url = url:gsub("\x0d","")
-						videoUrl = url
+				local nr = tonumber(res1)
+				if nr <= maxRes and nr > res then
+					res=nr
+					if host and url:sub(1,4) ~= "http" then
+						url = host .. url
 					end
+					url = url:gsub("\x0d","")
+					videoUrl = url
 				end
 			end
 		end
@@ -370,7 +369,7 @@ function getdata(Url,outputfile,Postfields,pass_headers,httpheaders)
 	if 1 > conf.ctimeout then conf.ctimeout=1 end
 
 	local ret, data = Curl:download{ url=Url, A="Mozilla/5.0",connectTimeout=conf.ctimeout,maxRedirs=5,
-		followRedir=false,postfields=Postfields,header=pass_headers,o=outputfile,httpheader=httpheaders }
+		followRedir=true,postfields=Postfields,header=pass_headers,o=outputfile,httpheader=httpheaders }
 	if ret == CURL.OK then
 		if outputfile then
 			return 1
@@ -477,7 +476,8 @@ function get_input(ct,B)
 			stop = true
 		end
 		for k,v in pairs(B) do
-			if k and msg == RC[k:sub(4):lower()] then
+			if k and ((msg == RC[k:sub(4):lower()]) or
+				(k and conf.mpkey > 0 and msg == conf.mpkey and k:sub(4):lower() == 'play') ) then
 				stop = true
 			end
 		end
@@ -1172,7 +1172,7 @@ function paintMenuItem(idNr)
 	local cw,selected =  showWindow(title, text, fpic, "hint_info", B)
 	cw:hide()
 	cw = nil
-	local isPlayRC = selected == RC.ok or selected == RC.red or selected == RC.play
+	local isPlayRC = selected == RC.ok or selected == RC.red or selected == RC.play or selected == conf.mpkey
 	if isPlayRC and vPlay and UrlVideo then
 		if revision then
 			vPlay:PlayFile(title, UrlVideo, UrlVideo, "", UrlVideoAudio or "")
@@ -1373,6 +1373,7 @@ function loadConfig()
 	if LOC == nil then
 		LOC = locale["english"]
 	end
+	conf.mpkey = Nconfig:getInt32("mpkey.play", 0)
 	local key = Nconfig:getString("youtube_dev_id", '#')
 	if key ~= '#' then youtube_dev_id = key end
 	conf.changed = false
