@@ -18,6 +18,7 @@ rss_addon_DATA = \
 	rss_addon/instagram.lua \
 	rss_addon/kingofsat.lua \
 	rss_addon/liveleak.lua \
+	rss_addon/mediathekviewweb.lua \
 	rss_addon/pitchfork.lua \
 	rss_addon/postillon.lua \
 	rss_addon/spiegel-tv.lua \
