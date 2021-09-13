@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v1.00 by satbaby"
+rssReaderVersion="Lua RSS READER v1.01 by satbaby"
 local CONF_PATH = "/var/tuxbox/config/"
 revision = 0
 youtube_dev_id = nil
@@ -477,7 +477,8 @@ function get_input(ct,B)
 			stop = true
 		end
 		for k,v in pairs(B) do
-			if k and msg == RC[k:sub(4):lower()] then
+			if k and ((msg == RC[k:sub(4):lower()]) or
+				(k and conf.mpkey > 0 and msg == conf.mpkey and k:sub(4):lower() == 'play') ) then
 				stop = true
 			end
 		end
@@ -1172,7 +1173,7 @@ function paintMenuItem(idNr)
 	local cw,selected =  showWindow(title, text, fpic, "hint_info", B)
 	cw:hide()
 	cw = nil
-	local isPlayRC = selected == RC.ok or selected == RC.red or selected == RC.play
+	local isPlayRC = selected == RC.ok or selected == RC.red or selected == RC.play or selected == conf.mpkey
 	if isPlayRC and vPlay and UrlVideo then
 		if revision then
 			vPlay:PlayFile(title, UrlVideo, UrlVideo, "", UrlVideoAudio or "")
@@ -1373,6 +1374,7 @@ function loadConfig()
 	if LOC == nil then
 		LOC = locale["english"]
 	end
+	conf.mpkey = Nconfig:getInt32("mpkey.play", 0)
 	local key = Nconfig:getString("youtube_dev_id", '#')
 	if key ~= '#' then youtube_dev_id = key end
 	conf.changed = false
