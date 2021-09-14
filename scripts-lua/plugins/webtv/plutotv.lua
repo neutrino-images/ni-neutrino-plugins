@@ -87,6 +87,7 @@ function getVideoData(url) -- Generate stream address and evaluate it according 
 	return count
 end
 
+--[[
 function getLogo(url)
 	local data = getdata("http://127.0.0.1/control/getchannelid?format=json")
 	if data then
@@ -100,9 +101,10 @@ function getLogo(url)
 		end
 	end
 end
+]]
 
 if (getVideoData(_url) > 0) then
-	getLogo(_url)
+	--getLogo(_url)
 	return json:encode(ret)
 end
 
