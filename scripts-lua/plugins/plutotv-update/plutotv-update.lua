@@ -5,14 +5,12 @@
 	License: WTFPLv2
 ]]
 
-plugin = "Pluto TV Update v1.2"
+plugin = "Pluto TV Update v1.3"
 
 json = require "json"
 n = neutrino()
 
 configdir = "/var/tuxbox/config"
-webtvdir = "/usr/share/tuxbox/neutrino/webtv"
-
 xmltv = "https://i.mjh.nz/PlutoTV/de.xml"
 
 locale = {}
@@ -31,6 +29,8 @@ lang = neutrino_conf:getString("language", "english")
 if locale[lang] == nil then
 	lang = "english"
 end
+
+webtvdir = neutrino_conf:getString("last_webtv_dir", "/usr/share/tuxbox/neutrino/webtv")
 
 function convert(s)
 	s=s:gsub("&","&amp;")
