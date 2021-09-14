@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <webradios name="80s80s">
-	<webradio title="80s80s - Main Stream" url="https://streams.80s80s.de/web/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Bowie" url="https://streams.80s80s.de/bowie/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Depeche Mode (Radio For The Masses)" url="https://streams.80s80s.de/dm/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - In the Mix" url="https://streams.80s80s.de/mix/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Italo Hits" url="https://streams.80s80s.de/italohits/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Love" url="https://streams.80s80s.de/love/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Maxis" url="https://streams.80s80s.de/maxis/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Michael Jackson" url="https://streams.80s80s.de/mj/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - NDW" url="https://streams.80s80s.de/ndw/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Partyhits" url="https://streams.80s80s.de/party/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Prince" url="https://streams.80s80s.de/100/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Rock" url="https://streams.80s80s.de/rock/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Soul" url="https://streams.80s80s.de/soul/mp3-192/streams.80s80s.de/" />
+	<webradio title="80s80s - Main Stream" url="https://streams.80s80s.de/web/mp3-192/streams.80s80s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2018/08/600x600_80s80s_colored.png" />
+	<webradio title="80s80s - Bowie" url="https://streams.80s80s.de/bowie/mp3-192/streams.80s80s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2018/08/600x600_80s80s-Bowie_colored.png" />
+	<webradio title="80s80s - Depeche Mode (Radio For The Masses)" url="https://streams.80s80s.de/dm/mp3-192/streams.80s80s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2018/08/600x600_80s80s-DM_colored.png" />
+	<webradio title="80s80s - In the Mix" url="https://streams.80s80s.de/mix/mp3-192/streams.80s80s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2021/05/80s80s_inthemix_600x600.png" />
+	<webradio title="80s80s - Italo Hits" url="https://streams.80s80s.de/italohits/mp3-192/streams.80s80s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2019/02/80s80s_italodisco_600x600.png" />
+	<webradio title="80s80s - Love" url="https://streams.80s80s.de/love/mp3-192/streams.80s80s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2018/08/600x600_80s80s-Love_colored.png" />
+	<webradio title="80s80s - Maxis" url="https://streams.80s80s.de/maxis/mp3-192/streams.80s80s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2021/06/80s80s_maxis_600x600.png" />
+	<webradio title="80s80s - Michael Jackson" url="https://streams.80s80s.de/mj/mp3-192/streams.80s80s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2018/08/80s80s_MJ_600x600.png" />
+	<webradio title="80s80s - NDW" url="https://streams.80s80s.de/ndw/mp3-192/streams.80s80s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2018/08/600x600_80s80s-NDW_colored.png" />
+	<webradio title="80s80s - Partyhits" url="https://streams.80s80s.de/party/mp3-192/streams.80s80s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2018/08/80s80s_party_600x600.png" />
+	<webradio title="80s80s - Prince" url="https://streams.80s80s.de/100/mp3-192/streams.80s80s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2018/08/600x600_80s80s-Prince.png" />
+	<webradio title="80s80s - Rock" url="https://streams.80s80s.de/rock/mp3-192/streams.80s80s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2019/12/80s80s_rock_600x600.png" />
+	<webradio title="80s80s - Soul" url="https://streams.80s80s.de/soul/mp3-192/streams.80s80s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2020/10/80s80s_funksoul_600x600.png" />
 	<webradio title="80s80s - Summerhits" url="https://streams.80s80s.de/summerhits/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Wave" url="https://streams.80s80s.de/wave/mp3-192/streams.80s80s.de/" />
-	<webradio title="80s80s - Christmas" url="https://streams.80s80s.de/christmas/mp3-192/streams.80s80s.de/" />
+	<webradio title="80s80s - Wave" url="https://streams.80s80s.de/wave/mp3-192/streams.80s80s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2019/02/80s80s_wave_600x600.png" />
+	<webradio title="80s80s - Christmas" url="https://streams.80s80s.de/christmas/mp3-192/streams.80s80s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2018/08/600x600_xmas_80s80s.png" />
 </webradios>

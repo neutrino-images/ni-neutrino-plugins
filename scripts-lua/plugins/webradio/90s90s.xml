@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 <webradios name="90s90s">
-	<webradio title="90s90s - Beat" url="https://streams.90s90s.de/main/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - Boygroup" url="https://streams.90s90s.de/boygroup/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - Dance" url="https://streams.90s90s.de/eurodance/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - Grunge" url="https://streams.90s90s.de/grunge/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - HipHop deutsch" url="https://streams.90s90s.de/hiphop-german/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - HipHop" url="https://streams.90s90s.de/hiphop/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - Hits" url="https://streams.90s90s.de/pop/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - In the mix" url="https://streams.90s90s.de/inthemix/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - Lovesongs" url="https://streams.90s90s.de/love/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - RnB" url="https://streams.90s90s.de/rnb/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - Summerhits" url="https://streams.90s90s.de/90s90s-sommerhits/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - Techno" url="https://streams.90s90s.de/techno/mp3-192/streams.90s90s.de/" />
-	<webradio title="90s90s - Xmas" url="https://streams.90s90s.de/xmas/mp3-192/streams.90s90s.de/" />
+	<webradio title="90s90s - Beat" url="https://streams.90s90s.de/main/mp3-192/streams.90s90s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2018/10/90s90s_clubhits_600x600.png" />
+	<webradio title="90s90s - Boygroup" url="https://streams.90s90s.de/boygroup/mp3-192/streams.90s90s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2018/10/90s90s_boygroups_600x600.png" />
+	<webradio title="90s90s - Dance" url="https://streams.90s90s.de/eurodance/mp3-192/streams.90s90s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2018/10/90s90s_dance_600x600.png" />
+	<webradio title="90s90s - Grunge" url="https://streams.90s90s.de/grunge/mp3-192/streams.90s90s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2018/10/90s90s_grunge_600x600.png" />
+	<webradio title="90s90s - HipHop deutsch" url="https://streams.90s90s.de/hiphop-german/mp3-192/streams.90s90s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2019/12/90s90s_hiphop-de_600x600.png" />
+	<webradio title="90s90s - HipHop" url="https://streams.90s90s.de/hiphop/mp3-192/streams.90s90s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2018/10/90s90s_hiphoprap_600x600.png" />
+	<webradio title="90s90s - Hits" url="https://streams.90s90s.de/pop/mp3-192/streams.90s90s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2018/10/90s90s_hits_600x600.png" />
+	<webradio title="90s90s - In the mix" url="https://streams.90s90s.de/inthemix/mp3-192/streams.90s90s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2019/08/90s90s_inthemix_600x600.png" />
+	<webradio title="90s90s - Lovesongs" url="https://streams.90s90s.de/love/mp3-192/streams.90s90s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2021/01/90s90s_lovesongs_600x600.png" />
+	<webradio title="90s90s - RnB" url="https://streams.90s90s.de/rnb/mp3-192/streams.90s90s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2018/10/90s90s_techno_600x600.png" />
+	<webradio title="90s90s - Summerhits" url="https://streams.90s90s.de/90s90s-sommerhits/mp3-192/streams.90s90s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2020/08/90s90s_sommerhits_1x1_600x600.png" />
+	<webradio title="90s90s - Techno" url="https://streams.90s90s.de/techno/mp3-192/streams.90s90s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2018/10/90s90s_techno_600x600.png" />
+	<webradio title="90s90s - Xmas" url="https://streams.90s90s.de/xmas/mp3-192/streams.90s90s.de/" logo="http://aggregatorservice.loverad.io/wp-content/uploads/2019/11/90s90s_xmas_600x600.png" />
 </webradios>
