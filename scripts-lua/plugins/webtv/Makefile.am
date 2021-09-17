@@ -11,7 +11,9 @@ endif
 if ENABLE_PLUTOTV
 webtv_DATA += \
 	plutotv.lua \
-	plutotv.xml
+	plutotv.xml \
+	plutotv_us.lua \
+	plutotv_us.xml
 endif
 if ENABLE_RAKUTENTV
 webtv_DATA += \
