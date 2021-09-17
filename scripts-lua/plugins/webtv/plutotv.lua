@@ -41,7 +41,7 @@ end
 
 function getVideoData(url) -- Generate stream address and evaluate it according to the best resolution 
 	http = "http://service-stitcher.clusters.pluto.tv/stitch/hls/channel/"
-	token = "?advertisingId=&appName=web&appVersion=unknown&appStoreUrl=&architecture=&buildVersion=&clientTime=0&deviceDNT=0&deviceId=" .. gen_ids() .. "&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&sid=" .. gen_ids() .. "&userId=&serverSideAds=true'"
+	token = "?advertisingId=&appName=web&appVersion=unknown&appStoreUrl=&architecture=&buildVersion=&clientTime=0&deviceDNT=0&deviceId=" .. gen_ids() .. "&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&sid=" .. gen_ids() .. "&userId=&serverSideAds=true"
 	local data = getdata(http .. url .."/master.m3u8" ..token) -- Calling the generated master.m3u8 
 	local count = 0
 	if data then
