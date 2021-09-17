@@ -23,8 +23,8 @@ end
 
 function getVideoUrl(m3u8_url)
 	if m3u8_url == nil then return nil end
-    local tmpurl = m3u8_url:lower()
-    if not tmpurl:find('m3u8') then return m3u8_url end
+	local tmpurl = m3u8_url:lower()
+	if not tmpurl:find('m3u8') then return -2 end
 
 	local res = 0
 	local agent = m3u8_url:match("User%-Agent=(.*)")
@@ -182,3 +182,13 @@ if have_url > 0 then
 	return json:encode(ret)
 end
 if have_url == -1 then return "" end --url is offline
+
+	entry = {}
+	entry['url']  = _url
+	entry['band'] = "1"
+	entry['res1'] = "1"
+	entry['res2'] = "1"
+	entry['name'] = "not m3u8"
+	ret[1] = {}
+	ret[1] = entry
+	return json:encode(ret)
