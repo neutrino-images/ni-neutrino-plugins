@@ -23,10 +23,20 @@ end
 
 function getVideoUrl(m3u8_url)
 	if m3u8_url == nil then return nil end
+	local tmpurl = m3u8_url:lower()
+	if not tmpurl:find('m3u8') then return -2 end
+
 	local res = 0
 	local agent = m3u8_url:match("User%-Agent=(.*)")
 	local data = getdata(m3u8_url,agent)
 	if data then
+		res = 1
+		entry = {}
+		entry['url']  = m3u8_url
+		entry['name'] = "org m3u8 url"
+		ret[1] = {}
+		ret[1] = entry
+
 		local host = m3u8_url:match('([%a]+[:]?//[_%w%-%.]+)/')
 		local lastpos = (m3u8_url:reverse()):find("/")
 		local hosttmp = m3u8_url:sub(1,#m3u8_url-lastpos)
@@ -84,14 +94,19 @@ function getVideoUrl(m3u8_url)
 			audio_url = l1 or l2 or l3 or l4 or l
 		end
 		local first = true
+		local tmp = ''
 		for band, res1, res2, url in data:gmatch('BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-\n(.-)\n') do
-			if url and res1 then
+			if url and res1 and url:sub(1,3) ~= '../' then
 				local nr = tonumber(res1)
 				if (nr <= maxRes and nr > res) or first then
 					first = false
 					res=nr
 					if host and url:sub(1,4) ~= "http" then
-						url = host .. url
+						if host:sub(-1) == '/' and url:sub(1,1) == '/' then
+							url = host:sub(1,-2) .. url
+						else
+							url = host .. url
+						end
 					end
 					if audio_url and host and audio_url:sub(1,4) ~= "http" then
 						audio_url = host .. audio_url
@@ -107,9 +122,52 @@ function getVideoUrl(m3u8_url)
 					entry['band'] = band
 					entry['res1'] = res1
 					entry['res2'] = res2
-					entry['name'] = "RESOLUTION=" .. res1 .. "x" .. res2
+					local otherRes = ''
+					if #tmp > 1 then otherRes = ' : ' .. tmp end
+					entry['name'] = "RESOLUTION=" .. res1 .. "x" .. res2 .. otherRes
 					ret[1] = {}
 					ret[1] = entry
+				end
+				if res1 and res2 and not tmp:find(res1 .. "x" .. res2) then
+					tmp = tmp .. ' ' .. res1 .. "x" .. res2
+				end
+			end
+		end
+		if res == 0 then
+			for band, url in data:gmatch('BANDWIDTH=(%d+).-\n(.-)\n') do
+				if url and band  and url:sub(1,3) ~= '../' then
+					local nr = tonumber(band)
+					if nr > res then
+						first = false
+						res=nr
+						if host and url:sub(1,4) ~= "http" then
+							if host:sub(-1) == '/' and url:sub(1,1) == '/' then
+								url = host:sub(1,-2) .. url
+							else
+								url = host .. url
+							end
+						end
+						if audio_url and host and audio_url:sub(1,4) ~= "http" then
+							audio_url = host .. audio_url
+						end
+						entry = {}
+						url = url:gsub("\x0d","")
+						entry['url']  = url
+						if audio_url then
+							audio_url = audio_url:gsub("\x0d","")
+							entry['url2'] = audio_url
+						end
+						if agent then entry['header']  = agent end
+						entry['band'] = band
+						local otherBand = ''
+						if #tmp > 1 then otherBand = ' : ' .. tmp end
+						entry['name'] = "BANDWIDTH=" .. band .. otherBand
+						ret[1] = {}
+						ret[1] = entry
+					end
+					if band and not tmp:find(band) then
+						tmp = tmp .. ' ' .. band
+					end
 				end
 			end
 		end
@@ -130,7 +188,7 @@ if have_url == -1 then return "" end --url is offline
 	entry['band'] = "1"
 	entry['res1'] = "1"
 	entry['res2'] = "1"
-	entry['name'] = "RESOLUTION=1x1"
+	entry['name'] = "not m3u8"
 	ret[1] = {}
 	ret[1] = entry
 	return json:encode(ret)
