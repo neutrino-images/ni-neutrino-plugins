@@ -108,8 +108,8 @@ function getVideoUrl(m3u8_url)
 			if url and res1 and url:sub(1,3) ~= '../' then
 				local nr = tonumber(res1)
 				if (nr <= maxRes and nr > res) or first then
+					if not first then res=nr end
 					first = false
-					res=nr
 					if host and url:sub(1,4) ~= "http" then
 						if host:sub(-1) == '/' and url:sub(1,1) == '/' then
 							url = host:sub(1,-2) .. url
@@ -153,13 +153,13 @@ function getVideoUrl(m3u8_url)
 			if #otherRes > 1 then entry['name'] = entry['name'] .. ' :' .. otherRes end
 		end
 
-		if res == 0 then
+		if res < 2 then
 			for band, url in data:gmatch('BANDWIDTH=(%d+).-\n(.-)\n') do
 				if url and band  and url:sub(1,3) ~= '../' then
 					local nr = tonumber(band)
 					if nr > res then
+						if not first then res=nr end
 						first = false
-						res=nr
 						if host and url:sub(1,4) ~= "http" then
 							if host:sub(-1) == '/' and url:sub(1,1) == '/' then
 								url = host:sub(1,-2) .. url
