@@ -21,6 +21,16 @@ function getdata(Url,Agent)
 	end
 end
 
+function getMaxRes()
+	local maxRes = 1280
+	local Nconfig = configfile.new()
+	if Nconfig then
+		Nconfig:loadConfig("/var/tuxbox/config/neutrino.conf")
+		maxRes = Nconfig:getInt32("webtv_xml_quality", 1280)
+	end
+	return maxRes
+end
+
 function getVideoUrl(m3u8_url)
 	if m3u8_url == nil then return nil end
 	local tmpurl = m3u8_url:lower()
@@ -44,13 +54,11 @@ function getVideoUrl(m3u8_url)
 			host = hosttmp .."/"
 		end
 		local revision = 0
-		local maxRes = 2000
+		local maxRes = getMaxRes()
 		if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
 			M = misc.new()
 			revision = M:GetRevision()
-			if revision == 1 then maxRes = 3840 end --for hd51 and co
 		end
-
 		local audio_url = nil
 		if revision == 1 then -- separate audio for hd51 and co
 			local Nconfig	= configfile.new()
@@ -94,13 +102,14 @@ function getVideoUrl(m3u8_url)
 			audio_url = l1 or l2 or l3 or l4 or l
 		end
 		local first = true
-		local tmp = ''
+		local allres = {}
+		local allbands = {}
 		for band, res1, res2, url in data:gmatch('BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-\n(.-)\n') do
 			if url and res1 and url:sub(1,3) ~= '../' then
 				local nr = tonumber(res1)
 				if (nr <= maxRes and nr > res) or first then
+					if not first then res=nr end
 					first = false
-					res=nr
 					if host and url:sub(1,4) ~= "http" then
 						if host:sub(-1) == '/' and url:sub(1,1) == '/' then
 							url = host:sub(1,-2) .. url
@@ -122,24 +131,35 @@ function getVideoUrl(m3u8_url)
 					entry['band'] = band
 					entry['res1'] = res1
 					entry['res2'] = res2
-					local otherRes = ''
-					if #tmp > 1 then otherRes = ' : ' .. tmp end
-					entry['name'] = "RESOLUTION=" .. res1 .. "x" .. res2 .. otherRes
+					entry['name'] = "RESOLUTION=" .. res1 .. "x" .. res2
 					ret[1] = {}
 					ret[1] = entry
 				end
-				if res1 and res2 and not tmp:find(res1 .. "x" .. res2) then
-					tmp = tmp .. ' ' .. res1 .. "x" .. res2
+				if res1 then
+					local Res = res1 .. "x" .. res2
+					if allres[Res] ~= true then
+						allres[Res] = true
+					end
 				end
 			end
 		end
-		if res == 0 then
+		if allres then
+			local otherRes = ''
+			for Res, _ in pairs(allres) do
+				if not entry['name']:find(Res) then
+					otherRes = otherRes .. ' ' .. Res
+				end
+			end
+			if #otherRes > 1 then entry['name'] = entry['name'] .. ' :' .. otherRes end
+		end
+
+		if res < 2 then
 			for band, url in data:gmatch('BANDWIDTH=(%d+).-\n(.-)\n') do
 				if url and band  and url:sub(1,3) ~= '../' then
 					local nr = tonumber(band)
 					if nr > res then
+						if not first then res=nr end
 						first = false
-						res=nr
 						if host and url:sub(1,4) ~= "http" then
 							if host:sub(-1) == '/' and url:sub(1,1) == '/' then
 								url = host:sub(1,-2) .. url
@@ -160,16 +180,26 @@ function getVideoUrl(m3u8_url)
 						if agent then entry['header']  = agent end
 						entry['band'] = band
 						local otherBand = ''
-						if #tmp > 1 then otherBand = ' : ' .. tmp end
-						entry['name'] = "BANDWIDTH=" .. band .. otherBand
+						entry['name'] = "BANDWIDTH=" .. band
 						ret[1] = {}
 						ret[1] = entry
 					end
-					if band and not tmp:find(band) then
-						tmp = tmp .. ' ' .. band
+					if band then
+						if allbands[band] ~= true then
+							allbands[band] = true
+						end
 					end
 				end
 			end
+		end
+		if allbands then
+			local otherBands = ''
+			for Band, _ in pairs(allbands) do
+				if not entry['name']:find(Band) then
+					otherBands = otherBands .. ' ' .. Band
+				end
+			end
+			if #otherBands > 1 then entry['name'] = entry['name'] .. ' :' .. otherBands end
 		end
 	else
 		return -1 --url is offline

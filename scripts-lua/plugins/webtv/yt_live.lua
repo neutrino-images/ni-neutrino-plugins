@@ -147,6 +147,19 @@ function add_entry(vurl,aurl,res1,res2,newname,count)
 	return count
 end
 
+
+function get_MaxRes_YTKey()
+	local maxRes = 1280
+	local key = nil
+	local Nconfig = configfile.new()
+	if Nconfig then
+		Nconfig:loadConfig("/var/tuxbox/config/neutrino.conf")
+		maxRes = Nconfig:getInt32("webtv_xml_quality", 1280)
+		key = Nconfig:getString("youtube_dev_id", '#')
+	end
+	return maxRes, key
+end
+
 function getVideoData(yurl)
 	if yurl == nil then return 0 end
 
@@ -159,18 +172,14 @@ function getVideoData(yurl)
 	end
 
 	local revision = 0
-	local maxRes = 1920
 	if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
 		M = misc.new()
 		revision = M:GetRevision()
-		if revision == 1 then maxRes = 3840 end
 	end
-	local CONF_PATH = "/var/tuxbox/config/"
-	local Nconfig	= configfile.new()
-	Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
-	local key = Nconfig:getString("youtube_dev_id", '#')
+	local maxRes,key = get_MaxRes_YTKey()
 	local youtube_dev_id = nil
 	if key ~= '#' then youtube_dev_id = key end
+
 	local count,countx = 0,0
 	local tmp_res = 0
 	local stop = false
