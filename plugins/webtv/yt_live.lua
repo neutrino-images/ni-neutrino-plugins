@@ -172,6 +172,10 @@ function getVideoData(yurl)
 	end
 
 	local revision = 0
+	if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
+		M = misc.new()
+		revision = M:GetRevision()
+	end
 	local maxRes,key = get_MaxRes_YTKey()
 	local youtube_dev_id = nil
 	if key ~= '#' then youtube_dev_id = key end

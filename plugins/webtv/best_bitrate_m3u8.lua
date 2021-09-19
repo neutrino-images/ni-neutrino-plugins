@@ -55,7 +55,10 @@ function getVideoUrl(m3u8_url)
 		end
 		local revision = 0
 		local maxRes = getMaxRes()
-
+		if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
+			M = misc.new()
+			revision = M:GetRevision()
+		end
 		local audio_url = nil
 		if revision == 1 then -- separate audio for hd51 and co
 			local Nconfig	= configfile.new()
