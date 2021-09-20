@@ -134,6 +134,7 @@ function getVideoUrl(m3u8_url)
 					entry['name'] = "RESOLUTION=" .. res1 .. "x" .. res2
 					ret[1] = {}
 					ret[1] = entry
+					res = 2
 				end
 				if res1 then
 					local Res = res1 .. "x" .. res2
@@ -153,7 +154,7 @@ function getVideoUrl(m3u8_url)
 			if #otherRes > 1 then entry['name'] = entry['name'] .. ' :' .. otherRes end
 		end
 
-		if res < 2 then
+		if res == 1 then
 			for band, url in data:gmatch('BANDWIDTH=(%d+).-\n(.-)\n') do
 				if url and band  and url:sub(1,3) ~= '../' then
 					local nr = tonumber(band)
