@@ -112,7 +112,7 @@ function getVideoUrl(m3u8_url)
 			allres[j] = nr
 			j=j+1
 		end
-		if minRes == 0 then maxRes = math.min(unpack(allres)) end
+		if minRes == 0 and j>1 then maxRes = math.min(unpack(allres)) end
 		allres = {}
 
 		for band, res1, res2, url in data:gmatch('BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-\n(.-)\n') do
