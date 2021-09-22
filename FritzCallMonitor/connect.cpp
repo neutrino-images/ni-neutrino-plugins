@@ -188,7 +188,9 @@ int CConnect::get2box(const char* host, int port, const char* msg, const char* u
 
 	if(debug) {cout << '[' << BASENAME << "] - " << __FUNCTION__ << "()" << endl;}
 
-	url	<< host << "/control/message?" << msgtype << "=" << msg << "&timeout=" << msgtimeout;
+	std::string _msg = (std::string)msg;
+	StringReplace(_msg," ","%20");
+	url << host << "/control/message?" << msgtype << "=" << _msg << "&timeout=" << msgtimeout;
 
 	string s = post2fritz(url.str().c_str(), port);
 
