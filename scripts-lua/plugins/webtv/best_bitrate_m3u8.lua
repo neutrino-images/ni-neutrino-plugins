@@ -101,15 +101,25 @@ function getVideoUrl(m3u8_url)
 			end
 			audio_url = l1 or l2 or l3 or l4 or l
 		end
-		local first = true
 		local allres = {}
-		local allbands = {}
+		local j = 1
+		local minRes = 0
+		for band, res1, res2, url in data:gmatch('BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-\n(.-)\n') do
+			local nr = tonumber(res1)
+			if nr <= maxRes then
+				minRes = nr
+			end
+			allres[j] = nr
+			j=j+1
+		end
+		if minRes == 0 and j>1 then maxRes = math.min(unpack(allres)) end
+		allres = {}
+
 		for band, res1, res2, url in data:gmatch('BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-\n(.-)\n') do
 			if url and res1 and url:sub(1,3) ~= '../' then
 				local nr = tonumber(res1)
-				if (nr <= maxRes and nr > res) or first then
-					if not first then res=nr end
-					first = false
+				if (nr <= maxRes and nr > res) then
+					res=nr
 					if host and url:sub(1,4) ~= "http" then
 						if host:sub(-1) == '/' and url:sub(1,1) == '/' then
 							url = host:sub(1,-2) .. url
@@ -134,7 +144,7 @@ function getVideoUrl(m3u8_url)
 					entry['name'] = "RESOLUTION=" .. res1 .. "x" .. res2
 					ret[1] = {}
 					ret[1] = entry
-					res = 2
+					if res == 1 then res = 2 end
 				end
 				if res1 then
 					local Res = res1 .. "x" .. res2
@@ -155,12 +165,12 @@ function getVideoUrl(m3u8_url)
 		end
 
 		if res == 1 then
+			local allbands = {}
 			for band, url in data:gmatch('BANDWIDTH=(%d+).-\n(.-)\n') do
 				if url and band  and url:sub(1,3) ~= '../' then
 					local nr = tonumber(band)
 					if nr > res then
-						if not first then res=nr end
-						first = false
+						res=nr
 						if host and url:sub(1,4) ~= "http" then
 							if host:sub(-1) == '/' and url:sub(1,1) == '/' then
 								url = host:sub(1,-2) .. url
@@ -192,15 +202,15 @@ function getVideoUrl(m3u8_url)
 					end
 				end
 			end
-		end
-		if allbands then
-			local otherBands = ''
-			for Band, _ in pairs(allbands) do
-				if not entry['name']:find(Band) then
-					otherBands = otherBands .. ' ' .. Band
+			if allbands then
+				local otherBands = ''
+				for Band, _ in pairs(allbands) do
+					if not entry['name']:find(Band) then
+						otherBands = otherBands .. ' ' .. Band
+					end
 				end
+				if #otherBands > 1 then entry['name'] = entry['name'] .. ' :' .. otherBands end
 			end
-			if #otherBands > 1 then entry['name'] = entry['name'] .. ' :' .. otherBands end
 		end
 	else
 		return -1 --url is offline
