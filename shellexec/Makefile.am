@@ -36,8 +36,12 @@ config_DATA = \
 flexdir = $(DATADIR)/neutrino/flex
 
 flex_DATA = \
-	flex_plugins.conf \
-	flex_user.conf
+	flex_plugins.conf
+
+varflexdir = $(DATADIR_VAR)/flex
+
+varflex_DATA = \
+	flex_usr.conf
 
 install-data-hook:
 	set -e; cd $(DESTDIR)$(PLUGINDIR); \

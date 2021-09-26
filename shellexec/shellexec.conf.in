@@ -9,6 +9,5 @@ PAGING=1
 
 MENU=Flexmen~u,ICON=@ICONSDIR@/mainmenue.png
 	INCLUDE=@DATADIR@/neutrino/flex/flex_plugins.conf
-	INCLUDE=@DATADIR@/neutrino/flex/flex_user.conf
 	INCLUDE=@DATADIR_VAR@/flex/flex_user.conf
 ENDMENU
