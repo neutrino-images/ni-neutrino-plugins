@@ -114,11 +114,10 @@ function getVideoUrl(m3u8_url)
 		end
 		if minRes == 0 and j>1 then maxRes = math.min(unpack(allres)) end
 		allres = {}
-
+		local c = 0
 		for band, res1, res2, url in data:gmatch('BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-\n(.-)\n') do
 			if url and res1 and url:sub(1,3) ~= '../' then
 				local nr = tonumber(res1)
-				if (nr <= maxRes and nr > res) then
 					res=nr
 					if host and url:sub(1,4) ~= "http" then
 						if host:sub(-1) == '/' and url:sub(1,1) == '/' then
@@ -142,10 +141,10 @@ function getVideoUrl(m3u8_url)
 					entry['res1'] = res1
 					entry['res2'] = res2
 					entry['name'] = "RESOLUTION=" .. res1 .. "x" .. res2
-					ret[1] = {}
-					ret[1] = entry
+					c = c + 1
+					ret[c] = {}
+					ret[c] = entry
 					if res == 1 then res = 2 end
-				end
 				if res1 then
 					local Res = res1 .. "x" .. res2
 					if allres[Res] ~= true then
@@ -192,8 +191,9 @@ function getVideoUrl(m3u8_url)
 						entry['band'] = band
 						local otherBand = ''
 						entry['name'] = "BANDWIDTH=" .. band
-						ret[1] = {}
-						ret[1] = entry
+						c = c + 1
+						ret[c] = {}
+						ret[c] = entry
 					end
 					if band then
 						if allbands[band] ~= true then
