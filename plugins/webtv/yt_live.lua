@@ -154,7 +154,7 @@ function get_MaxRes_YTKey()
 	local Nconfig = configfile.new()
 	if Nconfig then
 		Nconfig:loadConfig("/var/tuxbox/config/neutrino.conf")
-		maxRes = Nconfig:getInt32("webtv_xml_quality", 1280)
+		maxRes = Nconfig:getInt32("livestreamResolution", 1280)
 		key = Nconfig:getString("youtube_dev_id", '#')
 	end
 	return maxRes, key
