@@ -318,8 +318,8 @@ function make_fav_back()
 end
 
 function toUcode(str)
-	local ustr=str:gsub("&","&amp;")
-	ustr=ustr:gsub("'","&apos;")
+	local ustr=str:gsub("&","&apos;")
+	ustr=ustr:gsub("'","&amp;")
 	return ustr
 end
 
