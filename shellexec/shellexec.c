@@ -89,7 +89,7 @@ typedef PLISTENTRY *LIST;
 typedef struct {int num_headers; int act_header; int max_header; int *headerwait; int *headermed; char **headertxt; char **icon; int *headerlevels; int *lastheaderentrys; int num_entrys; int act_entry; int max_entrys; int num_active; char *menact; char *menactdep; LIST list;} MENU;
 enum {TYP_MENU, TYP_MENUDON, TYP_MENUDOFF, TYP_MENUFON, TYP_MENUFOFF, TYP_MENUSON, TYP_MENUSOFF, TYP_EXECUTE, TYP_COMMENT, TYP_DEPENDON, TYP_DEPENDOFF, TYP_FILCONTON, TYP_FILCONTOFF, TYP_SHELLRESON, TYP_SHELLRESOFF, TYP_ENDMENU, TYP_INACTIVE};
 static char TYPESTR[TYP_ENDMENU+1][13]={"MENU=","MENUDON=","MENUDOFF=","MENUFON=","MENUFOFF=","MENUSON=","MENUSOFF=","ACTION=","COMMENT=","DEPENDON=","DEPENDOFF=","FILCONTON=","FILCONTOFF=","SHELLRESON=","SHELLRESOFF=","ENDMENU"};
-char NOMEM[]="ShellExec <Out of memory>\n";
+const char NOMEM[]="ShellExec <Out of memory>\n";
 
 MENU menu;
 

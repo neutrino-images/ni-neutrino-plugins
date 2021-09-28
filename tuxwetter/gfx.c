@@ -149,7 +149,7 @@ int paintIcon(const char *const fname, int xstart, int ystart, int xsize, int ys
 		}
 		if((buffer=(unsigned char *) malloc(x1*y1*4))==NULL)
 		{
-			printf(NOMEM);
+			printf("%s", NOMEM);
 			fclose(tfh);
 			return -1;
 		}

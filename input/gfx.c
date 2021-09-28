@@ -139,7 +139,7 @@ unsigned char *buffer=NULL;
 		}
 		if((buffer=(unsigned char *) malloc(x1*y1*4))==NULL)
 		{
-			printf(NOMEM);
+			printf("%s", NOMEM);
 			fclose(tfh);
 			return -1;
 		}
