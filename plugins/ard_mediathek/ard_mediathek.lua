@@ -1107,13 +1107,14 @@ function listStreams(_id)
 end
 
 function toUcode(s)
+	s=s:gsub("&","&amp;")
+
 	s=s:gsub("'","&apos;")
 	s=s:gsub("<","&lt;")
 	s=s:gsub(">","&gt;")
 	s=s:gsub('"',"&quot;")
 	s=s:gsub("\x0a","&#x0a;")
 	s=s:gsub("\x0d","&#x0d;")
-	s=s:gsub("&","&amp;")
 	return s
 end
 
