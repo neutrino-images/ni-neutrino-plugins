@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v1.03 by satbaby"
+rssReaderVersion="Lua RSS READER v1.04 by satbaby"
 local CONF_PATH = "/var/tuxbox/config/"
 revision = 0
 youtube_dev_id = nil
@@ -142,13 +142,14 @@ end
 function __LINE__() return debug.getinfo(2, 'l').currentline end
 
 function toUcode(s)
+	s=s:gsub("&","&amp;")
+
 	s=s:gsub("'","&apos;")
 	s=s:gsub("<","&lt;")
 	s=s:gsub(">","&gt;")
 	s=s:gsub('"',"&quot;")
 	s=s:gsub("\x0a","&#x0a;")
 	s=s:gsub("\x0d","&#x0d;")
-	s=s:gsub("&","&amp;")
 	return s
 end
 
@@ -355,7 +356,6 @@ function pop(cmd)
        f:close()
        return s
 end
-
 
 function getdata(Url,outputfile,Postfields,pass_headers,httpheaders)
 	if Url == nil then return nil end
@@ -1173,9 +1173,18 @@ function paintMenuItem(idNr)
 	cw:hide()
 	cw = nil
 	local isPlayRC = selected == RC.ok or selected == RC.red or selected == RC.play or selected == conf.mpkey
+	local info1 = ''
+	if fp.entries[idNr].author_detail and fp.entries[idNr].author_detail.name then
+		info1 = fp.entries[idNr].author_detail.name
+	end
+	if fp.entries[idNr].published then
+		local pub = fp.entries[idNr].published:match('(%d+%-%d+%-%d+)')
+		if pub then info1 = info1 .. ' ' .. pub end
+	end
+
 	if isPlayRC and vPlay and UrlVideo then
 		if revision then
-			vPlay:PlayFile(title, UrlVideo, UrlVideo, "", UrlVideoAudio or "")
+			vPlay:PlayFile(title, UrlVideo, info1, UrlVideo, UrlVideoAudio or "")
 		else
 			vPlay:PlayFile(title,UrlVideo,UrlVideo)
 		end
@@ -1196,7 +1205,7 @@ function paintMenuItem(idNr)
 		picviewer(idNr,1)
 	elseif vPlay and UrlAudio then
 		if selected == RC.blue or (UrlVideo == nil and isPlayRC) then
-			vPlay:PlayFile(title, UrlAudio, UrlAudio)
+			vPlay:PlayFile(title, UrlAudio, info1, UrlAudio)
 		end
 	elseif dl_possible and selected == RC['0'] and  B.btn0 then
 		local dl = gen_dl(UrlVideo, UrlVideoAudio, title, text or "", idNr)
