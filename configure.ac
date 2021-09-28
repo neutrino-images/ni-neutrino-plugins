@@ -333,6 +333,12 @@ AC_ARG_ENABLE(wortraten,
 	[enable_wortraten="$enableval"])
 AM_CONDITIONAL(ENABLE_WORTRATEN, test "$enable_wortraten" = "yes")
 
+AC_ARG_ENABLE(zdfhbbtv,
+	AS_HELP_STRING([--enable-zdfhbbtv], [enable zdfhbbtv @<:@default=yes@:>@]),
+	[enable_zdfhbbtv="$enableval"],
+	[enable_zdfhbbtv="yes"])
+AM_CONDITIONAL(ENABLE_ZDFHBBTV, test "$enable_zdfhbbtv" = "yes")
+
 AC_ARG_ENABLE(filmon,
 	AS_HELP_STRING([--enable-filmon], [enable webtv filmon @<:@default=yes@:>@]),
 	[enable_filmon="$enableval"],
@@ -406,6 +412,7 @@ scripts-lua/plugins/tierwelt-tv/Makefile
 scripts-lua/plugins/userbouquets/Makefile
 scripts-lua/plugins/webradio/Makefile
 scripts-lua/plugins/webtv/Makefile
+scripts-lua/plugins/zdfhbbtv/Makefile
 scripts-sh/Makefile
 scripts-sh/plugins/Makefile
 scripts-sh/plugins/autoreboot/Makefile

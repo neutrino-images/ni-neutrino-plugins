@@ -71,6 +71,9 @@ endif
 if ENABLE_USERBOUQUETS
 SUBDIRS += userbouquets
 endif
+if ENABLE_ZDFHBBTV
+SUBDIRS += zdfhbbtv
+endif
 
 SUBDIRS += webradio
 SUBDIRS += webtv
