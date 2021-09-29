@@ -1,5 +1,5 @@
   --[[
-	ZDF HBBTV Version 0.9
+	ZDF HBBTV Version 0.10
 	Copyright (C) 2021 Jacek Jendrzej 'satbaby'
 	License: WTFPLv2
 ]]
@@ -736,6 +736,7 @@ function backTomenu1(id)
 end
 
 function main_menu(liste)
+	if liste == nil then print('liste error') return end
 	hid = hid + 1
 	local tname = liste.title or liste.titletxt or liste.myid or liste.id
 	tname = xml_entities(tname)
