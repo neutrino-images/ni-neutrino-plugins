@@ -1,6 +1,6 @@
   --[[
-	ZDF HBBTV Version 0.8
-	Copyright (C) 2021 Jacek Jendrzej 'satbaby' 
+	ZDF HBBTV Version 0.9
+	Copyright (C) 2021 Jacek Jendrzej 'satbaby'
 	License: WTFPLv2
 ]]
 
@@ -250,7 +250,7 @@ function epgInfo(xres, yres, aspectRatio, framerate)
 	else
 		withPic = true
 	end
-	
+
 	local diff,x,y,w,h  = 0,0,0,0,0
 	local space = 10
 	local wow = cwindow.new{x=x, y=y, dx=w, dy=h, title=Title, btnRed=dltxt }
@@ -447,7 +447,7 @@ function dl_stream(dl)
 				end
 			end
 			script:write('if [ $? -eq 0 ]; then \n')
- 			script:write('wget -q http://127.0.0.1/control/message?popup="Video ' .. Title .. ' wurde heruntergeladen." -O /dev/null ; \n')
+			script:write('wget -q http://127.0.0.1/control/message?popup="Video ' .. Title .. ' wurde heruntergeladen." -O /dev/null ; \n')
 			script:write('mv ' .. filenamexml .. ' ' .. dlname .. '.xml ; \n')
 			script:write('else \n')
 			script:write('wget -q http://127.0.0.1/control/message?popup="Download ' .. Title .. ' FEHLGESCHLAGEN" -O /dev/null ; \n')
@@ -707,6 +707,7 @@ function selPlay(id)
 		play_video(vTab)
 	end
 end
+
 function selList(id)
 	hideMenu(last_menu[hid])
 	id = tonumber(id)
@@ -714,7 +715,16 @@ function selList(id)
 	if myTab.elems == nil then
 		local newTab = get_zdf_data('https://hbbtv.zdf.de/zdfm3/dyn/get.php?id=' .. myTab.link.id)
 		myTab.elems = {}
-		myTab.elems=newTab.elems
+		if newTab.elems == nil and newTab.recoElems then
+			myTab.elems = newTab.recoElems
+			lastmid = lastmid + 1
+			myTab.elems.link = {}
+			local link = {}
+			link.id=newTab.id
+			table.insert(myTab.elems,{title=newTab.title,img=newTab.img,hasVideo=true,myid=lastmid,link=link})
+		else
+			myTab.elems = newTab.elems
+		end
 	end
 	main_menu(myTab)
 end
