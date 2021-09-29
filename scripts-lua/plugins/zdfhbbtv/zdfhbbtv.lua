@@ -1,6 +1,6 @@
   --[[
-	ZDF HBBTV Version 0.8
-	Copyright (C) 2021 Jacek Jendrzej 'satbaby' 
+	ZDF HBBTV Version 0.10
+	Copyright (C) 2021 Jacek Jendrzej 'satbaby'
 	License: WTFPLv2
 ]]
 
@@ -148,6 +148,10 @@ function getMaxRes()
 end
 
 function getdata(Url,Postfields,outputfile,pass_headers,httpheaders)
+	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
+	if h then
+		h:paint()
+	end
 	if Url == nil then return nil end
 	if Curl == nil then
 		Curl = curl.new()
@@ -158,6 +162,9 @@ function getdata(Url,Postfields,outputfile,pass_headers,httpheaders)
 	end
 
 	local ret, data = Curl:download{ url=Url, A="Mozilla/5.0",maxRedirs=5,followRedir=false,postfields=Postfields,header=pass_headers,o=outputfile,httpheader=httpheaders }
+	if h then
+		h:hide()
+	end
 	if ret == CURL.OK then
 		if outputfile then
 			return 1
@@ -182,7 +189,7 @@ function godirectkey(d)
 	elseif d < 14 then
 		_dkey = RC[""..d - 4 ..""]
 	elseif d == 14 then
-		_dkey = RC["0"]
+		--_dkey = RC["0"]
 	else
 		-- rest
 		_dkey = ""
@@ -250,9 +257,9 @@ function epgInfo(xres, yres, aspectRatio, framerate)
 	else
 		withPic = true
 	end
-	
-	local diff,x,y,w,h  = 0,0,0,0,0
-	local space = 10
+
+	local off_w,x,y,w,h  = 0,0,0,0,0
+	local space = OFFSET.INNER_MID
 	local wow = cwindow.new{x=x, y=y, dx=w, dy=h, title=Title, btnRed=dltxt }
 	local tf = wow:headerHeight() + wow:footerHeight()
 	w,h = n:scale2Res(600), n:scale2Res(300) + tf
@@ -265,7 +272,7 @@ function epgInfo(xres, yres, aspectRatio, framerate)
 		local maxW ,maxH = n:scale2Res(440), n:scale2Res(368)
 		local picW, picH = n:GetSize(picfile)
 		maxW,maxH = rescalePic(picW,picH,maxW,maxH)
-		diff,h = maxW,maxH
+		off_w,h = maxW,maxH
 		cpicture.new{parent=wow, x=space, y=space, dx=maxW, dy=maxH, image=picfile}
 		h = maxH + tf + (space*2)
 		local wP =  (maxW * 2) + (space * 3)
@@ -274,7 +281,7 @@ function epgInfo(xres, yres, aspectRatio, framerate)
 		end
 	end
 
-	ct = ctext.new{parent=wow, x=diff + (space*2), y=space, dx=w-diff, dy=h-tf, text=Epg, mode="ALIGN_TOP | ALIGN_SCROLL"}
+	ct = ctext.new{parent=wow, x=off_w + (space*2), y=space, dx=w-off_w, dy=h-tf, text=Epg, mode="ALIGN_TOP | ALIGN_SCROLL"}
 	if withPic == false then
 		local ctLines = ct:getLines() + 1
 		local th = ctLines * n:FontHeight(FONT.MENU) + tf + (2*space)
@@ -447,7 +454,7 @@ function dl_stream(dl)
 				end
 			end
 			script:write('if [ $? -eq 0 ]; then \n')
- 			script:write('wget -q http://127.0.0.1/control/message?popup="Video ' .. Title .. ' wurde heruntergeladen." -O /dev/null ; \n')
+			script:write('wget -q http://127.0.0.1/control/message?popup="Video ' .. Title .. ' wurde heruntergeladen." -O /dev/null ; \n')
 			script:write('mv ' .. filenamexml .. ' ' .. dlname .. '.xml ; \n')
 			script:write('else \n')
 			script:write('wget -q http://127.0.0.1/control/message?popup="Download ' .. Title .. ' FEHLGESCHLAGEN" -O /dev/null ; \n')
@@ -690,23 +697,17 @@ end
 function selPlay(id)
 	hideMenu(last_menu[hid])
 	id = tonumber(id)
-	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
-	if h then
-		h:paint()
-	end
 	local vTab = getmid(aktivelist,id)
 	if vTab then
 		if vTab.stream == nil then
 			getZDFstream(vTab)
 		end
 	end
-	if h then
-		h:hide()
-	end
 	if vTab.stream  then
 		play_video(vTab)
 	end
 end
+
 function selList(id)
 	hideMenu(last_menu[hid])
 	id = tonumber(id)
@@ -714,12 +715,28 @@ function selList(id)
 	if myTab.elems == nil then
 		local newTab = get_zdf_data('https://hbbtv.zdf.de/zdfm3/dyn/get.php?id=' .. myTab.link.id)
 		myTab.elems = {}
-		myTab.elems=newTab.elems
+		if newTab.elems == nil and newTab.recoElems then
+			myTab.elems = newTab.recoElems
+			lastmid = lastmid + 1
+			myTab.elems.link = {}
+			local link = {}
+			link.id=newTab.id
+			table.insert(myTab.elems,{title=newTab.title,img=newTab.img,hasVideo=true,myid=lastmid,link=link})
+		else
+			myTab.elems = newTab.elems
+		end
 	end
 	main_menu(myTab)
 end
 
+function backTomenu1(id)
+	for i=1,hid-1 do
+		os.execute('rcsim KEY_HOME')
+	end
+end
+
 function main_menu(liste)
+	if liste == nil then print('liste error') return end
 	hid = hid + 1
 	local tname = liste.title or liste.titletxt or liste.myid or liste.id
 	tname = xml_entities(tname)
@@ -728,6 +745,7 @@ function main_menu(liste)
 	last_menu[hid] = menu
 	menu:addItem{type='back'}
 	menu:addItem{type='separatorline'}
+	menu:addKey{directkey=RC["0"], id="_", action="backTomenu1"}
 	local d =  0
 	for i, v in ipairs(liste.elems) do
 		if v.myid and v.hasVideo  then
@@ -780,10 +798,7 @@ function main_menu(liste)
 end
 
 function main()
-	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
-	h:paint()
 	init()
-	h:hide()
 	main_menu(aktivelist)
 	os.remove(picfile)
 	collectgarbage()
