@@ -148,6 +148,10 @@ function getMaxRes()
 end
 
 function getdata(Url,Postfields,outputfile,pass_headers,httpheaders)
+	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
+	if h then
+		h:paint()
+	end
 	if Url == nil then return nil end
 	if Curl == nil then
 		Curl = curl.new()
@@ -158,6 +162,9 @@ function getdata(Url,Postfields,outputfile,pass_headers,httpheaders)
 	end
 
 	local ret, data = Curl:download{ url=Url, A="Mozilla/5.0",maxRedirs=5,followRedir=false,postfields=Postfields,header=pass_headers,o=outputfile,httpheader=httpheaders }
+	if h then
+		h:hide()
+	end
 	if ret == CURL.OK then
 		if outputfile then
 			return 1
@@ -182,7 +189,7 @@ function godirectkey(d)
 	elseif d < 14 then
 		_dkey = RC[""..d - 4 ..""]
 	elseif d == 14 then
-		_dkey = RC["0"]
+		--_dkey = RC["0"]
 	else
 		-- rest
 		_dkey = ""
@@ -251,8 +258,8 @@ function epgInfo(xres, yres, aspectRatio, framerate)
 		withPic = true
 	end
 
-	local diff,x,y,w,h  = 0,0,0,0,0
-	local space = 10
+	local off_w,x,y,w,h  = 0,0,0,0,0
+	local space = OFFSET.INNER_MID
 	local wow = cwindow.new{x=x, y=y, dx=w, dy=h, title=Title, btnRed=dltxt }
 	local tf = wow:headerHeight() + wow:footerHeight()
 	w,h = n:scale2Res(600), n:scale2Res(300) + tf
@@ -265,7 +272,7 @@ function epgInfo(xres, yres, aspectRatio, framerate)
 		local maxW ,maxH = n:scale2Res(440), n:scale2Res(368)
 		local picW, picH = n:GetSize(picfile)
 		maxW,maxH = rescalePic(picW,picH,maxW,maxH)
-		diff,h = maxW,maxH
+		off_w,h = maxW,maxH
 		cpicture.new{parent=wow, x=space, y=space, dx=maxW, dy=maxH, image=picfile}
 		h = maxH + tf + (space*2)
 		local wP =  (maxW * 2) + (space * 3)
@@ -274,7 +281,7 @@ function epgInfo(xres, yres, aspectRatio, framerate)
 		end
 	end
 
-	ct = ctext.new{parent=wow, x=diff + (space*2), y=space, dx=w-diff, dy=h-tf, text=Epg, mode="ALIGN_TOP | ALIGN_SCROLL"}
+	ct = ctext.new{parent=wow, x=off_w + (space*2), y=space, dx=w-off_w, dy=h-tf, text=Epg, mode="ALIGN_TOP | ALIGN_SCROLL"}
 	if withPic == false then
 		local ctLines = ct:getLines() + 1
 		local th = ctLines * n:FontHeight(FONT.MENU) + tf + (2*space)
@@ -690,18 +697,11 @@ end
 function selPlay(id)
 	hideMenu(last_menu[hid])
 	id = tonumber(id)
-	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
-	if h then
-		h:paint()
-	end
 	local vTab = getmid(aktivelist,id)
 	if vTab then
 		if vTab.stream == nil then
 			getZDFstream(vTab)
 		end
-	end
-	if h then
-		h:hide()
 	end
 	if vTab.stream  then
 		play_video(vTab)
@@ -729,6 +729,12 @@ function selList(id)
 	main_menu(myTab)
 end
 
+function backTomenu1(id)
+	for i=1,hid-1 do
+		os.execute('rcsim KEY_HOME')
+	end
+end
+
 function main_menu(liste)
 	hid = hid + 1
 	local tname = liste.title or liste.titletxt or liste.myid or liste.id
@@ -738,6 +744,7 @@ function main_menu(liste)
 	last_menu[hid] = menu
 	menu:addItem{type='back'}
 	menu:addItem{type='separatorline'}
+	menu:addKey{directkey=RC["0"], id="_", action="backTomenu1"}
 	local d =  0
 	for i, v in ipairs(liste.elems) do
 		if v.myid and v.hasVideo  then
@@ -790,10 +797,7 @@ function main_menu(liste)
 end
 
 function main()
-	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
-	h:paint()
 	init()
-	h:hide()
 	main_menu(aktivelist)
 	os.remove(picfile)
 	collectgarbage()
