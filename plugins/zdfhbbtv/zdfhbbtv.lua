@@ -699,6 +699,7 @@ end
 function main_menu(liste)
 	if liste == nil then print('liste error') return end
 	hid = hid + 1
+	local page = 100
 	if hid > 12 then
 		for i, el in ipairs(liste.elems) do
 			if el.elems then
@@ -721,7 +722,6 @@ function main_menu(liste)
 	menu:addItem{type='back'}
 	menu:addItem{type='separatorline'}
 	menu:addKey{directkey=RC["0"], id="_", action="backTomenu1"}
-	local page = 100
 	local d =  0
 	for i, v in ipairs(liste.elems) do
 		if v.myid and (v.hasVideo==nil or v.hasVideo==false) and (v.titletxt or v.title) and i < page then
