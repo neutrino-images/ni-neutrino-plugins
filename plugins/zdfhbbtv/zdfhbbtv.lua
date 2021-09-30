@@ -1,5 +1,5 @@
   --[[
-	ZDF HBBTV Version 0.11
+	ZDF HBBTV Version 0.12
 	Copyright (C) 2021 Jacek Jendrzej 'satbaby'
 	License: WTFPLv2
 ]]
@@ -709,40 +709,8 @@ function main_menu(liste)
 	menu:addKey{directkey=RC["0"], id="_", action="backTomenu1"}
 	local d =  0
 	for i, v in ipairs(liste.elems) do
-		if v.myid and v.hasVideo then
-			if d == 0 then menu:addItem{type="subhead", name='Videos'} end
-			d=d+1
-			local mact = 'selPlay'
-			local hico = 'hint_movie'
-			local mname =  v.titletxt or v.title or v.myid or '## error ##'
-			local vhint = nil
-			if v.headtxt then
-				vhint = v.headtxt
-			end
-			if v.infoline and v.infoline.text then
-				if vhint then
-					vhint = vhint .. ' ' .. v.infoline.text
-				else
-					vhint = v.infoline.text
-				end
-			end
-			if v.text then
-				if vhint then
-				 vhint = vhint .. ' - ' .. v.text
-				else
-					vhint = v.text
-				end
-			end
-			mname = xml_entities(mname)
-			vhint = xml_entities(vhint)
-			if mname and type(mname) == 'string' and #mname == 0 then mname = 'Video' end
-			menu:addItem{type="forwarder" , name=mname, action=mact,hint=vhint,hint_icon=hico ,id=v.myid ,directkey=godirectkey(d)}
-		end
-	end
-	local one = true
-	for i, v in ipairs(liste.elems) do
 		if v.myid and (v.hasVideo==nil or v.hasVideo==false) and (v.titletxt or v.title) then
-			if one then 	menu:addItem{type='subhead', name='Untermenü'} one = false end
+			if d == 0 then menu:addItem{type="subhead", name='Untermenü'} end
 			d=d+1
 			local mact = 'selList'
 			local hico = 'hint_next'
@@ -772,6 +740,39 @@ function main_menu(liste)
 			menu:addItem{type="forwarder" , name=mname, action=mact,hint=vhint ,hint_icon=hico ,id=v.myid ,directkey=godirectkey(d)}
 		end
 	end
+	local one = true
+	for i, v in ipairs(liste.elems) do
+		if v.myid and v.hasVideo then
+			if one then 	menu:addItem{type='subhead', name='Videos'} one = false end
+			d=d+1
+			local mact = 'selPlay'
+			local hico = 'hint_movie'
+			local mname =  v.titletxt or v.title or v.myid or '## error ##'
+			local vhint = nil
+			if v.headtxt then
+				vhint = v.headtxt
+			end
+			if v.infoline and v.infoline.text then
+				if vhint then
+					vhint = vhint .. ' ' .. v.infoline.text
+				else
+					vhint = v.infoline.text
+				end
+			end
+			if v.text then
+				if vhint then
+				 vhint = vhint .. ' - ' .. v.text
+				else
+					vhint = v.text
+				end
+			end
+			mname = xml_entities(mname)
+			vhint = xml_entities(vhint)
+			if mname and type(mname) == 'string' and #mname == 0 then mname = 'Video' end
+			menu:addItem{type="forwarder" ,icon="streaming", name=mname, action=mact,hint=vhint,hint_icon=hico ,id=v.myid ,directkey=godirectkey(d)}
+		end
+	end
+
 	menu:exec()
 	hid = hid - 1
 end
