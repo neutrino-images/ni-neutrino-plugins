@@ -1,5 +1,5 @@
   --[[
-	ZDF HBBTV Version 0.12
+	ZDF HBBTV Version 0.13
 	Copyright (C) 2021 Jacek Jendrzej 'satbaby'
 	License: WTFPLv2
 ]]
@@ -28,6 +28,7 @@ function init()
 	if not fh:exist(zdfhbbtv_icon , "f") then
 		zdfhbbtv_icon='streaming'
 	end
+	newSCMSids = {}
 end
 
 function setmid(tab,mid)
@@ -673,7 +674,11 @@ function selList(id)
 	hideMenu(last_menu[hid])
 	id = tonumber(id)
 	local myTab = getmid(aktivelist,id)
+	if myTab.elems == nil and newSCMSids[myTab.link.id] ~= nil then
+		myTab = getmid(aktivelist,newSCMSids[myTab.link.id])
+	end
 	if myTab.elems == nil then
+		newSCMSids[myTab.link.id] = lastmid + 1
 		local newTab = get_zdf_data('https://hbbtv.zdf.de/zdfm3/dyn/get.php?id=' .. myTab.link.id)
 		myTab.elems = {}
 		if newTab.elems == nil and newTab.recoElems then
@@ -708,8 +713,23 @@ function main_menu(liste)
 	menu:addItem{type='separatorline'}
 	menu:addKey{directkey=RC["0"], id="_", action="backTomenu1"}
 	local d =  0
+	local ids ={}
+	local page = 100
+	if hid > 12 then
+		for i, el in ipairs(liste.elems) do
+			if el.elems then
+				for j, v in ipairs(el.elems) do
+					if v.link and v.link.type and v.link.type == 'page' then
+						page = i
+						break
+					end
+				end
+			end
+			if page ~= 100 then break end
+		end
+	end
 	for i, v in ipairs(liste.elems) do
-		if v.myid and (v.hasVideo==nil or v.hasVideo==false) and (v.titletxt or v.title) then
+		if v.myid and (v.hasVideo==nil or v.hasVideo==false) and (v.titletxt or v.title) and i < page then
 			if d == 0 then menu:addItem{type="subhead", name='Untermenü'} end
 			d=d+1
 			local mact = 'selList'
