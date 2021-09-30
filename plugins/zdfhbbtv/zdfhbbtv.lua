@@ -1,5 +1,5 @@
   --[[
-	ZDF HBBTV Version 0.14
+	ZDF HBBTV Version 0.15
 	Copyright (C) 2021 Jacek Jendrzej 'satbaby'
 	License: WTFPLv2
 ]]
@@ -151,7 +151,7 @@ function godirectkey(d)
 	elseif d < 14 then
 		_dkey = RC[""..d - 4 ..""]
 	elseif d == 14 then
-		--_dkey = RC["0"]
+		_dkey = RC["0"]
 	else
 		-- rest
 		_dkey = ""
@@ -721,7 +721,7 @@ function main_menu(liste)
 	last_menu[hid] = menu
 	menu:addItem{type='back'}
 	menu:addItem{type='separatorline'}
-	menu:addKey{directkey=RC["0"], id="_", action="backTomenu1"}
+	menu:addKey{directkey=RC.setup, id="_", action="backTomenu1"}
 	local d =  0
 	for i, v in ipairs(liste.elems) do
 		if v.myid and (v.hasVideo==nil or v.hasVideo==false) and (v.titletxt or v.title) and i < page then
