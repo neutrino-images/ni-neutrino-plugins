@@ -1,5 +1,5 @@
   --[[
-	ZDF HBBTV Version 0.15
+	ZDF HBBTV Version 0.16
 	Copyright (C) 2021 Jacek Jendrzej 'satbaby'
 	License: WTFPLv2
 ]]
@@ -691,6 +691,8 @@ function selList(id)
 end
 
 function backTomenu1(id)
+	if hid == 1 then os.execute('rcsim KEY_HOME') return end
+
 	for i=1,hid-1 do
 		os.execute('rcsim KEY_HOME')
 	end
@@ -699,18 +701,24 @@ end
 function main_menu(liste)
 	if liste == nil then print('liste error') return end
 	hid = hid + 1
+
 	local page = 100
-	if hid > 12 then
+	local p2 = 0
+	local warning = 3
+	if hid > warning then
 		for i, el in ipairs(liste.elems) do
 			if el.elems then
 				for j, v in ipairs(el.elems) do
 					if v.link and v.link.type and v.link.type == 'page' then
-						page = i
+						if hid > 12 then
+							page = i
+						end
+						p2 = i
 						break
 					end
 				end
 			end
-			if page ~= 100 then break end
+			if p2 ~= 0 then break end
 		end
 	end
 
@@ -749,6 +757,9 @@ function main_menu(liste)
 				else
 					vhint = v.text
 				end
+			end
+			if not vhint and hid > warning and i >= p2 then
+				vhint = 'Zurück zum Start-Menü über Menü-Taste'
 			end
 			mname = xml_entities(mname)
 			vhint = xml_entities(vhint)
