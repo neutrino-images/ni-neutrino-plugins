@@ -1,5 +1,5 @@
   --[[
-	ZDF HBBTV Version 0.10
+	ZDF HBBTV Version 0.16
 	Copyright (C) 2021 Jacek Jendrzej 'satbaby'
 	License: WTFPLv2
 ]]
@@ -34,68 +34,30 @@ function setmid(tab,mid)
 	for k,v in pairs(tab) do
 		if type(v) == "table" then
 			if v.type == 'specialcovers' or v.type == 'header' or v.type == 'infotext' then
-				if v.type then
-					v.type = nil
-				end
-				if v.refid then
-					v.refid = nil
-				end
-				if v.title then
-					v.title = nil
-				end
-				if v.subtype then
-					v.subtype = nil
-				end
-				if v.logo then
-					v.logo = nil
-				end
-				if v.optional then
-					v.optional = nil
-				end
-				if v.xs then
-					v.xs = nil
-				end
-				if v.addDocs then
-					v.addDocs = nil
-				end
-				if v.img then
-					v.img = nil
-				end
-				if v.variant then
-					v.variant = nil
+				local el0 = {'addDocs','img','logo','refid','subtype','title','type','variant'}
+				for _,k in pairs(el0) do
+					v[k] = nil
 				end
 			else
-				if v.play then
-					v.play = nil
-				end
-				if v.view then
-					v.view = nil
-				end
-				if v.pause then
-					v.pause = nil
-				end
-				if v.zdfView then
-					v.zdfView = nil
-				end
-				if v.click then
-					v.click = nil
-				end
-				if v.co then
-					v.co = nil
-				end
-				if v.structureNodePath then
-					v.structureNodePath = nil
-				end
-				if v.foottxt then
-					v.foottxt = nil
+				if v.headtxt and type(v.headtxt) == 'string' and #v.headtxt==0 then
+					v.headtxt = nil
 				end
 				if v.elems then
 					if #v.elems == 0 then
 						v.elems=nil
 					end
 				end
-				v.myid = mid
-				mid = mid + 1
+				local el1 = {'broadcast','chapter1','chapter2','chapter3','chapter4','cl','click','co','ctype','date','eventType',
+				            'eventType','foottxt','href','htmlAnchor','imageWithoutLogo','inhaltsTyp','internalId','isgroup',
+				            'level1','level2','logo','overlay','path','pause','play','structureNodePath','track','url',
+				            'variant','view','zdfView'}
+				for _,k in pairs(el1) do
+					v[k] = nil
+				end
+				if k ~= 'link' and k ~= 'infoline' then
+					v.myid = mid
+					mid = mid + 1
+				end
 				mid = setmid(v,mid)
 			end
 		end
@@ -189,7 +151,7 @@ function godirectkey(d)
 	elseif d < 14 then
 		_dkey = RC[""..d - 4 ..""]
 	elseif d == 14 then
-		--_dkey = RC["0"]
+		_dkey = RC["0"]
 	else
 		-- rest
 		_dkey = ""
@@ -657,7 +619,6 @@ function getZDFstream(tab)
 					Info2 = str
 				end
 			end
-			if jnTab.img then tab.UrlPic = jnTab.img end
 			tab.Epg = Epg
 			tab.Title = Title
 			tab.Info1 = Info1
@@ -673,7 +634,7 @@ function play_video(tab)
 			Epg = tab.Epg
 			Title = tab.Title
 			videostream, audiostream = tab.stream,tab.audiostream
-			UrlPic = tab.UrlPic
+			UrlPic = tab.img
 			os.remove(picfile)
 			vPlay:setInfoFunc("epgInfo")
 		end
@@ -730,6 +691,8 @@ function selList(id)
 end
 
 function backTomenu1(id)
+	if hid == 1 then os.execute('rcsim KEY_HOME') return end
+
 	for i=1,hid-1 do
 		os.execute('rcsim KEY_HOME')
 	end
@@ -738,6 +701,27 @@ end
 function main_menu(liste)
 	if liste == nil then print('liste error') return end
 	hid = hid + 1
+
+	local page = 100
+	local p2 = 0
+	local warning = 3
+	if hid > warning then
+		for i, el in ipairs(liste.elems) do
+			if el.elems then
+				for j, v in ipairs(el.elems) do
+					if v.link and v.link.type and v.link.type == 'page' then
+						if hid > 12 then
+							page = i
+						end
+						p2 = i
+						break
+					end
+				end
+			end
+			if p2 ~= 0 then break end
+		end
+	end
+
 	local tname = liste.title or liste.titletxt or liste.myid or liste.id
 	tname = xml_entities(tname)
 	if tname and type(tname) == 'string' and #tname == 0 then tname = 'Titel' end
@@ -745,54 +729,76 @@ function main_menu(liste)
 	last_menu[hid] = menu
 	menu:addItem{type='back'}
 	menu:addItem{type='separatorline'}
-	menu:addKey{directkey=RC["0"], id="_", action="backTomenu1"}
+	menu:addKey{directkey=RC.setup, id="_", action="backTomenu1"}
 	local d =  0
 	for i, v in ipairs(liste.elems) do
-		if v.myid and v.hasVideo  then
-			if d == 0 then menu:addItem{type="subhead", name='Videos'} end
-			d=d+1
-			local mact = 'selPlay'
-			local hico = 'hint_movie'
-			local mname =  v.titletxt or v.title or v.myid or '## error ##'
-			local vhint = v.headtxt
-			if v.infoline and v.infoline.text then
-				vhint = vhint .. ' ' .. v.infoline.text
-			end
-			if v.text then
-				 vhint = vhint .. ' - ' .. v.text
-			end
-			mname = xml_entities(mname)
-			vhint = xml_entities(vhint)
-			if mname and type(mname) == 'string' and #mname == 0 then mname = 'Video' end
-			menu:addItem{type="forwarder" , name=mname, action=mact,hint=vhint,hint_icon=hico ,id=v.myid ,directkey=godirectkey(d)}
-		end
-	end
-	local one = true
-	for i, v in ipairs(liste.elems) do
-		if v.myid and (v.hasVideo==nil or v.hasVideo==false) and v.type ~= 'specialcovers' and v.type ~= 'header' then
-			if one then 	menu:addItem{type='subhead', name='Untermenü'} one = false end
+		if v.myid and (v.hasVideo==nil or v.hasVideo==false) and (v.titletxt or v.title) and i < page then
+			if d == 0 then menu:addItem{type="subhead", name='Untermenü'} end
 			d=d+1
 			local mact = 'selList'
 			local hico = 'hint_next'
 			local mname =  v.titletxt or v.title or v.myid or '## error ##'
 			tname = xml_entities(tname)
 			if mname and type(mname) == 'string' and #mname == 0 then mname = 'Untermenü' end
-			local vhint = v.headtxt
-			if v.text then
-				if not vhint or #vhint == 0 then
-					vhint = v.text
-				else
-					vhint = vhint .. ' ' .. v.text
-				end
+			local vhint = nil
+			if v.headtxt then
+				vhint = v.headtxt
 			end
 			if v.infoline and v.infoline.text then
-				vhint = vhint .. ' - ' .. v.infoline.text
+				if vhint then
+					vhint = vhint .. ' ' .. v.infoline.text
+				else
+					vhint = v.infoline.text
+				end
+			end
+			if v.text then
+				if vhint then
+				 vhint = vhint .. ' - ' .. v.text
+				else
+					vhint = v.text
+				end
+			end
+			if not vhint and hid > warning and i >= p2 then
+				vhint = 'Zurück zum Start-Menü über Menü-Taste'
 			end
 			mname = xml_entities(mname)
 			vhint = xml_entities(vhint)
 			menu:addItem{type="forwarder" , name=mname, action=mact,hint=vhint ,hint_icon=hico ,id=v.myid ,directkey=godirectkey(d)}
 		end
 	end
+	local one = true
+	for i, v in ipairs(liste.elems) do
+		if v.myid and v.hasVideo then
+			if one then 	menu:addItem{type='subhead', name='Videos'} one = false end
+			d=d+1
+			local mact = 'selPlay'
+			local hico = 'hint_movie'
+			local mname =  v.titletxt or v.title or v.myid or '## error ##'
+			local vhint = nil
+			if v.headtxt then
+				vhint = v.headtxt
+			end
+			if v.infoline and v.infoline.text then
+				if vhint then
+					vhint = vhint .. ' ' .. v.infoline.text
+				else
+					vhint = v.infoline.text
+				end
+			end
+			if v.text then
+				if vhint then
+				 vhint = vhint .. ' - ' .. v.text
+				else
+					vhint = v.text
+				end
+			end
+			mname = xml_entities(mname)
+			vhint = xml_entities(vhint)
+			if mname and type(mname) == 'string' and #mname == 0 then mname = 'Video' end
+			menu:addItem{type="forwarder" ,icon="streaming", name=mname, action=mact,hint=vhint,hint_icon=hico ,id=v.myid ,directkey=godirectkey(d)}
+		end
+	end
+
 	menu:exec()
 	hid = hid - 1
 end
