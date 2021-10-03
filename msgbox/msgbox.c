@@ -100,6 +100,9 @@ int rval=0;
 
 void put_instance(int pval)
 {
+	if (system("pidof neutrino > /dev/null"))
+		return;
+
 	FILE *fh;
 
 	if(pval)
