@@ -1,10 +1,11 @@
   --[[
-	ZDF HBBTV Version 0.16
+	ZDF HBBTV
 	Copyright (C) 2021 Jacek Jendrzej 'satbaby'
 	License: WTFPLv2
 ]]
 
 function init()
+	Version = 0.18
 	picfile = "/tmp/ZDFhbbtvEpg.jpg"
 	dlPath = '/'
 	lastmid = 1000
@@ -110,7 +111,7 @@ function getMaxRes()
 end
 
 function getdata(Url,Postfields,outputfile,pass_headers,httpheaders)
-	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
+	local h = hintbox.new{text="Lese Daten..."}
 	if h then
 		h:paint()
 	end
@@ -135,6 +136,30 @@ function getdata(Url,Postfields,outputfile,pass_headers,httpheaders)
 	else
 		return nil
 	end
+end
+
+function info(infotxt,cap)
+	if cap == nil then
+		cap = 'Information'
+	end
+	local h = hintbox.new{caption=cap, text=infotxt}
+	if h then
+		h:paint()
+	local msg, data = nil,nil
+	local stop = false
+		repeat
+			msg, data = n:GetInput(500)
+		until msg == RC.ok or msg == RC.home or msg == RC.info
+		h:hide()
+	end
+	h = nil
+end
+
+function version()
+	local f = io.popen('stat -c %Y ' .. arg[0])
+	local last_modified = f:read()
+	local mdate = os.date("%c", last_modified)
+	info('Version ' .. Version .. ' von satbaby\nZu letzt modifiziert\n' .. mdate,'ZDF HBBTV Versioninfo')
 end
 
 function godirectkey(d)
@@ -690,7 +715,7 @@ function selList(id)
 	main_menu(myTab)
 end
 
-function backTomenu1(id)
+function backToMenu1(id)
 	if hid == 1 then os.execute('rcsim KEY_HOME') return end
 
 	for i=1,hid-1 do
@@ -702,23 +727,16 @@ function main_menu(liste)
 	if liste == nil then print('liste error') return end
 	hid = hid + 1
 
-	local page = 100
-	local p2 = 0
-	local warning = 3
-	if hid > warning then
-		for i, el in ipairs(liste.elems) do
-			if el.elems then
-				for j, v in ipairs(el.elems) do
-					if v.link and v.link.type and v.link.type == 'page' then
-						if hid > 12 then
-							page = i
-						end
-						p2 = i
-						break
-					end
+	local ptype = {}
+	local warning = 4
+	for i, el in ipairs(liste.elems) do
+		if el.elems then
+			for j, v in ipairs(el.elems) do
+				if v.link and v.link.type then
+					ptype[i] = v.link.type
+					break
 				end
 			end
-			if p2 ~= 0 then break end
 		end
 	end
 
@@ -729,10 +747,13 @@ function main_menu(liste)
 	last_menu[hid] = menu
 	menu:addItem{type='back'}
 	menu:addItem{type='separatorline'}
-	menu:addKey{directkey=RC.setup, id="_", action="backTomenu1"}
+	menu:addKey{directkey=RC.setup, id="_", action="backToMenu1"}
+	menu:addKey{directkey=RC.info, id="_", action="version"}
 	local d =  0
 	for i, v in ipairs(liste.elems) do
-		if v.myid and (v.hasVideo==nil or v.hasVideo==false) and (v.titletxt or v.title) and i < page then
+		local skip = false
+		if hid > 12 and ptype[i] == 'page' then skip = true end
+		if not skip and v.myid and (v.hasVideo==nil or v.hasVideo==false) and (v.titletxt or v.title) then
 			if d == 0 then menu:addItem{type="subhead", name='Untermenü'} end
 			d=d+1
 			local mact = 'selList'
@@ -746,7 +767,7 @@ function main_menu(liste)
 			end
 			if v.infoline and v.infoline.text then
 				if vhint then
-					vhint = vhint .. ' ' .. v.infoline.text
+					vhint = vhint .. ' - ' .. v.infoline.text
 				else
 					vhint = v.infoline.text
 				end
@@ -758,8 +779,17 @@ function main_menu(liste)
 					vhint = v.text
 				end
 			end
-			if not vhint and hid > warning and i >= p2 then
-				vhint = 'Zurück zum Start-Menü über Menü-Taste'
+			if (not vhint and hid > warning and ptype[i] == 'page') or hid > 13 then
+				vhint = 'Untermenü - Zurück zum Start-Menü über Menü-Taste'
+			end
+			if not vhint and ptype[i] == 'video' then
+				vhint = 'Video-Untermenü'
+			end
+			if (not vhint and ptype[i] == 'video') or hid > 13 then
+				vhint = 'Video-Untermenü - Zum Start-Menü über Menü-Taste'
+			end
+			if not vhint and ptype[i] == 'page' then
+				vhint = 'Untermenü'
 			end
 			mname = xml_entities(mname)
 			vhint = xml_entities(vhint)
@@ -772,7 +802,7 @@ function main_menu(liste)
 			if one then 	menu:addItem{type='subhead', name='Videos'} one = false end
 			d=d+1
 			local mact = 'selPlay'
-			local hico = 'hint_movie'
+			local hico = 'video'
 			local mname =  v.titletxt or v.title or v.myid or '## error ##'
 			local vhint = nil
 			if v.headtxt then
@@ -780,7 +810,7 @@ function main_menu(liste)
 			end
 			if v.infoline and v.infoline.text then
 				if vhint then
-					vhint = vhint .. ' ' .. v.infoline.text
+					vhint = vhint .. ' - ' .. v.infoline.text
 				else
 					vhint = v.infoline.text
 				end
