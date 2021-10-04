@@ -5,7 +5,7 @@
 ]]
 
 function init()
-	Version = 0.17
+	Version = 0.18
 	picfile = "/tmp/ZDFhbbtvEpg.jpg"
 	dlPath = '/'
 	lastmid = 1000
@@ -111,7 +111,7 @@ function getMaxRes()
 end
 
 function getdata(Url,Postfields,outputfile,pass_headers,httpheaders)
-	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
+	local h = hintbox.new{text="Lese Daten..."}
 	if h then
 		h:paint()
 	end
@@ -728,7 +728,7 @@ function main_menu(liste)
 	hid = hid + 1
 
 	local ptype = {}
-	local warning = 2
+	local warning = 4
 	for i, el in ipairs(liste.elems) do
 		if el.elems then
 			for j, v in ipairs(el.elems) do
@@ -767,7 +767,7 @@ function main_menu(liste)
 			end
 			if v.infoline and v.infoline.text then
 				if vhint then
-					vhint = vhint .. ' ' .. v.infoline.text
+					vhint = vhint .. ' - ' .. v.infoline.text
 				else
 					vhint = v.infoline.text
 				end
@@ -780,10 +780,16 @@ function main_menu(liste)
 				end
 			end
 			if (not vhint and hid > warning and ptype[i] == 'page') or hid > 13 then
-				vhint = 'Zurück zum Start-Menü über Menü-Taste'
+				vhint = 'Untermenü - Zurück zum Start-Menü über Menü-Taste'
 			end
-			if hid > 1 and not vhint and ptype[i] == 'video'then
-				vhint = 'Videos'
+			if not vhint and ptype[i] == 'video' then
+				vhint = 'Video-Untermenü'
+			end
+			if (not vhint and ptype[i] == 'video') or hid > 13 then
+				vhint = 'Video-Untermenü - Zum Start-Menü über Menü-Taste'
+			end
+			if not vhint and ptype[i] == 'page' then
+				vhint = 'Untermenü'
 			end
 			mname = xml_entities(mname)
 			vhint = xml_entities(vhint)
@@ -796,7 +802,7 @@ function main_menu(liste)
 			if one then 	menu:addItem{type='subhead', name='Videos'} one = false end
 			d=d+1
 			local mact = 'selPlay'
-			local hico = 'hint_movie'
+			local hico = 'video'
 			local mname =  v.titletxt or v.title or v.myid or '## error ##'
 			local vhint = nil
 			if v.headtxt then
@@ -804,7 +810,7 @@ function main_menu(liste)
 			end
 			if v.infoline and v.infoline.text then
 				if vhint then
-					vhint = vhint .. ' ' .. v.infoline.text
+					vhint = vhint .. ' - ' .. v.infoline.text
 				else
 					vhint = v.infoline.text
 				end
