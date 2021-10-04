@@ -159,7 +159,7 @@ function version()
 	local f = io.popen('stat -c %Y ' .. arg[0])
 	local last_modified = f:read()
 	local mdate = os.date("%c", last_modified)
-	info('Version ' .. Version .. ' von satbaby\nZu letzt modifiziert\n' .. mdate:match('(.*)%s-CEST'),'ZDF HBBTV Versioninfo')
+	info('Version ' .. Version .. ' von satbaby\nZu letzt modifiziert\n' .. mdate,'ZDF HBBTV Versioninfo')
 end
 
 function godirectkey(d)
