@@ -170,7 +170,7 @@ function version()
 	local f = io.popen('stat -c %Y ' .. arg[0])
 	local last_modified = f:read()
 	local mdate = os.date("%c", last_modified)
-	info('Version ' .. Version .. ' von satbaby\nZu letzt modifiziert\n' .. mdate,'ZDF HBBTV Versioninfo')
+	info('Version ' .. Version .. ' von satbaby\nZuletzt modifiziert\n' .. mdate,'ZDF HbbTV Versionsinfo')
 end
 
 function godirectkey(d)
@@ -799,7 +799,7 @@ function main_menu(liste)
 			if not vhint and ptype[i] == 'video' then
 				vhint = 'Video-Untermenü'
 			end
-			if (not vhint and ptype[i] == 'video') or hid > 13 then
+			if (not vhint and ptype[i] == 'video') or hid > 7 then
 				vhint = 'Video-Untermenü - Zum Start-Menü über Menü-Taste'
 			end
 			if not vhint and ptype[i] == 'page' then
