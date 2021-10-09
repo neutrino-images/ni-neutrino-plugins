@@ -5,7 +5,7 @@
 ]]
 
 function init()
-	Version = 0.19
+	Version = 0.20
 	picfile = "/tmp/ZDFhbbtvEpg.jpg"
 	dlPath = '/'
 	lastmid = 1000
@@ -32,6 +32,10 @@ function init()
 end
 
 function inittab()
+	local h = hintbox.new{text="Lese Daten..."}
+	if h then
+		h:paint()
+	end
 	local url = 'http://hbbtv.zdf.de/zdfm3/dyn/get.php'
 	aktivelist = {}
 	aktivelist = get_zdf_data(url)
@@ -39,6 +43,25 @@ function inittab()
 	if jnTab and jnTab.elems and jnTab.elems[1] and jnTab.elems[1].elems then
 		lastmid = lastmid + 1
 		table.insert(aktivelist.elems,{title='Sendung verpasst',myid=lastmid,elems=jnTab.elems[1].elems})
+	end
+	local data = getdata(url .. '?id=special:atoz:')
+	if data then
+		local jnTab = json:decode(data)
+		if jnTab and jnTab.elems and jnTab.elems[1] and jnTab.elems[1].options then
+			a={}
+			for k,v in pairs(jnTab.elems[1].options) do
+				a.link = {}
+				local link = {}
+				lastmid = lastmid + 1
+				link.id = 'special:atoz:' .. v.id
+				table.insert(a,{title=v.name,myid=lastmid,link=link})
+			end
+			lastmid = lastmid + 1
+			table.insert(aktivelist.elems,{title='A to Z',myid=lastmid,elems=a})
+		end
+	end
+	if h then
+		h:hide()
 	end
 end
 
@@ -122,10 +145,6 @@ function getMaxRes()
 end
 
 function getdata(Url,Postfields,outputfile,pass_headers,httpheaders)
-	local h = hintbox.new{text="Lese Daten..."}
-	if h then
-		h:paint()
-	end
 	if Url == nil then return nil end
 	if Curl == nil then
 		Curl = curl.new()
@@ -136,9 +155,6 @@ function getdata(Url,Postfields,outputfile,pass_headers,httpheaders)
 	end
 
 	local ret, data = Curl:download{ url=Url, A="Mozilla/5.0",maxRedirs=5,followRedir=true,postfields=Postfields,header=pass_headers,o=outputfile,httpheader=httpheaders }
-	if h then
-		h:hide()
-	end
 	if ret == CURL.OK then
 		if outputfile then
 			return 1
@@ -682,6 +698,10 @@ function play_video(tab)
 end
 
 function get_zdf_data(link,data)
+	local h = hintbox.new{text="Lese Daten..."}
+	if h then
+		h:paint()
+	end
 	if data == nil then
 		data = getdata(link)
 	end
@@ -690,18 +710,31 @@ function get_zdf_data(link,data)
 		if jnTab then
 			lastmid = setmid(jnTab,lastmid)
 		end
+		if h then
+			h:hide()
+		end
 		return jnTab
+	end
+	if h then
+		h:hide()
 	end
 end
 
 function selPlay(id)
 	hideMenu(last_menu[hid])
+	local h = hintbox.new{text="Lese Daten..."}
+	if h then
+		h:paint()
+	end
 	id = tonumber(id)
 	local vTab = getmid(aktivelist,id)
 	if vTab then
 		if vTab.stream == nil then
 			getZDFstream(vTab)
 		end
+	end
+	if h then
+		h:hide()
 	end
 	if vTab.stream  then
 		play_video(vTab)
@@ -710,6 +743,11 @@ end
 
 function selList(id)
 	hideMenu(last_menu[hid])
+	local h = hintbox.new{text="Lese Daten..."}
+	if h then
+		h:paint()
+	end
+
 	id = tonumber(id)
 	local myTab = getmid(aktivelist,id)
 	if myTab.elems == nil then
@@ -725,6 +763,9 @@ function selList(id)
 		else
 			myTab.elems = newTab.elems
 		end
+	end
+	if h then
+		h:hide()
 	end
 	main_menu(myTab)
 end
