@@ -97,6 +97,11 @@ function init()
 	-- set collectgarbage() interval from 200 (default) to 50
 	collectgarbage('setpause', 50)
 
+	CONF_PATH = "/var/tuxbox/config/"
+	if DIR and DIR.CONFIGDIR then
+		CONF_PATH = DIR.CONFIGDIR .. '/'
+	end
+
 	hdsAvailable = false
 --	if isNevis() == true then hdsAvailable = false end
 
@@ -114,7 +119,7 @@ function init()
 	haveBigPicBG = fileExist(bigPicBG)
 	conf = {}
 	confChanged 			= 0
-	confFile			= "/var/tuxbox/config/ard_mediathek.conf";
+	confFile			= CONF_PATH .. "ard_mediathek.conf";
 	config				= configfile.new()
 	loadConfig()
 
@@ -149,7 +154,7 @@ end
 function get_timing_menu()
 	local ret = 0
 
-	local conf = io.open("/var/tuxbox/config/neutrino.conf", "r")
+	local conf = io.open(CONF_PATH .. "neutrino.conf", "r")
 	if conf then
 		for line in conf:lines() do
 			local key, val = line:match("^([^=#]+)=([^\n]*)")
@@ -364,7 +369,7 @@ function getVideoUrlM3U8(m3u8_url)
 		if revision == 1 then -- separate audio for hd51 and co
 			local Nconfig	= configfile.new()
 			local lang1,lang2,lang3 = nil,nil,nil
-			Nconfig:loadConfig("/var/tuxbox/config/neutrino.conf")
+			Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
 			lang1 = Nconfig:getString("pref_lang_0", "#")
 			lang2 = Nconfig:getString("pref_lang_1", "#")
 			lang3 = Nconfig:getString("pref_lang_2", "#")

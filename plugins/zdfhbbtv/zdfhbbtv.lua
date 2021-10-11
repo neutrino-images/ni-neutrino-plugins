@@ -5,7 +5,11 @@
 ]]
 
 function init()
-	Version = 0.20
+	Version = 0.21
+	CONF_PATH = "/var/tuxbox/config/"
+	if DIR and DIR.CONFIGDIR then
+		CONF_PATH = DIR.CONFIGDIR .. '/'
+	end
 	picfile = "/tmp/ZDFhbbtvEpg.jpg"
 	dlPath = '/'
 	lastmid = 1000
@@ -138,7 +142,7 @@ function getMaxRes()
 	local maxRes = 1280
 	local Nconfig = configfile.new()
 	if Nconfig then
-		Nconfig:loadConfig("/var/tuxbox/config/neutrino.conf")
+		Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
 		maxRes = Nconfig:getInt32("livestreamResolution", 1280)
 	end
 	return maxRes
@@ -487,7 +491,7 @@ function dl_check(streamUrl)
 	local check = false
 	local Nconfig = configfile.new()
 	if Nconfig then
-		Nconfig:loadConfig("/var/tuxbox/config/neutrino.conf")
+		Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
 		dlPath = Nconfig:getString("network_nfs_recordingdir", '/tmp')
 	end
 
@@ -550,7 +554,7 @@ function getVideoUrlM3U8(m3u8_url)
 		if revision == 1 then -- separate audio for hd51 and co
 			local Nconfig	= configfile.new()
 			local lang1,lang2,lang3 = nil,nil,nil
-			Nconfig:loadConfig("/var/tuxbox/config/neutrino.conf")
+			Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
 			lang1 = Nconfig:getString("pref_lang_0", "#")
 			lang2 = Nconfig:getString("pref_lang_1", "#")
 			lang3 = Nconfig:getString("pref_lang_2", "#")

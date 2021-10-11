@@ -40,9 +40,14 @@ G	= loadLuaLib('n_gui')		-- no NLS
 H	= loadLuaLib('n_helpers')	-- no NLS
 
 -- define global paths
+local CONF_PATH = "/var/tuxbox/config/"
+if DIR and DIR.CONFIGDIR then
+	CONF_PATH = DIR.CONFIGDIR .. '/'
+end
+
 pluginScriptPath = H.scriptPath() .. '/' .. H.scriptBase()	-- no NLS
 pluginTmpPath    = '/tmp/' .. H.scriptBase()	-- no NLS
-confFile         = '/var/tuxbox/config/' .. H.scriptBase() .. '.conf'	-- no NLS
+confFile         = CONF_PATH .. H.scriptBase() .. '.conf'	-- no NLS
 FH:rmdir(pluginTmpPath)
 FH:mkdir(pluginTmpPath)
 

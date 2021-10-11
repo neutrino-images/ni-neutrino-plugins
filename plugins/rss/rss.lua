@@ -21,8 +21,11 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v1.04 by satbaby"
+rssReaderVersion="Lua RSS READER v1.05 by satbaby"
 local CONF_PATH = "/var/tuxbox/config/"
+if DIR and DIR.CONFIGDIR then
+	CONF_PATH = DIR.CONFIGDIR .. '/'
+end
 revision = 0
 youtube_dev_id = nil
 feedentries = {}
