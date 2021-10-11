@@ -33,7 +33,7 @@ local n = neutrino()
 
 local u="ubouquets"
 local b="bouquets"
-local localtv_version="LocalTV 0.25"
+local localtv_version="LocalTV 0.26"
 function __LINE__() return debug.getinfo(2, 'l').currentline end
 
 locale = {}
@@ -308,13 +308,12 @@ function is_dir(path)
 end
 
 function make_fav_back()
-	os.execute("mkdir /tmp/tmpfav")
-	os.execute("mkdir /tmp/tmpfav/temp_inst")
-	os.execute("mkdir /tmp/tmpfav/temp_inst/inst")
-	os.execute("mkdir /tmp/tmpfav/temp_inst/inst/var")
-	os.execute("mkdir /tmp/tmpfav/temp_inst/inst/var/tuxbox")
-	os.execute("mkdir /tmp/tmpfav/temp_inst/inst/var/tuxbox/config")
-	os.execute("mkdir /tmp/tmpfav/temp_inst/inst" .. CONF_PATH .. "zapit")
+	local tmppath = "/temp_inst/inst" .. CONF_PATH .. "/zapit"
+	local p = ''
+	for mpath in tmppath:gmatch('/([_%w]+)') do
+		p = p .. '/' .. mpath
+		os.execute("mkdir /tmp" .. p)
+	end
 	os.execute("mkdir /tmp/tmpfav/temp_inst/ctrl")
 	local postins = "/tmp/tmpfav/temp_inst/ctrl/postinstall.sh"
 	local fileout = io.open(postins, 'w')
@@ -323,7 +322,7 @@ function make_fav_back()
 		fileout:write('wget -q -O /dev/null "http://localhost/control/message?popup=Favoriten-Bouquet%20wurde%20installiert."')
 		fileout:close()
 		os.execute("chmod 755 " .. postins)
-		os.execute("cp " .. conf.ubouquets_xml .. " /tmp/tmpfav/temp_inst/inst" .. CONF_PATH .. "zapit/" )
+		os.execute("cp " .. conf.ubouquets_xml .. " /tmp/tmpfav/temp_inst/inst" .. CONF_PATH .. "/zapit/" )
 		os.execute("cd /tmp/tmpfav && tar -czvf  " .. conf.backuppath .."/last_ubouquets_xml.bin temp_inst" )
 		os.execute("rm -rf /tmp/tmpfav/")
 	else
