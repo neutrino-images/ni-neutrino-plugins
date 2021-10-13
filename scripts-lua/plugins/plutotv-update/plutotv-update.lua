@@ -5,7 +5,7 @@
 	License: WTFPLv2
 ]]
 
-plugin = "Pluto TV Update v1.4"
+plugin = "Pluto TV Update v1.5"
 
 json = require "json"
 n = neutrino()
@@ -57,6 +57,10 @@ function get_channels()
 				for i = 1, #jd do
 					if jd[i] then
 						if jd[i]._id and jd[i].name then
+							local logo = ""
+							if jd[i].logo and jd[i].logo.path then
+								logo = jd[i].logo.path:sub(1, string.find(jd[i].logo.path, "?")-1)
+							end
 							local summary = ""
 							if jd[i].summary then
 								summary = convert(jd[i].summary)
@@ -65,7 +69,7 @@ function get_channels()
 							if jd[i].category then
 								category = convert(jd[i].category:gsub(" auf Pluto TV",""))
 							end
-							xml:write('	<webtv genre="' .. category .. '" title="' .. convert(jd[i].name) ..  '" url="' .. jd[i]._id .. '" xmltv="' .. xmltv .. '" epgmap="' .. jd[i]._id .. '" logo="https://images.pluto.tv/channels/' .. jd[i]._id .. '/logo.png" script="plutotv.lua" description="' .. summary .. '" />\n')
+							xml:write('	<webtv genre="' .. category .. '" title="' .. convert(jd[i].name) ..  '" url="' .. jd[i]._id .. '" xmltv="' .. xmltv .. '" epgmap="' .. jd[i]._id .. '" logo="' .. logo .. '" script="plutotv.lua" description="' .. summary .. '" />\n')
 						end
 					end
 				end
