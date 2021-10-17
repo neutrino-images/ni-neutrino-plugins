@@ -1,13 +1,13 @@
 #!/bin/sh
 # ************************************************
-# * Corona-Info V2.43                            *
+# * Corona-Info V2.44                            *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team)                    *
 # *                                              *
 # *                                              *
 # * Daten kommen von                             *
-# * https://corona.lmao.ninja/countries          *
+# * https://disease.sh/v2/countries              *
 # *                                              *
 # * angezeigt werden ausgewählte Länder          *
 # * Deutschland, Italien, Spanien, USA,          *
@@ -51,7 +51,7 @@ fi
 #################################################
 
 title="Corona-Info"
-vinfo="V2.43"
+vinfo="V2.44"
 icon=$pluginpath"/corona_hint.png"
 
 cleanup() {
@@ -585,13 +585,13 @@ msgbox popup="Daten werden geholt... (ca. 8 Sekunden)" icon="$icon" title="$titl
 echo "Corona-Info - Länderdaten-Download"
 
 if [ $command = "WGET" ]; then
-	wget -O $countriesfile https://corona.lmao.ninja/v2/countries --no-check-certificate
-	wget -O $worldfile https://corona.lmao.ninja/v2/all --no-check-certificate
+	wget -O $countriesfile https://disease.sh/v2/countries --no-check-certificate
+	wget -O $worldfile https://disease.sh/v2/all --no-check-certificate
   wget -O $vaccinefile https://disease.sh/v3/covid-19/vaccine/coverage/countries?lastdays=1 --no-check-certificate
   wget -O $vacworldfile https://disease.sh/v3/covid-19/vaccine/coverage?lastdays=1 --no-check-certificate
 else
-	curl -k -o $countriesfile https://corona.lmao.ninja/v2/countries
-	curl -k -o $worldfile https://corona.lmao.ninja/v2/all
+	curl -k -o $countriesfile https://disease.sh/v2/countries
+	curl -k -o $worldfile https://disease.sh/v2/all
 	curl -k -o $vaccinefile https://disease.sh/v3/covid-19/vaccine/coverage/countries?lastdays=1
 	curl -k -o $vacworldfile https://disease.sh/v3/covid-19/vaccine/coverage?lastdays=1
 fi 
@@ -703,7 +703,7 @@ echo "~s" >> $msgboxfile
 echo "Weltweit ~T0215~Y"$ALL_GESAMT" ~T0320"$ALL_NEU_HEUTE"  ~T0395~R"$ALL_TOTE"  ~T0480"$ALL_QUOTE"% ~T0540"$ALL_TOTE_HEUTE" ~T0595~Y"$ALL_ERKRANKT" ~T0700~B"$ALL_KRITISCH" ~T0775~G"$ALL_IMPFUNG" ~T0975~Y"$ALL_FALLPROMILLION" ~T1055~R"$ALL_TOTEPROMILLION" ~T1150~S"$ALL_CONTINENT" " >> $msgboxfile
 echo "Anzahl Länder ~T0215"$ALL_ANZAHL" " >> $msgboxfile
 echo "~s" >> $msgboxfile
-echo "~cQuelle: corona.lmao.ninja/v2/countries - disease.sh/v3/covid-19/vaccine - Datenstand: "$ALL_UPDATE" Uhr" >> $msgboxfile 
+echo "~cQuelle: https://disease.sh//v2/countries - disease.sh/v3/covid-19/vaccine - Datenstand: "$ALL_UPDATE" Uhr" >> $msgboxfile 
 #echo "~cDie Liste der L~ander kann in der Datei corona.land editiert/sortiert werden. fred_feuerstein (NI-Team)" >> $msgboxfile 
 
 echo "Corona-Info - Übersicht wurde erstellt"
