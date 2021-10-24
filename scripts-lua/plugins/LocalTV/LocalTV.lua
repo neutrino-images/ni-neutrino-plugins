@@ -21,6 +21,10 @@
 	Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
 	Boston, MA  02110-1301, USA.
 ]]
+local CONF_PATH = "/var/tuxbox/config"
+if DIR and DIR.CONFIGDIR then
+	CONF_PATH = DIR.CONFIGDIR
+end
 
 local conf = {}
 local g = {}
@@ -29,11 +33,12 @@ local n = neutrino()
 
 local u="ubouquets"
 local b="bouquets"
-local localtv_version="LocalTV 0.24"
+local localtv_version="LocalTV 0.26"
 function __LINE__() return debug.getinfo(2, 'l').currentline end
 
 locale = {}
 locale["deutsch"] = {
+	readdata = "Lese Daten...",
 	create_error = "Liste konnte nicht erstellt werden.",
 	patient = "Bitte warten ...",
 	Error = "Fehler",
@@ -73,6 +78,7 @@ locale["deutsch"] = {
 	ub="Liste aus:"
 }
 locale["english"] = {
+	readdata = "Read data...",
 	create_error = "List could not be created.",
 	patient = "Please be patient.",
 	Error = "Error",
@@ -112,6 +118,7 @@ locale["english"] = {
 	ub="Liste from:"
 }
 locale["slovak"] = {
+	readdata = "Čítanie údajov...",
 	create_error = "Zoznam nemohol byť vytvorený.",
 	patient = "Prosím čakajte...",
 	Error = "Chyba",
@@ -152,6 +159,7 @@ locale["slovak"] = {
 	saveonoff = " uložiť ? áno/nie"
 }
 locale["czech"] = {
+	readdata = "číst data...",
 	create_error = "Seznam nemohl byt nahrán.",
 	patient = "Prosím čekejte ...",
 	Error = "Chyba",
@@ -200,6 +208,12 @@ function getdata(Url,outputfile)
 	else
 		return nil
 	end
+end
+
+
+function script_path()
+	local path = (debug.getinfo(2, "S").source:sub(2))
+	return path:match("(.*[/\\])")
 end
 
 function to_chid(satpos, frq, t, on, i)
@@ -294,13 +308,12 @@ function is_dir(path)
 end
 
 function make_fav_back()
-	os.execute("mkdir /tmp/tmpfav")
-	os.execute("mkdir /tmp/tmpfav/temp_inst")
-	os.execute("mkdir /tmp/tmpfav/temp_inst/inst")
-	os.execute("mkdir /tmp/tmpfav/temp_inst/inst/var")
-	os.execute("mkdir /tmp/tmpfav/temp_inst/inst/var/tuxbox")
-	os.execute("mkdir /tmp/tmpfav/temp_inst/inst/var/tuxbox/config")
-	os.execute("mkdir /tmp/tmpfav/temp_inst/inst/var/tuxbox/config/zapit")
+	local tmppath = "/temp_inst/inst" .. CONF_PATH .. "/zapit"
+	local p = ''
+	for mpath in tmppath:gmatch('/([_%w]+)') do
+		p = p .. '/' .. mpath
+		os.execute("mkdir /tmp" .. p)
+	end
 	os.execute("mkdir /tmp/tmpfav/temp_inst/ctrl")
 	local postins = "/tmp/tmpfav/temp_inst/ctrl/postinstall.sh"
 	local fileout = io.open(postins, 'w')
@@ -309,7 +322,7 @@ function make_fav_back()
 		fileout:write('wget -q -O /dev/null "http://localhost/control/message?popup=Favoriten-Bouquet%20wurde%20installiert."')
 		fileout:close()
 		os.execute("chmod 755 " .. postins)
-		os.execute("cp " .. conf.ubouquets_xml .. " /tmp/tmpfav/temp_inst/inst/var/tuxbox/config/zapit/" )
+		os.execute("cp " .. conf.ubouquets_xml .. " /tmp/tmpfav/temp_inst/inst" .. CONF_PATH .. "/zapit/" )
 		os.execute("cd /tmp/tmpfav && tar -czvf  " .. conf.backuppath .."/last_ubouquets_xml.bin temp_inst" )
 		os.execute("rm -rf /tmp/tmpfav/")
 	else
@@ -414,6 +427,10 @@ function saveliste()
 			else
 				return
 			end
+			local h = hintbox.new{text=locale[conf.lang].readdata}
+			if h then
+				h:paint()
+			end
 			local epgscipt = ""
 			if conf.webepg and conf.epgscript then
 				epgscipt = ' script="LocalTVEpg.lua" '
@@ -468,6 +485,9 @@ function saveliste()
 				changeFav()
 			end
 			os.execute( 'pzapit -c')
+			if h then
+				h:hide()
+			end
 			info(locale[conf.lang].info, locale[conf.lang].list.. conf.name .. ".xml" .. locale[conf.lang].saved)
 		end
 	else
@@ -477,7 +497,7 @@ function saveliste()
 end
 
 function get_confFile()
-	local confFile = "/var/tuxbox/config/localtv.conf"
+	local confFile = CONF_PATH .. "/localtv.conf"
 	return confFile
 end
 
@@ -502,7 +522,7 @@ end
 function loadConfig()
 	local config	= configfile.new()
 	config:loadConfig(get_confFile())
-	conf.path = config:getString("path", "/var/tuxbox/config")
+	conf.path = config:getString("path", CONF_PATH)
 	conf.backuppath = config:getString("backuppath", "/media/sda1")
 	conf.name = config:getString("name", "BoxName")
 	conf.ip   = config:getString("ip", "192.168.178.2")
@@ -515,7 +535,7 @@ function loadConfig()
 	conf.fav = config:getString("fav", "no")
 	conf.changed = false
 	local Nconfig	= configfile.new()
-	Nconfig:loadConfig("/var/tuxbox/config/neutrino.conf")
+	Nconfig:loadConfig(CONF_PATH .. "/neutrino.conf")
 	if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 5 )) then
 		conf.logo_dir = Nconfig:getString("logo_hdd_dir", "#")
 		-- NI - our movieplayer code will find epgscript in several places
@@ -538,8 +558,12 @@ function loadConfig()
 	if locale[conf.lang] == nil then
 		conf.lang = "english"
 	end
-	conf.ubouquets_xml = "/var/tuxbox/config/zapit/ubouquets.xml"
+	conf.ubouquets_xml = CONF_PATH .. "/zapit/ubouquets.xml"
 
+	LocalTV_icon = script_path() .. '/LocalTV_hint.png'
+	if not file_exists(LocalTV_icon) then
+		LocalTV_icon='streaming'
+	end
 end
 
 function setvar(k, v)
@@ -642,7 +666,7 @@ function gen_menu(table)
 		return
 	end
 	g.main:hide()
-	local m  = menu.new{name=locale[conf.lang].list .. conf.name .. ": ".. conf.ip, icon="icon_blue"}
+	local m  = menu.new{name=locale[conf.lang].list .. conf.name .. ": ".. conf.ip, icon=LocalTV_icon}
 	m:addItem{type="separator"}
 	m:addItem{type="back"}
 	m:addItem{type="separatorline"}
@@ -659,7 +683,7 @@ function gen_menu(table)
 end
 
 function main_menu()
-  	g.main = menu.new{name="LocalTV", icon="icon_red"}
+	g.main = menu.new{name="LocalTV", icon=LocalTV_icon}
 	m=g.main
 	m:addKey{directkey=RC.info, id=localtv_version, action="info"}
 

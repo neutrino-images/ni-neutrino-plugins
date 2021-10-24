@@ -4,6 +4,10 @@ json = require "json"
 local _url = arg[1]
 local ret = {}
 local Curl = nil
+local CONF_PATH = "/var/tuxbox/config/"
+if DIR and DIR.CONFIGDIR then
+	CONF_PATH = DIR.CONFIGDIR .. '/'
+end
 
 local itags = {[37]='1920x1080',[96]='1920x1080',[22]='1280x720',[95]='1280x720',[94]='854x480',[35]='854x480',
 		[18]='640x360',[93]='640x360',[34]='640x360',[5]='400x240',[6]='450x270',[36]='320x240',
@@ -153,7 +157,7 @@ function get_MaxRes_YTKey()
 	local key = nil
 	local Nconfig = configfile.new()
 	if Nconfig then
-		Nconfig:loadConfig("/var/tuxbox/config/neutrino.conf")
+		Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
 		maxRes = Nconfig:getInt32("livestreamResolution", 1280)
 		key = Nconfig:getString("youtube_dev_id", '#')
 	end

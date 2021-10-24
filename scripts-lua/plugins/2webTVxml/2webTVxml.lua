@@ -21,7 +21,7 @@
 ]]
 
 local glob = {}
-local version="2webTVxml Version 0.14"
+local version="2webTVxml Version 0.15"
 local n = neutrino()
 local conf = {}
 local on="ein"
@@ -29,6 +29,10 @@ local off="aus"
 local mact = {}
 local loc = nil
 local reloadChannels = false
+local CONF_PATH = "/var/tuxbox/config/"
+if DIR and DIR.CONFIGDIR then
+	CONF_PATH = DIR.CONFIGDIR .. '/'
+end
 locale = {}
 locale["deutsch"] = {
 	file = "Datei auswählen",
@@ -72,13 +76,13 @@ locale["english"] = {
 }
 
 function get_confFile()
-	return "/var/tuxbox/config/2webTVxml.conf"
+	return CONF_PATH .. "2webTVxml.conf"
 end
 function get_conf_onlineFile()
-	return "/var/tuxbox/config/2webTVxmlUrls.conf"
+	return CONF_PATH .. "2webTVxmlUrls.conf"
 end
 function get_conf_epgFile()
-	return "/var/tuxbox/config/2webTVxmlEPG.conf"
+	return CONF_PATH .. "2webTVxmlEPG.conf"
 end
 
 function hideMenu(menu)
@@ -148,7 +152,7 @@ function loadConfig()
 	conf.changed = false
 
 	local Nconfig	= configfile.new()
-	Nconfig:loadConfig("/var/tuxbox/config/neutrino.conf")
+	Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
 	conf.lang = Nconfig:getString("language", "english")
 	if locale[conf.lang] == nil then
 		conf.lang = "english"
