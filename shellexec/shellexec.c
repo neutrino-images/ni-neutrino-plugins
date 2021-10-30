@@ -445,42 +445,42 @@ int Check_Config(void)
 				{
 					if((menu.headertxt=realloc(menu.headertxt,(menu.max_header+LIST_STEP)*sizeof(char*)))==NULL)
 					{
-						printf(NOMEM);
+						printf("%s", NOMEM);
 						Clear_List(&menu,0);
 						return rv;
 					}
 					memset(&menu.headertxt[menu.max_header],0,LIST_STEP*sizeof(char*));
 					if((menu.icon=realloc(menu.icon,(menu.max_header+LIST_STEP)*sizeof(char*)))==NULL)
 					{
-						printf(NOMEM);
+						printf("%s", NOMEM);
 						Clear_List(&menu,0);
 						return rv;
 					}
 					memset(&menu.icon[menu.max_header],0,LIST_STEP*sizeof(char*));
 					if((menu.headerlevels=realloc(menu.headerlevels,(menu.max_header+LIST_STEP)*sizeof(int)))==NULL)
 					{
-						printf(NOMEM);
+						printf("%s", NOMEM);
 						Clear_List(&menu,0);
 						return rv;
 					}
 					memset(&menu.headerlevels[menu.max_header],0,LIST_STEP*sizeof(int));
 					if((menu.headerwait=realloc(menu.headerwait,(menu.max_header+LIST_STEP)*sizeof(int)))==NULL)
 					{
-						printf(NOMEM);
+						printf("%s", NOMEM);
 						Clear_List(&menu,0);
 						return rv;
 					}
 					memset(&menu.headerwait[menu.max_header],0,LIST_STEP*sizeof(int));
 					if((menu.headermed=realloc(menu.headermed,(menu.max_header+LIST_STEP)*sizeof(int)))==NULL)
 					{
-						printf(NOMEM);
+						printf("%s", NOMEM);
 						Clear_List(&menu,0);
 						return rv;
 					}
 					memset(&menu.headermed[menu.max_header],0,LIST_STEP*sizeof(int));
 					if((menu.lastheaderentrys=realloc(menu.lastheaderentrys,(menu.max_header+LIST_STEP)*sizeof(int)))==NULL)
 					{
-						printf(NOMEM);
+						printf("%s", NOMEM);
 						Clear_List(&menu,0);
 						return rv;
 					}
@@ -643,7 +643,7 @@ int Clear_List(MENU *m, int mode)
 
 			if((m->list=calloc(LIST_STEP,sizeof(PLISTENTRY)))==NULL)
 			{
-				printf(NOMEM);
+				printf("%s", NOMEM);
 				return -1;
 			}
 
@@ -651,7 +651,7 @@ int Clear_List(MENU *m, int mode)
 			{
 				if((entr=calloc(1,sizeof(LISTENTRY)))==NULL)
 					{
-					printf(NOMEM);
+					printf("%s", NOMEM);
 					Clear_List(m,0);
 					return -1;
 					}
@@ -994,7 +994,7 @@ int AddListEntry(MENU *m, char *line, int pos)
 	{
 		if((m->list=realloc(m->list,(m->max_entrys+LIST_STEP)*sizeof(PLISTENTRY)))==NULL)
 		{
-			printf(NOMEM);
+			printf("%s", NOMEM);
 			Clear_List(m,0);
 			free(wstr);
 			return 0;
@@ -1003,7 +1003,7 @@ int AddListEntry(MENU *m, char *line, int pos)
 		{
 			if((entr=calloc(1,sizeof(LISTENTRY)))==NULL)
 				{
-				printf(NOMEM);
+				printf("%s", NOMEM);
 				Clear_List(m,0);
 				free(wstr);
 				return -1;
@@ -1678,13 +1678,13 @@ int main (int argc, char **argv)
 	ixw=scale2res(600), iyw=scale2res(680), xoffs=scale2res(13);
 	if((line_buffer=calloc(BUFSIZE+1, sizeof(char)))==NULL)
 	{
-		printf(NOMEM);
+		printf("%s", NOMEM);
 		return -1;
 	}
 
 	if((trstr=calloc(BUFSIZE+1, sizeof(char)))==NULL)
 	{
-		printf(NOMEM);
+		printf("%s", NOMEM);
 		return -1;
 	}
 
