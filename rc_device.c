@@ -29,7 +29,7 @@ void get_rc_device(char *rc_device)
 						sscanf(line, "%*s %*s %s", event);
 						sprintf(rc_device, "%s%s", "/dev/input/", event);
 						break;
-					}							
+					}
 				}
 				break;
 			}

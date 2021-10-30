@@ -40,17 +40,17 @@
 int lcd_fd=-1;
 lcd_packed_buffer s;
 #if 0 // only dbox2 begin
-int bmp2lcd (char *bildfile) 
+int bmp2lcd (char *bildfile)
 {
 	char bild2lcd [50];
 	char filename[50];
 	char bmpfile[50];
-	
+
 	int intbild;
-	
+
 	if (strstr(bildfile,"tuxwettr.bmp")==NULL)
 	{
-		if (bildfile[0] == 45) 
+		if (bildfile[0] == 45)
 		{
 			sprintf (filename,"na.bmp");
 		}
@@ -66,7 +66,7 @@ int bmp2lcd (char *bildfile)
 	}
 
 	sprintf(bmpfile,"/share/tuxbox/tuxwetter/%s",filename);
-	
+
 	FILE *fbmp;
 
 	struct bmp_header bh;
@@ -125,7 +125,7 @@ int bmp2lcd (char *bildfile)
 		return(6);
 	}
 	fclose(fbmp);
-	
+
 	if ((bh.width != 120) || (bh.height != 64))
 		printf("WARNING: Not 120x64 pixels - result unpredictable.\n");
 	if (bh.compression != 0)
@@ -138,13 +138,13 @@ int bmp2lcd (char *bildfile)
 
 	if(lcd_fd < 0)
 	{
-        	if ((lcd_fd = open("/dev/dbox/lcd0",O_RDWR)) < 0) 
+        	if ((lcd_fd = open("/dev/dbox/lcd0",O_RDWR)) < 0)
         	{
                 	perror("open(/dev/dbox/lcd0)");
                 	return(1);
         	}
         	mode = LCD_MODE_BIN;
-        	if (ioctl(lcd_fd,LCD_IOCTL_ASC_MODE,&mode) < 0) 
+        	if (ioctl(lcd_fd,LCD_IOCTL_ASC_MODE,&mode) < 0)
         	{
                 	perror("init(LCD_MODE_BIN)");
                 	close(lcd_fd);
@@ -159,7 +159,7 @@ void clear_lcd(void)
 {
 	if(lcd_fd)
 	{
-		close(lcd_fd);	
+		close(lcd_fd);
 		lcd_fd=-1;
 	}
 }

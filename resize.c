@@ -29,7 +29,7 @@ unsigned char * simple_resize(unsigned char * orgin,int ox,int oy,int dx,int dy)
 //   dbout("simple_resize{\n");
 	unsigned char *cr,*p,*l;
 	int i,j,k,ip;
-	cr=(unsigned char*) malloc(dx*dy*3); 
+	cr=(unsigned char*) malloc(dx*dy*3);
 	if(cr==NULL)
 	{
 		printf("Error: malloc\n");

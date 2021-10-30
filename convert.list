@@ -1,7 +1,7 @@
 null|0
 AM CLOUDS / PM SUN|Vormittags wolkig später sonnig
 AM FOG / PM CLOUDS|Vormittag Nebel / Nachmittag wolkig
-AM FOG / PM SUN|Vormittag Nebel / Nachmittag sonnig 
+AM FOG / PM SUN|Vormittag Nebel / Nachmittag sonnig
 AM LIGHT RAIN|vormittags leichter Regen
 AM LIGHT RAIN / WINDSHOWERS / WIND LATE|vorm. leichter Regen, windig
 AM LIGHT SNOW|vormittags leichter Schneefall
@@ -70,7 +70,7 @@ LIGHT RAIN|leichter Regen
 LIGHT RAIN AND WINDY|leichter Regen, stürmisch
 LIGHT RAIN EARLY|anfangs leichter Regen
 LIGHT RAIN LATE|später leichter Regen
-LIGHT RAIN SHOWER|leichte Schauer 
+LIGHT RAIN SHOWER|leichte Schauer
 LIGHT RAIN SHOWER AND WINDY|leichte Regenschauer, stürmisch
 LIGHT RAIN / WIND|leichter Regen, windig
 LIGHT RAIN / WIND LATE|im Verlauf leichter Regen, windig
@@ -107,7 +107,7 @@ MOSTLY CLOUDY / WIND|überwiegend bewölkt, stürmisch
 MOSTLY CLOUDY|überwiegend bewölkt
 MOSTLY SUNNY|überwiegend sonnig
 MOSTLY|überwiegend
-N/A| 
+N/A|
 NEW MOON|Neumond
 NEW|Neumond
 OVERCAST|bedeckt

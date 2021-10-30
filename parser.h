@@ -105,4 +105,3 @@ char *convertUnixTime(const char *timestr, char *buf, int metric);
 int  convertDegToCardinal(const char *degstr, char *out);
 
 #endif // __wxparser__
-

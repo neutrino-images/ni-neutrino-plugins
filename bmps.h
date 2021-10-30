@@ -26,7 +26,7 @@
 #ifndef __BMP2LCD__
 #define __BMP2LCD__
 
-int bmp2lcd (char *); 
+int bmp2lcd (char *);
 void clear_lcd(void);
 #endif // __BMP2LCD__
 
@@ -73,7 +73,7 @@ struct bmp_header {
 	long int image_size;	// 120*64*bitcount/8
 	long int x_ppm;		// X pixels/meter
 	long int y_ppm;		// Y pixels/meter
-	long int colors_used;	// 
+	long int colors_used;	//
 	long int colors_vip;	// important colors (all=0)
 }__attribute((packed));
 
@@ -84,6 +84,3 @@ struct bmp_color {
 int bmp2raw(struct bmp_header bh, unsigned char *bmp, lcd_raw_buffer raw);
 
 #endif // __bmp__
-
-
-

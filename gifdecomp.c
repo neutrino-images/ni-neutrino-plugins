@@ -84,8 +84,8 @@ int i, err = 0;
     }
     xremove(TempGifName);
     /* Open input file: */
-    if (InFileName != NULL) 
-    {	
+    if (InFileName != NULL)
+    {
 		GifFileIn = DGifOpenFileName(InFileName, &err);
 		if (GifFileIn == NULL) {
 			fprintf(stderr, "Could not read file: %s.\n", InFileName);
@@ -105,7 +105,7 @@ int i, err = 0;
     {
 		if ((GifFileOut = EGifOpenFileName(TempGifName, TRUE, &err)) == NULL)
 		QuitGifError(GifFileIn, GifFileOut, err);
-    
+
     		if (EGifPutScreenDesc(GifFileOut,
 		GifFileIn->SWidth, GifFileIn->SHeight,
 		GifFileIn->SColorResolution, GifFileIn->SBackGroundColor,
@@ -163,11 +163,11 @@ int i, err = 0;
 		QuitGifError(GifFileIn, GifFileOut, err);
   	  if (EGifCloseFile(GifFileOut, &err) == GIF_ERROR)
 		QuitGifError(GifFileIn, GifFileOut, err);
-               
+
 	if ((GifFileIn = DGifOpenFileName(TempGifName, &err)) == NULL)
 	QuitGifError(GifFileIn, GifFileOut, err);
 
-    
+
    		 /* Scan the content of GIF file and dump image(s) to seperate file(s): */
     		do {
 		sprintf(CrntFileName, "%s%03d.gif", OutFileName, FileNum++);
@@ -245,7 +245,7 @@ int i, err = 0;
 
     	if (DGifCloseFile(GifFileIn, &err) == GIF_ERROR)
 		QuitGifError(GifFileIn, GifFileOut, err);
-   	FileNum=FileNum-1; 
+   	FileNum=FileNum-1;
   	}
 return FileNum;
 }
