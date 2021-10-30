@@ -134,7 +134,7 @@ int fh_gif_load(const char *name,unsigned char *buffer,int x,int y)
 				break;
 			default:
 				break;
-		}  
+		}
 	}
 	while( rt!= TERMINATE_RECORD_TYPE );
 	DGifCloseFile(gft, &err);
@@ -173,7 +173,7 @@ int fh_gif_getsize(const char *name,int *x,int *y, int wanted_width, int wanted_
 				break;
 			default:
 				break;
-		}  
+		}
 	}
 	while( rt!= TERMINATE_RECORD_TYPE );
 	DGifCloseFile(gft, &err);

@@ -232,7 +232,7 @@ void RenderLine( int xa, int ya, int xb, int yb, unsigned char col )
 
 	dx = abs (xa - xb);
 	dy = abs (ya - yb);
-	
+
 	if ( dx > dy )
 	{
 		int	p = 2 * dy - dx;

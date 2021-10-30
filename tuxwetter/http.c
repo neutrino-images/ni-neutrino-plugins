@@ -36,12 +36,12 @@ int show_progress( void *clientp, double dltotal, double dlnow, double ultotal, 
 {
 #if 0
 	char prstr[50];
-	
+
 	if(dltotal<spdsize[speed])
 	{
 		return 0;
 	}
-	
+
 	LCD_draw_rectangle (7,7,111,17, LCD_PIXEL_ON,LCD_PIXEL_OFF);
 	LCD_draw_fill_rect (7,7,(int)((dlnow/dltotal)*111.0),17,LCD_PIXEL_ON);
 	sprintf(prstr,"%d%%",(int)(dlnow*100.0/dltotal));

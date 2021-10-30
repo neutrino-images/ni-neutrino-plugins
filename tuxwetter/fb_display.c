@@ -89,10 +89,10 @@ void blit2FB(void *fbbuff,
 	int cpp, int setpal);
 
 static inline unsigned short make16color(unsigned long r, unsigned long g,
-											 unsigned long b, unsigned long rl, 
-											 unsigned long ro, unsigned long gl, 
-											 unsigned long go, unsigned long bl, 
-											 unsigned long bo, unsigned long tl, 
+											 unsigned long b, unsigned long rl,
+											 unsigned long ro, unsigned long gl,
+											 unsigned long go, unsigned long bl,
+											 unsigned long bo, unsigned long tl,
 											 unsigned long to);
 
 int fb_set_gmode(int gmode)
@@ -147,7 +147,7 @@ void fb_display(unsigned char *rgbbuff, int x_size, int y_size, int x_pan, int y
     /* correct offset */
     if(x_offs + x_size > (int)var.xres) x_offs = 0;
     if(y_offs + y_size > (int)var.yres) y_offs = 0;
-    
+
     /* blit buffer 2 fb */
     fbbuff = convertRGB2FB(rgbbuff, x_size * y_size, var.bits_per_pixel, &bp, alpha);
     if(fbbuff==NULL)
@@ -174,13 +174,13 @@ void getCurrentRes(int *x, int *y)
 
 void make332map(struct fb_cmap *map)
 {
-        unsigned short rd[] = {0xFF<<8, 0x00<<8, 0xFF<<8, 0x00<<8, 0xFF<<8, 0x00<<8, 0xFF<<8, 0x00<<8, 
+        unsigned short rd[] = {0xFF<<8, 0x00<<8, 0xFF<<8, 0x00<<8, 0xFF<<8, 0x00<<8, 0xFF<<8, 0x00<<8,
 					   0xFF<<8, 0x00<<8, 0x00<<8, 0x00<<8, 0xFF<<8, 0x00<<8, 0xFF<<8, 0xFF<<8};
-        unsigned short gn[] = {0xFF<<8, 0x80<<8, 0xFF<<8, 0x00<<8, 0xFF<<8, 0x00<<8, 0xC0<<8, 0x00<<8, 
+        unsigned short gn[] = {0xFF<<8, 0x80<<8, 0xFF<<8, 0x00<<8, 0xFF<<8, 0x00<<8, 0xC0<<8, 0x00<<8,
 					   0xFF<<8, 0x80<<8, 0x00<<8, 0x80<<8, 0xC0<<8, 0xFF<<8, 0xFF<<8, 0x00<<8};
-        unsigned short bl[] = {0xFF<<8, 0xFF<<8, 0xFF<<8, 0x80<<8, 0xFF<<8, 0x80<<8, 0x00<<8, 0x80<<8, 
+        unsigned short bl[] = {0xFF<<8, 0xFF<<8, 0xFF<<8, 0x80<<8, 0xFF<<8, 0x80<<8, 0x00<<8, 0x80<<8,
 					   0xFF<<8, 0xFF<<8, 0x00<<8, 0xFF<<8, 0x00<<8, 0x00<<8, 0x00<<8, 0x00<<8};
-        unsigned short tr[] = {0x0000,  0x0A00,  0x0000,  0x0A00,  0x0000,  0x0A00,  0x0000,  0x0000, 
+        unsigned short tr[] = {0x0000,  0x0A00,  0x0000,  0x0A00,  0x0000,  0x0A00,  0x0000,  0x0000,
 					   0x0000,  0x0A00,  0xFFFF,  0x0000,  0x0000,  0x0000,  0x0000,  0x0000 };
 
 	int rs, gs, bs, i;
@@ -194,7 +194,7 @@ void make332map(struct fb_cmap *map)
 	rs = 256 / (r - 1);
 	gs = 256 / (g - 1);
 	bs = 256 / (b - 1);
-	
+
 	for (i = 0; i < 256; i++) {
 		map->red[i]   = (rs * ((i / (g * b)) % r)) * 255;
 		map->green[i] = (gs * ((i / b) % g)) * 255;
@@ -329,9 +329,9 @@ int x,y;
    		x=cfx;
    		y=cfy;
    	}
-   	
+
     unsigned int swidth = fix.line_length;
-	
+
 	switch(cpp){
 		case 2:
 			{
@@ -400,9 +400,9 @@ static inline unsigned short make15color(unsigned char r, unsigned char g, unsig
 }
 
 static inline unsigned short make16color(unsigned long r, unsigned long g, unsigned long b,
-				    unsigned long rl, unsigned long ro, 
-				    unsigned long gl, unsigned long go, 
-				    unsigned long bl, unsigned long bo, 
+				    unsigned long rl, unsigned long ro,
+				    unsigned long gl, unsigned long go,
+				    unsigned long bl, unsigned long bo,
 				    unsigned long tl, unsigned long to)
 {
     return (
@@ -522,7 +522,7 @@ int showBusy(int _sx, int _sy, int width, char r, char g, char b)
 		printf("fb_display <FBIOGET_FSCREENINFO failed>\n");
 		return -1;
 	}
-	
+
 	struct fb_var_screeninfo var;
 	if(ioctl(fb, FBIOGET_VSCREENINFO, &var) == -1)
 	{

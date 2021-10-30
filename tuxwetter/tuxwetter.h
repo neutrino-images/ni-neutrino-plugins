@@ -180,4 +180,3 @@ int PaintWideString(int dy, const char *string, int sx, int sy, int maxwidth, in
 void safe_strncpy(char *dest, const char *src, size_t num);
 
 #endif
-

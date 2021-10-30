@@ -36,7 +36,7 @@ void get_rc_device(char *rc_device)
 						//printf("using: event%d\n", event);
 						sprintf(rc_device, "%s%d", "/dev/input/event", event);
 						break;
-					}							
+					}
 				}
 				break;
 			}

@@ -121,7 +121,7 @@ int fh_jpeg_load(const char *filename,unsigned char *buffer,int x,int y)
 			jpeg_read_scanlines(ciptr, &lb, 1);
 			memcpy(bp,lb,px*c);
 			bp+=px*c;
-		}                 
+		}
 
 	}
 	jpeg_finish_decompress(ciptr);
@@ -140,7 +140,7 @@ int fh_jpeg_getsize(const char *filename,int *x,int *y, int wanted_width, int wa
 
 	int px,py/*,c*/;
 	FILE *fh;
-	
+
 	ciptr=&cinfo;
 	if(!(fh=fopen(filename,"rb"))) return(FH_ERROR_FILE);
 
@@ -182,4 +182,3 @@ int fh_jpeg_getsize(const char *filename,int *x,int *y, int wanted_width, int wa
 //	 dbout("fh_jpeg_getsize }\n");
 	return(FH_ERROR_OK);
 }
-

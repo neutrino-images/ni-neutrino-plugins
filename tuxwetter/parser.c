@@ -1,4 +1,4 @@
-/* 
+/*
 *********************************************************************************************
 ********************************** New Tuxwetter XML-File_parser ****************************
 *********************************************************************************************
@@ -20,7 +20,7 @@ Interne Variablen Bitte nicht direkt aufrufen!!!
 #	define MAXITEM	1000
 #	define MAXMEM	300
 char 	data		[MAXITEM][MAXMEM];
-char 	conveng		[500][40]; 
+char 	conveng		[500][40];
 char	convger		[500][40];
 int	prev_count =	0;
 int days_count =	0;
@@ -122,7 +122,7 @@ FILE *fh;
 		fclose(fh);
 	}
 	if(found && strlen(prstrans))
-	{	
+	{
 		if(!strcmp(prstrans,"---"))
 		{
 			*prstrans=0;
@@ -156,12 +156,12 @@ int prs_get_day (int i, char *out, int metric)
 		{
 			strncpy(day,pt1,pt2-pt1);
 			day[pt2-pt1]=0;
-		
+
 			for(z=0;z<=ptc;z++)
 			{
 				if (strcasecmp(day,conveng[z])==0) strcpy (day,convger[z]);
 			}
-			
+
 			pt2++;
 			if((pt1=strstr(pt2,"DT=\""))!=NULL)
 			{
@@ -172,7 +172,7 @@ int prs_get_day (int i, char *out, int metric)
 					if(sscanf(pt2,"%d",&intdaynum)==1)
 					{
 						monthtemp=t_actmonth;
-						if (intdaynum < t_actday) 
+						if (intdaynum < t_actday)
 						{
 							if((++monthtemp)>12)
 							{
@@ -249,7 +249,7 @@ int prs_get_dbl (int i, int what, int nacht, char *out)
 {
 int ret=1;
 double tv;
-	
+
 	*out=0;
 	if(sscanf(data[(what & ~TRANSLATION)+(i*PRE_STEP)+(nacht*NIGHT_STEP)], "%lf", &tv)==1)
 	{
@@ -382,7 +382,7 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	extern char key[];
 
 	memset(data,0,MAXITEM*MAXMEM /* 1000*50 */);
-	memset(conveng,0,500*40); 
+	memset(conveng,0,500*40);
 	memset(convger,0,500*40);
 	prev_count=0;
 	days_count=0;
@@ -545,7 +545,7 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	exit_ind=1;
 
 //*** Übersetzungs File ***
-	
+
 	if ((wxfile = fopen(trans,"r"))==NULL)
 	{
 		printf("%s <File %s not found.>\n", __plugin__, trans);
@@ -570,14 +570,14 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 					flag=2;
 				}
 				if (gettemp == 13) gettemp = 0;
-				if (flag==0) 
+				if (flag==0)
 				{
 					if ((gettemp >=97) && (gettemp <=122)) gettemp = gettemp -32;
 					conveng[ptc][cc]=gettemp;
 				}
 				if (flag==1) convger[ptc][cc]=gettemp;
 				cc++;
-				if (flag == 2) 
+				if (flag == 2)
 				{
 					flag--;
 					cc=0;
@@ -590,5 +590,3 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 
 return 0;
 }
-
-

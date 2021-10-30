@@ -541,7 +541,7 @@ struct tm *tltime;
 			if(sscanf(aptr,"%d",&tval)==1)
 			{
 				while((aptr<(cptr+strlen(cptr))) && (*aptr=='-' || ((*aptr>='0') && (*aptr<='9'))))
-				{ 
+				{
 					++aptr;
 				}
 				if(!rndval)
@@ -567,7 +567,7 @@ struct tm *tltime;
 		else
 		{
 			tltime=gmtime(&subtime);
-		}	
+		}
 
 		fpos=0;
 		ferr=0;
@@ -618,27 +618,27 @@ struct tm *tltime;
 							tval=tltime->tm_year-100;
 						}
 						break;
-									
+
 					case 'M':
 						tval=tltime->tm_mon+1;
 						break;
-								
+
 					case 'D':
 						tval=tltime->tm_mday;
 						break;
-										
+
 					case 'h':
 						tval=tltime->tm_hour;
 						break;
-										
+
 					case 'm':
 						tval=tltime->tm_min;
 						break;
-										
+
 					case 's':
 						tval=tltime->tm_sec;
 						break;
-										
+
 					default:
 						ferr=1;
 						break;
@@ -794,9 +794,9 @@ PLISTENTRY entr;
 	switch(mode)
 	{
 		case 0: return 0;
-		
+
 		case 1:
-	
+
 			if((m->list=calloc(LIST_STEP,sizeof(PLISTENTRY)))==NULL)
 			{
 				printf(NOMEM);
@@ -815,7 +815,7 @@ PLISTENTRY entr;
 			}
 			m->max_entrys=LIST_STEP;
 			break;
-			
+
 		case -1:
 			if(m->num_headers && m->headertxt)
 			{
@@ -998,7 +998,7 @@ char *lcptr = NULL, *lcstr= NULL, *lcdptr = NULL;
 				rv=-98;
 				mloop=0;
 				break;
-				
+
 			default:	continue;
 		}
 
@@ -1028,7 +1028,7 @@ char *ptr1,*ptr2,*ptr3;
 	{
 		return 1;
 	}
-	
+
 	if(m->num_entrys>=m->max_entrys)
 	{
 		if((m->list=realloc(m->list,(m->max_entrys+LIST_STEP)*sizeof(PLISTENTRY)))==NULL)
@@ -1049,7 +1049,7 @@ char *ptr1,*ptr2,*ptr3;
 		}
 		m->max_entrys+=LIST_STEP;
 	}
-	
+
 	entr=m->list[m->num_entrys];
 
 	if(m == &funcs)
@@ -1117,7 +1117,7 @@ char *ptr1,*ptr2,*ptr3;
 										}
 										*(ptr2)=0;
 									}
-								}	
+								}
 							}
 						}
 					}
@@ -1176,7 +1176,7 @@ FILE *fh;
 		{
 			return rv;
 		}
-		
+
 		--pos;
 		--mlevel;
 		loop=1;
@@ -1237,11 +1237,11 @@ void ShowInfo(MENU *m)
 	dy=(m->num_entrys < LIST_STEP)?scale2res(30):(mh/(LIST_STEP+1));
 	toffs=dy/2;
 	my=moffs+dy+toffs;
-	
+
 	Center_Screen(ixw, iyw, &isx, &isy);
 
 	tind=ix;
-	
+
 	//frame layout
 	RenderBox(isx+OFFSET_SMALL, isy+OFFSET_SMALL, ixw, iyw, radius, CSP0);
 	RenderBox(isx, isy, ixw, iyw, radius, CMC);
@@ -1351,7 +1351,7 @@ int res;
 		city_code[0]=0;
 		return 1;
 	}
-	
+
 	return 0;
 }
 
@@ -1897,7 +1897,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				if(!strcmp(vstr, "0"))
 				{
 					sprintf(outstr,"%s",prs_translate("Windstill",CONVERT_LIST));
-				}	
+				}
 				else
 				{
 					prs_get_val(0, ACT_WINDDIR, 0, v2str);
@@ -2142,7 +2142,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				if(!strcmp(vstr, "0"))
 				{
 					sprintf(outstr,"%s",prs_translate("Windstill",CONVERT_LIST));
-				}	
+				}
 				else
 				{
 					prs_get_val(ix-1, PRE_WINDDIR, 0, v2str);
@@ -2209,7 +2209,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 void close_jpg_gif_png(void)
 {
 #if 0
-	// clear Display	
+	// clear Display
 	fb_set_gmode(0);
 //	memcpy(&otr,&rtr,256);
 	ioctl(fb, FBIOPUTCMAP, oldcmap);
@@ -2245,7 +2245,7 @@ int rv;
 			return rv;
 		}
 	}
-	
+
 	return KEY_LEFT;
 }
 
@@ -2278,7 +2278,7 @@ unsigned char *buffer=NULL;
 			blit();
 		}
 		free(buffer);
-		
+
 		if(!rv && wait)
 		{
 			rcj=wait_image(repeat, 1);
@@ -2301,8 +2301,8 @@ unsigned char *buffer=NULL;
 			}
 		}
 	}
-	
-	return (rv)?-1:0;	
+
+	return (rv)?-1:0;
 }
 
 int show_png(char *name, int xstart, int ystart, int xsize, int ysize, int wait, int repeat, int single, int center)
@@ -2334,7 +2334,7 @@ unsigned char *buffer=NULL;
 			gmodeon=1;
 		}
 		free(buffer);
-		
+
 		if(!rv && wait)
 		{
 			rcn=wait_image(repeat, 1);
@@ -2357,8 +2357,8 @@ unsigned char *buffer=NULL;
 			}
 		}
 	}
-	
-	return (rv)?-1:0;	
+
+	return (rv)?-1:0;
 }
 
 static int gifs=0;
@@ -2379,7 +2379,7 @@ unsigned char *buffer=NULL;
 			count=gifs;
 		}
 		else
-		{		
+		{
 			xremove("/tmp/tempgif.gif");
 			gifs=count=gifdecomp(GIF_FILE, GIF_MFILE);
 		}
@@ -2449,8 +2449,8 @@ unsigned char *buffer=NULL;
 			}
 		}
 	}
-	
-	return (rv)?-1:0;	
+
+	return (rv)?-1:0;
 }
 
 int pic_on_data(char *url __attribute__((unused)), int xstart, int ystart, int xsize, int ysize, int wait __attribute__((unused)), int single, int center, int rahmen)
@@ -2598,10 +2598,10 @@ int pyw=ey-sy-((preset)?scale2res(60):scale2res(20));		//box height old 510
 		if(cs>FSIZE_MED)
 		{
 			cs=FSIZE_MED;
-		}		
+		}
 
 		dy=1.2*(double)cs;
-		
+
 		while(run)
 		{
 			//frame layout
@@ -2617,7 +2617,7 @@ int pyw=ey-sy-((preset)?scale2res(60):scale2res(20));		//box height old 510
 					blit();
 				}
 			}
-	
+
 			if(!rv)
 			{
 				rcp=GetRCCode(-1);
@@ -2656,7 +2656,7 @@ int pyw=ey-sy-((preset)?scale2res(60):scale2res(20));		//box height old 510
 					case KEY_PAGEUP:
 					case KEY_LEFT:
 						if(line)
-						{				
+						{
 							if((line-=5)<0)
 							{
 								line=0;
@@ -2673,7 +2673,7 @@ int pyw=ey-sy-((preset)?scale2res(60):scale2res(20));		//box height old 510
 			rv=0;
 		}
 	}
-	return (rv)?-1:0;	
+	return (rv)?-1:0;
 }
 
 char *translate_url(char *cmd, int ftype, int absolute)
@@ -2730,11 +2730,11 @@ long flength = 0;
 								{
 									*pt4=*pt2;
 								}
-								++pt4;		
+								++pt4;
 								++pt2;
 							}
 							*pt4=0;
-					
+
 							pt4=estr;
 							while(*pt3)
 							{
@@ -2751,8 +2751,8 @@ long flength = 0;
 								else
 								{
 									*pt4=*pt3;
-								}	
-								++pt4;		
+								}
+								++pt4;
 								++pt3;
 							}
 							*pt4=0;
@@ -2762,7 +2762,7 @@ long flength = 0;
 								{
 									do
 									{
-										pt4=pt3;	
+										pt4=pt3;
 										pt3++;
 										pt3=strstr(pt3,sstr);
 									}
@@ -2791,11 +2791,11 @@ long flength = 0;
 										if((fh2=fopen(PHP_FILE,"w"))!=NULL)
 										{
 										int dontsave=0, newline=1;
-										
+
 											flength=0;
 											fprintf(fh2,"<br>");
-												
-											while(*pt4)	
+
+											while(*pt4)
 											{
 												if(*pt4=='<')
 												{
@@ -2876,14 +2876,14 @@ long flength = 0;
 			pt1++;
 		}
 	}
-			
+
 	return rptr;
 }
 
 int Menu_Up(MENU *m)
 {
 int llev=m->headerlevels[m->act_header], lmen=m->act_header, lentr=m->lastheaderentrys[m->act_header];
-	
+
 	while((lmen>=0) && (m->headerlevels[lmen]>=llev))
 	{
 		--lmen;
@@ -2895,8 +2895,8 @@ int llev=m->headerlevels[m->act_header], lmen=m->act_header, lentr=m->lastheader
 	m->act_header=lmen;
 	Get_Menu();
 	m->act_entry=lentr;
-	
-	return 1;	
+
+	return 1;
 }
 
 void read_neutrino_osd_conf(int *_ex,int *_sx,int *_ey, int *_sy)
@@ -3245,7 +3245,7 @@ PLISTENTRY pl=&epl;
 	}
 
 	//main loop
-	
+
 	menu.act_entry=0;
 	if(cmdline)
 	{
@@ -3282,15 +3282,15 @@ PLISTENTRY pl=&epl;
 			case -99:
 				show_data(-99);
 				break;
-			
+
 			case -1:
 				mainloop=0;
 				break;
-				
+
 			case 0:
 				mainloop=Menu_Up(&menu);
 				break;
-				
+
 			case -98:
 				if((tfh=fopen(MISS_FILE,"r"))!=NULL)
 				{
@@ -3300,7 +3300,7 @@ PLISTENTRY pl=&epl;
 					pl->entry=strdup(tstr);
 				}
 				else
-				{	
+				{
 					ShowMessage(prs_translate("Keine fehlenden Übersetzungen",CONVERT_LIST),1);
 					break;
 				}
@@ -3317,7 +3317,7 @@ PLISTENTRY pl=&epl;
 						Get_Menu();
 						menu.act_entry=0;
 						break;
-						
+
 					case TYP_EXECUTE:
 						if((rptr=strchr(pl->entry,','))!=NULL)
 						{
@@ -3328,7 +3328,7 @@ PLISTENTRY pl=&epl;
 						close_jpg_gif_png();
 						}
 						break;
-						
+
 					case TYP_PICTURE:
 					case TYP_PICHTML:
 					case TYP_TXTHTML:
@@ -3342,13 +3342,13 @@ PLISTENTRY pl=&epl;
 							if((pl->type==TYP_TXTHTML) || (pl->type==TYP_PICHTML))
 							{
 							char *pt1=pl->entry, *pt2=nstr;
-							
+
 								strcpy(line_buffer,strchr(pt1,',')+1);
 								while(*pt1 && (*pt1 != ','))
 									{
 										*pt2++=*pt1++;
 									}
-								*pt2=0;	
+								*pt2=0;
 								tret=0;
 							}
 							else
@@ -3371,7 +3371,7 @@ PLISTENTRY pl=&epl;
 										break;
 									}
 								}
-								
+
 								if((pl->type==TYP_PICHTML) || (pl->type==TYP_PICTURE))
 								{
 									if(pl->pictype==PTYP_ASK)
@@ -3408,8 +3408,8 @@ PLISTENTRY pl=&epl;
 									}
 								}
 
-							
-							
+
+
 								if((pl->type==TYP_TXTHTML) || (pl->type==TYP_TEXTPAGE) || (pl->type==TYP_TXTPLAIN))
 								{
 									if(gmodeon)
@@ -3456,7 +3456,7 @@ PLISTENTRY pl=&epl;
 									printf("%s <%s Downloading %s>\n", __plugin__, __func__, rptr);
 									ferr=HTTP_downloadFile(rptr, (pl->pictype==PTYP_JPG)?JPG_FILE:(pl->pictype==PTYP_PNG)?PNG_FILE:(pl->pictype==PTYP_GIF)?GIF_FILE:PHP_FILE, 1, intype, ctmo, 2);
 								}
-					
+
 								if(!ferr)
 								{
 									switch(pl->pictype)
@@ -3476,7 +3476,7 @@ PLISTENTRY pl=&epl;
 										case TYP_TEXTPAGE:
 											tret=show_php(PHP_FILE, nstr, 0, 1);
 										break;
-										
+
 										case TYP_TXTHTML:
 											tret=show_php(PHP_FILE, nstr, 0, 0);
 										break;
@@ -3486,7 +3486,7 @@ PLISTENTRY pl=&epl;
 											FILE *fh1,*fh2;
 											int cnt=0;
 											char *pt1;
-											
+
 											tret=-1;
 											if((fh1=fopen(PHP_FILE,"r"))!=NULL)
 											{
@@ -3527,11 +3527,11 @@ PLISTENTRY pl=&epl;
 										}
 										break;
 									}
-									
+
 									if(cindex!=-98)
 									{
 										safe_strncpy(lastpicture, line_buffer, BUFSIZE);
-	
+
 										ix=menu.act_entry;
 										switch(tret)
 										{
@@ -3540,7 +3540,7 @@ PLISTENTRY pl=&epl;
 												ShowMessage(prs_translate("Datei kann nicht angezeigt werden.",CONVERT_LIST),1);
 												dloop=-1;
 												break;
-									
+
 											case KEY_UP:
 											case KEY_VOLUMEDOWN:
 												if(--ix < 0)
@@ -3548,7 +3548,7 @@ PLISTENTRY pl=&epl;
 													ix=menu.num_entrys-1;
 												}
 											break;
-								
+
 											case KEY_DOWN:
 											case KEY_VOLUMEUP:
 												if(++ix>=menu.num_entrys)
@@ -3556,12 +3556,12 @@ PLISTENTRY pl=&epl;
 													ix=0;
 												}
 											break;
-								
+
 											case KEY_LEFT:
 												*lastpicture=0;
 											case KEY_RIGHT:
 											break;
-															
+
 											default:
 												dloop=0;
 											break;
@@ -3587,9 +3587,9 @@ PLISTENTRY pl=&epl;
 									ferr = 0;
 									dloop=-1;
 								}
-							
-							
-							
+
+
+
 							}
 							else
 							{
@@ -3655,16 +3655,16 @@ PLISTENTRY pl=&epl;
 									case -99:
 										show_data(-99);
 										break;
-				
+
 									case -1:
 										mainloop=0;
 										wloop=0;
 										break;
-										
+
 									case 0:
 										wloop=0;
 										break;
-										
+
 									case 1:
 										dloop=1;
 										while(dloop>0)
@@ -3689,7 +3689,7 @@ PLISTENTRY pl=&epl;
 												case KEY_UP:
 												case KEY_VOLUMEDOWN:
 													if(--ix < 0)
-													{				
+													{
 														ix=funcs.max_entrys-1;
 													}
 													break;
@@ -3705,7 +3705,7 @@ PLISTENTRY pl=&epl;
 												case KEY_OK:
 												case KEY_EXIT:
 													dloop=0;
-													break;	
+													break;
 											}
 											funcs.act_entry=ix;
 										}
@@ -3713,7 +3713,7 @@ PLISTENTRY pl=&epl;
 							}
 						}
 						break;
-				}	
+				}
 				break;
 		}
 		clear_screen();
@@ -3722,7 +3722,7 @@ PLISTENTRY pl=&epl;
 			free(epl.entry);
 			epl.entry=NULL;
 		}
-		
+
 		if(cmdline)
 		{
 			mainloop=0;
@@ -3734,7 +3734,7 @@ PLISTENTRY pl=&epl;
 	// clear Display
 	free(proxyadress);
 	free(proxyuserpwd);
-	
+
 	Clear_List(&menu,-1);
 	Clear_List(&funcs,-1);
 
@@ -3748,9 +3748,9 @@ PLISTENTRY pl=&epl;
 	FT_Done_FreeType(library);
 
 	close_jpg_gif_png();
-	
+
 //	clear_lcd();
-	
+
 	CloseRC();
 
 	for(ix=0; ix<255; ix++)

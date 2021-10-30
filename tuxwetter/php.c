@@ -112,7 +112,7 @@ FILE *fh;
 									case 'q': cc=0x22; break; // "
 									case 'l': cc=0x3C; break; // <
 									case 'g': cc=0x3E; break; // >
-									case '#': 
+									case '#':
 										if(sscanf(tptr+1,"%3d",&deg)==1)
 										{
 											cc=deg;
@@ -214,7 +214,7 @@ FILE *fh;
 int fh_php_load(const char *name, int _sx, int _sy, int dy, int cs, int line, int highlite, int plain, int *cut)
 {
 	int dummy;
-	
+
 	return fh_php_trans(name, _sx, _sy, dy, cs, line, highlite, cut, &dummy, &dummy, plain, 1);
 }
 
@@ -222,6 +222,6 @@ int fh_php_load(const char *name, int _sx, int _sy, int dy, int cs, int line, in
 int fh_php_getsize(const char *name, int plain, int *x, int *y)
 {
 	int dummy;
-	
+
 	return fh_php_trans(name, 0, 0, 0, 0, 0, 0, &dummy, x, y, plain, 0);
 }
