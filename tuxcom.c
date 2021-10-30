@@ -1656,7 +1656,7 @@ int main()
 					{
 						lastnoncur = -1;
 						char szMsg[356];
-						sprintf(szMsg,msg[MSG_COMMAND*NUM_LANG+language]);
+						sprintf("%s", msg[MSG_COMMAND*NUM_LANG+language], szMsg);
 						char* szCommand = (char*)malloc(commandsize);
 					    	szCommand [0]= 0x00;
 						switch (GetInputString(400,commandsize,szCommand,szMsg, NO))
