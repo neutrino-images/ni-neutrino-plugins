@@ -29,7 +29,7 @@
 
 #define TRANSLATION 0x8000
 
-#	define NA		0
+#	define NA			0
 	//offset simpleforecast
 #	define PRE_STEP		39
 #	define NIGHT_STEP	0
@@ -38,50 +38,57 @@
 #	define NIGHT_STEP2	0
 
 	// actual Values
-#	define ACT_CITY		NA
-#	define ACT_OBST		NA
-#	define ACT_LAT		1
-#	define ACT_LON		2
-#	define ACT_UPTIME	4
+#	define ACT_CITY			NA
+#	define ACT_OBST			NA
 #	define ACT_LOCALTIME	NA
-#	define ACT_TEMP		10
-#	define ACT_FTEMP	11
-#	define ACT_ICON		6
-#	define ACT_COND		5 //| TRANSLATION
-#	define ACT_HMID		13
-#	define ACT_WINDSPEED	15
-#	define ACT_WINDGUST	16
-#	define ACT_WINDDIR	17 //| TRANSLATION
-#	define ACT_PRESS	14
-#	define ACT_DEWPOINT	12
+
+#	define ACT_LAT			1
+#	define ACT_LON			2
+#	define ACT_UPTIME		4
+
+#	define ACT_COND			5 //| TRANSLATION
+#	define ACT_ICON			6
 #	define ACT_PRECIPINT	7
 #	define ACT_PRECIPPROP	8
-#	define ACT_CLOUDC	18
-#	define ACT_SUNR		27
-#	define ACT_SUNS		28
-#	define ACT_PRTEND	NA
-#	define ACT_UVIND	19
-#	define ACT_UVTEXT	NA
+#	define ACT_TEMP			10
+#	define ACT_FTEMP		11
+#	define ACT_DEWPOINT		12
+#	define ACT_HMID			13
+#	define ACT_PRESS		14
+#	define ACT_WINDSPEED	15
+#	define ACT_WINDGUST		16
+#	define ACT_WINDDIR		17 //| TRANSLATION
+#	define ACT_CLOUDC		18
+#	define ACT_UVIND		19
 #	define ACT_VISIBILITY	20
-#	define ACT_OZONE	21
-#	define ACT_MOON		29 | TRANSLATION
+#	define ACT_OZONE		21
+
+#	define ACT_SUNR			27
+#	define ACT_SUNS			28
+#	define ACT_MOON			29 //| TRANSLATION
+#	define ACT_PRTEND		NA
+#	define ACT_UVTEXT		NA
 
 	// Preview Values
-#	define PRE_DAY		24
-#	define PRE_TEMPH	35
-#	define PRE_TEMPL	37
-#	define PRE_SNOW		NA | TRANSLATION
-#	define PRE_ICON		26
-#	define PRE_COND		25
-#	define PRE_PRECIPINT	30 | TRANSLATION
+#	define PRE_DAY			24
+#	define PRE_COND			25
+#	define PRE_ICON			26
+#	define PRE_SUNR			27
+#	define PRE_SUNS			28
+#	define PRE_MOON			29 //| TRANSLATION
+#	define PRE_PRECIPINT	30 //| TRANSLATION
 #	define PRE_PRECIPPROP	33
-#	define PRE_SUNR		27
-#	define PRE_SUNS		28
-#	define PRE_BT		NA
-#	define PRE_HMID		44
+#	define PRE_TEMPH		35
+#	define PRE_TEMPL		37
+#	define PRE_SNOW			NA //| TRANSLATION
+
+#	define PRE_BT			NA
+#	define PRE_HMID			44
 #	define PRE_WINDSPEED	46
-#	define PRE_WINDGUST	47
-#	define PRE_WINDDIR	49 //| TRANSLATION
+#	define PRE_WINDGUST		47
+#	define PRE_WINDDIR		49 //| TRANSLATION
+
+#define JSON_FILE	"/tmp/darksky.json"
 
 int  parser		(char *,const char *, int, int, int);
 int  prs_get_prev_count 	(void);
@@ -103,5 +110,6 @@ char *prs_translate(char *trans, const char *tfile);
 int  prs_get_timeWday(int i, int what, char *out);
 char *convertUnixTime(const char *timestr, char *buf, int metric);
 int  convertDegToCardinal(const char *degstr, char *out);
+void moonPhase(double val, char *out);
 
 #endif // __wxparser__

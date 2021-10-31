@@ -65,6 +65,44 @@ int convertDegToCardinal(const char *degstr, char *out)
 	return 0;
 }
 
+void moonPhase(double val, char *out)
+{
+	const char mphase[][14]= {
+		"MOONPHASE_0",	// new
+		"MOONPHASE_1",
+		"MOONPHASE_2",
+		"MOONPHASE_3",
+		"MOONPHASE_4",	// full
+		"MOONPHASE_5",
+		"MOONPHASE_6",
+		"MOONPHASE_7",
+		"MOONPHASE_NULL"
+	};
+	int phase = 0;
+
+	if (val == 1)
+		val = 0; // New Moon
+
+	if (0 < val && val < 0.25)
+		phase = 1;
+	else if (val == 0.25)
+		phase = 2;
+	else if (0.25 < val && val < 0.50)
+		phase = 3;
+	else if (val == 0.50)
+		phase = 4; // Full Moon
+	else if (0.50 < val && val < 0.75)
+		phase = 4;
+	else if (val == 0.75)
+		phase = 5;
+	else if (0.75 < val && val < 1)
+		phase = 7;
+	else
+		phase = 8; // error
+
+	sprintf(out, "%s", prs_translate((char*)mphase[phase], CONVERT_LIST));
+}
+
 void prs_check_missing(char *entry)
 {
 char rstr[512];
@@ -370,14 +408,18 @@ int prs_get_timeWday(int i, int what, char *out)
 
 int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 {
-	int rec=0, flag=0, windspeed=1;
-	int cc=0, exit_ind=-1;
+	int data_day = -1, next = 0, i = 0;
+	int rec = 0, flag = 0;
+	int cc = 0, exit_ind = -1;
+	size_t array_size;
 	char gettemp;
-	FILE *wxfile=NULL;
+	FILE *wxfile = NULL;
+
 	char url[512];
 	char debug[505];
-
-	char tagname[512];
+	char keyname[512];
+	char keyname_next[30];
+	char keyname_tmp[30];
 	int tag=0, tc=0, tcc=0;
 	extern char key[];
 
@@ -391,11 +433,83 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	t_actday=0;
 	t_actmonth=0;
 
+#if 0
+	const char * keys[] = {
+		// standard
+		"latitude",
+		"longitude",
+		"timezone"
+	};
+#endif
+	// currently
+	const char * keys_currently[] = {
+		"time",
+		"summary",
+		"icon",
+		"precipIntensity",
+		"precipProbability",
+		"precipType",
+		"temperature",
+		"apparentTemperature",
+		"dewPoint",
+		"humidity",
+		"pressure",
+		"windSpeed",
+		"windGust",
+		"windBearing",
+		"cloudCover",
+		"uvIndex",
+		"visibility",
+		"ozone"
+	};
+	// daily
+	const char * keys_daily[] = {
+		"time",
+		"summary",
+		"icon",
+		"sunriseTime",
+		"sunsetTime",
+		"moonPhase",
+		"precipIntensity",
+		"precipIntensityMax",
+		"precipIntensityMaxTime",
+		"precipProbability",
+		"precipType",
+		"temperatureHigh",
+		"temperatureHighTime",
+		"temperatureLow",
+		"temperatureLowTime",
+		"apparentTemperatureHigh",
+		"apparentTemperatureHighTime",
+		"apparentTemperatureLow",
+		"apparentTemperatureLowTime",
+		"dewPoint",
+		"humidity",
+		"pressure",
+		"windSpeed",
+		"windGust",
+		"windGustTime",
+		"windBearing",
+		"cloudCover",
+		"uvIndex",
+		"uvIndexTime",
+		"visibility",
+		"ozone",
+		"temperatureMin",
+		"temperatureMinTime",
+		"temperatureMax",
+		"temperatureMaxTime",
+		"apparentTemperatureMin",
+		"apparentTemperatureMinTime",
+		"apparentTemperatureMax",
+		"apparentTemperatureMaxTime"
+	};
+
 	//FIXME KEY! and CITYCODE
 	sprintf (url,"https://api.darksky.net/forecast/%s/%s?lang=%s&units=%s&exclude=minutely,hourly,flags,alerts",key,citycode,(metric)?"de":"en",(metric)?"ca":"us");
 	printf("url:%s\n",url);
 
-	exit_ind=HTTP_downloadFile(url, "/tmp/tuxwettr.tmp", 0, inet, ctmo, 3);
+	exit_ind=HTTP_downloadFile(url, JSON_FILE, 0, inet, ctmo, 3);
 
 	if(exit_ind != 0)
 	{
@@ -406,17 +520,18 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 
 	exit_ind=-1;
 
-	if ((wxfile = fopen("/tmp/tuxwettr.tmp","r"))==NULL)
+	if ((wxfile = fopen(JSON_FILE,"r"))==NULL)
 	{
-		printf("%s <Missing tuxwettr.tmp File>\n", __plugin__);
+		printf("%s <Missing JSON_FILE file>\n", __plugin__);
 		return exit_ind;
 	}
 	else
 	{
-		fgets(debug,50,wxfile);
-		//printf("%s\n",debug);
+		fgets(debug, 50, wxfile);
+		// Test existing file
 		if((debug[2] != 'l')||(debug[3] != 'a')||(debug[4] != 't'))
 		{
+			printf("%s <Wrong format %s file>\n", __plugin__, JSON_FILE);
 			fclose(wxfile);
 			return exit_ind;
 		 }
@@ -440,19 +555,24 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 				}
 				if(gettemp==':')
 				{
-					tagname[tcc]='\0';
-					if(!strcmp(tagname,"currently") || !strcmp(tagname,"daily") || !strcmp(tagname,"data") || !strcmp(tagname,"flags") || !strcmp(tagname,"sources"))
+					keyname[tcc]='\0';
+					if(!strcmp(keyname,"currently") || !strcmp(keyname,"daily") || !strcmp(keyname,"data") || !strcmp(keyname,"offset"))
 					{
 						tcc=0;
-						if(!strcmp(tagname,"flags"))
+
+						if (!strcmp(keyname,"offset"))
 						{
-							tagname[0]='\0';
+							keyname[0]='\0';
 							break;
 						}
 						else
 						{
-							//printf("	skip %s\n",tagname);
-							tagname[0]='\0';
+							if (!strcmp(keyname,"currently") || !strcmp(keyname,"data"))
+								sprintf(keyname_tmp, keyname);
+							else
+								keyname_tmp[0]='\0';
+							//printf("	skip %s\n",keyname);
+							keyname[0]='\0';
 							continue;
 						}
 					}
@@ -460,12 +580,28 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 					continue;
 				}
 
+				if (!strcmp(keyname_tmp,"currently") && gettemp=='{')
+				{
+					// set keyname next
+					strcpy(keyname_next, keys_currently[0]);
+					next = 0;
+				}
+				if (!strcmp(keyname_tmp,"data") && gettemp=='{')
+				{
+					// set keyname next
+					strcpy(keyname_next, keys_daily[0]);
+					next = 0;
+					data_day++;
+				}
+
 				if(tag==1 && rec==0)
 				{
 					if(gettemp=='{' || gettemp=='[')
+					{
 						continue;
+					}
 
-					tagname[tcc]=gettemp;
+					keyname[tcc]=gettemp;
 					//printf("tag_char[%d] [%c]\n",tcc,gettemp);
 					tcc++;
 					continue;
@@ -473,46 +609,85 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 
 				if(rec==1)
 				{
-					//if(tag==1)
-					//	tag==0; // whats this?
+					if(tag == 1)
+						tag = 0;
 
 					if(gettemp=='}' || gettemp==']')
 						continue;
 
 					if(gettemp==',')
 					{
+						int found = 0;
 						data[tc][cc]='\0';
-						//printf("tagname[%d] = %s | data = %s\n",tc,tagname,data[tc]);
-						//fix zero precipIntensityMaxTime
-#if 0
-						if(!strcmp(tagname,"precipIntensityMax") && !strcmp(data[tc],"0"))
+						//printf(">> keyname  D  [%d] = %s | data = %s | day = %i\n", tc, keyname, data[tc], data_day);
+						//printf(">> keyname  N ----- = %s[%i] <> %s[%i]\n", keyname_next, strlen(keyname_next), keyname, strlen(keyname));
+
+						// --------------------------------------
+						if (!strcmp(keyname_tmp,"currently"))
 						{
-							tc++;
-							strcpy(data[tc], "0");
-							//printf("tagname[%d] = precipIntensityMaxTime | data = %s\n",tc,data[tc]);
+							array_size = sizeof(keys_currently)/sizeof(keys_currently[0]);
+
+							for (i = 0; i < array_size; i++)
+							{
+								if (!strcmp(keyname, keys_currently[i]))
+									found = 1;
+							}
+							if (found)
+							{
+								if (strcmp(keyname_next, keyname ) && found)
+								{
+									memcpy(data[tc+1], data[tc], sizeof(MAXMEM)+1);
+									strcpy(data[tc], "*");
+									//printf("++ error - füge Daten ein [%d] %s %s\n",tc, keyname_next, data[tc]);
+									//printf(">> keyname  X  [%d] = %s | data = %s | day = %i\n", tc, keyname, data[tc], data_day);
+									tc++;
+									next++;
+								}
+								next++;
+
+								if (next < array_size)
+									strcpy(keyname_next, keys_currently[next]);
+								//printf(">> keyname_next[%d] = %s\n", next, keyname_next);
+							}
+							else
+							{
+								tc--;
+								printf("New Parameter found in %s: %s\n","currently", keyname);
+							}
 						}
-#endif
-						//fix zero precipType
-						if(!strcmp(tagname,"precipProbability") && !strcmp(data[tc],"0"))
+						// --------------------------------------
+						if (!strcmp(keyname_tmp,"data"))
 						{
-							tc++;
-							strcpy(data[tc], "0");
-							//printf("tagname[%d] = precipType | data = %s\n",tc,data[tc]);
+							array_size = sizeof(keys_daily)/sizeof(keys_daily[0]);
+							for (i = 0; i < array_size; i++)
+							{
+								if (!strcmp(keyname, keys_daily[i]))
+									found = 1;
+							}
+							if (found)
+							{
+								if (strcmp(keyname_next, keyname ) && found)
+								{
+									memcpy(data[tc+1], data[tc], sizeof(MAXMEM)+1);
+									strcpy(data[tc], "*");
+									//printf("++ error - füge Daten ein [%d] %s %s\n",tc, keyname_next, data[tc]);
+									//printf(">> keyname  X  [%d] = %s | data = %s | day = %i\n", tc, keyname, data[tc], data_day);
+									tc++;
+									next++;
+								}
+								next++;
+
+								if (next < array_size)
+									strcpy(keyname_next, keys_daily[next]);
+								//printf(">> keyname_next[%d] = %s\n", next, keyname_next);
+							}
+							else
+							{
+								tc--;
+								printf("New Parameter found in %s: %s\n","data", keyname);
+							}
 						}
-						//fix zero windSpeed / windBearing
-						else if(!strcmp(tagname,"windSpeed") && !strcmp(data[tc], "0"))
-						{
-							//printf("tagname[%d] = windSpeed | data = %s\n",tc,data[tc]);
-							windspeed = 0;
-						}
-						else if(!strcmp(tagname,"windGust") && windspeed == 0)
-						{
-							tc++;
-							strcpy(data[tc], "0");
-							windspeed = 1;
-							//printf("tagname[%d] = windBearing | data = %s\n",tc,data[tc]);
-						}
-						tagname[0]='\0';
+						keyname[0]='\0';
 						rec=0;
 						cc=0;
 						tcc=0;
@@ -520,19 +695,6 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 					}
 					else
 					{
-						//FIXME optional value
-						if(!strcmp(tagname,"precipAccumulation") ||
-						   !strcmp(tagname,"nearestStormDistance"))
-						{
-							//printf("tagname[%d] = %s \n",tc, tagname);
-							tagname[0]='\0';
-							tag=0;
-							rec=0;
-							cc=0;
-							tcc=0;
-							continue;
-						}
-						//printf("%c",gettemp);
 						data[tc][cc]=gettemp;
 						cc++;
 					}
@@ -543,6 +705,35 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	fclose(wxfile);
 
 	exit_ind=1;
+
+// debug
+#if 0
+	int v = 0;
+	int start = ACT_UPTIME;
+	int end = start + (sizeof(keys_currently)/sizeof(keys_currently[0])) -1;
+	for (i = start; i <= end; i++)
+	{
+		if (v >= sizeof(keys_currently)/sizeof(keys_currently[0])) {
+			v = 0;
+		}
+		printf("## currently [%02i] > %s = %s\n", i ,keys_currently[v], data[i]);
+		v++;
+	}
+	v = 0;
+	int day = 1;
+	start = PRE_DAY;
+	// max days 8
+	end = start + 8 * (sizeof(keys_daily)/sizeof(keys_daily[0])) -1;
+	for (i = start; i <= end; i++)
+	{
+		if (v >= sizeof(keys_daily)/sizeof(keys_daily[0])) {
+			v = 0;
+			day++;
+		}
+		printf("## day %i [%03i] > %s = %s\n",day, i ,keys_daily[v], data[i]);
+		v++;
+	}
+#endif
 
 //*** Übersetzungs File ***
 
@@ -588,5 +779,5 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	}
 	prs_get_dtime (0, ACT_UPTIME, debug, metric);
 
-return 0;
+	return 0;
 }

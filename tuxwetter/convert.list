@@ -47,8 +47,6 @@ FREEZING FOG|gefrierender Nebel
 FREEZING RAIN|Eisregen
 FREEZING RAIN / SLEET|gefrierender Regen, Graupel
 FRIDAY|Freitag
-FULL|Vollmond
-FULL MOON|Vollmond
 GERMANY|Deutschland
 HAZE|dunstig
 HEAVY FREEZING DRIZZLE|stark gefrierender Nieselregen
@@ -101,6 +99,15 @@ MODERATE RAIN|mäßiger Regen
 MODERATE RAIN AT TIMES|zeitweise mäßiger Regen
 MODERATE SNOW|mäßiger Schneefall
 MONDAY|Montag
+MOONPHASE_0|Neumond
+MOONPHASE_1|Zunehmender Sichelmond
+MOONPHASE_2|Zunehmender Halbmond (1.Viertel)
+MOONPHASE_3|Zunehmender Dreiviertelmond
+MOONPHASE_4|Vollmond
+MOONPHASE_5|Abnehmender Dreiviertelmond
+MOONPHASE_6|Abnehmender Halbmond (letztes Viertel)
+MOONPHASE_7|Abnehmender Sichelmond
+MOONPHASE_8|Mondphase konnte nicht ermittelt werden
 MOSTLY CLEAR|überwiegend heiter
 MOSTLY CLOUDY AND WINDY|überwiegend bewölkt, stürmisch
 MOSTLY CLOUDY / WIND|überwiegend bewölkt, stürmisch
@@ -108,8 +115,6 @@ MOSTLY CLOUDY|überwiegend bewölkt
 MOSTLY SUNNY|überwiegend sonnig
 MOSTLY|überwiegend
 N/A|
-NEW MOON|Neumond
-NEW|Neumond
 OVERCAST|bedeckt
 PARTLY|teils
 PARTLY CLOUDY|teils wolkig

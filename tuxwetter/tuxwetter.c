@@ -46,7 +46,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.33"
+#define P_VERSION "4.40"
 #define S_VERSION ""
 
 char CONVERT_LIST[]= CFG_TUXWET "/convert.list";
@@ -70,7 +70,7 @@ static char TCF_FILE[128]="";
 
 #define LIST_STEP 	10
 #define MAX_DAYS	7
-#define MAX_COLUMNS	MAX_DAYS + 1		// current day + 7 days
+#define MAX_COLUMNS	MAX_DAYS + 1	// today and next 7 days
 #define LCD_CPL 	12
 #define LCD_RDIST 	10
 
@@ -1957,9 +1957,10 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 
 				sprintf(outstr,"%s",prs_translate("Mondphase:",CONVERT_LIST));
 				RenderString(outstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
-				prs_get_val(0, ACT_MOON, 0, vstr);
-				sprintf(outstr,"%s (0.5 ~ %s)",vstr, prs_translate("Vollmond",CONVERT_LIST));
 
+				prs_get_val(0, ACT_MOON, 0, v2str);
+				moonPhase(atof(v2str), rstr);
+				sprintf(outstr,"%s",prs_translate(rstr,CONVERT_LIST));
 				RenderString(outstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
@@ -1967,7 +1968,10 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				RenderString(outstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				prs_get_val(0, ACT_VISIBILITY, 0, vstr);
 
-				sprintf(outstr,"%d %s",(int)round(atof(vstr)),dun);
+				if ((float)*vstr >= 16.093) // 10 Miles
+					sprintf(outstr,"%d%s %s",(int)round(atof(vstr)),"+",dun);
+				else
+					sprintf(outstr,"%d %s",(int)round(atof(vstr)),dun);
 				RenderString(outstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
@@ -3760,9 +3764,10 @@ PLISTENTRY pl=&epl;
 	}
 	sprintf(tstr,"ls /tmp/picture* &>/dev/null && rm /tmp/picture*");
 	system(tstr);
-	xremove("/tmp/tuxwettr.tmp");
+	xremove(TMP_FILE);
+	xremove(JSON_FILE);
 //	xremove("/tmp/bmps.tar");
-	xremove("/tmp/icon.gif");
+	xremove(ICON_FILE);
 	xremove("/tmp/tempgif.gif");
 	xremove(PHP_FILE);
 	put_instance(get_instance()-1);
