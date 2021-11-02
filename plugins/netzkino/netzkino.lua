@@ -29,6 +29,29 @@
 
 caption = "Netzkino HD"
 local json = require "json"
+local base_url = "http://api.netzkino.de.simplecache.net/capi-2.0a/"
+
+function getdata(Url,outputfile,Postfields,pass_headers,httpheaders)
+	if Url == nil then return nil end
+	if Curl == nil then
+		Curl = curl.new()
+	end
+
+	if Url:sub(1, 2) == '//' then
+		Url =  'https:' .. Url
+	end
+
+	local ret, data = Curl:download{ url=Url, A="Mozilla/5.0",connectTimeout=6,maxRedirs=5,
+		followRedir=true,postfields=Postfields,header=pass_headers,o=outputfile,httpheader=httpheaders }
+	if ret == CURL.OK then
+		if outputfile then
+			return 1
+		end
+		return data
+	else
+		return nil
+	end
+end
 
 --Objekte
 function script_path()
@@ -117,16 +140,12 @@ function get_categories()
 	local h = hintbox.new{caption=caption, text="Kategorien werden geladen ...", icon=netzkino_png};
 	h:paint();
 
-	os.execute("curl -s -o	 " .. fname .. " 'https://www.netzkino.de/capi/get_category_index'" );
+	local s = getdata(base_url .. "index.json?d=www" );
 
-	local fp = io.open(fname, "r")
-	if fp == nil then
+	if s == nil then
 		h:hide();
 		error("Error opening file '" .. fname .. "'.")
 	else
-		local s = fp:read("*a")
-		fp:close()
-
 		local j_table = json:decode(s)
 		local j_categories = j_table.categories
 		local j = 1;
@@ -204,16 +223,12 @@ function get_movies(_id)
 	local h = hintbox.new{caption=caption, text="Kategorie wird geladen ...", icon=netzkino_png};
 	h:paint();
 
-	os.execute("curl -s -o " .. fname .. " 'https://www.netzkino.de/capi/get_category_posts&id=" .. categories[index].category_id .. "&count=" .. items .. "d&page=" .. page_nr .. "&custom_fields=Streaming'");
+	local s = getdata(base_url .. "categories/" .. categories[index].category_id .. ".json?d=www" .. "&count=" .. items .. "d&page=" .. page_nr .. "&custom_fields=Streaming");
 
-	local fp = io.open(fname, "r")
-	if fp == nil then
+	if s == nil then
 		h:hide();
 		error("Error opening file '" .. fname .. "'.")
 	else
-		local s = fp:read("*a")
-		fp:close()
-
 		local j_table = json:decode(s)
 		max_page = tonumber(j_table.pages);
 		local posts = j_table.posts
@@ -233,16 +248,9 @@ function get_movies(_id)
 				j_title = posts[i].title
 				j_content = posts[i].content
 
-				local j_cover="";
-				local attachments = posts[i].attachments[1]
-				if attachments ~= nil then
-					local images = attachments.images;
-					if images ~= nil then
-						local full = images.full
-						if full ~= nil then
-							j_cover = full.url
-						end
-					end
+				local thumbnail = posts[i].thumbnail
+				if thumbnail then
+					j_cover = thumbnail
 				end
 
 				movies[j] =
@@ -465,7 +473,7 @@ end
 --herunterladen des Bildes
 function getPicture(_picture)
 	local fname = "/tmp/netzkino_cover.jpg";
-	os.execute("curl -s -A 'Mozilla' -o " .. fname .. " '" .. _picture .. "'");
+	getdata(_picture,fname)
 end
 
 --Stream starten
