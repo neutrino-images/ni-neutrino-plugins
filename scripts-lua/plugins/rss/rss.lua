@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v1.05 by satbaby"
+rssReaderVersion="Lua RSS READER v1.06 by satbaby"
 local CONF_PATH = "/var/tuxbox/config/"
 if DIR and DIR.CONFIGDIR then
 	CONF_PATH = DIR.CONFIGDIR .. '/'
@@ -1851,5 +1851,9 @@ function main()
 	start()
 	saveConfig()
 	fh:rmdir(picdir)
+	local jsname = "/tmp/._js_data"
+	if fh:exist(jsname , "f") then
+		os.remove(jsname) --yt addon js data
+	end
 end
 main()
