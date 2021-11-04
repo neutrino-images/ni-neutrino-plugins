@@ -18,6 +18,322 @@ function js_extract(data,patern)
 	return nil
 end
 
+-- Descramble the "n" parameter using the javascript code that does that
+-- in the web page
+function n_descramble( nparam, js )
+    if not js then
+        return nil
+    end
+
+    -- Look for the descrambler function's name
+    -- a.D&&(b=a.get("n"))&&(b=lha(b),a.set("n",b))}};
+    local descrambler = js_extract( js, '[=%(,&|](...?)%(.%),.%.set%("n",' )
+    if not descrambler then
+        print( "Couldn't extract YouTube video throttling parameter descrambling function name" )
+        return nil
+    end
+
+    -- Fetch the code of the descrambler function
+    -- lha=function(a){var b=a.split(""),c=[310282131,"KLf3",b,null,function(d,e){d.push(e)},-45817231, [data and transformations...] ,1248130556];c[3]=c;c[15]=c;c[18]=c;try{c[40](c[14],c[2]),c[25](c[48]),c[21](c[32],c[23]), [scripted calls...] ,c[25](c[33],c[3])}catch(d){return"enhanced_except_4ZMBnuz-_w8_"+a}return b.join("")};
+--  local code = js_extract( js, "^"..descrambler.."=function%([^)]*%){(.-)};" )
+	local code = js_extract( js, descrambler .. "=function%([^)]*%){(.-)};" )--my
+	code = code:gsub('\n','')--my
+    if not code then
+        print( "Couldn't extract YouTube video throttling parameter descrambling code" )
+        return nil
+    end
+
+    -- Split code into two main sections: 1/ data and transformations,
+    -- and 2/ a script of calls
+    local datac, script = string.match( code, "c=%[(.*)%];.-;try{(.*)}catch%(" )
+    if ( not datac ) or ( not script ) then
+        print( "Couldn't extract YouTube video throttling parameter descrambling rules" )
+        return nil
+    end
+
+    -- Split "n" parameter into a table as descrambling operates on it
+    -- as one of several arrays
+    local n = {}
+    for c in string.gmatch( nparam, "." ) do
+        table.insert( n, c )
+    end
+
+    -- Helper
+    local table_len = function( tab )
+        local len = 0
+        for i, val in ipairs( tab ) do
+            len = len + 1
+        end
+        return len
+    end
+
+    -- Common routine shared by the compound transformations,
+    -- compounding the "n" parameter with an input string,
+    -- character by character using a Base64 alphabet.
+    -- d.forEach(function(l,m,n){this.push(n[m]=h[(h.indexOf(l)-h.indexOf(this[m])+m-32+f--)%h.length])},e.split(""))
+    local compound = function( ntab, str, alphabet, charcode )
+        if ntab ~= n or type( str ) ~= "string" then
+            return true
+        end
+        local input = {}
+        for c in string.gmatch( str, "." ) do
+            table.insert( input, c )
+        end
+
+        local len = string.len( alphabet )
+        for i, c in ipairs( ntab ) do
+            if type( c ) ~= "string" then
+                return true
+            end
+            local pos1 = string.find( alphabet, c, 1, true )
+            local pos2 = string.find( alphabet, input[i], 1, true )
+            if ( not pos1 ) or ( not pos2 ) then
+                return true
+            end
+            local pos = ( pos1 - pos2 + charcode - 32 ) % len
+            local newc = string.sub( alphabet, pos + 1, pos + 1 )
+            ntab[i] = newc
+            table.insert( input, newc )
+        end
+    end
+
+    -- The data section contains among others function code for a number
+    -- of transformations, most of which are basic array operations.
+    -- We can match these functions' code to identify them, and emulate
+    -- the corresponding transformations.
+    local trans = {
+        reverse = {
+            func = function( tab )
+                local len = table_len( tab )
+                local tmp = {}
+                for i, val in ipairs( tab ) do
+                    tmp[len - i + 1] = val
+                end
+                for i, val in ipairs( tmp ) do
+                    tab[i] = val
+                end
+            end,
+            match = {
+                -- function(d){d.reverse()}
+                -- function(d){for(var e=d.length;e;)d.push(d.splice(--e,1)[0])}
+                "^function%(d%)",
+            }
+        },
+        append = {
+            func = function( tab, val )
+                table.insert( tab, val )
+            end,
+            match = {
+                -- function(d,e){d.push(e)}
+                "^function%(d,e%){d%.push%(e%)},",
+            }
+        },
+        remove = {
+            func = function( tab, i )
+                if type( i ) ~= "number" then
+                    return true
+                end
+                i = i % table_len( tab )
+                table.remove( tab, i + 1 )
+            end,
+            match = {
+                -- function(d,e){e=(e%d.length+d.length)%d.length;d.splice(e,1)}
+                "^[^}]-;d%.splice%(e,1%)},",
+            }
+        },
+        swap = {
+            func = function( tab, i )
+                if type( i ) ~= "number" then
+                    return true
+                end
+                i = i % table_len( tab )
+                local tmp = tab[1]
+                tab[1] = tab[i + 1]
+                tab[i + 1] = tmp
+            end,
+            match = {
+                -- function(d,e){e=(e%d.length+d.length)%d.length;var f=d[0];d[0]=d[e];d[e]=f}
+                -- function(d,e){e=(e%d.length+d.length)%d.length;d.splice(0,1,d.splice(e,1,d[0])[0])}
+                "^[^}]-;var f=d%[0%];d%[0%]=d%[e%];d%[e%]=f},",
+                "^[^}]-;d%.splice%(0,1,d%.splice%(e,1,d%[0%]%)%[0%]%)},",
+            }
+        },
+        rotate = {
+            func = function( tab, shift )
+                if type( shift ) ~= "number" then
+                    return true
+                end
+                local len = table_len( tab )
+                shift = shift % len
+                local tmp = {}
+                for i, val in ipairs( tab ) do
+                    tmp[( i - 1 + shift ) % len + 1] = val
+                end
+                for i, val in ipairs( tmp ) do
+                    tab[i] = val
+                end
+            end,
+            match = {
+                -- function(d,e){for(e=(e%d.length+d.length)%d.length;e--;)d.unshift(d.pop())}
+                -- function(d,e){e=(e%d.length+d.length)%d.length;d.splice(-e).reverse().forEach(function(f){d.unshift(f)})}
+                "^[^}]-d%.unshift%(d.pop%(%)%)},",
+                "^[^}]-d%.unshift%(f%)}%)},",
+            }
+        },
+        -- Compound transformations first build a variation of a
+        -- Base64 alphabet, then in a common section, compound the
+        -- "n" parameter with an input string, character by character.
+        compound1 = {
+            func = function( ntab, str )
+                return compound( ntab, str, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_", 96 )
+            end,
+            match = {
+                -- function(d,e){for(var f=64,h=[];++f-h.length-32;)switch(f){case 58:f=96;continue;case 91:f=44;break;case 65:f=47;continue;case 46:f=153;case 123:f-=58;default:h.push(String.fromCharCode(f))} [ compound... ] }
+                "^[^}]-case 58:f=96;",
+            }
+        },
+        compound2 = {
+            func = function( ntab, str )
+                return compound( ntab, str,"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_", 96 )
+            end,
+            match = {
+                -- function(d,e){for(var f=64,h=[];++f-h.length-32;){switch(f){case 58:f-=14;case 91:case 92:case 93:continue;case 123:f=47;case 94:case 95:case 96:continue;case 46:f=95}h.push(String.fromCharCode(f))} [ compound... ] }
+                -- function(d,e){for(var f=64,h=[];++f-h.length-32;)switch(f){case 46:f=95;default:h.push(String.fromCharCode(f));case 94:case 95:case 96:break;case 123:f-=76;case 92:case 93:continue;case 58:f=44;case 91:} [ compound... ] }
+                "^[^}]-case 58:f%-=14;",
+                "^[^}]-case 58:f=44;",
+            }
+        },
+        -- Fallback
+        unid = {
+            func = function( )
+                print( "Couldn't apply unidentified YouTube video throttling parameter transformation, aborting descrambling" )
+                return true
+            end,
+            match = {
+            }
+        },
+    }
+
+    -- The data section actually mixes input data, reference to the
+    -- "n" parameter array, and self-reference to its own array, with
+    -- transformation functions used to modify itself. We parse it
+    -- as such into a table.
+    local data = {}
+    datac = datac..","
+    while datac ~= "" do
+        local el = nil
+        -- Transformation functions
+        if string.match( datac, "^function%(" ) then
+            for name, tr in pairs( trans ) do
+                for i, match in ipairs( tr.match ) do
+                    if string.match( datac, match ) then
+                        el = tr.func
+                        break
+                    end
+                end
+                if el then
+                    break
+                end
+            end
+            if not el then
+                el = trans.unid.func
+                print( "Couldn't parse unidentified YouTube video throttling parameter transformation" )
+            end
+
+            -- Compounding functions use a subfunction, so we need to be
+            -- more specific in how much parsed data we consume.
+            if el == trans.compound1.func or el == trans.compound2.func then
+                datac = string.match( datac, '^.-},e%.split%(""%)%)},(.*)$' )
+            else
+                datac = string.match( datac, "^.-},(.*)$" )
+            end
+
+        -- String input data
+        elseif string.match( datac, '^"[^"]*",' ) then
+            el, datac = string.match( datac, '^"([^"]*)",(.*)$' )
+        -- Integer input data
+        elseif string.match( datac, '^-?%d+,' ) then
+            el, datac = string.match( datac, "^(.-),(.*)$" )
+            el = tonumber( el )
+        -- Reference to "n" parameter array
+        elseif string.match( datac, '^b,' ) then
+            el = n
+            datac = string.match( datac, "^b,(.*)$" )
+        -- Replaced by self-reference to data array after its declaration
+        elseif string.match( datac, '^null,' ) then
+            el = data
+            datac = string.match( datac, "^null,(.*)$" )
+        else
+            print( "Couldn't parse unidentified YouTube video throttling parameter descrambling data" )
+            el = false -- Lua tables can't contain nil values
+            datac = string.match( datac, "^[^,]-,(.*)$" )
+        end
+
+        table.insert( data, el )
+    end
+
+    -- Debugging helper to print data array elements
+    local prd = function( el, tab )
+        if not el then
+            return "???"
+        elseif el == n then
+            return "n"
+        elseif el == data then
+            return "data"
+        elseif type( el ) == "string" then
+            return '"'..el..'"'
+        elseif type( el ) == "number" then
+            el = tostring( el )
+            if type( tab ) == "table" then
+                el = el.." -> "..( el % table_len( tab ) )
+            end
+            return el
+        else
+            for name, tr in pairs( trans ) do
+                if el == tr.func then
+                    return name
+                end
+            end
+            return tostring( el )
+        end
+    end
+
+    -- The script section contains a series of calls to elements of
+    -- the data section array onto other elements of it: calls to
+    -- transformations, with a reference to the data array itself or
+    -- the "n" parameter array as first argument, and often input data
+    -- as a second argument. We parse and emulate those calls to follow
+    -- the descrambling script.
+    -- c[40](c[14],c[2]),c[25](c[48]),c[21](c[32],c[23]), [...]
+    for ifunc, itab, iarg in string.gmatch( script, "c%[(%d+)%]%(c%[(%d+)%]([^)]-)%)" ) do
+        iarg = string.match( iarg, ",c%[(%d+)%]" )
+
+        local func = data[tonumber( ifunc ) + 1]
+        local tab = data[tonumber( itab ) + 1]
+        local arg = iarg and data[tonumber( iarg ) + 1]
+
+        -- Uncomment to debug transformation chain
+        --print( '"n" parameter transformation: '..prd( func ).."("..prd( tab )..( arg ~= nil and ( ", "..prd( arg, tab ) ) or "" )..") "..ifunc.."("..itab..( iarg and ( ", "..iarg ) or "" )..")" )
+        --local nprev = table.concat( n )
+
+        if type( func ) ~= "function" or type( tab ) ~= "table"
+            or func( tab, arg ) then
+            print( "Invalid data type encountered during YouTube video throttling parameter descrambling transformation chain, aborting" )
+            print( "Couldn't descramble YouTube throttling URL parameter: data transfer will get throttled" )
+            print( "Couldn't process youtube video URL, please check for updates to this script" )
+            break
+        end
+
+        -- Uncomment to debug transformation chain
+        --local nnew = table.concat( n )
+        --if nprev ~= nnew then
+        --    print( '"n" parameter transformation: '..nprev.." -> "..nnew )
+        --end
+    end
+
+    return table.concat( n )
+end
+
 function js_descramble( sig, js )
 	local descrambler = js_extract( js, "[=%(,&|](...?.?)%(decodeURIComponent%(.%.s%)%)" )
 	if descrambler == nil then print("decodeURIComponent error") return sig end
@@ -72,16 +388,45 @@ function js_descramble( sig, js )
 end
 
 local jsdata = nil
+function getN(url,js)
+	if url == nil then return url end
+	if jsdata == nil then return url end
+	-- The "n" parameter is scrambled too, and needs to be descrambled
+	-- and replaced in place, otherwise the data transfer gets throttled
+	-- down to between 40 and 80 kB/s, below real-time playability level.
+	local n = string.match( url, "[?&]n=([^&]+)" )
+	if n then
+		if Curl == nil then
+			Curl = curl.new()
+		end
+		n = Curl:decodeUri( n )
+		local dn = n_descramble( n, js )
+		if dn then
+			url = string.gsub( url, "([?&])n=[^&]+", "%1n=".. Curl:encodeUri( dn ), 1 )
+		else
+			print( "Couldn't descramble YouTube throttling URL parameter: data transfer will get throttled" )
+			print( "Couldn't process youtube video URL, please check for updates to this script" )
+		end
+	end
+	return url
+end
 
-local jsdata = nil
-function newsig(sig,js_url)
-	if sig and js_url then
-		if jsdata ==  nil then
-			jsdata = getdata("https://www.youtube.com" .. js_url)
+local fh = filehelpers.new()
+function getJSdata(js_url)
+	local jsname = "/tmp/._js_data"
+	if jsdata == nil then
+		if fh:exist(jsname , "f") then
+			jsdata = read_file(jsname)
 		end
-		if jsdata then
-			return js_descramble( sig, jsdata )
+	end
+	if js_url and jsdata ==  nil then
+		getdata("https://www.youtube.com" .. js_url, jsname)
+		if fh:exist(jsname , "f") then
+			jsdata = read_file(jsname)
 		end
+	end
+	if jsdata then
+		return jsdata
 	end
 	return nil
 end
@@ -248,10 +593,15 @@ function media.getVideoUrl(yurl)
 					end
 				end
 			end
+			if jsdata ==  nil then
+				local js_url= data:match('<script%s+src="([/%w%p]+base%.js)"')
+				jsdata = getJSdata(js_url)
+			end
 			for k, url in pairs(map_urls) do
 				local have_itag = false
 				local itagnum = 0
 				local myitag = nil
+
 				myitag = url:match('itag=(%d+)') or url:match('itag%%3D(%d+)')
 				url=url:gsub('xtags=',"")
 				url=url:gsub('fps=%d+',"")
@@ -276,10 +626,9 @@ function media.getVideoUrl(yurl)
 						myurl= tmp_url .. "&" .. tmp
 					end
 					local s=myurl:match('6s=([%%%-%=%w+_]+)') or myurl:match('&s=([%%%-%=%w+_]+)') or myurl:match('^s=([%%%-%=%w+_]+)')
-					if s and (#s > 99 and #s < 160) then
+					if jsdata and s and (#s > 99 and #s < 160) then
 						local s2=unescape_uri(s)
-						local js_url= data:match('<script%s+src="([/%w%p]+base%.js)"')
-						local signature = newsig(s2,js_url)
+						local signature =js_descramble( s2, jsdata )
 						if signature then
 							s = s:gsub("[%+%?%-%*%(%)%.%[%]%^%$%%]","%%%1")
 							signature = signature:gsub("[%%]","%%%%")
@@ -297,7 +646,6 @@ function media.getVideoUrl(yurl)
 					myurl=myurl:gsub(']', "")
 					if select(2,myurl:gsub('&lmt=%d+', "")) == 2 then myurl=myurl:gsub('&lmt=%d+', "",1) end
 					if select(2,myurl:gsub('&clen=%d+', "")) == 2 then myurl=myurl:gsub('&clen=%d+', "",1) end
-
 					urls[itagnum] = myurl
 					countx = countx + 1
 				end
@@ -368,6 +716,9 @@ function media.getVideoUrl(yurl)
 		end
 	end
 	if video_url and #video_url > 8 then
+		if jsdata then
+			video_url = getN(video_url,jsdata)
+		end
 		media.VideoUrl=video_url
 	end
 	if h then
