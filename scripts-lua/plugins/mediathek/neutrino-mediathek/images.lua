@@ -44,9 +44,9 @@ function createImages()
 		btn7		= '/usr/share/tuxbox/neutrino/icons/7.png'		-- no NLS
 		btn8		= '/usr/share/tuxbox/neutrino/icons/8.png'		-- no NLS
 		btn9		= '/usr/share/tuxbox/neutrino/icons/9.png'		-- no NLS
-		btnBlue		= '/usr/share/tuxbox/neutrino/icons/blau.png'	-- no NLS
-		btnGreen	= '/usr/share/tuxbox/neutrino/icons/gruen.png'	-- no NLS
-		btnRed		= '/usr/share/tuxbox/neutrino/icons/rot.png'	-- no NLS
-		btnYellow	= '/usr/share/tuxbox/neutrino/icons/gelb.png'	-- no NLS
+		btnBlue		= '/usr/share/tuxbox/neutrino/icons/btn_blue.png'	-- no NLS
+		btnGreen	= '/usr/share/tuxbox/neutrino/icons/btn_green.png'	-- no NLS
+		btnRed		= '/usr/share/tuxbox/neutrino/icons/btn_red.png'	-- no NLS
+		btnYellow	= '/usr/share/tuxbox/neutrino/icons/btn_yellow.png'	-- no NLS
 	end -- icon types
 end -- function createImages
