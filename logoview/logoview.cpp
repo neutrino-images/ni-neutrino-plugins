@@ -42,8 +42,8 @@
       -- logoview v" LV_VERSION " * (C)2011-2016, M. Liebmann (micha-bbg) --\n\
       ------------------------------------------------------------\n\n"
 #define FLAG_FILE "/tmp/.logoview"
-#define NEUTRINO_CONF "/var/tuxbox/config/neutrino.conf"
-#define START_LOGO DATADIR "/neutrino/icons/start.jpg"
+#define NEUTRINO_CONF CONFIGDIR "/neutrino.conf"
+#define START_LOGO ICONSDIR "/start.jpg"
 
 #define DEFAULT_X_START_SD	60
 #define DEFAULT_Y_START_SD	20
