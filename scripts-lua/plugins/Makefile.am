@@ -49,6 +49,9 @@ endif
 if ENABLE_PLUTOTV_UPDATE
 SUBDIRS += plutotv-update
 endif
+if ENABLE_PLUTOTV_VOD
+SUBDIRS += plutotv-vod
+endif
 if ENABLE_RCU_SWITCHER
 SUBDIRS += rcu_switcher
 endif

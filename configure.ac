@@ -357,6 +357,12 @@ AC_ARG_ENABLE(plutotv-update,
 	[enable_plutotv_update="yes"])
 AM_CONDITIONAL(ENABLE_PLUTOTV_UPDATE, test "$enable_plutotv_update" = "yes" -a "$enable_plutotv" = "yes")
 
+AC_ARG_ENABLE(plutotv-vod,
+	AS_HELP_STRING([--enable-plutotv-vod], [enable plutotv-vod @<:@default=yes@:>@]),
+	[enable_plutotv_vod="$enableval"],
+	[enable_plutotv_vod="yes"])
+AM_CONDITIONAL(ENABLE_PLUTOTV_VOD, test "$enable_plutotv_vod" = "yes")
+
 AC_ARG_ENABLE(rakutentv,
 	AS_HELP_STRING([--enable-rakutentv], [enable webtv rakutentv @<:@default=yes@:>@]),
 	[enable_rakutentv="$enableval"],
@@ -403,6 +409,7 @@ scripts-lua/plugins/netzkino/Makefile
 scripts-lua/plugins/openvpn-setup/Makefile
 scripts-lua/plugins/openvpn-setup/openvpn-setup/Makefile
 scripts-lua/plugins/plutotv-update/Makefile
+scripts-lua/plugins/plutotv-vod/Makefile
 scripts-lua/plugins/rcu_switcher/Makefile
 scripts-lua/plugins/rss/Makefile
 scripts-lua/plugins/spiegel-tv-doc/Makefile
