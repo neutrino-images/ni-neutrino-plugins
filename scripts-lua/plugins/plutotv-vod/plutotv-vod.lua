@@ -1,5 +1,5 @@
 --[[
-	plutotv-vod.lua v1.1
+	plutotv-vod.lua v1.11
 
 	Copyright (C) 2021 TangoCash
 	License: WTFPLv2
@@ -7,6 +7,8 @@
 
 plugin_title = "Pluto TV VOD"
 plutotv_vod_png = arg[0]:match('.*/') .. "/plutotv-vod_hint.png"
+
+hotkeys = true
 
 json = require "json"
 n = neutrino()
@@ -124,6 +126,7 @@ end
 function getVideoData(url) -- Generate stream address and evaluate it according to the best resolution
 	http = "http://service-stitcher-ipv4.clusters.pluto.tv/stitch/hls/episode/"
 	token = "?advertisingId=&appName=web&appVersion=unknown&appStoreUrl=&architecture=&buildVersion=&clientTime=0&deviceDNT=0&deviceId=" .. gen_ids() .. "&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&sid=" .. gen_ids() .. "&userId=&serverSideAds=true"
+
 	local data = getdata(http .. url .."/master.m3u8" ..token) -- Calling the generated master.m3u8
 	local count = 0
 	if data then
@@ -216,12 +219,70 @@ function godirectbutton(d)
 	return _dkey
 end
 
+function godirect(ik, count)
+	if hotkeys then
+		if ik == "icon" then return godirectbutton(count) end
+		if ik == "directkey" then return godirectkey(count) end
+	else
+		if ik == "icon" then return nil end
+		if ik == "directkey" then return nil end
+	end
+end
+
+function hint_text(text)
+	if text == "Serie" then
+		return text
+	elseif tostring(text):find("Staffel") then
+		return text
+	else
+		return "Video - Länge " ..text.. " min"
+	end
+end
+
+function hint_icon(text)
+	if text == "Serie" then
+		return "hint_next"
+	else
+		return "video"
+	end
+end
+
+function value_text(text)
+	if text == "Serie" then
+		return "("..text..")"
+	else
+		return "("..text.." min)"
+	end
+end
+
+function hint_value(ik, text)
+	if hints then
+		if ik == "hinticon" then return hint_icon(text) end
+		if ik == "hinttext" then return hint_text(text) end
+		if ik == "value" then return nil end
+	else
+		if ik == "hinticon" then return nil end
+		if ik == "hinttext" then return nil end
+		if ik == "value" then return value_text(text) end
+	end
+end
+
 function get_timing_menu()
 	local ret = 0
 	local Nconfig = configfile.new()
 	if Nconfig then
 		Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
 		ret = Nconfig:getInt32("timing.menu", 0)
+	end
+	return ret
+end
+
+function get_hints_menu()
+	local ret = false
+	local Nconfig = configfile.new()
+	if Nconfig then
+		Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
+		ret = Nconfig:getBool("show_menu_hints", false)
 	end
 	return ret
 end
@@ -240,12 +301,12 @@ function getInput()
 		if msg >= RC["0"] and msg <= RC.MaxRC then
 			i = 0 -- reset timeout
 		end
-		-- Taste Rot startet Stream
-		if (msg == RC['ok']) or (msg == RC['red']) then
+		-- Taste OK/Play startet Stream
+		if (msg == RC['ok']) or (msg == RC['play']) or (msg == RC['playpause']) then
 			mode = 1;
 			break;
-		-- Taste Gruen startet Download
-		elseif (msg == RC['green']) and have_ffmpeg then
+		-- Taste Rot/Record startet Download
+		elseif ((msg == RC['red']) or (msg == RC['record'])) and have_ffmpeg then
 			mode = 2;
 			break;
 		elseif (msg == RC['up'] or msg == RC['page_up']) then
@@ -519,7 +580,7 @@ function show_playback_info(uuid)
 	end
 	w = n:scale2Res(1000)
 	h = n:scale2Res(600) 
-	local wow = cwindow.new{x=x, y=y, dx=w, dy=h, title=playback_details[uuid].title or playback_details[uuid].name, btnRed=btn_text .." abspielen", btnGreen=btn_text.." downloaden", icon=plutotv_vod_png }
+	local wow = cwindow.new{x=x, y=y, dx=w, dy=h, title=playback_details[uuid].title or playback_details[uuid].name, btnOk=btn_text .." abspielen", btnRed=btn_text.." downloaden", icon=plutotv_vod_png }
 	local tf = wow:headerHeight() + wow:footerHeight()
 	h = h + tf
 	local tw = n:getRenderWidth(FONT.MENU_TITLE,playback_details[uuid].title or playback_details[uuid].name) + (wow:headerHeight() * 2)
@@ -621,7 +682,7 @@ function cat_menu(_id)
 			local count = 1
 			for item, item_detail in pairs(itemlist_detail) do
 				if item_detail.type == "movie" then
-					cm:addItem{type="forwarder", name=conv_utf8(item_detail.name), action="show_playback_info_m", id=item_detail.uuid, icon=godirectbutton(count), value="("..item_detail.duration.." min)", enabled=true, directkey=godirectkey(count)}
+					cm:addItem{type="forwarder", name=conv_utf8(item_detail.name), action="show_playback_info_m", id=item_detail.uuid, icon=godirect("icon", count), hint=hint_value("hinttext",item_detail.duration), hint_icon=hint_value("hinticon",item_detail.duration), value=hint_value("value",item_detail.duration), enabled=true, directkey=godirect("directkey", count)}
 					playback_details[item_detail.uuid] = 
 					{
 						uuid = item_detail.uuid;
@@ -635,7 +696,7 @@ function cat_menu(_id)
 					}
 				end
 				if item_detail.type == "series" then
-					cm:addItem{type="forwarder", name=conv_utf8(item_detail.name), action="season_menu", id=item_detail.uuid, icon=godirectbutton(count), value="(Serie)", enabled=true, directkey=godirectkey(count)}
+					cm:addItem{type="forwarder", name=conv_utf8(item_detail.name), action="season_menu", id=item_detail.uuid, icon=godirect("icon", count), hint=hint_value("hinttext","Serie"), hint_icon=hint_value("hinticon","Serie"), value=hint_value("value","Serie"), enabled=true, directkey=godirect("directkey", count)}
 				end
 				if count == 0 then
 					count = 11
@@ -668,7 +729,7 @@ function season_menu(_id)
 			episodelist = {}
 			local count = 1
 			for i=1, #jd.seasons do
-				sm:addItem{type="forwarder", name="Season "..i, action="episode_menu", id=i, icon=godirectbutton(count), enabled=true, directkey=godirectkey(count)}
+				sm:addItem{type="forwarder", name="Season "..i, action="episode_menu", id=i, hint=hint_value("hinttext","Staffel " ..i) , hint_icon=hint_value("hinticon","Serie"), icon=godirect("icon", count), enabled=true, directkey=godirect("directkey", count)}
 				seasons = i
 				episodelist_details = {}
 				for k = 1, #jd.seasons[i].episodes do
@@ -719,7 +780,7 @@ function episode_menu(s)
 		if season == tonumber(s) then
 			local count = 1
 			for episode, episode_detail in pairs(episodelist_detail) do
-				em:addItem{type="forwarder", name=episode_detail.name, action="show_playback_info_e", id=episode_detail.uuid, icon=godirectbutton(count), value="("..episode_detail.duration.." min)", enabled=true, directkey=godirectkey(count)}
+				em:addItem{type="forwarder", name=episode_detail.name, action="show_playback_info_e", id=episode_detail.uuid, icon=godirect("icon", count), hint=hint_value("hinttext",episode_detail.duration), hint_icon=hint_value("hinticon",episode_detail.duration), value=hint_value("value",episode_detail.duration), enabled=true, directkey=godirect("directkey", count)}
 				playback_details[episode_detail.uuid] = 
 				{
 					uuid = episode_detail.uuid;
@@ -753,8 +814,12 @@ function MainMenue()
 	get_cat();
 	m = menu.new{name=plugin_title, has_shadow=true, icon=plutotv_vod_png}
 	local count = 1
+	local htext = nil
+	if hints then
+		htext = "Untermenü"
+	end
 	for _id,_name in pairs(catlist) do
-		m:addItem{type="forwarder", name=conv_utf8(_name), action="cat_menu", id=_id, icon=godirectbutton(count), enabled=true, directkey=godirectkey(count)}
+		m:addItem{type="forwarder", name=conv_utf8(_name), action="cat_menu", hint=htext, id=_id, icon=godirect("icon", count), enabled=true, directkey=godirect("directkey", count)}
 		if count == 0 then
 			count = 11
 		elseif count == 9 then 
@@ -775,4 +840,5 @@ vPlay = video.new()
 have_ffmpeg = which("ffmpeg")
 coverPic = "/tmp/plutovod_cover.jpg"
 bigPicBG = "/tmp/plutovod_bg.jpg"
+hints = get_hints_menu()
 MainMenue()
