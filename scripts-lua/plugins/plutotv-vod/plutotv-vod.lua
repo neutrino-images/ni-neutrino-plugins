@@ -5,7 +5,7 @@
 	License: WTFPLv2
 ]]
 
-plugin_title = "Pluto TV VOD"
+plugin_title = "Pluto TV VoD"
 plutotv_vod_png = arg[0]:match('.*/') .. "/plutotv-vod_hint.png"
 
 hotkeys = true
@@ -831,14 +831,14 @@ function MainMenue()
 	h:hide()
 	m:exec()
 	hideBGPicture(true)
-	os.execute("rm /tmp/plutovod_*.*");
+	os.execute("rm /tmp/plutotv-vod_*.*");
 	collectgarbage()
 end
 
 nMisc = misc.new()
 vPlay = video.new()
 have_ffmpeg = which("ffmpeg")
-coverPic = "/tmp/plutovod_cover.jpg"
-bigPicBG = "/tmp/plutovod_bg.jpg"
+coverPic = "/tmp/plutotv-vod_cover.jpg"
+bigPicBG = "/tmp/plutotv-vod_bg.jpg"
 hints = get_hints_menu()
 MainMenue()
