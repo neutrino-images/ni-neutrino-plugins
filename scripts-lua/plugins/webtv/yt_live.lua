@@ -89,10 +89,10 @@ function n_descramble( nparam, js )
 
     -- Fetch the code of the descrambler function
     -- lha=function(a){var b=a.split(""),c=[310282131,"KLf3",b,null,function(d,e){d.push(e)},-45817231, [data and transformations...] ,1248130556];c[3]=c;c[15]=c;c[18]=c;try{c[40](c[14],c[2]),c[25](c[48]),c[21](c[32],c[23]), [scripted calls...] ,c[25](c[33],c[3])}catch(d){return"enhanced_except_4ZMBnuz-_w8_"+a}return b.join("")};
---  local code = js_extract( js, "^"..descrambler.."=function%([^)]*%){(.-)};" )
+    --local code = js_extract( js, "^"..descrambler.."=function%([^)]*%){(.-)};" )
 	local code = js_extract( js, descrambler .. "=function%([^)]*%){(.-)};" )--my
 	code = code:gsub('\n','')--my
-    if not code then
+	if not code then
         print( "Couldn't extract YouTube video throttling parameter descrambling code" )
         return nil
     end
@@ -121,12 +121,14 @@ function n_descramble( nparam, js )
         return len
     end
 
-    -- Common routine shared by the compound transformations,
-    -- compounding the "n" parameter with an input string,
-    -- character by character using a Base64 alphabet.
-    -- d.forEach(function(l,m,n){this.push(n[m]=h[(h.indexOf(l)-h.indexOf(this[m])+m-32+f--)%h.length])},e.split(""))
-    local compound = function( ntab, str, alphabet, charcode )
-        if ntab ~= n or type( str ) ~= "string" then
+    -- Shared core section of compound transformations: it compounds
+    -- the "n" parameter with an input string, character by character,
+    -- using a Base64 alphabet as algebraic modulo group.
+    -- var h=f.length;d.forEach(function(l,m,n){this.push(n[m]=f[(f.indexOf(l)-f.indexOf(this[m])+m+h--)%f.length])},e.split(""))
+    local compound = function( ntab, str, alphabet )
+        if ntab ~= n or
+           type( str ) ~= "string" or
+           type( alphabet ) ~= "string" then
             return true
         end
         local input = {}
@@ -144,7 +146,7 @@ function n_descramble( nparam, js )
             if ( not pos1 ) or ( not pos2 ) then
                 return true
             end
-            local pos = ( pos1 - pos2 + charcode - 32 ) % len
+            local pos = ( pos1 - pos2 ) % len
             local newc = string.sub( alphabet, pos + 1, pos + 1 )
             ntab[i] = newc
             table.insert( input, newc )
@@ -234,27 +236,55 @@ function n_descramble( nparam, js )
                 "^[^}]-d%.unshift%(f%)}%)},",
             }
         },
-        -- Compound transformations first build a variation of a
-        -- Base64 alphabet, then in a common section, compound the
-        -- "n" parameter with an input string, character by character.
+        -- Here functions with no arguments are not really functions,
+        -- they're constants: treat them as such. These alphabets are
+        -- passed to and used by the compound transformations.
+        alphabet1 = {
+            func = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_",
+            match = {
+                -- function(){for(var d=64,e=[];++d-e.length-32;){switch(d){case 91:d=44;continue;case 123:d=65;break;case 65:d-=18;continue;case 58:d=96;continue;case 46:d=95}e.push(String.fromCharCode(d))}return e}
+                "^function%(%){[^}]-case 58:d=96;",
+            }
+        },
+        alphabet2 = {
+            func = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
+            match = {
+                -- function(){for(var d=64,e=[];++d-e.length-32;)switch(d){case 46:d=95;default:e.push(String.fromCharCode(d));case 94:case 95:case 96:break;case 123:d-=76;case 92:case 93:continue;case 58:d=44;case 91:}return e}
+                "^function%(%){[^}]-case 58:d%-=14;",
+                "^function%(%){[^}]-case 58:d=44;",
+            }
+        },
+        -- Compound transformations are based on a shared core section
+        -- that compounds the "n" parameter with an input string,
+        -- character by character, using a variation of a Base64
+        -- alphabet as algebraic modulo group.
+        compound = {
+            func = compound,
+            match = {
+                -- function(d,e,f){var h=f.length;d.forEach(function(l,m,n){this.push(n[m]=f[(f.indexOf(l)-f.indexOf(this[m])+m+h--)%f.length])},e.split(""))}
+                "^function%(d,e,f%)",
+            }
+        },
+        -- These compound transformation variants first build their
+        -- Base64 alphabet themselves, before using it.
         compound1 = {
             func = function( ntab, str )
-                return compound( ntab, str, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_", 96 )
+                return compound( ntab, str, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_" )
             end,
             match = {
-                -- function(d,e){for(var f=64,h=[];++f-h.length-32;)switch(f){case 58:f=96;continue;case 91:f=44;break;case 65:f=47;continue;case 46:f=153;case 123:f-=58;default:h.push(String.fromCharCode(f))} [ compound... ] }
-                "^[^}]-case 58:f=96;",
+                -- function(d,e){for(var f=64,h=[];++f-h.length-32;)switch(f){case 58:f=96;continue;case 91:f=44;break;case 65:f=47;continue;case 46:f=153;case 123:f-=58;default:h.push(String.fromCharCode(f))} [ compound... ] }
+                "^function%(d,e%){[^}]-case 58:f=96;",
             }
         },
         compound2 = {
             func = function( ntab, str )
-                return compound( ntab, str,"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_", 96 )
+                return compound( ntab, str,"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_" )
             end,
             match = {
-                -- function(d,e){for(var f=64,h=[];++f-h.length-32;){switch(f){case 58:f-=14;case 91:case 92:case 93:continue;case 123:f=47;case 94:case 95:case 96:continue;case 46:f=95}h.push(String.fromCharCode(f))} [ compound... ] }
-                -- function(d,e){for(var f=64,h=[];++f-h.length-32;)switch(f){case 46:f=95;default:h.push(String.fromCharCode(f));case 94:case 95:case 96:break;case 123:f-=76;case 92:case 93:continue;case 58:f=44;case 91:} [ compound... ] }
-                "^[^}]-case 58:f%-=14;",
-                "^[^}]-case 58:f=44;",
+                -- function(d,e){for(var f=64,h=[];++f-h.length-32;){switch(f){case 58:f-=14;case 91:case 92:case 93:continue;case 123:f=47;case 94:case 95:case 96:continue;case 46:f=95}h.push(String.fromCharCode(f))} [ compound... ] }
+                -- function(d,e){for(var f=64,h=[];++f-h.length-32;)switch(f){case 46:f=95;default:h.push(String.fromCharCode(f));case 94:case 95:case 96:break;case 123:f-=76;case 92:case 93:continue;case 58:f=44;case 91:} [ compound... ] }
+                "^function%(d,e%){[^}]-case 58:f%-=14;",
+                "^function%(d,e%){[^}]-case 58:f=44;",
             }
         },
         -- Fallback
@@ -296,7 +326,9 @@ function n_descramble( nparam, js )
 
             -- Compounding functions use a subfunction, so we need to be
             -- more specific in how much parsed data we consume.
-            if el == trans.compound1.func or el == trans.compound2.func then
+            if el == trans.compound.func or
+               el == trans.compound1.func or
+               el == trans.compound2.func then
                 datac = string.match( datac, '^.-},e%.split%(""%)%)},(.*)$' )
             else
                 datac = string.match( datac, "^.-},(.*)$" )
@@ -358,20 +390,22 @@ function n_descramble( nparam, js )
     -- the "n" parameter array as first argument, and often input data
     -- as a second argument. We parse and emulate those calls to follow
     -- the descrambling script.
-    -- c[40](c[14],c[2]),c[25](c[48]),c[21](c[32],c[23]), [...]
-    for ifunc, itab, iarg in string.gmatch( script, "c%[(%d+)%]%(c%[(%d+)%]([^)]-)%)" ) do
-        iarg = string.match( iarg, ",c%[(%d+)%]" )
+    -- c[40](c[14],c[2]),c[25](c[48]),c[14](c[1],c[24],c[42]()), [...]
+    for ifunc, itab, args in string.gmatch( script, "c%[(%d+)%]%(c%[(%d+)%]([^)]-)%)" ) do
+        local iarg1 = string.match( args, "^,c%[(%d+)%]" )
+        local iarg2 = string.match( args, "^,[^,]-,c%[(%d+)%]" )
 
         local func = data[tonumber( ifunc ) + 1]
         local tab = data[tonumber( itab ) + 1]
-        local arg = iarg and data[tonumber( iarg ) + 1]
+        local arg1 = iarg1 and data[tonumber( iarg1 ) + 1]
+        local arg2 = iarg2 and data[tonumber( iarg2 ) + 1]
 
         -- Uncomment to debug transformation chain
-        --print( '"n" parameter transformation: '..prd( func ).."("..prd( tab )..( arg ~= nil and ( ", "..prd( arg, tab ) ) or "" )..") "..ifunc.."("..itab..( iarg and ( ", "..iarg ) or "" )..")" )
+        --print( '"n" parameter transformation: '..prd( func ).."("..prd( tab )..( arg1 ~= nil and ( ", "..prd( arg1, tab ) ) or "" )..( arg2 ~= nil and ( ", "..prd( arg2, tab ) ) or "" )..") "..ifunc.."("..itab..( iarg1 and ( ", "..iarg1 ) or "" )..( iarg2 and ( ", "..iarg2 ) or "" )..")" )
         --local nprev = table.concat( n )
 
         if type( func ) ~= "function" or type( tab ) ~= "table"
-            or func( tab, arg ) then
+            or func( tab, arg1, arg2 ) then
             print( "Invalid data type encountered during YouTube video throttling parameter descrambling transformation chain, aborting" )
             print( "Couldn't descramble YouTube throttling URL parameter: data transfer will get throttled" )
             print( "Couldn't process youtube video URL, please check for updates to this script" )
