@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v1.06 by satbaby"
+rssReaderVersion="Lua RSS READER v1.07 by satbaby"
 local CONF_PATH = "/var/tuxbox/config/"
 if DIR and DIR.CONFIGDIR then
 	CONF_PATH = DIR.CONFIGDIR .. '/'
@@ -1287,6 +1287,14 @@ function picviewer(id,nr)
 		local V = nil
 		local msg, data = nil,nil
 		local lastnr = 0
+		local colBlack = COL.BLACK
+		if not colBlack then
+			colBlack = COL.COL_BLACK
+		end
+		local colRed = COL.RED
+		if not colRed then
+			colRed = COL.COL_RED
+		end
 		repeat
 			msg, data = n:GetInput(500)
 
@@ -1323,12 +1331,12 @@ function picviewer(id,nr)
 							x = (getMaxScreenWidth()-picW)/2
 							x = math.floor(x)
 						end
-						n:PaintBox(0,0,-1,-1,COL.BLACK )
+						n:PaintBox(0,0,-1,-1, colBlack )
 						n:DisplayImage(image,x + SCREEN.OFF_X,y + SCREEN.OFF_Y,picW,picH)
 					end
 					if #glob.urlPicUrls > 1 then
 						local str = nr .. "/" .. #glob.urlPicUrls
-						n:RenderString(FontMenu, str, 20 + SCREEN.OFF_X , 40 + SCREEN.OFF_Y, COL.RED)
+						n:RenderString(FontMenu, str, 20 + SCREEN.OFF_X , 40 + SCREEN.OFF_Y, colRed)
 					end
 				end
 			end
