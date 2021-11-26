@@ -1,5 +1,5 @@
 --[[
-	plutotv-vod.lua v1.11
+	plutotv-vod.lua v1.2
 
 	Copyright (C) 2021 TangoCash
 	License: WTFPLv2
@@ -125,8 +125,7 @@ end
 
 function getVideoData(url) -- Generate stream address and evaluate it according to the best resolution
 	http = "http://service-stitcher-ipv4.clusters.pluto.tv/stitch/hls/episode/"
-	token = "?advertisingId=&appName=web&appVersion=unknown&appStoreUrl=&architecture=&buildVersion=&clientTime=0&deviceDNT=0&deviceId=" .. gen_ids() .. "&deviceMake=Chrome&deviceModel=web&deviceType=web&deviceVersion=unknown&includeExtendedEvents=false&sid=" .. gen_ids() .. "&userId=&serverSideAds=true"
-
+	token = "?terminate=false&embedPartner=&serverSideAds=&paln=&includeExtendedEvents=false&architecture=&deviceId=" .. gen_ids() .. "&deviceVersion=unknown&appVersion=unknown&deviceType=web&deviceMake=Chrome&sid=" .. gen_ids() .. "&advertisingId=&deviceLat=49.3058&deviceLon=6.9360&deviceDNT=0&deviceModel=Chrome&userId=&appName="
 	local data = getdata(http .. url .."/master.m3u8" ..token) -- Calling the generated master.m3u8
 	local count = 0
 	if data then
@@ -350,9 +349,37 @@ function playback_stream(uuid)
 			local info2 = playback_details[uuid].desc
 		end
 		current_uuid = uuid
+		local data = getdata(re_url)
+		local dlm3 = "/tmp/.plutotv_vod_play.m3u8"
+		local m3uw = io.open(dlm3,"w")
+		local nomarkerfound = true
+		local marker = ""
+		local skipline = false
+		for line in data:gmatch("([^\n]*)\n?") do
+			if nomarkerfound then
+				if line:find('#EXT-X-KEY',1,true) then
+					marker = line:match('.-://.-/(.-)/')
+					nomarkerfound = false
+				end
+			end
+			if not skipline and line == '#EXT-X-DISCONTINUITY' then
+				skipline = true
+			end
+			if skipline and line:find('#EXT-X-KEY',1,true) and line:find(marker,1,true) then
+				skipline = false
+			end
+			if skipline and line == '#EXT-X-ENDLIST' then
+				skipline = false
+			end
+			if not skipline then
+				m3uw:write(line..'\n')
+			end
+		end
+		m3uw:close()
 		vPlay:setSinglePlay(true)
 		vPlay:setInfoFunc("epgInfo")
-		vPlay:PlayFile(playback_details[uuid].title or playback_details[uuid].name, re_url, info1, info2 or "");
+		vPlay:PlayFile(playback_details[uuid].title or playback_details[uuid].name, dlm3, info1, info2 or "");
+		os.execute('rm '.. dlm3)
 	end
 	current_uuid = ""
 	showBGPicture()
@@ -379,19 +406,51 @@ function start_bg_download(streamUrl,filename,title)
 	local Format = nil
 	if streamUrl then
 		if streamUrl:find("m3u8") then
-			Format = 'ts'
+			Format = 'mp4'
 		end
+		local data = getdata(streamUrl)
+		local dlm3 = "/tmp/.plutotv_vod_dl.m3u8"
+		local m3uw = io.open(dlm3,"w")
+		local nomarkerfound = true
+		local marker = ""
+		local skipline = false
+		for line in data:gmatch("([^\n]*)\n?") do
+			if nomarkerfound then
+				if line:find('#EXT-X-KEY',1,true) then
+					marker = line:match('.-://.-/(.-)/')
+					nomarkerfound = false
+				end
+			end
+			if not skipline and line == '#EXT-X-DISCONTINUITY' then
+				skipline = true
+			end
+			if skipline and line:find('#EXT-X-KEY',1,true) and line:find(marker,1,true) then
+				skipline = false
+			end
+			if skipline and line == '#EXT-X-ENDLIST' then
+				skipline = false
+			end
+			if not skipline then
+				m3uw:write(line..'\n')
+			end
+		end
+		m3uw:close()
 		if filename and Format then
 			local dls  = "/tmp/.plutotv_vod_dl.sh"
 			dlname = filename
 			local script=io.open(dls,"w")
 			script:write('echo "download start" ;\n')
-			script:write("ffmpeg -y -nostdin -loglevel 30 -i '" .. streamUrl .. "' -c copy  " .. dlname   .. "." .. Format .. "\n")
+			script:write("ffmpeg -y -nostdin -loglevel 30 -force_dts_monotonicity -protocol_whitelist 'http,https,file,crypto,tls,tcp' -i '" .. dlm3 .. "' -c copy " .. dlname   .. "." .. Format .. "\n")
 			script:write('if [ $? -eq 0 ]; then \n')
 			script:write('wget -q http://127.0.0.1/control/message?popup="Video ' .. title .. ' wurde heruntergeladen." -O /dev/null ; \n')
+			script:write('mv ' .. dlname .. '.' .. Format .. ' ' .. dlname .. '.ts\n')
+			script:write('rm ' .. dlm3 .. '; \n')
+			script:write('echo "download success" ;\n')
 			script:write('else \n')
 			script:write('wget -q http://127.0.0.1/control/message?popup="Download ' .. title .. ' FEHLGESCHLAGEN" -O /dev/null ; \n')
 			script:write('rm ' .. dlname .. '.*; \n')
+			script:write('rm ' .. dlm3 .. '; \n')
+			script:write('echo "download failed" ;\n')
 			script:write('fi \n')
 			script:write('rm ' .. dls .. '; \n')
 			script:close()
@@ -650,8 +709,8 @@ function get_cat()
 					itemlist_details = {}
 					for k = 1, #jd.categories[i].items do
 						local _duration = 0
-						if jd.categories[i].items[k].duration then
-							_duration = tonumber(jd.categories[i].items[k].duration) / 1000 / 60
+						if jd.categories[i].items[k].originalContentDuration then
+							_duration = math.floor(tonumber(jd.categories[i].items[k].originalContentDuration) / 1000 / 60 + 0.5)
 						end
 						itemlist_details[k] =
 						{
@@ -740,7 +799,7 @@ function season_menu(_id)
 						episode = k;
 						name = i.."x"..string.format("%02d",k).." - ".. jd.seasons[i].episodes[k].name;
 						desc = jd.seasons[i].episodes[k].description;
-						duration = tonumber(jd.seasons[i].episodes[k].duration) / 1000 / 60;
+						duration = math.floor(tonumber(jd.seasons[i].episodes[k].originalContentDuration) / 1000 / 60 + 0.5);
 						uuid = jd.seasons[i].episodes[k]._id;
 						cover = jd.seasons[i].episodes[k].covers[1].url;
 						type = jd.seasons[i].episodes[k].type;
