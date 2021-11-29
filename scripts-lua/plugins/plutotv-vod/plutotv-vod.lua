@@ -1,5 +1,5 @@
 --[[
-	plutotv-vod.lua v1.2
+	plutotv-vod.lua v1.21
 
 	Copyright (C) 2021 TangoCash
 	License: WTFPLv2
@@ -355,8 +355,9 @@ function playback_stream(uuid)
 		local nomarkerfound = true
 		local marker = ""
 		local skipline = false
+		local count = 1
 		for line in data:gmatch("([^\n]*)\n?") do
-			if nomarkerfound then
+			if nomarkerfound and count > 12 then
 				if line:find('#EXT-X-KEY',1,true) then
 					marker = line:match('.-://.-/(.-)/')
 					nomarkerfound = false
@@ -371,9 +372,13 @@ function playback_stream(uuid)
 			if skipline and line == '#EXT-X-ENDLIST' then
 				skipline = false
 			end
+			if count < 12 then
+				skipline = false
+			end
 			if not skipline then
 				m3uw:write(line..'\n')
 			end
+			count = count + 1
 		end
 		m3uw:close()
 		vPlay:setSinglePlay(true)
@@ -408,14 +413,15 @@ function start_bg_download(streamUrl,filename,title)
 		if streamUrl:find("m3u8") then
 			Format = 'mp4'
 		end
+		local file_id = gen_ids()
 		local data = getdata(streamUrl)
-		local dlm3 = "/tmp/.plutotv_vod_dl.m3u8"
+		local dlm3 = "/tmp/.plutotv_vod_dl_" .. file_id .. ".m3u8"
 		local m3uw = io.open(dlm3,"w")
 		local nomarkerfound = true
 		local marker = ""
-		local skipline = false
+		local count = 1
 		for line in data:gmatch("([^\n]*)\n?") do
-			if nomarkerfound then
+			if nomarkerfound and count > 12 then
 				if line:find('#EXT-X-KEY',1,true) then
 					marker = line:match('.-://.-/(.-)/')
 					nomarkerfound = false
@@ -430,13 +436,17 @@ function start_bg_download(streamUrl,filename,title)
 			if skipline and line == '#EXT-X-ENDLIST' then
 				skipline = false
 			end
+			if count < 12 then
+				skipline = false
+			end
 			if not skipline then
 				m3uw:write(line..'\n')
 			end
+			count = count + 1
 		end
 		m3uw:close()
 		if filename and Format then
-			local dls  = "/tmp/.plutotv_vod_dl.sh"
+			local dls  = "/tmp/.plutotv_vod_dl_" .. file_id .. ".sh"
 			dlname = filename
 			local script=io.open(dls,"w")
 			script:write('echo "download start" ;\n')
