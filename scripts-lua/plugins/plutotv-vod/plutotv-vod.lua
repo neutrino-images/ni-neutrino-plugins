@@ -1,5 +1,5 @@
 --[[
-	plutotv-vod.lua v1.21
+	plutotv-vod.lua v1.22
 
 	Copyright (C) 2021 TangoCash
 	License: WTFPLv2
@@ -324,7 +324,15 @@ end
 function showBGPicture()
 	if fh:exist(bigPicBG, 'f') then
 		vPlay:zapitStopPlayBack()
-		vPlay:ShowPicture(bigPicBG)
+		rev, box = nMisc:GetRevision()
+		if box ~= "Coolstream" then
+			vPlay:ShowPicture(bigPicBG)
+		elseif have_jpegtran then
+			os.execute("jpegtran -copy none -optimize " .. bigPicBG .. " > " .. bigPicBGconv)
+			if fh:exist(bigPicBGconv, 'f') then
+				vPlay:ShowPicture(bigPicBGconv)
+			end
+		end
 	end
 end
 
@@ -400,7 +408,6 @@ function dl_check(streamUrl)
 
 	local dl_not_possible = dlPath == '/tmp' or dlPath == '/'
 	if dl_not_possible then return check end
-	if fh:exist('/tmp/.plutotv_vod_dl.sh', 'f') then return check end
 	if have_ffmpeg and streamUrl:find('m3u8') then
 		check = true
 	end
@@ -453,7 +460,9 @@ function start_bg_download(streamUrl,filename,title)
 			script:write("ffmpeg -y -nostdin -loglevel 30 -force_dts_monotonicity -protocol_whitelist 'http,https,file,crypto,tls,tcp' -i '" .. dlm3 .. "' -c copy " .. dlname   .. "." .. Format .. "\n")
 			script:write('if [ $? -eq 0 ]; then \n')
 			script:write('wget -q http://127.0.0.1/control/message?popup="Video ' .. title .. ' wurde heruntergeladen." -O /dev/null ; \n')
-			script:write('mv ' .. dlname .. '.' .. Format .. ' ' .. dlname .. '.ts\n')
+			if Format == 'mp4' then 
+				script:write('mv ' .. dlname .. '.' .. Format .. ' ' .. dlname .. '.ts\n')
+			end
 			script:write('rm ' .. dlm3 .. '; \n')
 			script:write('echo "download success" ;\n')
 			script:write('else \n')
@@ -498,7 +507,14 @@ function download_stream(uuid)
 			sleep(3)
 			h1:hide()
 		else
-			local h3 = hintbox.new{caption=plugin_title, text="Ein Download läuft bereits...\n\nBitte warten bis dieser abgeschlossen ist  ", icon=plutotv_vod_png}
+			local message = "Etwas ist schiefgelaufen ..."
+			if dlPath == '/tmp' or dlPath == '/' then
+				message = "Downloadverzeichnis nicht beschreibar ..."
+			end
+			if not have_ffmpeg then
+				message = "FFmpeg nicht installiert ..."
+			end
+			local h3 = hintbox.new{caption=plugin_title, text="Download nicht möglich ...\n\n" .. message, icon=plutotv_vod_png}
 			h3:paint()
 			sleep(3)
 			h3:hide()
@@ -506,7 +522,7 @@ function download_stream(uuid)
 	end
 end
 
-function save_info(uuid,filename)
+function save_info(uuid,xmlfilename)
 	local ch = plugin_title
 	local title = playback_details[uuid].title or playback_details[uuid].name
 	local info1 = playback_details[uuid].eptitle or ""
@@ -549,21 +565,28 @@ local xml='<?xml version="1.0" encoding="UTF-8"?>\
 	</record>\
 </neutrino>\n'
 
-	local file = io.open(filename..".xml",'w')
+	local file = io.open(xmlfilename..".xml",'w')
 	file:write(xml)
 	file:close()
 	if playback_details[uuid].cover ~= nil then
-		if getdata(playback_details[uuid].cover,filename..".jpg") == nil then
+		if getdata(playback_details[uuid].cover,xmlfilename..".jpg") == nil then
 			os.execute('rm  ' .. filename .. '.jpg')
 		end
 	end
 end
 
 function epgInfo(xres, yres, aspectRatio, framerate)
-	local off_w,x,y,w,h  = 0,0,0,0,0
+	local off_w,x,y,w,h = 0,0,0,0,0
 	local space = OFFSET.INNER_MID
 	local withPic = false
-	local wow = cwindow.new{x=x, y=y, dx=w, dy=h, title=playback_details[current_uuid].title or playback_details[current_uuid].name, icon=plutotv_vod_png }
+	local btn_text = "Film downloaden"
+	if playback_details[current_uuid].type == "episode" then
+		btn_text = "Episode downloaden"
+	end
+	if not have_ffmpeg then
+		btn_text = nil
+	end
+	local wow = cwindow.new{x=x, y=y, dx=w, dy=h, title=playback_details[current_uuid].title or playback_details[current_uuid].name, icon=plutotv_vod_png, btnRed=btn_text }
 	local tf = wow:headerHeight() + wow:footerHeight()
 	w,h = n:scale2Res(1000), n:scale2Res(600) + tf
 	local tw = n:getRenderWidth(FONT.MENU_TITLE,playback_details[current_uuid].title or playback_details[current_uuid].name) + (wow:headerHeight() * 2)
@@ -622,6 +645,9 @@ function epgInfo(xres, yres, aspectRatio, framerate)
 		elseif ct and (msg == RC.down or msg == RC.page_down) then
 			ct:scroll{dir="down"}
 		end
+		if ((msg == RC['red']) or (msg == RC['record'])) then
+			download_stream(current_uuid)
+		end
 	until msg == RC.ok or msg == RC.home or msg == RC.info or i == t
 	wow:hide()
 end
@@ -640,7 +666,7 @@ end
 function show_playback_info(uuid)
 	mode = 0;
 
-	local off_w,x,y,w,h  = 0,0,0,0,0
+	local off_w,x,y,w,h = 0,0,0,0,0
 	local space = OFFSET.INNER_MID
 	local withPic = false
 	local btn_text = "Film"
@@ -907,7 +933,9 @@ end
 nMisc = misc.new()
 vPlay = video.new()
 have_ffmpeg = which("ffmpeg")
+have_jpegtran = which("jpegtran")
 coverPic = "/tmp/plutotv-vod_cover.jpg"
 bigPicBG = "/tmp/plutotv-vod_bg.jpg"
+bigPicBGconv = "/tmp/plutotv-vod_bgconv.jpg"
 hints = get_hints_menu()
 MainMenue()
