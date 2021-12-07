@@ -26,9 +26,12 @@
 #	Timer rules:		/var/tuxbox/config/pr-auto-timer.rules
 #	Neutrino plugin:	/usr/share/tuxbox/neutrino/plugins/pr-auto-timer.{sh,cfg}
 
-VERSION=0.43
+VERSION=0.44
 
 # Changelog:
+#
+# 0.44 by tewsbo (NI-Team)
+#	-fix parsing moviepilot website
 #
 # 0.43 by tewsbo (NI-Team)
 #	-fix displaylog output
@@ -2212,7 +2215,16 @@ get_sky_moviedata() {
 	fi
 	if [ ! -e $data_file ]; then
 		log "\t\tget_sky_moviedata: get informations ..."
-		wget -qO "$data_file" "http://www.moviepilot.de/liste/sky-neustarts-filmschauer"
+		wget -qO "$data_file"_orig "http://www.moviepilot.de/liste/sky-neustarts-filmschauer"
+		grep -o "itemTitle\(.*\)itemData" "$data_file"_orig | \
+		sed 's/itemTitle/&\n/g' | \
+		sed 's/description/&\nDatum\n/g' | \
+		sed 's/itemData/&\n/g' | \
+		sed 's/.*"itemTitle/Titel/g' | \
+		sed 's/\\u0026/\&amp;/g' | \
+		sed 's/","/&\n/g' | \
+		sed 's/","//g' | \
+		sed 's/":"//g' > $data_file
 	fi
 
 	test -e $data_file && cat $data_file | awk '
@@ -2224,29 +2236,25 @@ get_sky_moviedata() {
 		END {
 		}
 
-		/board_item_description/ {
-			found="date";
-			date="";
-			next;
-		}
-
-		/clearfix/ {
-			found=false;
-			next;
-		}
-
-		/<h3>/ {
+		/Titel/ {
 			found="movie";
 			movie="";
 			next;
 		}
 
-		/<\/h3>/ {
+		/description/ {
 			found=false;
 			next;
 		}
 
-		/<span>|\/serie\// {
+		/Datum/ {
+			found="date";
+			date="";
+			next;
+		}
+
+		/itemData/ {
+			found=false;
 			next;
 		}
 
