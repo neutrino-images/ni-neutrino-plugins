@@ -2220,7 +2220,7 @@ get_sky_moviedata() {
 		sed 's/itemTitle/&\n/g' | \
 		sed 's/description/&\nDatum\n/g' | \
 		sed 's/itemData/&\n/g' | \
-		sed 's/.*"itemTitle/Titel/g' | \
+		sed 's/.*itemTitle/Titel/g' | \
 		sed 's/\\u0026/\&amp;/g' | \
 		sed 's/","/&\n/g' | \
 		sed 's/","//g' | \
