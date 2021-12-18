@@ -5,7 +5,7 @@
 ]]
 
 function init()
-	Version = 0.21
+	Version = 0.22
 	CONF_PATH = "/var/tuxbox/config/"
 	if DIR and DIR.CONFIGDIR then
 		CONF_PATH = DIR.CONFIGDIR .. '/'
