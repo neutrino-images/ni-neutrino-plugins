@@ -5,7 +5,7 @@
 ]]
 
 function init()
-	Version = 0.21
+	Version = 0.22
 	CONF_PATH = "/var/tuxbox/config/"
 	if DIR and DIR.CONFIGDIR then
 		CONF_PATH = DIR.CONFIGDIR .. '/'
@@ -645,14 +645,14 @@ function getZDFstream(tab)
 					local m3u8 = streams.h264_aac_ts_http_m3u8_http
 					local mpd = streams.h264_aac_mp4_http_mpd_http
 					if maxRes > 1281 and mp4 and mp4.main and mp4.main.deu and mp4.main.deu.q3 then
-						tab.stream = mp4.main.deu.q3
+						tab.stream = mp4.main.deu.q3.url
 						break
 					elseif maxRes < 1281 and mp4 and mp4.main and mp4.main.deu and mp4.main.deu.q1 then
-						tab.stream = mp4.main.deu.q1
+						tab.stream = mp4.main.deu.q1.url
 					elseif m3u8 and m3u8.main and m3u8.main.deu and m3u8.main.deu.q3 then
-						tab.stream , tab.audiostream = getVideoUrlM3U8(m3u8.main.deu.q3)
+						tab.stream , tab.audiostream = getVideoUrlM3U8(m3u8.main.deu.q3.url)
 					elseif mpd and mpd.main and mpd.main.deu then
-						tab.stream = mpd.main.deu
+						tab.stream = mpd.main.deu.url
 					end
 				end
 			end
