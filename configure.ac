@@ -361,7 +361,7 @@ AC_ARG_ENABLE(plutotv-vod,
 	AS_HELP_STRING([--enable-plutotv-vod], [enable plutotv-vod @<:@default=yes@:>@]),
 	[enable_plutotv_vod="$enableval"],
 	[enable_plutotv_vod="yes"])
-AM_CONDITIONAL(ENABLE_PLUTOTV_VOD, test "$enable_plutotv_vod" = "yes")
+AM_CONDITIONAL(ENABLE_PLUTOTV_VOD, test "$enable_plutotv_vod" = "yes" -a "$enable_plutotv" = "yes")
 
 AC_ARG_ENABLE(rakutentv,
 	AS_HELP_STRING([--enable-rakutentv], [enable webtv rakutentv @<:@default=yes@:>@]),
