@@ -25,7 +25,7 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
-version = "v1.20h"
+version = "v1.20i"
 
 on = "ein"; off = "aus"
 
@@ -298,49 +298,34 @@ function image_to_devnum(root)
 	return ret
 end
 
-function get_cfg_value(str, part)
-	local r = 0
-	if exists("/tmp/testmount/" .. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf") then
-		for line in io.lines("/tmp/testmount/".. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf") do
-			if line:match(str .. "=") then
-				local i,j = string.find(line, str .. "=")
-				r = tonumber(string.sub(line, j+1, #line))
-			end
+function get_cfg_value(str)
+	for line in io.lines(tuxbox_config .. "/stb-startup.conf") do
+		if line:match(str .. "=") then
+			local i,j = string.find(line, str .. "=")
+			r = tonumber(string.sub(line, j+1, #line))
 		end
 	end
 	return r
 end
 
-function tableOnOff(part)
-	t = {off, on}
-	if tuxbox_cfg[part] == nil then
-		return t
-	end
-	if (get_cfg_value("boxmode_12", part, tuxbox_cfg[part]) == 1) then
-		t = {on, off}
-	end
-	return t
-end
-
-function create_cfg(part)
-	file = io.open("/tmp/testmount/" .. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf", "w")
+function create_cfg()
+	file = io.open(tuxbox_config .. "/stb-startup.conf", "w")
 	file:write("boxmode_12=0", "\n")
 	file:close()
 end
 
 function write_cfg(k, v, str)
-	local part = tonumber(k)
 	local a
 	if (v == on) then a = 1 else a = 0 end
 	local cfg_content = {}
-	for line in io.lines("/tmp/testmount/".. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf") do
+	for line in io.lines(tuxbox_config .. "/stb-startup.conf") do
 		if line:match(str .. "=") then
 			table.insert (cfg_content, (string.reverse(string.gsub(string.reverse(line), string.sub(string.reverse(line), 1, 1), a, 1))))
 		else
 			table.insert (cfg_content, line)
 		end
 	end
-	file = io.open("/tmp/testmount/".. devbase .. part .. tuxbox_cfg[part] .. "/stb-startup.conf", 'w')
+	file = io.open(tuxbox_config .. "/stb-startup.conf", 'w')
 	for i, v in ipairs(cfg_content) do
 		file:write(v, "\n")
 	end
@@ -356,7 +341,7 @@ function get_cmdline_value(str)
 	return false
 end
 
-function set(k, v)
+function set(k, v, str)
 	write_cfg(k, v, "boxmode_12")
 end
 
@@ -455,6 +440,10 @@ function main()
 		end
 	end
 
+	if not exists(tuxbox_config .. "/stb-startup.conf") and has_boxmode() then
+		create_cfg()
+	end
+
 	mount_filesystems()
 
 	timing_menu = neutrino_conf:getString("timing.menu", "0")
@@ -542,11 +531,12 @@ function main()
 			chooser:hide()
 			menu = menu.new{icon="settings", name=locale[lang].options}
 			menu:addItem{type="back"}
-			menu:addItem{type="separatorline", name="Boxmode 12"}
-			menu:addItem{type="chooser", action="set", id="1", options=tableOnOff(1), enabled=isdir("/tmp/testmount/" .. devbase .. "1" .. tuxbox_cfg[1]), directkey=RC["red"], name=imagename[1]}
-			menu:addItem{type="chooser", action="set", id="2", options=tableOnOff(2), enabled=isdir("/tmp/testmount/" .. devbase .. "2" .. tuxbox_cfg[2]), directkey=RC["green"], name=imagename[2]}
-			menu:addItem{type="chooser", action="set", id="3", options=tableOnOff(3), enabled=isdir("/tmp/testmount/" .. devbase .. "3" .. tuxbox_cfg[3]), directkey=RC["yellow"], name=imagename[3]}
-			menu:addItem{type="chooser", action="set", id="4", options=tableOnOff(4), enabled=isdir("/tmp/testmount/" .. devbase .. "4" .. tuxbox_cfg[4]), directkey=RC["blue"], name=imagename[4]}
+			menu:addItem{type="separatorline", name="Image: " .. get_imagename(current_root)}
+			if (get_cfg_value("boxmode_12") == 1) then
+				menu:addItem{type="chooser", action="set", options={on, off}, directkey=RC["setup"], name=locale[lang].boxmode}
+			elseif (get_cfg_value("boxmode_12") == 0) then
+				menu:addItem{type="chooser", action="set", options={off, on}, directkey=RC["setup"], name=locale[lang].boxmode}
+			end
 			menu:exec()
 			chooser:paint()
 		end
