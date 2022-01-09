@@ -17,7 +17,7 @@
 	typeof (b) __b = (b); \
 	__a > __b ? __a : __b; })
 
-#define M_VERSION 2.15
+#define M_VERSION 2.16
 
 #ifndef CONFIGDIR
 #define CONFIGDIR "/var/tuxbox/config"
