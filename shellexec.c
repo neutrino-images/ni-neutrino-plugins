@@ -11,7 +11,7 @@
 #include "gfx.h"
 #include "pngw.h"
 
-#define SH_VERSION 2.18
+#define SH_VERSION 2.19
 
 #ifndef CONFIGDIR
 #define CONFIGDIR "/var/tuxbox/config"
