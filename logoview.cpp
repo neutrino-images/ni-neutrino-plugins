@@ -36,12 +36,21 @@
 #include "jpeg.h"
 #include "version.h"
 
+#ifndef CONFIGDIR
+#define CONFIGDIR "/var/tuxbox/config"
+#endif
+#ifndef ICONSDIR
+#define ICONSDIR "/usr/share/neutrino/icons"
+#endif
+
 #define VERSIONSTR "\n\
       ------------------------------------------------------------\n\
       -- logoview v" LV_VERSION " * (C)2011-2016, M. Liebmann (micha-bbg) --\n\
       ------------------------------------------------------------\n\n"
 #define FLAG_FILE "/tmp/.logoview"
-#define NEUTRINO_CONF "/var/tuxbox/config/neutrino.conf"
+#define NEUTRINO_CONF CONFIGDIR "/neutrino.conf"
+#define START_LOGO ICONSDIR "/start.jpg"
+
 #define FB_DEVICE "/dev/fb/0"
 
 #define DEFAULT_X_START_SD	60
@@ -84,7 +93,7 @@ CLogoView::CLogoView()
 	onlyClearScreen = false;
 	background    = false;
 	nomem         = "logoview <Out of memory>\n";
-	start_logo    = "/share/tuxbox/neutrino/icons/start.jpg";
+	start_logo    = START_LOGO;
 }
 
 CLogoView::~CLogoView()
