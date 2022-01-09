@@ -242,6 +242,20 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 		return scale2res(15);
 	}
 
+	int _d = 0;
+	if (1)
+	{
+		FT_UInt _i = FT_Get_Char_Index(face, 'g');
+		FTC_SBit _g;
+		if((err = FTC_SBitCache_Lookup(cache, &desc, _i, &_g, NULL)))
+		{
+			printf("%s <FTC_SBitCache_Lookup for Char \"%c\" failed with Errorcode 0x%.2X>\n", __plugin__, 'g', error);
+			return 0;
+		}
+		_d = _g->height - _g->top;
+		_d += 1;
+	}
+
 	//load char
 
 	if(!(glyphindex = FT_Get_Char_Index(face, currentchar)))
@@ -254,16 +268,6 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 	{
 		printf("%s <FTC_SBitCache_Lookup for Char \"%c\" failed with Errorcode 0x%.2X>\n",__plugin__, (int)currentchar, error);
 		return 0;
-	}
-
-	int _d = 0;
-	if (1)
-	{
-		FT_UInt _i = FT_Get_Char_Index(face, 'g');
-		FTC_SBit _g;
-		FTC_SBitCache_Lookup(cache, &desc, _i, &_g, NULL);
-		_d = _g->height - _g->top;
-		_d += 1;
 	}
 
 	if(use_kerning)
