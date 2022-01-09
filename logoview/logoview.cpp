@@ -37,6 +37,13 @@
 #include "logoview.h"
 #include "jpeg.h"
 
+#ifndef CONFIGDIR
+#define CONFIGDIR "/var/tuxbox/config"
+#endif
+#ifndef ICONSDIR
+#define ICONSDIR "/usr/share/neutrino/icons"
+#endif
+
 #define VERSIONSTR "\n\
       ------------------------------------------------------------\n\
       -- logoview v" LV_VERSION " * (C)2011-2016, M. Liebmann (micha-bbg) --\n\
