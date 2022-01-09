@@ -1,12 +1,17 @@
 #ifndef __icons_h__
 #define __icons_h__
 
-#define ICON_BUTTON_RED     "/share/tuxbox/neutrino/icons/rot.png"
-#define ICON_BUTTON_GREEN   "/share/tuxbox/neutrino/icons/gruen.png"
-#define ICON_BUTTON_YELLOW  "/share/tuxbox/neutrino/icons/gelb.png"
-#define ICON_BUTTON_BLUE    "/share/tuxbox/neutrino/icons/blau.png"
+#ifndef ICONSDIR
+#define ICONSDIR	"/usr/share/tuxbox/neutrino/icons"
+#endif
 
-#define ICON_ERROR		"/share/tuxbox/neutrino/icons/error.png"
-#define ICON_INFO		"/share/tuxbox/neutrino/icons/information.png"
+#define ICON_BUTTON_RED     ICONSDIR "/btn_red.png"
+#define ICON_BUTTON_GREEN   ICONSDIR "/btn_green.png"
+#define ICON_BUTTON_YELLOW  ICONSDIR "/btn_yellow.png"
+#define ICON_BUTTON_BLUE    ICONSDIR "/btn_blue.png"
+
+
+#define ICON_ERROR		ICONSDIR "/error.png"
+#define ICON_INFO		ICONSDIR "/information.png"
 
 #endif
