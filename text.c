@@ -1,3 +1,4 @@
+#include "current.h"
 #include "text.h"
 #include "gfx.h"
 #include "io.h"
@@ -21,7 +22,7 @@ FT_Error MyFaceRequester(FTC_FaceID face_id, FT_Library lib, FT_Pointer request_
 
 	result = FT_New_Face(lib, face_id, 0, aface);
 
-	if(result) fprintf(stderr, "msgbox <Font \"%s\" failed>\n", (char*)face_id);
+	if(result) fprintf(stderr, "%s <Font \"%s\" failed>\n", __plugin__, (char*)face_id);
 
 	return result;
 }
@@ -132,13 +133,13 @@ int RenderChar(FT_ULong currentchar, int _sx, int _sy, int _ex, int color)
 
 	if(!(glyphindex = FT_Get_Char_Index(face, currentchar)))
 	{
-		fprintf(stderr, "input <FT_Get_Char_Index for Char \"%c\" failed\n", (int)currentchar);
+		fprintf(stderr, "%s <FT_Get_Char_Index for Char \"%c\" failed\n", __plugin__, (int)currentchar);
 		return 0;
 	}
 
 	if((err = FTC_SBitCache_Lookup(cache, &desc, glyphindex, &sbit, NULL)))
 	{
-		fprintf(stderr, "input <FTC_SBitCache_Lookup for Char \"%c\" failed with Errorcode 0x%.2X>\n", (int)currentchar, error);
+		fprintf(stderr, "%s <FTC_SBitCache_Lookup for Char \"%c\" failed with Errorcode 0x%.2X>\n", __plugin__, (int)currentchar, error);
 		return 0;
 	}
 
