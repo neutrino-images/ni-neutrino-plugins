@@ -1,5 +1,5 @@
 --[[
-	Heizölpreise Plugin lua v0.4
+	Heizölpreise Plugin lua v0.5
 	Copyright (C) 2018,  Jacek Jendrzej 'satbaby'
 
 	License: GPL
@@ -182,8 +182,8 @@ function picView(hosturl,url,titletxt)
 		local ww = nil
 		if ok then
 			local picW,picH = n:GetSize(fpic)
-			ww = cwindow.new{x=5, y=5, dx=picW+10, dy=picH+80, title=titletxt, icon="info"}
-			cpicture.new{parent=ww, x=0, y=0, dx=picW, dy=picH, image=fpic}
+			ww = cwindow.new{x=0, y=0, dx=picW+20, dy=picH+20, title=titletxt, icon="info"}
+			cpicture.new{parent=ww, x=10, y=0, dx=picW, dy=picH, image=fpic}
 			ww:setCenterPos{3}
 			ww:paint()
 		end
@@ -261,7 +261,7 @@ function start(deat)
 		ctext.new{parent=w, x=xStart+textMax+(row*3)+minusW, y=yStart+lineH  , dx=_dx, dy=vSpace-vSHalf, text=diff, font_text=FontMenu,color_text=coltext}
 		local trend = ""
 		if v.icon then trend=v.icon  end 
-		cpicture.new{parent=w, x=xStart+textMax+(row*4), y=yStart+lineH , dx=_dx, dy=vSpace, image=trend}
+		cpicture.new{parent=w, x=xStart+textMax+(row*4), y=yStart+lineH+4 , dx=0, dy=0, image=trend}
 	end
 	w:paint()
 	conf.select = 1
