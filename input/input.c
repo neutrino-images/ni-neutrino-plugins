@@ -11,7 +11,7 @@
 #include "gfx.h"
 #include "inputd.h"
 
-#define I_VERSION	2.15
+#define I_VERSION	2.16
 
 #ifndef CONFIGDIR
 #define CONFIGDIR "/var/tuxbox/config"
