@@ -401,7 +401,7 @@ function main()
 		start_partition = "Rebooten und die gewählte Partition starten?",
 		empty_partition = "Das gewählte Image ist nicht vorhanden",
 		options = "Einstellungen",
-		boxmode = "Boxmode 12",
+		boxmode12 = "Boxmode 12",
 		image = "Imagewechsel",
 		boxmode = "Boxmodewechsel",
 		image_and_boxmode = "Image- und Boxmodewechsel",
@@ -414,7 +414,7 @@ function main()
 		start_partition = "Reboot and start the chosen partition?",
 		empty_partition = "No image available",
 		options = "Options",
-		boxmode = "Boxmode 12",
+		boxmode12 = "Boxmode 12",
 		image = "Wrote Image changing",
 		boxmode = "Wrote Image changing",
 		image_and_boxmode = "Wrote Image- and Boxmode changing",
@@ -516,16 +516,16 @@ function main()
 		i = i + 1
 		msg, data = n:GetInput(d)
 		if (msg == RC['red']) then
-				root = 1
+			root = 1
 			colorkey = true
 		elseif (msg == RC['green']) then
-				root = 2
+			root = 2
 			colorkey = true
 		elseif (msg == RC['yellow']) then
-				root = 3
+			root = 3
 			colorkey = true
 		elseif (msg == RC['blue']) then
-				root = 4
+			root = 4
 			colorkey = true
 		elseif has_boxmode() and (msg == RC['setup']) then
 			chooser:hide()
@@ -533,9 +533,9 @@ function main()
 			menu:addItem{type="back"}
 			menu:addItem{type="separatorline", name="Image: " .. get_imagename(current_root)}
 			if (get_cfg_value("boxmode_12") == 1) then
-				menu:addItem{type="chooser", action="set", options={on, off}, directkey=RC["setup"], name=locale[lang].boxmode}
+				menu:addItem{type="chooser", action="set", options={on, off}, directkey=RC["setup"], name=locale[lang].boxmode12}
 			elseif (get_cfg_value("boxmode_12") == 0) then
-				menu:addItem{type="chooser", action="set", options={off, on}, directkey=RC["setup"], name=locale[lang].boxmode}
+				menu:addItem{type="chooser", action="set", options={off, on}, directkey=RC["setup"], name=locale[lang].boxmode12}
 			end
 			menu:exec()
 			chooser:paint()
@@ -556,11 +556,11 @@ function main()
 			return
 		end
 		res = messagebox.exec {
-		title = caption,
-		icon = "settings",
-		text = locale[lang].start_partition,
-		timeout = 0,
-		buttons={ "yes", "no" }
+			title = caption,
+			icon = "settings",
+			text = locale[lang].start_partition,
+			timeout = 0,
+			buttons={ "yes", "no" }
 		}
 	end
 
