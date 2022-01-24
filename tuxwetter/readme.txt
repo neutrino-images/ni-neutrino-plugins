@@ -58,11 +58,12 @@ dargestellt.
 
 Der Parameter
 
- InetConnection=ISDN
+ InetConnection=fast
 
-teilt dem Plugin mit, daß der Internetzugang per ISDN erfolgt. Statt ISDN kann auch ANALOG
-eingetragen werden. Für DSL ist kein Eintrag notwendig (default). Anhand dieses Parameters
-werden beim Download von Dateien die Timeouts für Verbindungsaufnahme und Gesamtdownload-
+teilt dem Plugin mit, daß ein schneller Internetzugang besteht.
+Statt "fast" kann auch "slow" oder "lame" eingetragen werden.
+Für DSL ist kein Eintrag notwendig (default = "fast"). Anhand dieses Parameters werden
+beim Download von Dateien die Timeouts für Verbindungsaufnahme, die Gesamtdownload-
 Zeit sowie die Dateigröße berechnet, ab welcher der Fortschrittsbalken im LCD angezeigt wird.
 
 Wer viele Web-Cams auf Home-PC's einbindet, kann mit dem Parameter
