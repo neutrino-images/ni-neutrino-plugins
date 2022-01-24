@@ -435,11 +435,11 @@ int ReadConf(char *iscmd)
 				}
 			if(strstr(line_buffer,"InetConnection") == line_buffer)
 				{
-					if(strstr(cptr+1,"ISDN")!=NULL)
+					if(strstr(cptr+1,"slow")!=NULL)
 						{
 							intype=1;
 						}
-					if(strstr(cptr+1,"ANALOG")!=NULL)
+					if(strstr(cptr+1,"lame")!=NULL)
 						{
 							intype=2;
 						}
