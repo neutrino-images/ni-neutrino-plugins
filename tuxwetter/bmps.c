@@ -48,7 +48,7 @@ int bmp2lcd (char *bildfile)
 
 	int intbild;
 
-	if (strstr(bildfile,"tuxwettr.bmp")==NULL)
+	if (strstr(bildfile,"tuxwetter.bmp")==NULL)
 	{
 		if (bildfile[0] == 45)
 		{
