@@ -3,7 +3,7 @@ Metric=1
 # InetConnection=ISDN/ANALOG		fuer langsamere Verbindungen zur Konfiguration von Timeoutzeiten
 InetConnection=DSL
 ConnectTimeout=5
-# API-Key bei darksky.net	Bei darksky.net wird der LicenseKey als API-Key verwendet
+# API-Key bei darksky.net		Bei darksky.net wird der API-Key als LicenseKey verwendet
 LicenseKey=
 # SplashScreen=1/0			Startbildschirm anzeigen / nicht anzeigen
 SplashScreen=0

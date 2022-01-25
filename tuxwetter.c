@@ -378,7 +378,7 @@ int ReadConf(char *iscmd)
 	}
 
 	int neutrinofont = Read_Neutrino_Cfg("font_file=");
-	int weatherkey   = Read_Neutrino_Cfg("weather_api_key=");
+	int weatherkey   = 0; //Read_Neutrino_Cfg("weather_api_key=");
 
 	while(fgets(line_buffer, BUFSIZE, fd_conf))
 	{
