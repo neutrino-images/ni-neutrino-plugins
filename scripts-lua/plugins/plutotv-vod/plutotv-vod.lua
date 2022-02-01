@@ -305,7 +305,7 @@ function getInput()
 			mode = 1;
 			break;
 		-- Taste Rot/Record startet Download
-		elseif ((msg == RC['red']) or (msg == RC['record'])) and have_ffmpeg then
+		elseif ((msg == RC['red']) or (msg == RC['record'])) then
 			mode = 2;
 			break;
 		elseif (msg == RC['up'] or msg == RC['page_up']) then
