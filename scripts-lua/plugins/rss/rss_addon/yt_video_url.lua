@@ -27,7 +27,8 @@ function n_descramble( nparam, js )
 
     -- Look for the descrambler function's name
     -- a.D&&(b=a.get("n"))&&(b=lha(b),a.set("n",b))}};
-    local descrambler = js_extract( js, '[=%(,&|](...?)%(.%),.%.set%("n",' )
+--    local descrambler = js_extract( js, '[=%(,&|](...?)%(.%),.%.set%("n",' )--org
+    local descrambler = js_extract( js, 'set%("n",.%),...%.length||(...)' )--my
     if not descrambler then
         print( "Couldn't extract YouTube video throttling parameter descrambling function name" )
         return nil
