@@ -46,7 +46,7 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.41"
+#define P_VERSION "4.42"
 #define S_VERSION ""
 
 char CONVERT_LIST[]= CFG_TUXWET "/convert.list";
