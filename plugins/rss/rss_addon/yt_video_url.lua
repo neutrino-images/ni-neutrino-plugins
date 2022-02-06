@@ -26,9 +26,37 @@ function n_descramble( nparam, js )
     end
 
     -- Look for the descrambler function's name
-    -- a.D&&(b=a.get("n"))&&(b=lha(b),a.set("n",b))}};
---    local descrambler = js_extract( js, '[=%(,&|](...?)%(.%),.%.set%("n",' )--org
-    local descrambler = js_extract( js, 'set%("n",.%),...%.length||(...)' )--my
+    -- a.C&&(b=a.get("n"))&&(b=Bpa[0](b),a.set("n",b),Bpa.length||iha(""))}};
+    -- var Bpa=[iha];
+    local callsite = js_extract( js, '[^;]*%.set%("n",[^};]*' )
+    if not callsite then
+        print( "Couldn't extract YouTube video throttling parameter descrambling function name" )
+        return nil
+    end
+
+    -- Try direct function name from following clause
+    local descrambler = string.match( callsite, '%.set%("n",.%),...?%.length||(...?)%(' )
+    local itm = nil
+    if not descrambler then
+        -- Try from main call site
+        descrambler = string.match( callsite, '[=%(,&|]([a-zA-Z0-9_$%[%]]+)%(.%),.%.set%("n",' )
+        if descrambler then
+            -- Check if this is only an intermediate variable
+            itm = string.match( descrambler, '^([^%[%]]+)%[' )
+            if itm then
+                descrambler = nil
+            end
+        else
+            -- Last chance: intermediate variable in following clause
+            itm = string.match( callsite, '%.set%("n",.%),(...?)%.length' )
+        end
+    end
+
+    if not descrambler and itm then
+        -- Resolve intermediate variable
+        descrambler = js_extract( js, 'var '..itm..'=%[(...?)[%],]' )
+    end
+
     if not descrambler then
         print( "Couldn't extract YouTube video throttling parameter descrambling function name" )
         return nil
