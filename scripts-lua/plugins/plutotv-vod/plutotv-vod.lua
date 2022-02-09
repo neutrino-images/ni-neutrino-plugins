@@ -1,5 +1,5 @@
 --[[
-	plutotv-vod.lua v1.22
+	plutotv-vod.lua v1.23
 
 	Copyright (C) 2021 TangoCash
 	License: WTFPLv2
@@ -37,6 +37,15 @@ if DIR and DIR.CONFIGDIR then
 end
 
 dlPath = '/'
+
+function isCST()
+	local rev, hw = nMisc:GetRevision()
+	if hw == "Coolstream" then
+		return true
+	else
+		return false
+	end
+end
 
 function getdata(Url, File)
 	if Url == nil then return nil end
@@ -324,8 +333,7 @@ end
 function showBGPicture()
 	if fh:exist(bigPicBG, 'f') then
 		vPlay:zapitStopPlayBack()
-		rev, box = nMisc:GetRevision()
-		if box ~= "Coolstream" then
+		if not have_cst then
 			vPlay:ShowPicture(bigPicBG)
 		elseif have_jpegtran then
 			os.execute("jpegtran -copy none -optimize " .. bigPicBG .. " > " .. bigPicBGconv)
@@ -340,8 +348,7 @@ function hideBGPicture(rezap)
 	if (rezap == true) then
 		vPlay:channelRezap()
 	end
-	local rev, box = nMisc:GetRevision()
-	if fh:exist(bigPicBG, 'f') and rev == 1 then vPlay:StopPicture() end
+	if fh:exist(bigPicBG, 'f') and have_cst then vPlay:StopPicture() end
 end
 
 function playback_stream(uuid)
@@ -359,6 +366,7 @@ function playback_stream(uuid)
 		current_uuid = uuid
 		local data = getdata(re_url)
 		local dlm3 = "/tmp/.plutotv_vod_play.m3u8"
+		local http_dlm3 = "http://127.0.0.1/tmp/.plutotv_vod_play.m3u8"
 		local m3uw = io.open(dlm3,"w")
 		local nomarkerfound = true
 		local marker = ""
@@ -391,7 +399,7 @@ function playback_stream(uuid)
 		m3uw:close()
 		vPlay:setSinglePlay(true)
 		vPlay:setInfoFunc("epgInfo")
-		vPlay:PlayFile(playback_details[uuid].title or playback_details[uuid].name, dlm3, info1, info2 or "");
+		vPlay:PlayFile(playback_details[uuid].title or playback_details[uuid].name, http_dlm3, info1, info2 or "");
 		os.execute('rm '.. dlm3)
 	end
 	current_uuid = ""
@@ -415,11 +423,13 @@ function dl_check(streamUrl)
 end
 
 function start_bg_download(streamUrl,filename,title)
-	local Format = nil
+	local format_ext = 'mp4'
+	local whitelist = "-protocol_whitelist 'http,https,file,crypto,tls,tcp'"
+	if have_cst then
+		--format_ext = 'ts'
+		whitelist = ''
+	end
 	if streamUrl then
-		if streamUrl:find("m3u8") then
-			Format = 'mp4'
-		end
 		local file_id = gen_ids()
 		local data = getdata(streamUrl)
 		local dlm3 = "/tmp/.plutotv_vod_dl_" .. file_id .. ".m3u8"
@@ -452,16 +462,16 @@ function start_bg_download(streamUrl,filename,title)
 			count = count + 1
 		end
 		m3uw:close()
-		if filename and Format then
+		if filename and format_ext then
 			local dls  = "/tmp/.plutotv_vod_dl_" .. file_id .. ".sh"
 			dlname = filename
 			local script=io.open(dls,"w")
 			script:write('echo "download start" ;\n')
-			script:write("ffmpeg -y -nostdin -loglevel 30 -force_dts_monotonicity -protocol_whitelist 'http,https,file,crypto,tls,tcp' -i '" .. dlm3 .. "' -c copy " .. dlname   .. "." .. Format .. "\n")
+			script:write("ffmpeg -y -nostdin -loglevel 30 -force_dts_monotonicity " .. whitelist .. " -i '" .. dlm3 .. "' -c copy " .. dlname   .. "." .. format_ext .. "\n")
 			script:write('if [ $? -eq 0 ]; then \n')
 			script:write('wget -q http://127.0.0.1/control/message?popup="Video ' .. title .. ' wurde heruntergeladen." -O /dev/null ; \n')
-			if Format == 'mp4' then 
-				script:write('mv ' .. dlname .. '.' .. Format .. ' ' .. dlname .. '.ts\n')
+			if format_ext == 'mp4' then
+				script:write('mv ' .. dlname .. '.' .. format_ext .. ' ' .. dlname .. '.ts\n')
 			end
 			script:write('rm ' .. dlm3 .. '; \n')
 			script:write('echo "download success" ;\n')
@@ -934,6 +944,7 @@ nMisc = misc.new()
 vPlay = video.new()
 have_ffmpeg = which("ffmpeg")
 have_jpegtran = which("jpegtran")
+have_cst = isCST()
 coverPic = "/tmp/plutotv-vod_cover.jpg"
 bigPicBG = "/tmp/plutotv-vod_bg.jpg"
 bigPicBGconv = "/tmp/plutotv-vod_bgconv.jpg"
