@@ -21,7 +21,7 @@
 ]]
 
 --dependencies:  feedparser http://feedparser.luaforge.net/ ,libexpat,  lua-expat 
-rssReaderVersion="Lua RSS READER v1.07 by satbaby"
+rssReaderVersion="Lua RSS READER v1.08 by satbaby"
 local CONF_PATH = "/var/tuxbox/config/"
 if DIR and DIR.CONFIGDIR then
 	CONF_PATH = DIR.CONFIGDIR .. '/'
