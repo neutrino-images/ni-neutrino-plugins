@@ -1814,8 +1814,19 @@ function start()
 end
 
 function main()
-	local config= CONF_PATH .. "/rssreader.conf"
-	if fh:exist(config, "f") == false and fh:exist(config, "l") == false then
+	local configs = {"rssreader.conf", "media_one.conf"}
+	local f = {}
+	for i, v in ipairs(configs) do
+		local config = CONF_PATH .. v
+		if fh:exist(config, "f") or fh:exist(config, "l") then
+			dofile(config)
+			for j, w in ipairs(feedentries) do
+				table.insert(f, w)
+			end
+		end
+	end
+	feedentries = f
+	if not next(feedentries) then
 		feedentries = {
 			{ name = "rssreader.conf Beispiel",		exec = "SEPARATORLINE" },
 			{ name = "heise.de",		exec = "https://www.heise.de/newsticker/heise-atom.xml",addon="heise", submenu="TechNews"},
@@ -1827,9 +1838,8 @@ function main()
 			{ name = "TecTime TV",	exec = "https://www.youtube.com/feeds/videos.xml?user=DrDishTelevision", submenu="Youtube", addon="yt" },
 			{ name = "KingOfSat News",	exec = "http://de.kingofsat.net/rssnews.php",submenu="SatInfo",addon="kingofsat"},
 		}
-	else
-		dofile(config)
 	end
+
 	fh:mkdir(picdir)
 
 	LoadMediatheken()
