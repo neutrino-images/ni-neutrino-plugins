@@ -59,7 +59,7 @@ function get_channels()
 						if jd[i]._id and jd[i].name then
 							local logo = ""
 							if jd[i].logo and jd[i].logo.path then
-								logo = jd[i].logo.path:sub(1, string.find(jd[i].logo.path, "?")-1)
+								logo = jd[i].logo.path:sub(1, string.find(jd[i].logo.path, "?")):sub( 1, -2)
 							end
 							local summary = ""
 							if jd[i].summary then
