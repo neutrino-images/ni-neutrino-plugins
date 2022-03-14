@@ -1,6 +1,6 @@
 --[[
-	Heizölpreise Plugin lua v0.5
-	Copyright (C) 2018,  Jacek Jendrzej 'satbaby'
+	Heizölpreise Plugin lua v0.6
+	Copyright (C) 2018-2022,  Jacek Jendrzej 'satbaby'
 
 	License: GPL
 
@@ -252,8 +252,15 @@ function start(deat)
 		ctext.new{parent=w, x=xStart, y=yStart+lineH  , dx=_dx, dy=vSpace-vSHalf, text=v[1], font_text=FontMenu}
 		ctext.new{parent=w, x=xStart+textMax+row, y=yStart+lineH  , dx=_dx, dy=vSpace-vSHalf, text=v[2], font_text=FontMenu}
 		ctext.new{parent=w, x=xStart+textMax+(row*2), y=yStart+lineH  , dx=_dx, dy=vSpace-vSHalf, text=v[3], font_text=FontMenu}
-		local pm = v[4]:match("([%+%-])")
-		local diff = v[4]:match("(%d+%,%d+)")
+		local pm = nil
+		local diff = nil
+		if not v[4] then
+			pm = " "
+			diff = " "
+		else
+			pm = v[4]:match("([%+%-])")
+			diff = v[4]:match("(%d+%,%d+)")
+		end
 		local coltext = COL.WHITE 
 		if pm == "-" then coltext = COL.GREEN
 		elseif pm == "+" then coltext = COL.RED end
