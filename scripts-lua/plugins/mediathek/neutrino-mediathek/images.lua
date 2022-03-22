@@ -1,5 +1,5 @@
 function createImages()
-	if (conf.guiUseSystemIcons ~= 'on') then -- integrated icons	-- no NLS
+	if (conf.guiUseSystemIcons ~= 'on') then -- integrated icons
 		btn0Data	= 'iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAmNJREFUeNq0lUmqIkEQhsN65YTijCsXulEv4MJ7vD6AR3hn8BK98ADtohd9AHEnuBBERBeCgoiCGwecx84/+kWRVWV3r15AmFlVmV+MmXqezyd9hZj4qdfrPzwez/ubEjVaH2EU+ng8WO/3O4+32431er3yeLlcZH5S8+/VavXD+GR8U8A3HQiAEwoFSEanKmhAGXi3PFYAQyDiMea8wDQpkUiQ3+/nzdvtlhaLhc1rqHit1LDA8ABgQKGSAkDz+Txls1kKhUJsbL1eU7fbpV6vZwFFxRjEEO/0UEVTqRQVCgUKh8NsUJWAkskklUol8vl8NqhuxObxq6Llcjnyer10Op1oMBhQMBjkCCKRCEeBlGiFc3usv5ScQdPpNC9arVYc+nA45BxDAD6fz64cC9gUsLMjkFPD+NM0h8OBlssle455PB7n9EheBSjpdIH1NkPhJD34DiDSIhvRKc4U/BUsPQsw3smpxDsJW9oQ4gRLE9jA+mGASnUFLBUXMNbjWT80LjAsC1jC2Ww2lscCkXUQeZb1L8G6RZmjULIIpw7FDAQCPIfM53MLLEAYtYElJD0s6Gw2o2KxSNFolDKZDB+YWCzGG0ejkQ0stZGI/glut9t8INDPlUqFN8BzrO90Oi6wLobk2Hnuoa1Wi/r9Pn8DELrf76nZbFp3he6Iq93EsvMaRO/WajUql8ucBrybTqfUaDToeDy6wodI75uvjrR4gfl4PKbJZML3BJ53u53Vz3rXCNQJfig1nA2vhwnv9T7XPZUrV9reyrHa+PMTTv9TZ9/qRpSe1P3yi73/qj/T3wIMACfohDWeoqk8AAAAAElFTkSuQmCC'
 		btn1Data	= 'iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAfpJREFUeNq0lT1uAjEQhWdNECkQDRQgCkRHRUPFPchBcgYukSOEIkXOgERBS4MENBQ0FIgCWP7jZ/GsWbMkabA02GDv57fP4yG6Xq/yjPaCj16v9xlFUSdjm+39JDZFXC4XF+fz2fWn08nF8Xh0/eFw4Di2449ut/tubow3C8xoIAAhFAEQ+zAs9NVu0PGKLcAQQsUYswcon89LsVh0v00mE9ntdl41gqptGA/GgwADiqAF3MwYI7VaTZrNphvP53NZrVYeyKByD+ZrU62GopXLZanX6w6KplUy+FsCDMVph4aoVqvSarWkUCj4eQD2+30Cqr32YHxJU9toNKTdbks2m01sDBjB2mcecAIcZgQCQMRms3FzOECCta9U/BCs0wwLttutzGYzGY/HUqlUnCW0Is2Ch2AqJXg6ncpoNJI4jqVUKiU81lnAYGomwNoCLlgsFm4ul8v5B7he+0q1d2AsIJivo28XDk6DCdUHlgrWO2qvOLYl5E4xrdBAWujBWBTC9HdcDF4W7bFWyrNhtfwVTCtCxUw1XfH0xgmPNYhgplOaFZjTSv8FTkuj4XAo6/XaQZbLpQfr10fjDfWHFxZvrRglcjAYSL/fT6QkgexZHTX4YsOENyk8yBCqwaqWOE/Mrbp93eDyV6RtpKphbDPo26l/1p/pjwADAJbsnaA8kjfJAAAAAElFTkSuQmCC'
 		btn2Data	= 'iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAmtJREFUeNq0lbuuqUEUx5dvi+0aEgoFCSIKdCJRCY1Cvc+DnGfwEucJ5Iic4tBQSBQKVAqNTqISBSLutzNrZa/Jcju72pP8zeCb31rznzXzma7XK3xHM+NHpVL5bTKZPt5UU73+E4OiLpcL6Xw+U386nUjH45H6w+HA450a/yqVSj+NT8YPBXyTQATcQ1EI4v5eCmpVAT50xgpgMIQzxjE2q9UKHo8HLBYLATebDUynU9jtdjprFGetZGgwTkAwQlFsgc1mg2QyCX6/H+x2O/2G4MlkAu12G9brNQFZnDk2g7OTS2WFQiESQrFhUIfDAbFYDKLR6A2Us0Zp8DMoKhKJgGEYsN1uodvtQr/fpzH+lkgkYL/fk8Tm6YzJCvzC3rINTqcTVJFQwNlsBoPBgHwOBoNkEf6PUOkzJ3gDvq+I5XIJtVqNssMA8/kcAoEAmM005cZXzvYlWJYZ7vpqtdIT3t/fyVu3203P4grk8v8L5ppFsPQcl55KpchXtAOz7/V6D2AughuwPAz8AHuPmabTafIVS6zZbMJ4PCYr5KF5AGNkBvNyWPF4HLLZLLhcLoI2Gg3odDq0cXLDnoJlROkVnrpisQher1dDW62W9v4+U7ZQg3lJclmofD4PPp+PHsT6xQCFQkGfwGq1qsG8N3xbvgRjWWUyGV2GGCCXy+nvi8UCyuXyDfjh2mSv5PLC4bA+yq8azpO34JdgFB6Qer2uLyWeyGO0hjddviz4BOvNu7+8R6MRDIfDhw2SJclA7vl2lOCLknFf8HIjn0ElWLx5LvJ2+/MJh6/0LBAHUdqpu+UvZf9dL9N/AgwAYHFxVis/3OkAAAAASUVORK5CYII='
@@ -15,7 +15,7 @@ function createImages()
 		btnRedData	= 'iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA7dJREFUeNqMle9rU1cYx5/7I60mxtimwZYxZw0KoS8qw1lBQQbujaNM9mKbLwYiuIH4RvwvfOELFQZjGVrYpnszxhAVV2VvpLKMYVvayRipNKa0aZpfNzGJ956z8703T3LqurEDX+65557zeX6c59xj0L80SWQuEb0XCYVO9ieTB6w9e4alaUqRz6+1Fhb+qLnuT/uIHhr+1P/ZckSfOkePzokbN4RcXZWy0ZCyUpFybU3KXE7KTEZ6ly+L2sTEby+IPt6KYegvWaJt0aGhdPzKldN06pRBrkv06hVRqxU82+1AeIeaTRLT06KcTt+cLRQ+e5fI/Qf4T6L+RDJ5PzY1dZz27g1ALMB0MMMV2NfyMpWuX7/788rK5EdE3iZwcWjo28GpqdM0OhpA2Fv9yZ5rHvt6+ZJkPk/FdPrLhON8Dp7ZyemZgYsXP6F4XFkoEpVKROUyUaUSqFoNnrXaZvG4kiElDR45cnaZ6EMw7e+JrNjBg5eMQ4cM2thQgXiBhOj14S17rnvcaPje+k9lyIzF7J2JxCVZKPxgv0M0GTl2bMz3EjBIWfelwyEGaynwofV6N4LIrl0TS4XCcVvV6QkjmTR8sF/AWlmyAd1zfeN0sOP4cMt1rbBtv2/37d69vxua0dlL0+z10TgSQOAAQHoJoo8x5Fz17VBo1DbC4UF/owBjWVavz57zhsEAz9GrBRFhrK+PTMuK2yrRHs3MEKVSqpL7g4+hkNpWuwdA2ABGIr2UYJyN4hvGFNSXZRm2sKwNWl8nmp8nGh4mGhgg2r6dJwQpgREYRQMY4WOcofCcocopxSzanpRL/kJMRJ7gJRbDu3BYHfJtARRz0OAZz+eN5VwjUiVXiKxZb7WmBWCYjA9sGTBAYWDHDqJoNBD6usGOl5w+ZdZzms17ZtZxfnRqtd99MIsNICUQYCw9ktegkOM4M/uazWkTf6R6tfqFkCouHQzBI4ABYo8BZm8ZiL1Q8oRwG5XKNSTJr6eR1dWvyrncrU3lxgYAAJg9hqEtoFhXyudvvlEo3O7+hGAht7h4rvz8+S/dw8ELsBghcwrQZyDPVSpls/fXFhfP85kyuTOuauKvx49PbszNfSfa7d657izsGuL3zsn02m1RnJ39uvjkyQdjqja2vEE6d52RHx8/E0mlLkQPH37bHBkhisWCNKDhn6BOqreyIuuZzK/Vp0+vvrmw8M1/Xk16e6QCHk2lJsNjYyfsROItMxqNq7qVolotuuvrS878/IPMs2d3+MZ4vf0twAA5YRwCJMxMPAAAAABJRU5ErkJggg=='
 		btnYellowData	= 'iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA+1JREFUeNqMld9rXEUUx8/Mnf3h3k02zXZtilht0yoxDy2iVlAIgYjYGhQf0voglII+FF+k/4DPPvhgRV+sWkHUvqhIW4vGIIhUjL/a0iqiG2ncptnsj+zeTfbHnRnPmZmb3C1VHDic2fnxOWe+c3Yug39p+mXgC/vgMT+bOJDyR+/xMjtGtOZadUrLndUrvzY74We7noSvGAMN/7ctnoHngp8fuaTK7yrdvaG1XNM6XNW6t6x1d1Hr1ryWpVdU88f9P/x9Fg7disHiP4pzkB7gW0/mx199FoaexrkQQPUw/Q4a+a411bFjqg2qMavqxZOnLsryC5OTtOEm8O9nIVXIj57P3ffeBKTudiBnCmHgfB+8beDQvQa1P18/92Xp+vTMDEji8Qg8nN36Tu7eExMghjHRClrVWQ1A1tGvWi8jT2POMwFDO2aemLw9+0bE407TI1t2v3QYRN5BazEIWcP5Zr+pxsYausPhkYePXjsHzxBTnD4NXm7bvuPMf4CZDOkkmk6jrDd9lE6HMWkijdfQ1q3HQDyRE4ODheNalz8WD2Zh2i88Om6yJJgxrCBNpmygKNgGuO30RahEqG5hv2lO5meH9i98Up4QfjoxxVKjDGQtquBYMWOf6f7MVfziXLYKwTIwWXss9DKD4qBIprbtMceSnViRoPRY+SYGDWl3EoLQyShDs763WSEEJ82RJXhip2AiM2wuysC4u08v1neniC7MSEVrPSdN6Opcun1J4J6XF7pblhBcAEiP4fqUneQJutfNIEZTBHLf6R3ace2CmjkKkDRgnGNCKa8K4QpA+zKyRtC24MRtdoHJipk6tUHB6d21Gim6A4L2LJSj6QQOexUhpV4wG81C0o7brCg7lkGfRp+ycAOmzEQkvg3EEMwwGEsYC0NV5K31zqzS3G40E+44BCMoBeBZtAFn1I8FpCwdkOQLJdbHevtzXswEnwbN5k9GUyY2A5gNKAlH87Ix8y2Ypfuhbm/QCi7sOtie5fQitYLGm0pj0cbBBp5y8Mxmxsy3UCNPBPSMSaXCtdbqCXqjTT1tn7rxVr26+KGtAlcJIGLwjJMga08QQU3leM441CqlU3dMlT/aeIQowmLz6vP16l9fm/qlPwfzYgGSTuuM0z/KMlrLoLZSPL9cunqs73WjtvdxaP2x9O2B6tKlD5Ts6r5vQRTIGHMVYf+lUnZVZeni25XKd0+Nz0D3ll8Q9zyw0jd7j/i5sRcHCg/dz5PbMfGclYGaCsyTKjvXdasy/31j5ZfX7py88v5/fpribW4OxE41Np3JjU+JVOEunhzIY1Steo1K2F5ZCGqXv5iv/3Ym+mLc3P4RYACDwQxefMfYYwAAAABJRU5ErkJggg=='
 
-		local imgType	= 'png'-- no NLS
+		local imgType	= 'png'
 
 		btn0		= decodeImage(btn0Data,		imgType, pluginTmpPath)
 		btn1		= decodeImage(btn1Data,		imgType, pluginTmpPath)
@@ -34,19 +34,19 @@ function createImages()
 	else -- neutrino system icons
 		-- TODO: allow user icons from /var/tuxbox/icons/
 		-- TODO: get path to icons from build environment
-		btn0		= '/usr/share/tuxbox/neutrino/icons/0.png'		-- no NLS
-		btn1		= '/usr/share/tuxbox/neutrino/icons/1.png'		-- no NLS
-		btn2		= '/usr/share/tuxbox/neutrino/icons/2.png'		-- no NLS
-		btn3		= '/usr/share/tuxbox/neutrino/icons/3.png'		-- no NLS
-		btn4		= '/usr/share/tuxbox/neutrino/icons/4.png'		-- no NLS
-		btn5		= '/usr/share/tuxbox/neutrino/icons/5.png'		-- no NLS
-		btn6		= '/usr/share/tuxbox/neutrino/icons/6.png'		-- no NLS
-		btn7		= '/usr/share/tuxbox/neutrino/icons/7.png'		-- no NLS
-		btn8		= '/usr/share/tuxbox/neutrino/icons/8.png'		-- no NLS
-		btn9		= '/usr/share/tuxbox/neutrino/icons/9.png'		-- no NLS
-		btnBlue		= '/usr/share/tuxbox/neutrino/icons/btn_blue.png'	-- no NLS
-		btnGreen	= '/usr/share/tuxbox/neutrino/icons/btn_green.png'	-- no NLS
-		btnRed		= '/usr/share/tuxbox/neutrino/icons/btn_red.png'	-- no NLS
-		btnYellow	= '/usr/share/tuxbox/neutrino/icons/btn_yellow.png'	-- no NLS
+		btn0		= '/usr/share/tuxbox/neutrino/icons/0.png'
+		btn1		= '/usr/share/tuxbox/neutrino/icons/1.png'
+		btn2		= '/usr/share/tuxbox/neutrino/icons/2.png'
+		btn3		= '/usr/share/tuxbox/neutrino/icons/3.png'
+		btn4		= '/usr/share/tuxbox/neutrino/icons/4.png'
+		btn5		= '/usr/share/tuxbox/neutrino/icons/5.png'
+		btn6		= '/usr/share/tuxbox/neutrino/icons/6.png'
+		btn7		= '/usr/share/tuxbox/neutrino/icons/7.png'
+		btn8		= '/usr/share/tuxbox/neutrino/icons/8.png'
+		btn9		= '/usr/share/tuxbox/neutrino/icons/9.png'
+		btnBlue		= '/usr/share/tuxbox/neutrino/icons/btn_blue.png'
+		btnGreen	= '/usr/share/tuxbox/neutrino/icons/btn_green.png'
+		btnRed		= '/usr/share/tuxbox/neutrino/icons/btn_red.png'
+		btnYellow	= '/usr/share/tuxbox/neutrino/icons/btn_yellow.png'
 	end -- icon types
 end -- function createImages

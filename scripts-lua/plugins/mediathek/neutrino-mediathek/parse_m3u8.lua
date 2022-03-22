@@ -1,14 +1,14 @@
-EXT_X_STREAM_INF	= '#EXT-X-STREAM-INF:'	-- no NLS
+EXT_X_STREAM_INF	= '#EXT-X-STREAM-INF:'
 
 function parse_m3u8Data(url, parse_mode)
 	box = downloadFile(url, m3u8Data, false, user_agent2)
 
 	local streamInfo = {}
 	local fp, s
-	fp = io.open(m3u8Data, 'r')	-- no NLS
+	fp = io.open(m3u8Data, 'r')
 	if fp == nil then
 		G.hideInfoBox(box)
-		error('Error connecting URL.')	-- no NLS
+		error('Error connecting URL.')
 	end
 	local count = 1
 	for line in fp:lines() do
@@ -17,15 +17,15 @@ function parse_m3u8Data(url, parse_mode)
 		if (found ~= nil) then
 			local a, b, c, _pos
 			local bandwidth = 0
-			local resolution = '-'	-- no NLS
+			local resolution = '-'
 			local codec = {}
-			a, b, bandwidth, resolution, c = string.find(line, 'BANDWIDTH=(.*),RESOLUTION=(.*),CODECS=(.*)')	-- no NLS
+			a, b, bandwidth, resolution, c = string.find(line, 'BANDWIDTH=(.*),RESOLUTION=(.*),CODECS=(.*)')
 			if (a == nil) then
 				bandwidth = 0
-				resolution = '-'	-- no NLS
-				a, b, bandwidth, c, resolution = string.find(line, 'BANDWIDTH=(.*),CODECS=(.*),RESOLUTION=(.*)')	-- no NLS
+				resolution = '-'
+				a, b, bandwidth, c, resolution = string.find(line, 'BANDWIDTH=(.*),CODECS=(.*),RESOLUTION=(.*)')
 				if resolution ~= nil then
-					_pos = M:strFind(resolution, ',CLOSED-CAPTIONS=')	-- no NLS
+					_pos = M:strFind(resolution, ',CLOSED-CAPTIONS=')
 					if (_pos ~= nil) then
 						resolution = M:strSub(resolution, 0, _pos)
 					end
@@ -34,17 +34,17 @@ function parse_m3u8Data(url, parse_mode)
 			if (a == nil) then
 				-- oklivetv for orf/srf
 				bandwidth = 0
-				resolution = '-'	-- no NLS
-				a, b, bandwidth, resolution = string.find(line, 'BANDWIDTH=(.*),RESOLUTION=(.*)')	-- no NLS
+				resolution = '-'
+				a, b, bandwidth, resolution = string.find(line, 'BANDWIDTH=(.*),RESOLUTION=(.*)')
 			end
 			if (a == nil) then
 				bandwidth = 0
-				resolution = '-'	-- no NLS
-				a, b, bandwidth = string.find(line, 'BANDWIDTH=(.*)')	-- no NLS
+				resolution = '-'
+				a, b, bandwidth = string.find(line, 'BANDWIDTH=(.*)')
 			end
 			if c ~= nil then
-				c = string.gsub(c, '"', '')	-- no NLS
-				codec = H.split(c, ',')	-- no NLS
+				c = string.gsub(c, '"', '')
+				codec = H.split(c, ',')
 				local i
 				for i=1, #codec do
 					codec[i] = H.trim(codec[i])
@@ -65,12 +65,12 @@ function parse_m3u8Data(url, parse_mode)
 			if ((count > 1) and (#line > 2)) then
 				-- url
 				if (parse_mode == 1) then
-					local found = M:strFind(line, 'http')	-- no NLS
+					local found = M:strFind(line, 'http')
 					if (found == nil) then
-						found = M:strFind(line, 'rtmp')	-- no NLS
+						found = M:strFind(line, 'rtmp')
 					end
 					if (found == nil or (found ~= nil and found ~= 0)) then
-						line = P.dirname(url) .. '/' .. line	-- no NLS
+						line = P.dirname(url) .. '/' .. line
 					end
 					streamInfo[count-1]['url'] = line
 				elseif (parse_mode == 2) then
@@ -92,8 +92,8 @@ function get_m3u8url(url, parse_mode)
 
 	if (#si < 1) then
 		ret['url']           = url
-		ret['bandwidth']     = '-'	-- no NLS
-		ret['resolution']    = '-'	-- no NLS
+		ret['bandwidth']     = '-'
+		ret['resolution']    = '-'
 		return ret
 	end
 
@@ -144,12 +144,12 @@ function get_m3u8url(url, parse_mode)
 --	H.tprint(si)
 --	H.printf("minBW: %d, maxBW: %d, tmpBW: %d", minBW, maxBW, tmpBW)
 
-	if (conf.streamQuality == 'max') then	-- no NLS
+	if (conf.streamQuality == 'max') then
 		-- max
 		ret['url']		= maxUrl
 		ret['bandwidth']	= maxBW
 		ret['resolution']	= maxRes
-	elseif (conf.streamQuality == 'normal') then	-- no NLS
+	elseif (conf.streamQuality == 'normal') then
 		-- normal
 		ret['url']		= xUrl
 		ret['bandwidth']	= xBW

@@ -27,7 +27,7 @@ function loadLuaLib(lib, noerror)
 	end
 	if status == true then return data
 	else
-		error('Lua library  not found: "' .. lib .. '[.so|.lua]"')	-- no NLS
+		error('Lua library  not found: "' .. lib .. '[.so|.lua]"')
 	end
 end -- function loadLuaLib
 
@@ -35,9 +35,9 @@ V	= video.new()
 M	= misc.new()
 FH	= filehelpers.new()
 C	= curl.new()
-J	= loadLuaLib('json')		-- no NLS
-G	= loadLuaLib('n_gui')		-- no NLS
-H	= loadLuaLib('n_helpers')	-- no NLS
+J	= loadLuaLib('json')
+G	= loadLuaLib('n_gui')
+H	= loadLuaLib('n_helpers')
 
 -- define global paths
 local CONF_PATH = "/var/tuxbox/config/"
@@ -45,21 +45,21 @@ if DIR and DIR.CONFIGDIR then
 	CONF_PATH = DIR.CONFIGDIR .. '/'
 end
 
-pluginScriptPath = H.scriptPath() .. '/' .. H.scriptBase()	-- no NLS
-pluginTmpPath    = '/tmp/' .. H.scriptBase()	-- no NLS
-confFile         = CONF_PATH .. H.scriptBase() .. '.conf'	-- no NLS
+pluginScriptPath = H.scriptPath() .. '/' .. H.scriptBase()
+pluginTmpPath    = '/tmp/' .. H.scriptBase()
+confFile         = CONF_PATH .. H.scriptBase() .. '.conf'
 FH:rmdir(pluginTmpPath)
 FH:mkdir(pluginTmpPath)
 
 -- include lua files
-dofile(pluginScriptPath .. '/variables.lua')		-- no NLS
-dofile(pluginScriptPath .. '/functions.lua')		-- no NLS
-dofile(pluginScriptPath .. '/images.lua')		-- no NLS
-dofile(pluginScriptPath .. '/json_decode.lua')		-- no NLS
-dofile(pluginScriptPath .. '/config.lua')		-- no NLS
-dofile(pluginScriptPath .. '/parse_m3u8.lua')		-- no NLS
-dofile(pluginScriptPath .. '/livestream.lua')		-- no NLS
-dofile(pluginScriptPath .. '/mediathek.lua')		-- no NLS
-dofile(pluginScriptPath .. '/mediathek_leftMenu.lua')	-- no NLS
-dofile(pluginScriptPath .. '/mediathek_movieInfo.lua')	-- no NLS
-dofile(pluginScriptPath .. '/main.lua')			-- no NLS
+dofile(pluginScriptPath .. '/variables.lua')
+dofile(pluginScriptPath .. '/functions.lua')
+dofile(pluginScriptPath .. '/images.lua')
+dofile(pluginScriptPath .. '/json_decode.lua')
+dofile(pluginScriptPath .. '/config.lua')
+dofile(pluginScriptPath .. '/parse_m3u8.lua')
+dofile(pluginScriptPath .. '/livestream.lua')
+dofile(pluginScriptPath .. '/mediathek.lua')
+dofile(pluginScriptPath .. '/mediathek_leftMenu.lua')
+dofile(pluginScriptPath .. '/mediathek_movieInfo.lua')
+dofile(pluginScriptPath .. '/main.lua')

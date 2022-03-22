@@ -2,13 +2,13 @@ function initLocale()
 	l={}
 	l.key = {}
 
-	local language_default = 'english'	-- no NLS
+	local language_default = 'english'
 	local language = N:GetLanguage()
-	if language == nil or language == '' or (H.fileExist(pluginScriptPath .. '/locale/' .. language .. '.lua') == false) then	-- no NLS
+	if language == nil or language == '' or (H.fileExist(pluginScriptPath .. '/locale/' .. language .. '.lua') == false) then
 		language = language_default
 	end
 
-	dofile(pluginScriptPath .. '/locale/' .. language .. '.lua')	-- no NLS
+	dofile(pluginScriptPath .. '/locale/' .. language .. '.lua')
 end -- function initLocale
 
 function initVars()
@@ -18,11 +18,11 @@ function initVars()
 	if (pluginVersionBeta == 0) then
 		pvbTmp = ''
 	else
-		pvbTmp = ' beta ' .. tostring(pluginVersionBeta)	-- no NLS
+		pvbTmp = ' beta ' .. tostring(pluginVersionBeta)
 	end
-	pluginVersion	= tostring(pluginVersionMajor) .. '.' .. tostring(pluginVersionMinor) .. pvbTmp	-- no NLS
+	pluginVersion	= tostring(pluginVersionMajor) .. '.' .. tostring(pluginVersionMinor) .. pvbTmp
 
-	pluginName	= 'Neutrino Mediathek'	-- no NLS
+	pluginName	= 'Neutrino Mediathek'
 
 
 	noCacheFiles	= false
@@ -31,31 +31,31 @@ function initVars()
 	forcePluginExit	= false
 --	Curl		= nil
 
-	url_base_b	= 'http://mediathek.slknet.de'	-- no NLS
-	url_base_4	= 'http://mediathek4.slknet.de'	-- no NLS
+	url_base_b	= 'http://mediathek.slknet.de'
+	url_base_4	= 'http://mediathek4.slknet.de'
 	url_base	= url_base_b
-	url_new		= 'https://api.coolithek.slknet.de'	-- no NLS
+	url_new		= 'https://api.coolithek.slknet.de'
 
 	conf		= {}
 	conf.livestream	= {}
 	config		= configfile.new()
-	user_agent	= '"Mozilla/5.0 (compatible; ' .. pluginName .. ' plugin v' .. pluginVersion .. ')"'	-- no NLS
-	user_agent2	= '"Mozilla/5.0 (Windows NT 10.0; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0"'	-- no NLS
-	user_agent3	= '"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Mobile Safari/537.36"'	-- no NLS
-	user_agent4	= '"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"'	-- no NLS
-	user_agent5	= '"Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1"'	-- no NLS
-	user_agent6	= '"Mozilla/5.0 (iPad; CPU OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1"'	-- no NLS
+	user_agent	= '"Mozilla/5.0 (compatible; ' .. pluginName .. ' plugin v' .. pluginVersion .. ')"'
+	user_agent2	= '"Mozilla/5.0 (Windows NT 10.0; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0"'
+	user_agent3	= '"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Mobile Safari/537.36"'
+	user_agent4	= '"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"'
+	user_agent5	= '"Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1"'
+	user_agent6	= '"Mozilla/5.0 (iPad; CPU OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1"'
 
-	actionCmd_API		= '/api'					-- no NLS
-	actionCmd_versionInfo	= actionCmd_API ..	'/info'			-- no NLS
-	actionCmd_livestream	= actionCmd_API ..	'/listLivestream'	-- no NLS
-	actionCmd_listChannels	= actionCmd_API ..	'/listChannels'		-- no NLS
-	actionCmd_sendPostData	=			'/api.html'		-- no NLS
+	actionCmd_API		= '/api'
+	actionCmd_versionInfo	= actionCmd_API .. '/info'
+	actionCmd_livestream	= actionCmd_API .. '/listLivestream'
+	actionCmd_listChannels	= actionCmd_API .. '/listChannels'
+	actionCmd_sendPostData	= '/api.html'
 
-	jsonData		= pluginTmpPath ..	'/mediathek_data.txt'	-- no NLS
-	m3u8Data		= pluginTmpPath ..	'/mediathek_data.m3u8'	-- no NLS
-	pluginIcon		=			'multimedia'		-- no NLS
-	backgroundImage		= pluginScriptPath .. '/background.jpg'		-- no NLS
+	jsonData		= pluginTmpPath .. '/mediathek_data.txt'
+	m3u8Data		= pluginTmpPath .. '/mediathek_data.m3u8'
+	pluginIcon		= 'multimedia'
+	backgroundImage		= pluginScriptPath .. '/background.jpg'
 	videoTable		= {}
 	h_mainWindow	= nil
 
@@ -89,12 +89,12 @@ function initVars()
 	timeMode_normal	= 1
 	timeMode_future	= 2
 
-	softwareSig = 'Neutrino Mediathek'	-- no NLS
+	softwareSig = 'Neutrino Mediathek'
 	local rev
 	rev, hardware = M:GetRevision()
 	if (hardware ~= nil) then
-		if (hardware == 'Coolstream') then	-- no NLS
-			softwareSig	= softwareSig .. ' - CST'	-- no NLS
+		if (hardware == 'Coolstream') then
+			softwareSig = softwareSig .. ' - CST'
 		end
 	end -- function initVars
 
@@ -113,8 +113,8 @@ function initVars()
 	fillMainMenuEntry(l.empty,	l.empty)
 	fillMainMenuEntry(l.key.exit,	l.exitProgram)
 
-	if (H.fileExist(pluginScriptPath .. '/local.lua') == true) then	-- no NLS
+	if (H.fileExist(pluginScriptPath .. '/local.lua') == true) then
 		-- locale settings for testing
-		dofile(pluginScriptPath .. '/local.lua')	-- no NLS
+		dofile(pluginScriptPath .. '/local.lua')
 	end
 end
