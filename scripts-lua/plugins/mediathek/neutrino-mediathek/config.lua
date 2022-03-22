@@ -29,7 +29,7 @@ function _loadConfig()
 	else
 		url_base = url_base_b
 	end
-end -- function _loadConfig
+end
 
 function _saveConfig()
 	local screen = 0
@@ -59,7 +59,7 @@ function _saveConfig()
 	config:setString('networkDlVerbose',	conf.networkDlVerbose)
 
 	config:saveConfig(confFile)
-end -- function _saveConfig
+end
 
 function getLivestreamConfig()
 	if (#videoTable == 0) then
@@ -75,7 +75,7 @@ function saveLivestreamConfig()
 	for i=1, #videoTable do
 		config:setString(videoTable[i][4], conf.livestream[i])
 	end
-end -- function saveLivestreamConfig
+end
 
 function exitConfigMenu(id)
 	_saveConfig()
@@ -85,39 +85,39 @@ function exitConfigMenu(id)
 		menuRet = MENU_RETURN.EXIT_ALL
 	end
 	return menuRet
-end -- function exitConfigMenu
+end
 
 function translateOnOff(s)
 	local ret = 'off'
 	if (s == l.on) then ret = 'on' end
 	return ret
-end -- function translateOnOff
+end
 
 function unTranslateOnOff(s)
 	local ret = l.off
 	if (s == 'on') then ret = l.on end
 	return ret
-end -- function unTranslateOnOff
+end
 
 function setConfigStringLs(k, v)
 	_k = tonumber(k)
 	conf.livestream[_k] = translateOnOff(v)
-end -- function setConfigStringLs
+end
 
 function setConfigOnOff(k, v)
 	conf[k] = translateOnOff(v)
-end -- function setConfigOnOff
+end
 
 function setConfigValue(k, v)
 	conf[k] = v
-end -- function setConfigValue
+end
 
 function changeEnableLifestreams(k, v)
 	local a
 	if (translateOnOff(v) == 'on') then a = true else a = false end
 	m_conf:setActive{item=m_conf_item1, activ=a}
 	setConfigOnOff(k, v)
-end -- function changeEnableLifestreams
+end
 
 function enableLivestreams()
 	local screen = saveFullScreen()
@@ -141,14 +141,14 @@ function enableLivestreams()
 		return menuRet
 	end
 	return MENU_RETURN.REPAINT
-end -- function enableLivestreams
+end
 
 function changeNetworkDLVerbose(k, v)
 	local a
 	if (translateOnOff(v) == 'off') then a = true else a = false end
 	m_nw_conf:setActive{item=m_configSilent, activ=a}
 	setConfigOnOff(k, v)
-end -- function changeNetworkDLVerbose
+end
 
 function networkSetup()
 	local screen = saveFullScreen()
@@ -182,12 +182,12 @@ function networkSetup()
 		return menuRet
 	end
 	return MENU_RETURN.REPAINT
-end -- function networkSetup
+end
 
 function changeDLPath(dummy, downloadPath)
 	conf.downloadPath = downloadPath
 	return MENU_RETURN.REPAINT
-end -- function changeDLPath
+end
 
 
 function configMenu()
@@ -254,4 +254,4 @@ function configMenu()
 			url_base = url_base_b
 		end
 	end
-end -- function configMenu
+end

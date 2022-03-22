@@ -7,7 +7,7 @@ function checkKillKey(msg)
 		M:postMsg(POSTMSG.STANDBY_ON)
 		forcePluginExit = true
 	end
-end -- function checkKillKey
+end
 
 function killPlugin(id)
 	if (id == 'standby') then
@@ -16,21 +16,21 @@ function killPlugin(id)
 	forcePluginExit = true
 	menuRet = MENU_RETURN.EXIT_ALL
 	return menuRet
-end -- function killPlugin
+end
 
 function addKillKey(menu)
 	menu:addKey{directkey=RC.tv,		id='tv',	action='killPlugin'}
 	menu:addKey{directkey=RC.radio,		id='radio',	action='killPlugin'}
 	menu:addKey{directkey=RC.standby,	id='standby',	action='killPlugin'}
-end -- function addKillKey
+end
 
 function curlDownload(url, file, postData, hideBox, _ua, uriDecode)
 	return downloadFileInternal(url, file, hideBox, _ua, postData, uriDecode)
-end -- function curlDownload
+end
 
 function downloadFile(url, file, hideBox, _ua)
 	return downloadFileInternal(url, file, hideBox, _ua, nil, nil)
-end -- function downloadFile
+end
 
 function downloadFileInternal(url, file, hideBox, _ua, postData_, uriDecode)
 	local ua = user_agent
@@ -106,7 +106,7 @@ dlDebug = true
 	else
 		return     box, ret, data
 	end
-end -- function downloadFileInternal
+end
 
 function playMovie(url, title, info1, info2, enableMovieInfo)
 	local function muteSleep(mute, wait)
@@ -122,7 +122,7 @@ function playMovie(url, title, info1, info2, enableMovieInfo)
 		local mt = threads.new(threadFunc, {_mute=mute, _wait=wait})
 		mt:start()
 		return mt
-	end -- function muteSleep
+	end
 
 	local muteThread
 	if (moviePlayed == false) then
@@ -150,7 +150,7 @@ function playMovie(url, title, info1, info2, enableMovieInfo)
 	if muteThread ~= nil then
 		muteThread:join()
 	end
-end -- function playMovie
+end
 
 function downloadMovie(url, channel, title, description, theme, duration, date, time)
 	local function constructXMLFile(channel, title, description, theme, duration, date, time, downloadQuality)
@@ -162,7 +162,7 @@ function downloadMovie(url, channel, title, description, theme, duration, date, 
 				if (c == w) then t = t .. c end
 			end
 			return t
-		end -- function escape
+		end
 		
 		local xml = {}
 		xml[1]	= '<?xml version="1.0" encoding="UTF-8"?>'
@@ -202,7 +202,7 @@ function downloadMovie(url, channel, title, description, theme, duration, date, 
 			s = s .. escape(xml[i], '\'') .. string.char(10)	-- NL
 		end
 		return s
-	end -- function constructXMLFile
+	end
 
 	local function muteSleep(mute, wait)
 		local threadFunc = [[
@@ -217,7 +217,7 @@ function downloadMovie(url, channel, title, description, theme, duration, date, 
 		local mt = threads.new(threadFunc, {_mute=mute, _wait=wait})
 		mt:start()
 		return mt
-	end -- function muteSleep
+	end
 
 	local function validName(s)
 		local t = ''
@@ -234,7 +234,7 @@ function downloadMovie(url, channel, title, description, theme, duration, date, 
 			end
 		end
 		return t
-	end -- function validName
+	end
 
 	local muteThread
 	if (moviePlayed == false) then
@@ -285,15 +285,15 @@ function downloadMovie(url, channel, title, description, theme, duration, date, 
 	if muteThread ~= nil then
 		muteThread:join()
 	end
-end -- function downloadMovie
+end
 
 function debugPrint(msg)
 	print('[' .. pluginName .. '] ' .. msg)
-end -- function debugPrint
+end
 
 function debugPrintf(...)
 	print('[' .. pluginName .. '] ' .. string.format(...))
-end -- function debugPrintf
+end
 
 function mtInfoBox(hdr, w, h)
 	local dx, dy
@@ -308,7 +308,7 @@ function mtInfoBox(hdr, w, h)
 	local ib = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=hdr, btnRed=l.btnBeenden, icon="information", has_shadow=true, shadow_mode=1, show_footer=true}
 	ib:paint()
 	return ib
-end -- function mtInfoBox
+end
 
 function autoLineBreak(str, len, font)
 	if (not str) then return nil end
@@ -317,7 +317,7 @@ function autoLineBreak(str, len, font)
 
 	local function checkLen(str, font)
 		return N:getRenderWidth(useDynFont, font, str)
-	end -- function checkLen
+	end
 
 	local ret = {}
 	local w = checkLen(str, font)
@@ -346,7 +346,7 @@ function autoLineBreak(str, len, font)
 		end
 	end
 	return ret
-end -- function autoLineBreak
+end
 
 function adjustStringLen(str, len, font)
 	local w = N:getRenderWidth(useDynFont, font, str)
@@ -363,13 +363,13 @@ function adjustStringLen(str, len, font)
 		end
 		return str .. z
 	end
-end -- function adjustStringLen
+end
 
 function createCacheFileName(url, ext)
 	local d = V:createChannelIDfromUrl(url)
 	d = string.gsub(d, 'ffffffff', '')
 	return pluginTmpPath .. '/data_' .. d .. '.' .. ext
-end -- function createCacheFileName
+end
 
 -- url_decode/url_encode code from: http://lua-users.org/wiki/StringRecipes
 function url_decode(str)
@@ -378,7 +378,7 @@ function url_decode(str)
 		function(h) return string.char(tonumber(h,16)) end)
 	str = string.gsub (str, '\r\n', '\n')
 	return str
-end -- function url_decode
+end
 
 function url_encode(str)
 	if (str) then
@@ -388,7 +388,7 @@ function url_encode(str)
 		str = string.gsub (str, ' ', '+')
 	end
 	return str
-end -- function url_encode
+end
 
 function decodeImage(b64Data, imgTyp, path)
 	local tmpImg = os.tmpname()
@@ -408,15 +408,15 @@ function decodeImage(b64Data, imgTyp, path)
 		return ''
 	end
 	return retImg
-end -- function decodeImage
+end
 
 function saveFullScreen()
 	return N:saveScreen(0, 0, SCREEN.X_RES, SCREEN.Y_RES)
-end -- function saveFullScreen
+end
 
 function restoreFullScreen(screen, del)
 	N:restoreScreen(0, 0, SCREEN.X_RES, SCREEN.Y_RES, screen, del)
-end -- function restoreFullScreen
+end
 
 function setFonts()
 	if (useDynFont == false) then error('Failed to create fonts.') end
@@ -437,7 +437,7 @@ function setFonts()
 		fontLeftMenu2, fontError = N:getDynFont(0, N:scale2Res(26), '', DYNFONT.STYLE_BOLD)
 		fontLeftMenu2_h = N:FontHeight(useDynFont, fontLeftMenu2)
 	end
-end -- function setFonts
+end
 
 function paintInfoBox(txt1, txt2)
 	local tmp1_h = math.floor(fontLeftMenu1_h+N:scale2Res(4))
@@ -508,14 +508,14 @@ function paintInfoBox(txt1, txt2)
 		end
 	end
 	return ib
-end -- function paintInfoBox
+end
 
 function paintInfoBoxAndWait(txt1, txt2, sec)
 	local box = paintInfoBox(txt1, txt2)
 	local P = require 'posix'
 	P.sleep(sec)
 	G.hideInfoBox(box)
-end -- function paintInfoBoxAndWait
+end
 
 function paintAnInfoBox(txt, where)
 	local _w = N:getRenderWidth(useDynFont, fontMiniInfo, txt)
@@ -533,14 +533,14 @@ function paintAnInfoBox(txt, where)
 	local ib = paintEmptyInfoBox(x, y, dx, dy)
 	N:RenderString(useDynFont, fontMiniInfo, txt, x, y+dy, COL.MENUCONTENTSELECTED_TEXT, dx, dy, 1)
 	return ib
-end -- function paintAnInfoBox
+end
 
 function paintAnInfoBoxAndWait(txt, where, sec)
 	local box = paintAnInfoBox(txt, where)
 	local P = require 'posix'
 	P.sleep(sec)
 	G.hideInfoBox(box)
-end -- function paintAnInfoBoxAndWait
+end
 
 function paintTopRightInfoBox(txt)
 	local _w = N:getRenderWidth(useDynFont, fontMiniInfo, txt)
@@ -552,14 +552,14 @@ function paintTopRightInfoBox(txt)
 	local ib = paintEmptyInfoBox(x, y, dx, dy)
 	N:RenderString(useDynFont, fontMiniInfo, txt, x, y+dy, COL.YELLOW, dx, dy, 1)
 	return ib
-end -- function paintTopRightInfoBox
+end
 
 function paintTopRightInfoBoxAndWait(txt, sec)
 	local box = paintTopRightInfoBox(txt)
 	local P = require 'posix'
 	P.sleep(sec)
 	G.hideInfoBox(box)
-end -- function paintTopRightInfoBoxAndWait
+end
 
 function paintEmptyInfoBox(x, y, w, h)
 	local dx, dy
@@ -578,23 +578,23 @@ function paintEmptyInfoBox(x, y, w, h)
 	local ib = cwindow.new{color_body=body, x=x, y=y, dx=dx, dy=dy, has_shadow=true, shadow_mode=1, show_footer=false, show_header=false}
 	ib:paint()
 	return ib
-end -- function paintEmptyInfoBox
+end
 
 menuRet = nil -- global return value
 
 function key_home(a)
 	menuRet = MENU_RETURN.EXIT
 	return menuRet
-end -- function key_home
+end
 
 function key_setup(a)
 	ret = MENU_RETURN.EXIT_ALL
 	return menuRet
-end -- function key_setup
+end
 
 function hideMenu(menu)
 	if menu ~= nil then menu:hide() end
-end -- function hideMenu
+end
 
 function getSendDataHead(mode)
 	local ret = {}
@@ -610,11 +610,11 @@ function getSendDataHead(mode)
 	ret['mode']	= mode		
 
 	return ret
-end -- function getSendDataHead
+end
 
 function runACommand(cmd)
 	local handle = io.popen(cmd)
 	local result = handle:read("*a")
 	handle:close()
 	return result
-end -- function runACommand
+end

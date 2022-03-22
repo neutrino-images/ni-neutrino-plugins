@@ -77,7 +77,7 @@ function playOrDownloadVideo(playOrDownload)
 		downloadMovie(url, mtList[mtRightMenu_select].channel, mtList[mtRightMenu_select].title, mtList[mtRightMenu_select].description, mtList[mtRightMenu_select].theme, mtList[mtRightMenu_select].duration, mtList[mtRightMenu_select].date, mtList[mtRightMenu_select].time)
 	end
 	restoreFullScreen(screen, true)
-end -- function playOrDownloadVideo
+end
 
 function paint_mtItemLine(count)
 	_item_x = mtRightMenu_x + 8
@@ -106,7 +106,7 @@ function paint_mtItemLine(count)
 		if (vH > 20) then txt = adjustStringLen(txt, w-_x*2, fontLeftMenu1) end
 		N:RenderString(useDynFont, fontLeftMenu1, txt, _item_x+_x, _itemLine_y+subMenuHight, txtCol, w, subMenuHight, center)
 		_item_x = _item_x + w
-	end -- function paintItem
+	end
 
 	if (count <= #mtList) then
 		paintItem(29,	mtList[count].theme,	0)
@@ -118,7 +118,7 @@ function paint_mtItemLine(count)
 		if (mtList[count].geo ~= '') then geo = 'X' end
 		paintItem(5,	geo,			1)
 	end
-end -- function paint_mtItemLine
+end
 
 function paintMtRightMenu()
 	local bg_col		= COL.MENUCONTENT_PLUS_0
@@ -140,7 +140,7 @@ function paintMtRightMenu()
 		d = d - m*60
 		local s = d
 		return string.format('%02d:%02d:%02d', h, m, s)
-	end -- function formatDuration
+	end
 
 	local function paintHeadLine()
 		local function paintHead(vH, txt)
@@ -155,7 +155,7 @@ function paintMtRightMenu()
 			if (paint == true) then
 				N:paintVLine(item_x, y, subMenuHight, frameColor)
 			end
-		end -- function paintHead
+		end
 		
 		G.paintSimpleFrame(x, y, rightItem_w, subMenuHight, frameColor, 0)
 		paintHead(29,	l.headerTheme)
@@ -164,7 +164,7 @@ function paintMtRightMenu()
 		paintHead(6,	l.headerTime)
 		paintHead(9,	l.headerDuration)
 		paintHead(-5,	l.headerGeo)
-	end -- function paintHeadLine
+	end
 
 	local function bufferEntries()
 		local el = {}
@@ -304,7 +304,7 @@ function paintMtRightMenu()
 
 		selectionChanged = false
 --		paintAnInfoBoxAndWait(string.format(l.titleRead, mtBuffer_list_total), WHERE.CENTER, 3)
-	end -- function bufferEntries
+	end
 
 	itemLine_y = mtMenu_y+subMenuTop+2
 	_item_x = 0
@@ -456,12 +456,12 @@ function paintMtRightMenu()
 
 	mtRightMenu_max_page = math.ceil(mtRightMenu_list_total/mtRightMenu_count)
 	paintLeftInfoBox(string.format(l.menuPageOfPage, mtRightMenu_view_page, mtRightMenu_max_page))
-end -- function paintMtRightMenu
+end
 
 function paintLeftInfoBox(txt)
 	G.paintSimpleFrame(leftInfoBox_x, leftInfoBox_y, leftInfoBox_w, leftInfoBox_h, COL.FRAME, COL.MENUCONTENT_PLUS_1)
 	N:RenderString(useDynFont, fontLeftMenu2, txt, leftInfoBox_x, leftInfoBox_y+subMenuHight, COL.MENUCONTENT_TEXT, leftInfoBox_w, subMenuHight, 1)
-end -- function paintLeftInfoBox
+end
 
 function paintMtLeftMenu()
 	local frameColor	= COL.FRAME
@@ -529,7 +529,7 @@ function paintMtLeftMenu()
 				end
 			end
 		end
-	end -- function paintLeftItem
+	end
 
 	-- items
 	local i = 0
@@ -540,7 +540,7 @@ function paintMtLeftMenu()
 			y = y + subMenuHight + subMenuSpace
 		end
 	end
-end -- function paintMtLeftMenu
+end
 
 function paintMtWindow(menuOnly)
 	if (menuOnly == false) then
@@ -554,12 +554,12 @@ function paintMtWindow(menuOnly)
 
 	paintMtLeftMenu()
 	paintMtRightMenu()
-end -- function paintMtWindow
+end
 
 function hideMtWindow()
 	h_mtWindow:hide()
 	N:PaintBox(0, 0, SCREEN.X_RES, SCREEN.Y_RES, COL.BACKGROUND)
-end -- function hideMtWindow
+end
 
 function newMtWindow()
 	if h_mtWindow == nil then
@@ -577,7 +577,7 @@ function newMtWindow()
 		h_mtWindow = cwindow.new{x=x, y=y, dx=w, dy=h, color_body=bgCol, show_footer=false, name=pluginName .. ' - v' .. pluginVersion, icon=pluginIcon}
 	end
 	paintMtWindow(false)
-end -- function newMtWindow
+end
 
 function formatTitle(allTitles, title)
 	local space_x = math.floor(N:scale2Res(6))
@@ -589,7 +589,7 @@ function formatTitle(allTitles, title)
 	end
 	f_title = adjustStringLen(f_title, frame_w-6, fontLeftMenu2)
 	return f_title
-end -- function formatTitle
+end
 
 function formatTheme(allThemes, theme)
 	local space_x = math.floor(N:scale2Res(6))
@@ -600,7 +600,7 @@ function formatTheme(allThemes, theme)
 	end
 	f_theme = adjustStringLen(f_theme, frame_w-6, fontLeftMenu2)
 	return f_theme
-end -- function formatTheme
+end
 
 function formatseePeriod()
 	local period = ''
@@ -616,11 +616,11 @@ function formatseePeriod()
 		period = s .. conf.seePeriod .. ' ' .. l.formatSeePeriodDays
 	end
 	return period
-end -- function formatseePeriod
+end
 
 function formatMinDuration(duration)
 	return tostring(duration) .. ' ' .. l.formatDurationMin
-end -- function formatMinDuration
+end
 
 function startMediathek()
 	leftMenuEntry = {}
@@ -632,7 +632,7 @@ function startMediathek()
 		leftMenuEntry[i][3]	= e3
 		leftMenuEntry[i][4]	= e4
 		leftMenuEntry[i][5]	= e5
-	end -- function fillLeftMenuEntry
+	end
 
 	fillLeftMenuEntry(l.menuTitle,		formatTitle(conf.allTitles, conf.title),	btnRed,    true, true)
 	fillLeftMenuEntry(l.menuChannel,	conf.channel,					btnGreen,  true, true)
@@ -756,4 +756,4 @@ function startMediathek()
 		end
 
 	until msg == RC.home or forcePluginExit == true
-end -- function startMediathek
+end

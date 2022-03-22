@@ -7,7 +7,7 @@ function getTecTimeTv_m3u8(url)
 		return m3u_url
 	end
 	return nil
-end -- function getTecTimeTv_m3u8
+end
 
 function playLivestream(_id)
 	i = tonumber(_id)
@@ -61,7 +61,7 @@ function playLivestream(_id)
 
 	restoreFullScreen(screen, true)
 	return MENU_RETURN.REPAINT
-end -- function playLivestream
+end
 
 function playLivestream2(_id)
 	i = tonumber(_id)
@@ -117,7 +117,7 @@ function playLivestream2(_id)
 
 	restoreFullScreen(screen, true)
 	return MENU_RETURN.REPAINT
-end -- function playLivestream2
+end
 
 function getLivestreams()
 	local s = getJsonData2(url_new .. actionCmd_livestream, nil, nil, queryMode_listLivestreams)
@@ -139,7 +139,7 @@ function getLivestreams()
 		videoTable[i][4] = configName
 	end
 	return true
-end -- function getLivestreams
+end
 
 function livestreamMenu()
 	if (#videoTable == 0) then
@@ -170,4 +170,4 @@ function livestreamMenu()
 		return menuRet
 	end
 	return MENU_RETURN.REPAINT
-end -- function livestreamMenu
+end

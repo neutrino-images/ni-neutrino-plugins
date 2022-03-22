@@ -10,7 +10,7 @@ function getVersionInfo()
 			j_table.entry[1].api, j_table.entry[1].apiversion, j_table.entry[1].mvversion, j_table.entry[1].mventrys, mvdate)
 
 	messagebox.exec{title=l.versionHeader .. ' ' .. pluginName, text=vInfo, buttons={ 'ok' } }
-end -- function getVersionInfo
+end
 
 function paintMainMenu(space, frameColor, textColor, info, count)
 	local fontText = fontMainMenu
@@ -56,7 +56,7 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 			N:RenderString(useDynFont, fontText, info[i][2], x2, y + h, txtC, w2, h, 0)
 		end
 	end
-end -- function paintMainMenu
+end
 
 function paintMainWindow(menuOnly, win)
 	if (not win) then win = h_mainWindow end
@@ -64,12 +64,12 @@ function paintMainWindow(menuOnly, win)
 		win:paint{do_save_bg=true}
 	end
 	paintMainMenu(OFFSET.INNER_SMALL, COL.FRAME, COL.MENUCONTENT_TEXT, mainMenuEntry, #mainMenuEntry)
-end -- function paintMainWindow
+end
 
 function hideMainWindow()
 	h_mainWindow:hide()
 	N:PaintBox(0, 0, SCREEN.X_RES, SCREEN.Y_RES, COL.BACKGROUND)
-end -- function hideMainWindow
+end
 
 function newMainWindow()
 	local x = SCREEN.OFF_X
@@ -92,7 +92,7 @@ function newMainWindow()
 	paintMainWindow(false, ret)
 	mainScreen = saveFullScreen()
 	return ret
-end -- function newMainWindow
+end
 
 function mainWindow()
 
@@ -122,7 +122,7 @@ function mainWindow()
 		-- exit plugin
 		checkKillKey(msg)
 	until msg == RC.home or msg == RC.stop or forcePluginExit == true
-end -- function mainWindow
+end
 
 muteStatusNeutrino	= false
 muteStatusPlugin	= false
@@ -139,7 +139,7 @@ function beforeStart()
 
 --	timerThread = threads.new(_timerThread)
 --	timerThread:start()
-end -- function beforeStart
+end
 
 function afterStop()
 	hideMainWindow()
@@ -161,7 +161,7 @@ function afterStop()
 --		ok = thread:join()
 --		H.printf("timerThread join ok: %s", tostring(ok))
 --	end
-end -- function afterStop
+end
 
 --	local _timerThread = [[
 --		while (true) do

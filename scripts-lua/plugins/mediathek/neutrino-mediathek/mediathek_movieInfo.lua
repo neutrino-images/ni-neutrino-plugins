@@ -49,7 +49,7 @@ function paintMovieInfo(isMP, res, ratio, rate)
 			G.paintSimpleFrame(math.floor(_x+N:scale2Res(8)), math.floor(_y1+N:scale2Res(6)), math.floor(frame_w-N:scale2Res(16)), _y-_y1, COL.FRAME, 0)
 		end
 		return _y
-	end -- function paintInfoItem
+	end
 
 	local step = math.floor(N:scale2Res(6))
 	-- theme
@@ -124,7 +124,7 @@ function paintMovieInfo(isMP, res, ratio, rate)
 		checkKillKey(msg)
 	until msg == RC.red or msg == RC.home or forcePluginExit == true
 	G.hideInfoBox(box)
-end -- function paintMovieInfo
+end
 
 function getStreamData(xres, yres, aspectRatio, framerate)
 	local res, ratio, rate
@@ -164,9 +164,9 @@ function getStreamData(xres, yres, aspectRatio, framerate)
 	end
 
 	return res, ratio, rate
-end -- function getStreamData
+end
 
 function movieInfoMP(xres, yres, aspectRatio, framerate)
 	local res, ratio, rate = getStreamData(xres, yres, aspectRatio, framerate)
 	paintMovieInfo(true, res, ratio, rate)
-end -- function movieInfoMP
+end
