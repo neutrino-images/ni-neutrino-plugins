@@ -226,8 +226,8 @@ function downloadMovie(url, channel, title, description, theme, duration, date, 
 			if ((r >= 'A' and r <= 'Z') or
 				(r >= 'a' and r <= 'z') or
 				(r >= '0' and r <= '9') or
-				r == '.' or r == ',' or r == ':' or r == ';' or
-				r == '-' or r == '(' or r == ')' or r == '?' or r == '!') then
+				r == '.' or r == ',' or r == '-' or
+				r == '(' or r == ')' or r == '!') then
 				t = t .. r
 			else
 				t = t .. '_'
