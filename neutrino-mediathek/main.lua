@@ -4,12 +4,12 @@ function getVersionInfo()
 	local j_table = decodeJson(s)
 	if checkJsonError(j_table) == false then return false end
 
-	local vdate  = os.date(l.formatDate .. ' / ' .. l.formatTime, j_table.entry[1].vdate)	-- no NLS
-	local mvdate = os.date(l.formatDate .. ' / ' .. l.formatTime, j_table.entry[1].mvdate)	-- no NLS
+	local vdate  = os.date(l.formatDate .. ' / ' .. l.formatTime, j_table.entry[1].vdate)
+	local mvdate = os.date(l.formatDate .. ' / ' .. l.formatTime, j_table.entry[1].mvdate)
 	local vInfo = string.format(l.formatVersion, pluginVersion, j_table.entry[1].version, vdate, j_table.entry[1].progname, j_table.entry[1].progversion,
 			j_table.entry[1].api, j_table.entry[1].apiversion, j_table.entry[1].mvversion, j_table.entry[1].mventrys, mvdate)
 
-	messagebox.exec{title=l.versionHeader .. ' ' .. pluginName, text=vInfo, buttons={ 'ok' } }	-- no NLS
+	messagebox.exec{title=l.versionHeader .. ' ' .. pluginName, text=vInfo, buttons={ 'ok' } }
 end -- function getVersionInfo
 
 function paintMainMenu(space, frameColor, textColor, info, count)
@@ -44,7 +44,7 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 		local y = y_start + (i-1)*h_tmp
 		local bg = 0
 		txtC=textColor
-		if ((i == 2) and (conf.enableLivestreams == 'off')) then	-- no NLS
+		if ((i == 2) and (conf.enableLivestreams == 'off')) then
 			txtC = COL.MENUCONTENTINACTIVE_TEXT
 			bg   = COL.MENUCONTENTINACTIVE
 		end
@@ -87,7 +87,7 @@ function newMainWindow()
 		bgCol = (0x60000000)
 	end
 
-	local ret = cwindow.new{x=x, y=y, dx=w, dy=h, color_body=bgCol, show_header=showHeader, show_footer=false, name=pluginName .. ' - v' .. pluginVersion, icon=pluginIcon}	-- no NLS
+	local ret = cwindow.new{x=x, y=y, dx=w, dy=h, color_body=bgCol, show_header=showHeader, show_footer=false, name=pluginName .. ' - v' .. pluginVersion, icon=pluginIcon}
 	G.hideInfoBox(startBox)
 	paintMainWindow(false, ret)
 	mainScreen = saveFullScreen()
@@ -107,7 +107,7 @@ function mainWindow()
 		end
 		-- livestreams
 		if ((msg == RC.sat) or (msg == RC.red)) then
-			if (conf.enableLivestreams == 'on') then	-- no NLS
+			if (conf.enableLivestreams == 'on') then
 				livestreamMenu()
 			end
 		end
@@ -147,7 +147,7 @@ function afterStop()
 		V:channelRezap()
 	end
 	local rev, box = M:GetRevision()
-	if rev == 1 and box == 'Spark' then V:StopPicture() end	-- no NLS
+	if rev == 1 and box == 'Spark' then V:StopPicture() end
 
 	M:enableMuteIcon(true)
 	M:AudioMute(muteStatusNeutrino, true)
