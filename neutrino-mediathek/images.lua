@@ -49,4 +49,4 @@ function createImages()
 		btnRed		= '/usr/share/tuxbox/neutrino/icons/btn_red.png'
 		btnYellow	= '/usr/share/tuxbox/neutrino/icons/btn_yellow.png'
 	end -- icon types
-end -- function createImages
+end

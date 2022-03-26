@@ -28,7 +28,7 @@ function getJsonData2(url, file, post, mode)
 	fp:close()
 	G.hideInfoBox(box)
 	return s
-end -- function getJsonData2
+end
 
 function getJsonData(url, file)
 	local box = nil
@@ -64,7 +64,7 @@ function checkJsonError(tab)
 		return false
 	end
 	return true
-end -- function checkJsonError
+end
 
 function decodeJson(data)
 	local s = H.trim(data)
@@ -76,4 +76,4 @@ function decodeJson(data)
 		return nil
 	end
 	return J:decode(s)
-end -- function decodeJson
+end

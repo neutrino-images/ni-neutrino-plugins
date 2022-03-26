@@ -84,7 +84,7 @@ function parse_m3u8Data(url, parse_mode)
 	fp:close()
 	G.hideInfoBox(box)
 	return streamInfo
-end -- function parse_m3u8Data
+end
 
 function get_m3u8url(url, parse_mode)
 	local ret = {}
@@ -163,4 +163,4 @@ function get_m3u8url(url, parse_mode)
 	ret['qual'] = conf.streamQuality
 
 	return ret
-end -- function get_m3u8url
+end
