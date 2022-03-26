@@ -26,9 +26,12 @@ function playOrDownloadVideo(playOrDownload)
 	local flag_max = false
 	local flag_normal = false
 	local flag_min = false
-	if (mtList[mtRightMenu_select].url_hd ~= '') then		flag_max = true end
-	if (mtList[mtRightMenu_select].url ~= '') then			flag_normal = true end
-	if (mtList[mtRightMenu_select].url_small ~= '') then	flag_min = true end
+	if (mtList[mtRightMenu_select].url_hd ~= '') then
+		flag_max = true end
+	if (mtList[mtRightMenu_select].url ~= '') then
+		flag_normal = true end
+	if (mtList[mtRightMenu_select].url_small ~= '') then
+		flag_min = true end
 
 	local quality = ''
 	if (playOrDownload == true) then
@@ -38,7 +41,7 @@ function playOrDownloadVideo(playOrDownload)
 	end
 	local url = ''
 	-- conf=max: 1. max, 2. normal, 3. min
-	if (quality == 'max') then	-- no NLS
+	if (quality == 'max') then
 		if (flag_max == true) then
 			url = mtList[mtRightMenu_select].url_hd
 		elseif (flag_normal == true) then
@@ -47,7 +50,7 @@ function playOrDownloadVideo(playOrDownload)
 			url = mtList[mtRightMenu_select].url_small
 		end
 	-- conf=min: 1. min, 2. normal, 3. max
-	elseif (quality == 'min') then	-- no NLS
+	elseif (quality == 'min') then
 		if (flag_min == true) then
 			url = mtList[mtRightMenu_select].url_small
 		elseif (flag_normal == true) then
@@ -112,7 +115,7 @@ function paint_mtItemLine(count)
 		paintItem(6,	mtList[count].time,	1)
 		paintItem(9,	mtList[count].duration,	1)
 		local geo = ''
-		if (mtList[count].geo ~= '') then geo = 'X' end	-- no NLS
+		if (mtList[count].geo ~= '') then geo = 'X' end
 		paintItem(5,	geo,			1)
 	end
 end -- function paint_mtItemLine
@@ -136,7 +139,7 @@ function paintMtRightMenu()
 		local m = math.floor(d/60)
 		d = d - m*60
 		local s = d
-		return string.format('%02d:%02d:%02d', h, m, s)	-- no NLS
+		return string.format('%02d:%02d:%02d', h, m, s)
 	end -- function formatDuration
 
 	local function paintHeadLine()
@@ -169,13 +172,13 @@ function paintMtRightMenu()
 		el['channel'] = channel
 
 		local timeMode = timeMode_normal
-		if (conf.seeFuturePrograms == 'on') then	-- no NLS
+		if (conf.seeFuturePrograms == 'on') then
 			timeMode = timeMode_future
 		end
 		el['timeMode'] = timeMode
 
 		local period = 0
-		if (conf.seePeriod == 'all') then	-- no NLS
+		if (conf.seePeriod == 'all') then
 			period = -1
 		else
 			period = tonumber(conf.seePeriod)
@@ -208,8 +211,8 @@ function paintMtRightMenu()
 			sendData['data'] = el
 			local post = J:encode(sendData)
 
-			local dataFile = createCacheFileName(post, 'json')	-- no NLS
-			post = C:setUriData('data1', post)	-- no NLS
+			local dataFile = createCacheFileName(post, 'json')
+			post = C:setUriData('data1', post)
 			local s = getJsonData2(url_new .. actionCmd_sendPostData, dataFile, post, queryMode_listVideos)
 --	H.printf("\nretData:\n%s\n", tostring(s))
 
@@ -225,11 +228,11 @@ function paintMtRightMenu()
 				local j_table = {}
 			j_table = decodeJson(s)
 			if (j_table == nil) then
-				os.execute('rm -f ' .. dataFile)	-- no NLS
+				os.execute('rm -f ' .. dataFile)
 				return false
 			end
 			if checkJsonError(j_table) == false then
-				os.execute('rm -f ' .. dataFile)	-- no NLS
+				os.execute('rm -f ' .. dataFile)
 				if (j_table.err ~= 2) then
 					return false
 				end
@@ -262,18 +265,18 @@ function paintMtRightMenu()
 					local t_title		= j_table.entry[i].title
 					local t_description	= j_table.entry[i].description
 					local t_theme		= j_table.entry[i].theme
-					if conf.ignoreCase == 'on' then	-- no NLS
+					if conf.ignoreCase == 'on' then
 						title		= string.upper(title)
 						t_title		= string.upper(t_title)
 						t_description	= string.upper(t_description)
 					end
-					if ((theme == t_theme  and allTitles == 'on'                                                                                           ) or -- no NLS
-						(allThemes == 'on' and title == t_title                                  and partialTitle == 'off'                             ) or -- no NLS
-						(allThemes == 'on' and string.find(t_title, title, 1, true) ~= nil       and partialTitle == 'on'                              ) or -- no NLS
-						(allThemes == 'on' and string.find(t_description, title, 1, true) ~= nil and partialTitle == 'on' and inDescriptionToo == 'on' ) or -- no NLS
-						(theme == t_theme  and title == t_title                                  and partialTitle == 'off'                             ) or -- no NLS
-						(theme == t_theme  and string.find(t_title, title, 1, true) ~= nil       and partialTitle == 'on'                              ) or -- no NLS
-						(theme == t_theme  and string.find(t_description, title, 1, true) ~= nil and partialTitle == 'on' and inDescriptionToo == 'on' )) then -- no NLS
+					if ((theme == t_theme  and allTitles == 'on'                                                                                           ) or
+						(allThemes == 'on' and title == t_title                                  and partialTitle == 'off'                             ) or
+						(allThemes == 'on' and string.find(t_title, title, 1, true) ~= nil       and partialTitle == 'on'                              ) or
+						(allThemes == 'on' and string.find(t_description, title, 1, true) ~= nil and partialTitle == 'on' and inDescriptionToo == 'on' ) or
+						(theme == t_theme  and title == t_title                                  and partialTitle == 'off'                             ) or
+						(theme == t_theme  and string.find(t_title, title, 1, true) ~= nil       and partialTitle == 'on'                              ) or
+						(theme == t_theme  and string.find(t_description, title, 1, true) ~= nil and partialTitle == 'on' and inDescriptionToo == 'on' )) then
 						mtBuffer[j] = {}
 						mtBuffer[j].channel	= j_table.entry[i].channel
 						mtBuffer[j].theme	= j_table.entry[i].theme
@@ -315,19 +318,19 @@ function paintMtRightMenu()
 
 	local allTitles = conf.allTitles
 	local allThemes = conf.allThemes
-	if allThemes == "on" and allTitles == 'on' then -- No dedicated theme or title selected - no NLS
+	if allThemes == "on" and allTitles == 'on' then -- No dedicated theme or title selected
 		local el = {}
 		local channel = conf.channel
 		el['channel'] = channel
 
 		local timeMode = timeMode_normal
-		if (conf.seeFuturePrograms == 'on') then	-- no NLS
+		if (conf.seeFuturePrograms == 'on') then
 			timeMode = timeMode_future
 		end
 		el['timeMode'] = timeMode
 
 		local period = 0
-		if (conf.seePeriod == 'all') then	-- no NLS
+		if (conf.seePeriod == 'all') then
 			period = -1
 		else
 			period = tonumber(conf.seePeriod)
@@ -355,20 +358,20 @@ function paintMtRightMenu()
 		sendData['data'] = el
 		local post = J:encode(sendData)
 	
-		local dataFile = createCacheFileName(post, 'json')	-- no NLS
-		post = C:setUriData('data1', post)	-- no NLS
+		local dataFile = createCacheFileName(post, 'json')
+		post = C:setUriData('data1', post)
 		local s = getJsonData2(url_new .. actionCmd_sendPostData, dataFile, post, queryMode_listVideos)
 --		H.printf("\nretData:\n%s\n", tostring(s))
 	
 		local j_table = {}
 		j_table = decodeJson(s)
 		if (j_table == nil) then
-			os.execute('rm -f ' .. dataFile)	-- no NLS
+			os.execute('rm -f ' .. dataFile)
 			return false
 		end
 		local noData = false
 		if checkJsonError(j_table) == false then
-			os.execute('rm -f ' .. dataFile)	-- no NLS
+			os.execute('rm -f ' .. dataFile)
 			if (j_table.err ~= 2) then
 				return false
 			end
@@ -502,7 +505,7 @@ function paintMtLeftMenu()
 		y = y + subMenuHight
 		local crCount = 0
 		for i=1, #txt2 do
-			if string.sub(txt2, i, i) == '\n' then	-- no NLS
+			if string.sub(txt2, i, i) == '\n' then
 				crCount = crCount + 1
 			end
 		end
@@ -512,10 +515,10 @@ function paintMtLeftMenu()
 			N:RenderString(useDynFont, fontLeftMenu2, txt2, mtLeftMenu_x+subMenuLeft, y+subMenuHight, txtCol, mtLeftMenu_w-subMenuLeft*2, subMenuHight, 1)
 		else
 			crCount = crCount + 1
-			txt2 = txt2 .. '\n'	-- no NLS
+			txt2 = txt2 .. '\n'
 			G.paintSimpleFrame(mtLeftMenu_x+subMenuLeft, y, mtLeftMenu_w-subMenuLeft*2, crCount*subMenuHight, frameColor, bgCol)
 			for i=1, crCount do
-				local s, e = string.find(txt2, '\n')	-- no NLS
+				local s, e = string.find(txt2, '\n')
 --				paintAnInfoBoxAndWait("s: " .. s .. " e: " .. e, WHERE.CENTER, 3)
 				if s ~= nil then
 					local txt = string.sub(txt2, 1, s-1)
@@ -571,7 +574,7 @@ function newMtWindow()
 			bgCol = bit32.band(0x00FFFFFF, bgCol)
 			bgCol = bit32.bor(0xA0000000, bgCol)
 		end
-		h_mtWindow = cwindow.new{x=x, y=y, dx=w, dy=h, color_body=bgCol, show_footer=false, name=pluginName .. ' - v' .. pluginVersion, icon=pluginIcon}	-- no NLS
+		h_mtWindow = cwindow.new{x=x, y=y, dx=w, dy=h, color_body=bgCol, show_footer=false, name=pluginName .. ' - v' .. pluginVersion, icon=pluginIcon}
 	end
 	paintMtWindow(false)
 end -- function newMtWindow
@@ -580,9 +583,9 @@ function formatTitle(allTitles, title)
 	local space_x = math.floor(N:scale2Res(6))
 	local frame_w = leftInfoBox_w - 2*space_x
 	local f_title = l.formatAllTitles
-	if allTitles == 'off' then	-- no NLS
+	if allTitles == 'off' then
 		f_title = title
-		if conf.partialTitle == 'on' then f_title = '... ' .. f_title .. ' ...' end	-- no NLS
+		if conf.partialTitle == 'on' then f_title = '... ' .. f_title .. ' ...' end
 	end
 	f_title = adjustStringLen(f_title, frame_w-6, fontLeftMenu2)
 	return f_title
@@ -592,7 +595,7 @@ function formatTheme(allThemes, theme)
 	local space_x = math.floor(N:scale2Res(6))
 	local frame_w = leftInfoBox_w - 2*space_x
 	local f_theme = l.formatAllThemes
-	if allThemes == 'off' then	-- no NLS
+	if allThemes == 'off' then
 		f_theme = theme
 	end
 	f_theme = adjustStringLen(f_theme, frame_w-6, fontLeftMenu2)
@@ -601,11 +604,11 @@ end -- function formatTheme
 
 function formatseePeriod()
 	local period = ''
-	local s = '- '	-- no NLS
-	if (conf.seeFuturePrograms == 'on') then	-- no NLS
-		s = '+/- '	-- no NLS
+	local s = '- '
+	if (conf.seeFuturePrograms == 'on') then
+		s = '+/- '
 	end
-	if (conf.seePeriod == 'all') then	-- no NLS
+	if (conf.seePeriod == 'all') then
 		period = l.formatSeePeriodAll
 	elseif (conf.seePeriod == '1') then
 		period = s .. l.formatSeePeriod1Day
@@ -735,7 +738,7 @@ function startMediathek()
 		-- exit plugin
 		checkKillKey(msg)
 
-		local countWGETRunning = runACommand('ps -ef | grep -c wget')	-- no NLS
+		local countWGETRunning = runACommand('ps -ef | grep -c wget')
 		if (countWGETRunning == nil) then
 			countWGETRunning = 0
 		else
