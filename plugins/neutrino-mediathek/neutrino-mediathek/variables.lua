@@ -9,7 +9,7 @@ function initLocale()
 	end
 
 	dofile(pluginScriptPath .. '/locale/' .. language .. '.lua')
-end -- function initLocale
+end
 
 function initVars()
 	pluginVersionMajor	= 0
@@ -96,14 +96,14 @@ function initVars()
 		if (hardware == 'Coolstream') then
 			softwareSig = softwareSig .. ' - CST'
 		end
-	end -- function initVars
+	end
 
 	local function fillMainMenuEntry(e1, e2)
 		local i = #mainMenuEntry+1
 		mainMenuEntry[i]	= {}
 		mainMenuEntry[i][1]	= e1
 		mainMenuEntry[i][2]	= e2
-	end -- function fillMainMenuEntry
+	end
 
 	mainMenuEntry = {}
 	fillMainMenuEntry(l.key.ok,	l.startMediathek)

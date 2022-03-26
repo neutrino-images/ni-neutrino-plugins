@@ -29,7 +29,7 @@ function loadLuaLib(lib, noerror)
 	else
 		error('Lua library  not found: "' .. lib .. '[.so|.lua]"')
 	end
-end -- function loadLuaLib
+end
 
 V	= video.new()
 M	= misc.new()

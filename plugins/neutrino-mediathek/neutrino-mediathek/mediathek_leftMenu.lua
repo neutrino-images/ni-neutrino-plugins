@@ -11,12 +11,12 @@ function repaintMediathek()
 	mtRightMenu_view_page	= 1
 	mtRightMenu_list_start	= 0
 	paintMtRightMenu()
-end -- function repaintMediathek
+end
 
 function changeTitle(k, v)
 	conf.title = v
 	return MENU_RETURN.REPAINT
-end -- function changeTitle
+end
 
 function changeAllTitles(k, v)
 	conf.allTitles = translateOnOff(v)
@@ -24,7 +24,7 @@ function changeAllTitles(k, v)
 		m_title_sel:setActive{item=titleList[i], activ=(conf.allTitles=='off')}
 	end
 	return MENU_RETURN.EXIT_ALL
-end -- function changeAllTitles
+end
 
 function changePartSearch(k, v)
 	conf.partialTitle = translateOnOff(v)
@@ -32,7 +32,7 @@ function changePartSearch(k, v)
 		conf.inDescriptionToo = 'off'
 	end
 	return MENU_RETURN.EXIT_All
-end -- function changePartSearch
+end
 
 function changeInDescr(k, v)
 	conf.inDescriptionToo = translateOnOff(v)
@@ -40,12 +40,12 @@ function changeInDescr(k, v)
 		conf.partialTitle = 'on'
 	end
 	return MENU_RETURN.EXIT_AlL
-end -- function changeInDescr
+end
 
 function changeIgnoreCase(k, v)
 	conf.ignoreCase = translateOnOff(v)
 	return MENU_RETURN.EXIT_ALL
-end -- function changeIgnoreCase
+end
 
 function titleMenu()
 	local old_title			= conf.title
@@ -86,7 +86,7 @@ function titleMenu()
 	if ((conf.title ~= old_title) or (conf.allTitles ~= old_allTitles) or (conf.partialTitle ~= old_partialTitle) or (conf.inDescriptionToo ~= old_inDescriptionToo) or (conf.ignoreCase ~= old_ignoreCase)) then
 		repaintMediathek()
 	end
-end -- function titleMenu
+end
 
 function changeChannel(channel)
 	conf.channel = channel
@@ -95,7 +95,7 @@ function changeChannel(channel)
 --	conf.theme = l.allThemes
 	conf.allThemes = 'on'
 	return MENU_RETURN.EXIT_ALL
-end -- function changeChannel
+end
 
 function channelMenu()
 	local old_channel = conf.channel
@@ -134,12 +134,12 @@ function channelMenu()
 	if (conf.channel ~= old_channel) then
 		repaintMediathek()
 	end
-end -- function channelMenu
+end
 
 function changeTheme(theme)
 	conf.theme = theme
 	return MENU_RETURN.EXIT_ALL
-end -- function changeTheme
+end
 
 function changeAllThemes(k, v)
 	conf.allThemes = translateOnOff(v)
@@ -147,7 +147,7 @@ function changeAllThemes(k, v)
 		m_theme_sel:setActive{item=themeList[i], activ=(conf.allThemes=='off')}
 	end
 	return MENU_RETURN.EXIT_ALL
-end -- function changeAllThemes
+end
 
 function themeMenu()
 	local old_theme     = conf.theme
@@ -273,7 +273,7 @@ function themeMenu()
 	if ((conf.theme ~= old_theme) or (conf.allThemes ~= old_allThemes)) then
 		repaintMediathek()
 	end
-end -- function themeMenu
+end
 
 function periodOfTimeMenu()
 	local old_seeFuturePrograms = conf.seeFuturePrograms
@@ -296,7 +296,7 @@ function periodOfTimeMenu()
 	if ((conf.seeFuturePrograms ~= old_seeFuturePrograms) or (conf.seePeriod ~= old_seePeriod)) then
 		repaintMediathek()
 	end
-end -- function periodOfTimeMenu
+end
 
 function minDurationMenu()
 	local old_seeMinimumDuration = conf.seeMinimumDuration
@@ -315,4 +315,4 @@ function minDurationMenu()
 	if (conf.seeMinimumDuration ~= old_seeMinimumDuration) then
 		repaintMediathek()
 	end
-end -- function minDurationMenu
+end
