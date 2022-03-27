@@ -83,7 +83,7 @@ function paintMovieInfo(isMP, res, ratio, rate)
 
 	if (isMP == true) then
 		txt = string.format('%s, %s, %s', res, ratio, rate)
-		paintInfoItem(frame_x+frame_w/2, bottom_y, 'Streaminfo', txt, true)
+		paintInfoItem(frame_x, bottom_y, 'Streaminfo', txt, true)
 	else
 		txt = ''
 		local flag_max = false
