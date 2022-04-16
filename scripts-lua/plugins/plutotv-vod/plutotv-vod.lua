@@ -1,5 +1,5 @@
 --[[
-	plutotv-vod.lua v1.23
+	plutotv-vod.lua v1.24
 
 	Copyright (C) 2021 TangoCash
 	License: WTFPLv2
@@ -823,6 +823,7 @@ function season_menu(_id)
 	local seasons = 1
 	local c = curl.new()
 	local c_data = getdata("http://api.pluto.tv/v3/vod/series/".. _id .."/seasons?includeItems=true&deviceType=web")
+	local num = 1
 	if c_data then
 		local jd = json:decode(c_data)
 		if jd then
@@ -834,6 +835,7 @@ function season_menu(_id)
 			episodelist = {}
 			local count = 1
 			for i=1, #jd.seasons do
+				num = jd.seasons[i].number;
 				sm:addItem{type="forwarder", name="Season "..i, action="episode_menu", id=i, hint=hint_value("hinttext","Staffel " ..i) , hint_icon=hint_value("hinticon","Serie"), icon=godirect("icon", count), enabled=true, directkey=godirect("directkey", count)}
 				seasons = i
 				episodelist_details = {}
@@ -843,7 +845,7 @@ function season_menu(_id)
 						title = jd.name;
 						season = i;
 						episode = k;
-						name = i.."x"..string.format("%02d",k).." - ".. jd.seasons[i].episodes[k].name;
+						name = num .. "x"..string.format("%02d", tonumber(jd.seasons[i].episodes[k].number)) .. " - " .. jd.seasons[i].episodes[k].name;
 						desc = jd.seasons[i].episodes[k].description;
 						duration = math.floor(tonumber(jd.seasons[i].episodes[k].originalContentDuration) / 1000 / 60 + 0.5);
 						uuid = jd.seasons[i].episodes[k]._id;
@@ -867,7 +869,7 @@ function season_menu(_id)
 	h:hide()
 	if seasons == 1 then
 		hide_sm = false
-		episode_menu(seasons)
+		episode_menu(seasons, num)
 	else
 		hide_sm = true
 		sm:exec()
@@ -876,11 +878,12 @@ function season_menu(_id)
 	os.execute("rm "..bigPicBG);
 end
 
-function episode_menu(s)
+function episode_menu(s, n)
 	if hide_sm then
 		sm:hide()
 	end
-	em = menu.new{name=episodelist[tonumber(s)][1].title .. " - Season "..s, has_shadow=true, icon=plutotv_vod_png}
+	if n == nil then n = s end
+	em = menu.new{name=episodelist[tonumber(s)][1].title .. " - Season ".. n, has_shadow=true, icon=plutotv_vod_png}
 	for season, episodelist_detail in pairs (episodelist) do
 		if season == tonumber(s) then
 			local count = 1
