@@ -32,6 +32,21 @@
 #include "gfx.h"
 #include "text.h"
 
+FT_Error 		error;
+FT_Library		library;
+FTC_Manager		manager;
+FTC_SBitCache		cache;
+FTC_SBit		sbit;
+FTC_ImageTypeRec	desc;
+FT_Face			face;
+FT_UInt			prev_glyphindex;
+FT_Bool			use_kerning;
+
+struct fb_fix_screeninfo fix_screeninfo;
+struct fb_var_screeninfo var_screeninfo;
+
+int fb, rc;
+
 extern int FSIZE_BIG;
 extern int FSIZE_MED;
 extern int FSIZE_SMALL;

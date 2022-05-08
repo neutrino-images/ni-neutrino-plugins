@@ -85,6 +85,26 @@ static char TCF_FILE[128]="";
 #define IOC_FP_SET_TEXT		_IOW(0xDE,  3, char*)
 #endif
 
+FT_Error 		error;
+FT_Library		library;
+FTC_Manager		manager;
+FTC_SBitCache		cache;
+FTC_SBit		sbit;
+#if FREETYPE_MAJOR == 2 && FREETYPE_MINOR == 0
+FTC_Image_Desc		desc;
+#else
+FTC_ImageTypeRec	desc;
+#endif
+FT_Face			face;
+FT_UInt			prev_glyphindex;
+FT_Bool			use_kerning;
+
+struct fb_fix_screeninfo fix_screeninfo;
+struct fb_var_screeninfo var_screeninfo;
+
+int fb;
+int startx, starty, sx, ex, sy, ey, preset;
+
 void blit(void) {
 	memcpy(lfb, lbb, var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t));
 }
