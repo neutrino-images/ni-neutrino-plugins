@@ -121,22 +121,22 @@
 enum {LEFT, CENTER, RIGHT};
 enum {SMALL, MED, BIG};
 
-FT_Error 		error;
-FT_Library		library;
-FTC_Manager		manager;
-FTC_SBitCache		cache;
-FTC_SBit		sbit;
+extern FT_Error 		error;
+extern FT_Library		library;
+extern FTC_Manager		manager;
+extern FTC_SBitCache		cache;
+extern FTC_SBit		sbit;
 #if FREETYPE_MAJOR == 2 && FREETYPE_MINOR == 0
-FTC_Image_Desc		desc;
+extern FTC_Image_Desc		desc;
 #else
-FTC_ImageTypeRec	desc;
+extern FTC_ImageTypeRec	desc;
 #endif
-FT_Face			face;
-FT_UInt			prev_glyphindex;
-FT_Bool			use_kerning;
+extern FT_Face			face;
+extern FT_UInt			prev_glyphindex;
+extern FT_Bool			use_kerning;
 
 //devs
-int fb, debounce, rblock;
+extern int fb, debounce, rblock;
 
 //framebuffer stuff
 enum {
@@ -183,17 +183,17 @@ extern int OFFSET_MED;
 extern int OFFSET_SMALL;
 extern int OFFSET_MIN;
 
-struct fb_fix_screeninfo fix_screeninfo;
-struct fb_var_screeninfo var_screeninfo;
+extern struct fb_fix_screeninfo fix_screeninfo;
+extern struct fb_var_screeninfo var_screeninfo;
 
-int startx, starty, sx, ex, sy, ey;
-char online;
+extern int startx, starty, sx, ex, sy, ey;
+extern char online;
 extern int MAX_FUNCS;
 extern int instance;
 int get_instance(void);
 void put_instance(int pval);
 
-int key_count;
-unsigned short lastkey;
+extern int key_count;
+extern unsigned short lastkey;
 
 #endif

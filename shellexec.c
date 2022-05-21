@@ -39,6 +39,29 @@ char FONT[128]= FONTDIR "/neutrino.ttf";
 
 static char CFG_FILE[128]= CONFIGDIR "/shellexec.conf";
 
+FT_Error 		error;
+FT_Library		library;
+FTC_Manager		manager;
+FTC_SBitCache		cache;
+FTC_SBit		sbit;
+#if FREETYPE_MAJOR == 2 && FREETYPE_MINOR == 0
+FTC_Image_Desc		desc;
+#else
+FTC_ImageTypeRec	desc;
+#endif
+FT_Face			face;
+FT_UInt			prev_glyphindex;
+FT_Bool			use_kerning;
+
+struct fb_fix_screeninfo fix_screeninfo;
+struct fb_var_screeninfo var_screeninfo;
+
+int fb, debounce, rblock;
+int startx, starty, sx, ex, sy, ey;
+int key_count;
+
+char online;
+unsigned short lastkey;
 //						CMCST,	CMCS,	CMCT,	CMC,	CMCIT,	CMCI,	CMHT,	CMH
 //						WHITE,	BLUE0,	TRANSP,	CMS,	ORANGE,	GREEN,	YELLOW,	RED
 //						COL_MENUCONTENT_PLUS_0 - 3, COL_SHADOW_PLUS_0
