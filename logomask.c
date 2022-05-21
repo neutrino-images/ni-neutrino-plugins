@@ -29,7 +29,9 @@
   SIGUSR1:         Toggles debug mode
 */
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
 #include <string.h>
 #include <time.h>
 #include <signal.h>
@@ -40,6 +42,10 @@ extern int FSIZE_BIG;
 extern int FSIZE_MED;
 extern int FSIZE_SMALL;
 
+int fb, rc, pid;
+
+struct fb_fix_screeninfo fix_screeninfo;
+struct fb_var_screeninfo var_screeninfo;
 
 #define CL_VERSION  "1.53"
 #define MAX_MASK 16
