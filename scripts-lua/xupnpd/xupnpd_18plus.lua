@@ -3,6 +3,7 @@
 -- 18+                          *
 -- ******************************
 -- 22.08.2021
+-- 23.07.2022 by jokel
 cfg.user_age=18
 cfg.youporn_max_pages=5
 
@@ -136,6 +137,7 @@ function youporn_sendurl(youporn_url,range)
 		if jnTab then
 			local maxRes = 0
 			for k, v in pairs(jnTab) do
+			    if v.format == "mp4" then
 				if v.videoUrl and #v.videoUrl > 6 then
 					local res =  tonumber(v.quality)
 					if res and res  > maxRes then
@@ -143,6 +145,7 @@ function youporn_sendurl(youporn_url,range)
 						url = v.videoUrl
 					end
 				end
+			    end
 			end
 		end
 	else
