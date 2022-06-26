@@ -1,0 +1,38 @@
+#!/bin/sh
+
+. /etc/init.d/functions
+. /etc/init.d/globals
+
+plugins_hide_conf=/var/tuxbox/config/plugins-hide.conf
+plugins_hide_entry="hide=1"
+
+plugin_dirs=" \
+	@PLUGINDIR@ \
+	@PLUGINDIR_VAR@ \
+	@PLUGINDIR_MNT@ \
+	$(get_setting plugin_hdd_dir) \
+"
+
+case $1 in
+	start)
+		test -e $plugins_hide_conf || exit
+		cat $plugins_hide_conf | while read c; do
+			if ! grep -q $plugins_hide_entry $c; then
+				echo $plugins_hide_entry >> $c
+			fi
+		done
+	;;
+	stop|create-conf)
+		rm -rf $plugins_hide_conf
+		for d in $plugin_dirs; do
+			for c in $d/*.cfg; do
+				if grep -q $plugins_hide_entry $c 2>/dev/null; then
+					echo $c >> $plugins_hide_conf
+				fi
+			done
+		done
+	;;
+	*)
+		echo "[$BASENAME] Usage: $0 {start|stop}"
+	;;
+esac

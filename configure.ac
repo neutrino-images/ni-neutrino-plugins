@@ -428,6 +428,7 @@ scripts-sh/plugins/dropbox_uploader/Makefile
 scripts-sh/plugins/EPGscan/Makefile
 scripts-sh/plugins/imgbackup/Makefile
 scripts-sh/plugins/mountpointmanagement/Makefile
+scripts-sh/plugins/plugins-hide/Makefile
 scripts-sh/plugins/pr-auto-timer/Makefile
 scripts-sh/plugins/smarthomeinfo/Makefile
 scripts-sh/plugins/wortraten/Makefile
@@ -445,6 +446,11 @@ vinfo/Makefile
 vu-initfb/Makefile
 vu-oled_ctrl/Makefile
 vu-turnoff_power/Makefile
+])
+
+# init scripts
+AC_CONFIG_FILES([
+scripts-sh/plugins/plugins-hide/plugins-hide
 ])
 
 AC_OUTPUT

@@ -27,3 +27,5 @@ endif
 if ENABLE_WORTRATEN
 SUBDIRS += wortraten
 endif
+
+SUBDIRS += plugins-hide
