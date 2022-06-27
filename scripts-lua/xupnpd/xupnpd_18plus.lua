@@ -3,9 +3,13 @@
 -- 18+                          *
 -- ******************************
 -- 22.08.2021
--- 23.07.2022 by jokel
+-- 27.06.2022 update by jokel
+
 cfg.user_age=18
 cfg.youporn_max_pages=5
+
+cfg.maxRes=720
+-- 1080 or 720 or 480 or 240
 
 youporn_category=
 {
@@ -25,12 +29,13 @@ youporn_category=
     ['mature']='/category/28/mature/', ['pov']='/category/36/pov/', ['panties']='/category/56/panties/',
     ['pantyhose']='/category/57/pantyhose/', ['public']='/category/30/public/', ['redhead']='/category/53/redhead/',
     ['rimming']='/category/43/rimming/', ['romantic']='/category/61/romantic/', ['shaved']='/category/54/shaved/',
-    ['shemale']='/category/31/shemale/', ['solo_male']='/category/60/solo-male/', ['solo_girl']='/category/27/solo-girl/',
+    ['shemale']='/category/31/trans/', ['solo_male']='/category/60/solo-male/', ['solo_girl']='/category/27/solo-girl/',
     ['squirting']='/category/39/squirting/', ['strt_sex']='/category/47/strt-sex/', ['swallow']='/category/59/swallow/',
     ['teen']='/category/32/teen/', ['threesome']='/category/38/threesome/', ['vintage']='/category/33/vintage/',
     ['voyeur']='/category/34/voyeur/', ['webcam']='/category/35/webcam/', ['3d']='/category/63/3d/', ['hd']='/category/65/hd/',
     ['young-old']='/category/45/young-old/'
 }
+
 function check_if_double(tab,name)
 	for index,value in ipairs(tab) do
 		if value == name then
@@ -133,19 +138,17 @@ function youporn_sendurl(youporn_url,range)
 	local data=http.download(youporn_url)
 	if data then
 		local jnTab = json.decode(data)
-		local maxRes = 0
 		if jnTab then
-			local maxRes = 0
 			for k, v in pairs(jnTab) do
-			    if v.format == "mp4" then
-				if v.videoUrl and #v.videoUrl > 6 then
-					local res =  tonumber(v.quality)
-					if res and res  > maxRes then
-						maxRes = res
-						url = v.videoUrl
+				if v.format == "mp4" then
+					if v.videoUrl and #v.videoUrl > 6 then
+						local res =  tonumber(v.quality)
+						if res == cfg.maxRes then
+							url = v.videoUrl
+							break
+						end
 					end
 				end
-			    end
 			end
 		end
 	else
@@ -164,19 +167,19 @@ function youporn_sendurl(youporn_url,range)
 	end
 end
 
+function youporn_desc()
+	local t={}
+	for i,j in pairs(youporn_category) do
+		t[table.maxn(t)+1]=i
+	end
+	return table.concat(t,',')
+end
+
 plugins['youporn']={}
 plugins.youporn.disabled=false
 plugins.youporn.name="YouPorn"
+plugins.youporn.desc=youporn_desc()
 plugins.youporn.sendurl=youporn_sendurl
 plugins.youporn.updatefeed=youporn_updatefeed
 
-function youporn_desc()
-    local t={}
-    for i,j in pairs(youporn_category) do
-        t[table.maxn(t)+1]=i
-    end
-    return table.concat(t,',')
-end
-
-plugins.youporn.desc=youporn_desc()
 if cfg.user_age<18 then plugins.youporn.disabled=true end
