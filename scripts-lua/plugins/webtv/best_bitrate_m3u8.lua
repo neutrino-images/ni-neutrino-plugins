@@ -84,7 +84,8 @@ function getVideoUrl(m3u8_url)
 			end
 
 			local l1,l2,l3,l4,l = nil,nil,nil,nil,nil
-			for adata in data:gmatch('TYPE%=AUDIO.GROUP%-ID=".-",(.-)\n') do
+			--for adata in data:gmatch('TYPE%=AUDIO.GROUP%-ID=".-",(.-)\n') do
+			for adata in data:gmatch('TYPE%=AUDIO,(.-)\n') do
 				local lname = adata:match('NAME="(.-)"')
 				local lang = adata:match('LANGUAGE="(.-)"')
 				local aurl = adata:match('URI="(.-)"')
