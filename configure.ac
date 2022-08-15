@@ -243,6 +243,12 @@ AC_ARG_ENABLE(openvpn-setup,
 	[enable_openvpn_setup="yes"])
 AM_CONDITIONAL(ENABLE_OPENVPN_SETUP, test "$enable_openvpn_setup" = "yes")
 
+AC_ARG_ENABLE(replay,
+	AS_HELP_STRING([--enable-replay], [enable replay plugin @<:@default=yes@:>@]),
+	[enable_replay="$enableval"],
+	[enable_replay="yes"])
+AM_CONDITIONAL(ENABLE_REPLAY, test "$enable_replay" = "yes")
+
 AC_ARG_ENABLE(rcu_switcher,
 	AS_HELP_STRING([--enable-rcu_switcher], [enable rcu_switcher @<:@default=yes@:>@]),
 	[enable_rcu_switcher="$enableval"],
@@ -410,6 +416,7 @@ scripts-lua/plugins/openvpn-setup/Makefile
 scripts-lua/plugins/openvpn-setup/openvpn-setup/Makefile
 scripts-lua/plugins/plutotv-update/Makefile
 scripts-lua/plugins/plutotv-vod/Makefile
+scripts-lua/plugins/replay/Makefile
 scripts-lua/plugins/rcu_switcher/Makefile
 scripts-lua/plugins/rss/Makefile
 scripts-lua/plugins/spiegel-tv-doc/Makefile
