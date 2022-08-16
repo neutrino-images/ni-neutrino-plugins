@@ -144,6 +144,7 @@ function getReLiveList_ARD()
 		h:paint()
 	end
 	for i=1,37 do
+		local subtitle = ""
 		local link = 'http://itv.ard.de/replay/dyn/index.php?sid=' .. i
 		local data = getdata(link)
 		--if data then
@@ -151,9 +152,9 @@ function getReLiveList_ARD()
 			local jnTab = json:decode(data)
 			if jnTab and jnTab.diff then
 				if jnTab.subtitle then
-					_hint = jnTab.subtitle
+					subtitle = jnTab.subtitle
 				end
-				table.insert(replayList, {name="ARD: " .. jnTab.name .. ' - ' .. jnTab.title, url=link, stream=nil, audiostream=nil, hint=_hint, hasVideo=true, ch='ard'})
+				table.insert(replayList, {name="ARD: " .. jnTab.name .. ' - ' .. jnTab.title, url=link, stream=nil, audiostream=nil, hint=subtitle, hasVideo=true, ch='ard'})
 			end
 		end
 	end
