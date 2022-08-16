@@ -1,5 +1,8 @@
 -- version 0.1 add ard
 
+-- list duplicates
+local duplicates = false
+
 function init()
 	json = require "json"
 	replayList = {}
@@ -139,11 +142,13 @@ function getLiveStream(id)
 end
 
 function getReLiveList_ARD()
+	local titleList = {}
 	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
 	if h then
 		h:paint()
 	end
 	for i=1,37 do
+		local duplicate = false
 		local subtitle = ""
 		local link = 'http://itv.ard.de/replay/dyn/index.php?sid=' .. i
 		local data = getdata(link)
@@ -154,13 +159,24 @@ function getReLiveList_ARD()
 				if jnTab.subtitle then
 					subtitle = jnTab.subtitle
 				end
-				table.insert(replayList, {name="ARD: " .. jnTab.name .. ' - ' .. jnTab.title, url=link, stream=nil, audiostream=nil, hint=subtitle, hasVideo=true, ch='ard'})
+				if duplicates == false then
+					for j, v in ipairs(titleList) do
+						if v.title == jnTab.title then
+							duplicate = true
+						end
+					end
+				end
+				if duplicate == false then
+					table.insert(titleList, {title=jnTab.title})
+					table.insert(replayList, {name="ARD: " .. jnTab.name .. ' - ' .. jnTab.title, url=link, stream=nil, audiostream=nil, hint=subtitle, hasVideo=true, ch='ard'})
+				end
 			end
 		end
 	end
 	if h then
 		h:hide()
 	end
+	titleList = {}
 end
 
 function main_menu()
