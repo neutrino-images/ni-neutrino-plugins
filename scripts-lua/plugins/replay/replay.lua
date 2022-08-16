@@ -3,11 +3,14 @@
 function init()
 	json = require "json"
 	replayList = {}
+	replayMenu = nil
 	getReLiveList_ARD()
 	n = neutrino()
 	vPlay = video.new()
 	nMisc = misc.new()
 	repaint = false
+	Epg = nil
+	Title = nil
 end
 
 function getdata(Url,Postfields,outputfile,pass_headers,httpheaders)
@@ -55,11 +58,10 @@ end
 
 
 function hideMenu(menu)
-	if menu ~= nil then menu:hide() end
+	if menu ~= nil then
+		menu:hide()
+	end
 end
-
-local Epg = nil
-local Title = nil
 
 function epgInfo (xres, yres, aspectRatio, framerate)
 	local dx = n:scale2Res(800);
@@ -67,8 +69,8 @@ function epgInfo (xres, yres, aspectRatio, framerate)
 	local x = ((SCREEN['END_X'] - SCREEN['OFF_X']) - dx) / 2;
 	local y = ((SCREEN['END_Y'] - SCREEN['OFF_Y']) - dy) / 2;
 
-	local wh = cwindow.new{x=x, y=y, dx=dx, dy=dy, icon="" , show_footer=false };
-	local ct = ctext.new{parent=wh, x=20, y=20, dx=0, dy=0, text = Epg , font_text=FONT['MENU'], mode = "ALIGN_SCROLL | ALIGN_TOP"};
+	local wh = cwindow.new{x=x, y=y, dx=dx, dy=dy, icon="", show_footer=false};
+	local ct = ctext.new{parent=wh, x=20, y=20, dx=0, dy=0, text=Epg, font_text=FONT['MENU'], mode="ALIGN_SCROLL | ALIGN_TOP"};
         wh:setCaption{title=Title, alignment=TEXT_ALIGNMENT.CENTER};
 
 	wh:paint()
@@ -91,7 +93,7 @@ function play_live(_id)
 		getLiveStream(id)
 	end
 	if replayList[id].stream then
-		hideMenu(live_listen_menu)
+		hideMenu(replayMenu)
 		Epg = replayList[id].epg
 		Title = replayList[id].name
 		if Epg and Title then
@@ -148,8 +150,10 @@ function getReLiveList_ARD()
 		if data and string.sub(data,1,1) == "{" then
 			local jnTab = json:decode(data)
 			if jnTab and jnTab.diff then
-				if jnTab.subtitle then _hint = jnTab.subtitle end
-				table.insert(replayList,{name="ARD: " .. jnTab.name .. ' - ' .. jnTab.title, url=link, stream=nil,audiostream=nil,hint=_hint,hasVideo=true,ch='ard'})
+				if jnTab.subtitle then
+					_hint = jnTab.subtitle
+				end
+				table.insert(replayList, {name="ARD: " .. jnTab.name .. ' - ' .. jnTab.title, url=link, stream=nil, audiostream=nil, hint=_hint, hasVideo=true, ch='ard'})
 			end
 		end
 	end
@@ -167,17 +171,16 @@ function main_menu()
 	if #replayList == 0 then
 		return
 	end
-	live_listen_menu  = menu.new{name="Replay", icon="streaming"}
-	local menu = live_listen_menu
-	menu:addItem{type="back"}
-	menu:addItem{type="separatorline"}
+	replayMenu = menu.new{name="Replay", icon="streaming"}
+	replayMenu:addItem{type="back"}
+	replayMenu:addItem{type="separatorline"}
 	local d =  0
 	for i, v in ipairs(replayList) do
-		d=d+1
-		menu:addItem{type="forwarder", name=v.name, action="play_live",hint=v.hint,enabled=v.hasVideo,id=i,directkey=godirectkey(d)}
+		d = d+1
+		replayMenu:addItem{type="forwarder", name=v.name, action="play_live", hint=v.hint, enabled=v.hasVideo, id=i, directkey=godirectkey(d)}
 	end
-	menu:exec()
-	menu:hide()
+	replayMenu:exec()
+	replayMenu:hide()
 end
 
 function main()
