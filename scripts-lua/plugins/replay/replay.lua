@@ -2,7 +2,7 @@
 
 function init()
 	json = require "json"
-	livelist = {}
+	replayList = {}
 	getReLiveList_ARD()
 	n = neutrino()
 	vPlay = video.new()
@@ -62,13 +62,13 @@ local Epg = nil
 local Title = nil
 
 function epgInfo (xres, yres, aspectRatio, framerate)
-	local dx = 800;
-	local dy = 260;
+	local dx = n:scale2Res(800);
+	local dy = n:scale2Res(400);
 	local x = ((SCREEN['END_X'] - SCREEN['OFF_X']) - dx) / 2;
 	local y = ((SCREEN['END_Y'] - SCREEN['OFF_Y']) - dy) / 2;
 
 	local wh = cwindow.new{x=x, y=y, dx=dx, dy=dy, icon="" , show_footer=false };
-	local ct = ctext.new{parent=wh, x=0, y=0, dx=0, dy=0, text = Epg , font_text=FONT['MENU'], mode = "ALIGN_SCROLL | ALIGN_TOP"};
+	local ct = ctext.new{parent=wh, x=20, y=20, dx=0, dy=0, text = Epg , font_text=FONT['MENU'], mode = "ALIGN_SCROLL | ALIGN_TOP"};
         wh:setCaption{title=Title, alignment=TEXT_ALIGNMENT.CENTER};
 
 	wh:paint()
@@ -87,11 +87,13 @@ end
 
 function play_live(_id)
 	local id = tonumber(_id)
-	if livelist[id].stream == nil then
+	if replayList[id].stream == nil then
 		getLiveStream(id)
 	end
-	if livelist[id].stream then
+	if replayList[id].stream then
 		hideMenu(live_listen_menu)
+		Epg = replayList[id].epg
+		Title = replayList[id].name
 		if Epg and Title then
 			vPlay:setInfoFunc("epgInfo")
 		end
@@ -99,7 +101,7 @@ function play_live(_id)
 		if Title then
 			info1 = Title
 		end
-		vPlay:PlayFile(livelist[id].name, livelist[id].stream, info1,"",livelist[id].audiostream or "")
+		vPlay:PlayFile(replayList[id].name, replayList[id].stream, info1,"",replayList[id].audiostream or "")
 		Epg = nil
 		Title = nil
 		repaint = true
@@ -108,7 +110,7 @@ function play_live(_id)
 end
 
 function getARDstream(id)
-	local url = livelist[id].url
+	local url = replayList[id].url
 	local jdata = getdata(url)
 	if jdata then
 		local jnTab = json:decode(jdata)
@@ -121,17 +123,17 @@ function getARDstream(id)
 			if jnTab.detail then
 				Epg = jnTab.detail
 			end
-			livelist[id].stream = jnTab.streamurl .. jnTab.diff .. '/manifest.mpd'
+			replayList[id].stream = jnTab.streamurl .. jnTab.diff .. '/manifest.mpd'
 		end
 	end
 end
 
 function getLiveStream(id)
-	local url = livelist[id].url
-	if url and livelist[id].ch == "ard" then
-			getARDstream(id)
+	local url = replayList[id].url
+	if url and replayList[id].ch == "ard" then
+		getARDstream(id)
 	end
-	return livelist[id].stream
+	return replayList[id].stream
 end
 
 function getReLiveList_ARD()
@@ -147,7 +149,7 @@ function getReLiveList_ARD()
 			local jnTab = json:decode(data)
 			if jnTab and jnTab.diff then
 				if jnTab.subtitle then _hint = jnTab.subtitle end
-				table.insert(livelist,{name="ARD: " .. jnTab.name .. ' - ' .. jnTab.title, url=link, stream=nil,audiostream=nil,hint=_hint,hasVideo=true,ch='ard'})
+				table.insert(replayList,{name="ARD: " .. jnTab.name .. ' - ' .. jnTab.title, url=link, stream=nil,audiostream=nil,hint=_hint,hasVideo=true,ch='ard'})
 			end
 		end
 	end
@@ -158,11 +160,11 @@ end
 
 function main_menu()
 	if repaint then
-		livelist = {}
+		replayList = {}
 		getReLiveList_ARD()
 		repaint = false
 	end
-	if #livelist == 0 then
+	if #replayList == 0 then
 		return
 	end
 	live_listen_menu  = menu.new{name="Replay", icon="streaming"}
@@ -170,7 +172,7 @@ function main_menu()
 	menu:addItem{type="back"}
 	menu:addItem{type="separatorline"}
 	local d =  0
-	for i, v in ipairs(livelist) do
+	for i, v in ipairs(replayList) do
 		d=d+1
 		menu:addItem{type="forwarder", name=v.name, action="play_live",hint=v.hint,enabled=v.hasVideo,id=i,directkey=godirectkey(d)}
 	end
