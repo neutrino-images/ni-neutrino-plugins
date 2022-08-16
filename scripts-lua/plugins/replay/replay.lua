@@ -66,7 +66,7 @@ function hideMenu(menu)
 	end
 end
 
-function epgInfo (xres, yres, aspectRatio, framerate)
+function epgInfo(xres, yres, aspectRatio, framerate)
 	local dx = n:scale2Res(800);
 	local dy = n:scale2Res(400);
 	local x = ((SCREEN['END_X'] - SCREEN['OFF_X']) - dx) / 2;
@@ -74,7 +74,7 @@ function epgInfo (xres, yres, aspectRatio, framerate)
 
 	local wh = cwindow.new{x=x, y=y, dx=dx, dy=dy, icon="", show_footer=false};
 	local ct = ctext.new{parent=wh, x=20, y=20, dx=0, dy=0, text=Epg, font_text=FONT['MENU'], mode="ALIGN_SCROLL | ALIGN_TOP"};
-        wh:setCaption{title=Title, alignment=TEXT_ALIGNMENT.CENTER};
+        wh:setCaption{title=Title};
 
 	wh:paint()
 
@@ -168,7 +168,7 @@ function getReLiveList_ARD()
 				end
 				if duplicate == false then
 					table.insert(titleList, {title=jnTab.title})
-					table.insert(replayList, {name="ARD: " .. jnTab.name .. ' - ' .. jnTab.title, url=link, stream=nil, audiostream=nil, hint=subtitle, hasVideo=true, ch='ard'})
+					table.insert(replayList, {name="ARD: " .. jnTab.name .. ' - ' .. jnTab.title, url=link, stream=nil, audiostream=nil, epg=subtitle, hint=subtitle, hasVideo=true, ch='ard'})
 				end
 			end
 		end
