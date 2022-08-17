@@ -2,6 +2,15 @@
 
 -- list duplicates
 local duplicates = false
+--local duplicates = true
+
+-- list specific channels only
+--local channels = {1, 14, 20, 12, 5, 15, 19, 7, 36, 3, 4, 33}
+local channels = {}
+
+if next(channels) ~= nil then
+	duplicates = true
+end
 
 function init()
 	json = require "json"
@@ -68,25 +77,26 @@ end
 
 function epgInfo(xres, yres, aspectRatio, framerate)
 	local dx = n:scale2Res(800);
-	local dy = n:scale2Res(400);
+	local dy = n:scale2Res(450);
 	local x = ((SCREEN['END_X'] - SCREEN['OFF_X']) - dx) / 2;
 	local y = ((SCREEN['END_Y'] - SCREEN['OFF_Y']) - dy) / 2;
 
 	local wh = cwindow.new{x=x, y=y, dx=dx, dy=dy, icon="", show_footer=false};
-	local ct = ctext.new{parent=wh, x=20, y=20, dx=0, dy=0, text=Epg, font_text=FONT['MENU'], mode="ALIGN_SCROLL | ALIGN_TOP"};
-        wh:setCaption{title=Title};
+	local ct = ctext.new{parent=wh, text=Epg, font_text=FONT['MENU'], mode="ALIGN_SCROLL | ALIGN_TOP"};
 
+	wh:setCaption{title=Title};
 	wh:paint()
 
 	repeat
-	msg, data = n:GetInput(500)
+		msg, data = n:GetInput(500)
 		if msg == RC.up or msg == RC.page_up then
 			ct:scroll{dir="up"};
 		elseif msg == RC.down or msg == RC.page_down then
 			ct:scroll{dir="down"};
 		end
 		msg, data = n:GetInput(500)
-	until msg == RC.ok or msg == RC.home or msg == RC.info ;
+	until msg == RC.ok or msg == RC.home or msg == RC.info
+
 	wh:hide()
 end
 
@@ -106,7 +116,7 @@ function play_live(_id)
 		if Title then
 			info1 = Title
 		end
-		vPlay:PlayFile(replayList[id].name, replayList[id].stream, info1,"",replayList[id].audiostream or "")
+		vPlay:PlayFile(replayList[id].name, replayList[id].stream, info1, "", replayList[id].audiostream or "")
 		Epg = nil
 		Title = nil
 		repaint = true
@@ -119,15 +129,7 @@ function getARDstream(id)
 	local jdata = getdata(url)
 	if jdata then
 		local jnTab = json:decode(jdata)
-		if jnTab and jnTab.diff then
-			if jnTab.title and jnTab.subtitle then
-				Title = jnTab.title .. ' ' .. jnTab.subtitle
-			elseif jnTab.title then
-				Title = jnTab.title
-			end
-			if jnTab.detail then
-				Epg = jnTab.detail
-			end
+		if jnTab and jnTab.streamurl and jnTab.diff then
 			replayList[id].stream = jnTab.streamurl .. jnTab.diff .. '/manifest.mpd'
 		end
 	end
@@ -147,9 +149,17 @@ function getReLiveList_ARD()
 	if h then
 		h:paint()
 	end
-	for i=1,37 do
+	if next(channels) == nil then
+		-- add all channels
+		channels = {}
+		for i = 1, 37 do
+			table.insert(channels, i)
+		end
+	end
+	for _, i in ipairs(channels) do
 		local duplicate = false
 		local subtitle = ""
+		local detail = ""
 		local link = 'http://itv.ard.de/replay/dyn/index.php?sid=' .. i
 		local data = getdata(link)
 		--if data then
@@ -158,6 +168,15 @@ function getReLiveList_ARD()
 			if jnTab and jnTab.diff then
 				if jnTab.subtitle then
 					subtitle = jnTab.subtitle
+					if subtitle == "" then
+						subtitle = jnTab.title
+					end
+				end
+				if jnTab.detail then
+					detail = jnTab.detail
+					if detail == "" then
+						detail = subtitle
+					end
 				end
 				if duplicates == false then
 					for j, v in ipairs(titleList) do
@@ -168,7 +187,7 @@ function getReLiveList_ARD()
 				end
 				if duplicate == false then
 					table.insert(titleList, {title=jnTab.title})
-					table.insert(replayList, {name="ARD: " .. jnTab.name .. ' - ' .. jnTab.title, url=link, stream=nil, audiostream=nil, epg=subtitle, hint=subtitle, hasVideo=true, ch='ard'})
+					table.insert(replayList, {name="ARD: " .. jnTab.name .. ' - ' .. jnTab.title, url=link, stream=nil, audiostream=nil, epg=detail, hint=subtitle, hasVideo=true, ch='ard'})
 				end
 			end
 		end
@@ -189,6 +208,7 @@ function main_menu()
 		return
 	end
 	replayMenu = menu.new{name="Replay", icon="streaming"}
+	replayMenu:addItem{type="separator"}
 	replayMenu:addItem{type="back"}
 	replayMenu:addItem{type="separatorline"}
 	local d =  0
