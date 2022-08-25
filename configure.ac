@@ -237,6 +237,12 @@ AC_ARG_ENABLE(logoupdater,
 	[enable_logoupdater="yes"])
 AM_CONDITIONAL(ENABLE_LOGOUPDATER, test "$enable_logoupdater" = "yes")
 
+AC_ARG_ENABLE(mediathek,
+	AS_HELP_STRING([--enable-mediathek], [enable mediathek @<:@default=yes@:>@]),
+	[enable_mediathek="$enableval"],
+	[enable_mediathek="yes"])
+AM_CONDITIONAL(ENABLE_MEDIATHEK, test "$enable_mediathek" = "yes")
+
 AC_ARG_ENABLE(mtv,
 	AS_HELP_STRING([--enable-mtv], [enable mtv @<:@default=yes@:>@]),
 	[enable_mtv="$enableval"],
@@ -393,6 +399,9 @@ AC_ARG_ENABLE(yt_live,
 	[enable_yt_live="yes"])
 AM_CONDITIONAL(ENABLE_YT_LIVE, test "$enable_yt_live" = "yes")
 
+dnl enable n_libraries by conditions set above
+AM_CONDITIONAL(ENABLE_N_LIBRARIES, test "$enable_mediathek" = "yes")
+
 AC_CONFIG_FILES([
 Makefile
 asc2uni/Makefile
@@ -422,6 +431,7 @@ scripts-lua/plugins/FritzInfoMonitor-setup/Makefile
 scripts-lua/plugins/heizoelpreise/Makefile
 scripts-lua/plugins/LocalTV/Makefile
 scripts-lua/plugins/logoupdater/Makefile
+scripts-lua/plugins/mediathek/Makefile
 scripts-lua/plugins/mtv/Makefile
 scripts-lua/plugins/n_libraries/Makefile
 scripts-lua/plugins/netzkino/Makefile
