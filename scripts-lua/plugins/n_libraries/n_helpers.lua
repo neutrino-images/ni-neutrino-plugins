@@ -29,25 +29,42 @@ local helpers = require "n_helpers"
 
 functions:
 ----------
+modulName()
+checkModulVersion(version)
+checkAPIversion(major, minor)
+dirname(str)
+basename(str)
 which(prog)
 pidOf(prog)
 readDirectory(dir, mask)
 base64Enc(data)
 base64Dec(data)
 tprint([f], tbl)
-( tprintFile (f, tbl) )
+( tprintFile(f, tbl, [indent]) )
 fileExist(file)
 trim(s)
 split(inputstr, sep)
 printf(...)
-modulName()
 scriptPath()
 scriptBase()
-checkAPIversion(major, minor)
 ]]
 
 local helpers = {VERSION = VERSION}
 local H = helpers
+
+function H.modulName()
+	return "n_helpers"
+end
+
+function H.checkModulVersion(version)
+	if version > VERSION then
+		error(string.format("\nModul '%s' version >= %.02f is required, existing version is %.02f", H.modulName(), version, VERSION))
+	end
+end
+
+function H.checkAPIversion(major, minor)
+	if APIVERSION.MAJOR >= major and APIVERSION.MINOR >= minor then return true else return false end
+end
 
 -- Copyright 2011-2014, Gianluca Fiore © <forod.g@gmail.com>
 --- Function equivalent to dirname in POSIX systems
@@ -60,6 +77,7 @@ function dirname(str)
 		return ''
 	end
 end
+
 --- Function equivalent to basename in POSIX systems
 --@param str the path string
 function basename(str)
@@ -201,7 +219,7 @@ function H.tprint(f, tbl, indent)
 	end
 end
 
-function H.tprintFile (f, tbl, indent)
+function H.tprintFile(f, tbl, indent)
 	if not indent then indent = 0 end
 	for k, v in pairs(tbl) do
 		formatting = string.rep(" ", indent) .. k .. ": "
@@ -242,16 +260,6 @@ function H.printf(...)
 	print(string.format(...))
 end
 
-function H.modulName()
-	return "n_helpers"
-end
-
-function H.checkModulVersion(version)
-	if version > VERSION then
-		error(string.format("\nModul '%s' version >= %.02f is required, existing version is %.02f", H.modulName(), version, VERSION))
-	end
-end
-
 function H.scriptPath()
 	return dirname(debug.getinfo(2, "S").source:sub(2));
 end
@@ -259,10 +267,6 @@ end
 function H.scriptBase()
 	local name = basename(debug.getinfo(2, "S").source:sub(2));
 	return string.sub(name, 1, #name-4)
-end
-
-function H.checkAPIversion(major, minor)
-	if APIVERSION.MAJOR >= major and APIVERSION.MINOR >= minor then return true else return false end
 end
 
 return helpers
