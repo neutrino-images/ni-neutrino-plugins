@@ -81,5 +81,6 @@ if ENABLE_ZDFHBBTV
 SUBDIRS += zdfhbbtv
 endif
 
+SUBDIRS += n_libraries
 SUBDIRS += webradio
 SUBDIRS += webtv

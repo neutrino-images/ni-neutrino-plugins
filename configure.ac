@@ -23,6 +23,18 @@ PKG_CHECK_MODULES(CURL,libcurl)
 PKG_CHECK_MODULES(FREETYPE,freetype2)
 PKG_CHECK_MODULES(PNG,libpng)
 
+AC_ARG_WITH(lua-libdir,
+	AS_HELP_STRING([--with-lua-libdir=PATH], [path to Lua libdir @<:@default=NONE@:>@]]),
+	[LUA_LIBDIR="$withval"],
+	AC_MSG_ERROR([need --with-lua-libdir=...]))
+AC_SUBST(LUA_LIBDIR)
+
+AC_ARG_WITH(lua-datadir,
+	AS_HELP_STRING([--with-lua-datadir=PATH], [path to Lua datadir @<:@default=NONE@:>@]]),
+	[LUA_DATADIR="$withval"],
+	AC_MSG_ERROR([need --with-lua-datadir=...]))
+AC_SUBST(LUA_DATADIR)
+
 AC_ARG_WITH(neutrino-source,
 	AS_HELP_STRING([--with-neutrino-source=PATH], [path where Neutrino source is located @<:@default=NONE@:>@]]),
 	[NEUTRINO_SOURCE="$withval"],
@@ -411,6 +423,7 @@ scripts-lua/plugins/heizoelpreise/Makefile
 scripts-lua/plugins/LocalTV/Makefile
 scripts-lua/plugins/logoupdater/Makefile
 scripts-lua/plugins/mtv/Makefile
+scripts-lua/plugins/n_libraries/Makefile
 scripts-lua/plugins/netzkino/Makefile
 scripts-lua/plugins/openvpn-setup/Makefile
 scripts-lua/plugins/openvpn-setup/openvpn-setup/Makefile
