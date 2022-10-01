@@ -49,8 +49,8 @@ int ReadConf()
 			fprintf(fd_conf, "TYPEFLAG=1\n\n");
 			fprintf(fd_conf, "ADMIN=Y\n\n");
 			fprintf(fd_conf, "MAILCACHE=0\n");
-			fprintf(fd_conf, "MAILDIR=\\tmp\\\n");		
-			fprintf(fd_conf, "SECURITY=\n\n");		
+			fprintf(fd_conf, "MAILDIR=\\tmp\\\n");
+			fprintf(fd_conf, "SECURITY=\n\n");
 			fprintf(fd_conf, "WEBPORT=80\n");
 			fprintf(fd_conf, "WEBUSER=\n");
 			fprintf(fd_conf, "WEBPASS=\n\n");
@@ -319,7 +319,7 @@ int ReadConf()
 			{
 				skin = 1;
 			}
-			
+
 			if(!typeflag)
 			{
 				typeflag = 1;
@@ -494,7 +494,7 @@ int ReadConf()
 		{
 			slog ? syslog(LOG_DAEMON | LOG_INFO, "store max. %d mails in %s\n", mailcache,maildir) : printf("TuxMailD <store max. %d mails in %s>\n", mailcache, maildir);
 		}
-		
+
 		if(security[0])
 		{
 			slog ? syslog(LOG_DAEMON | LOG_INFO, "security for executing commands defined\n") : printf("TuxMailD <security for executing commands defined>\n");
@@ -534,7 +534,7 @@ void ReadSpamList()
 	FILE *fd_spam;
 	char line_buffer[64];
   char *ptr;
-  
+
 	spam_entries = use_spamfilter = 0;
 
 	if(!(fd_spam = fopen(CFGPATH SPMFILE, "r")))
@@ -558,12 +558,12 @@ void ReadSpamList()
 					if((ptr = strchr(spamfilter[spam_entries].address, '\r')) || (ptr = strchr(spamfilter[spam_entries].address, '\n')))
 					{
 						*ptr = 0;
-					}						
+					}
 				}
 
 				slog ? syslog(LOG_DAEMON | LOG_INFO, "Spamlist Filter <%s>>", spamfilter[spam_entries].address) : printf("TuxMailD <Spamlist Filter <%s>>\n", spamfilter[spam_entries].address);
 
-				spam_entries++;				
+				spam_entries++;
 			}
 		}
 
@@ -573,7 +573,7 @@ void ReadSpamList()
 
 			slog ? syslog(LOG_DAEMON | LOG_INFO, "Spamlist contains %d Entries, Filter enabled", spam_entries) : printf("TuxMailD <Spamlist contains %d Entries, Filter enabled>\n", spam_entries);
 		}
-		else 
+		else
 		{
 			slog ? syslog(LOG_DAEMON | LOG_INFO, "empty Spamlist, Filter disabled") : printf("TuxMailD <empty Spamlist, Filter disabled>\n");
 		}
@@ -825,7 +825,7 @@ void DecodeQuotedPrintable(char *encodedstring, int encodedlen)
 /******************************************************************************
  * DecodeHeader
  ******************************************************************************/
- 
+
 int DecodeHeader(char *encodedstring)
 {
 	char *ptrS, *ptrE;
@@ -887,7 +887,7 @@ void AddChar2Mail( char c)
 					}
 				}
 
-				nCharInLine=0;	
+				nCharInLine=0;
 				sWord[nCharInWord++]=c;
 			}
 			else
@@ -908,15 +908,15 @@ void AddChar2Mail( char c)
 				fputs(sWord, fd_mail);
 				sWord[0] = c;
 				nCharInWord = 1;
-				nCharInLine = 0;							
+				nCharInLine = 0;
 			}
-		} 
+		}
 		else
 		{
 		    sWord[nCharInWord++] = c;
 		}
 	}
-	else 
+	else
 	{
 		sWord[nCharInWord++] = c;
 		sWord[nCharInWord] = 0;
@@ -924,8 +924,8 @@ void AddChar2Mail( char c)
 		fputs(sWord, fd_mail);
 		nCharInWord = 0;
 
-		if ((c == 10) || (c == '\n')) 
-		{	
+		if ((c == 10) || (c == '\n'))
+		{
 			nCharInLine = 0;
 
 			if (nStartSpalte)
@@ -953,33 +953,33 @@ void doOneChar( char c )
 	//bool  fDo;
 
 //	printf("N: (%c:%u) word:%u line:%u bytes:%lu\r\n",c,c,nCharInWord,nCharInLine,nRead);
-	switch(state) 
+	switch(state)
 	{
-		// normal, not in a tag, translation or special char    	
+		// normal, not in a tag, translation or special char
 		case cNorm :
-           		switch (c) 
+           		switch (c)
            		{
            			// first check if a special char, a tag or a translation starts
-              			case '<' : 	state = cInTag; 
-              					nIn = 0; 
+              			case '<' : 	state = cInTag;
+              					nIn = 0;
               					break;
-              					
-              			case '=' : 	sWord[nCharInWord++] = c; 
-              					state = cTrans; 
-              					nTr = 0; 
+
+              			case '=' : 	sWord[nCharInWord++] = c;
+              					state = cTrans;
+              					nTr = 0;
               					break;
-              					
-              			case '&' : 	if(fHtml) 
-              					{ 
-              						state = cSond;  
-              						nSo = 0; 
-              						break; 
+
+              			case '&' : 	if(fHtml)
+              					{
+              						state = cSond;
+              						nSo = 0;
+              						break;
               					}
               					// if not in HTML mode fall-through to default handling
-              					
+
 						default  : 	//fDo = 0;
 
-                         			if( !fPre ) 
+                         			if( !fPre )
                          			{
                          				if(fHtml)
                          				{
@@ -992,7 +992,7 @@ void doOneChar( char c )
                             					{
                             						c = '\n';
                             					}
-                            					if( c == '\n' ) 
+                            					if( c == '\n' )
                             					{
 									if( cLast != ' ' )
 									{
@@ -1011,9 +1011,9 @@ void doOneChar( char c )
 
 						cLast = c;
 			} //switch
-           		break; // case cNorm 
-	
-		// normal, not in a tag, translation or special char    	
+           		break; // case cNorm
+
+		// normal, not in a tag, translation or special char
 		case cTrans :
 			{
 //				printf("U: (%c:%u) nTr:%u\r\n",c,c,nTr);
@@ -1040,7 +1040,7 @@ void doOneChar( char c )
 							nCharInWord -= 3;
 							state = cNorm;
 
-							if (*ptable) 
+							if (*ptable)
 							{
 								AddChar2Mail(*ptable);
 							}
@@ -1050,138 +1050,138 @@ void doOneChar( char c )
 						ptable++;
 					}
 
-					state = cNorm;	
+					state = cNorm;
 				}
 			} break;
-		
+
 		// check for html-tag
 		case cInTag:
 			nIn++;
-		
+
 //			printf("T: (%c:%u) In:%u sSond:%s\r\n",c,c,nIn,sSond);
 
 			// for the first tag prepare variables
 			if( nIn == 1 )
 			{
-				sSond[0] = '\0'; 
-				nStrich = 0; 
+				sSond[0] = '\0';
+				nStrich = 0;
 			}
 
 			// check if it is a html-comment
-			if( (nIn == 4) && (!strcmp(sSond, "!--")) ) 
+			if( (nIn == 4) && (!strcmp(sSond, "!--")) )
 			{
 				state = cInComment;
 				nHyp = 0;
 			}
-			
-			
-			if( (c == '>') || (nIn >= (int)sizeof(sSond)) ) 
+
+
+			if( (c == '>') || (nIn >= (int)sizeof(sSond)) )
 			{
 				char *pc, sArgs[400];
 
 				// search for the first SPACE
 				pc = strstr(sSond," ");
-				if( pc != NULL ) 
+				if( pc != NULL )
 				{
 					*pc = '\0';
 					strcpy(sArgs, ++pc);
 				}
 
-				if( !strcmp(sSond, "HTML"))		
-				{ 
-					strcpy(sSond, "\n"); 
-					fHtml = 1; 
+				if( !strcmp(sSond, "HTML"))
+				{
+					strcpy(sSond, "\n");
+					fHtml = 1;
 				}
-				else if( !strcmp(sSond, "/HTML"))	
-				{ 
-					strcpy(sSond, "\n"); 
-					fHtml = 0; 
+				else if( !strcmp(sSond, "/HTML"))
+				{
+					strcpy(sSond, "\n");
+					fHtml = 0;
 				}
 				else if( !strcmp(sSond, "BR") )
 				{
 					strcpy(sSond, "\n");
 				}
-				else if( !strcmp(sSond, "P") )		
+				else if( !strcmp(sSond, "P") )
 				{
 					strcpy(sSond, "\n\n");
 				}
-				else if( !strcmp(sSond, "LI") )		
+				else if( !strcmp(sSond, "LI") )
 				{
 					strcpy(sSond, "\n* ");
 				}
-				else if( !strcmp(sSond, "/UL") )	
+				else if( !strcmp(sSond, "/UL") )
 				{
 					strcpy(sSond, "\n");
 				}
-				else if( !strcmp(sSond, "/OL") )	
+				else if( !strcmp(sSond, "/OL") )
 				{
 					strcpy(sSond, "\n");
 				}
-				else if( !strcmp(sSond, "DL") )		
+				else if( !strcmp(sSond, "DL") )
 				{
 					strcpy(sSond, "\n");
 				}
-				else if( !strcmp(sSond, "/DL") )	
-				{ 
-					strcpy(sSond, "\n"); 
-					nStartSpalte = 0; 
-				}
-				else if( !strcmp(sSond, "DT") )		
-				{ 
-					strcpy(sSond, "\n* "); 
-					nStartSpalte = 0; 
-				}
-				else if( !strcmp(sSond, "DD") )		
-				{ 
-					strcpy(sSond, "\n "); 
-					nStartSpalte = 8; 
-				}
-				else if( !strcmp(sSond, "PRE"))		
-				{ 
-					strcpy(sSond, "\n"); 
-					fPre = 1; 
-				}
-				else if( !strcmp(sSond, "/PRE"))	
-				{ 
-					strcpy(sSond, "\n"); 
-					fPre = 0; 
-				}
-				else if( !strcmp(sSond, "TR") )		
-				{ 
-					strcpy(sSond, "\n"); 
+				else if( !strcmp(sSond, "/DL") )
+				{
+					strcpy(sSond, "\n");
 					nStartSpalte = 0;
 				}
-				else if( !strcmp(sSond, "TD") )		
-				{ 
-					strcpy(sSond, "  "); 
+				else if( !strcmp(sSond, "DT") )
+				{
+					strcpy(sSond, "\n* ");
+					nStartSpalte = 0;
 				}
-				else if( !strcmp(sSond, "TABLE") )	
-				{ 
-					strcpy(sSond, "\n"); 
+				else if( !strcmp(sSond, "DD") )
+				{
+					strcpy(sSond, "\n ");
+					nStartSpalte = 8;
+				}
+				else if( !strcmp(sSond, "PRE"))
+				{
+					strcpy(sSond, "\n");
+					fPre = 1;
+				}
+				else if( !strcmp(sSond, "/PRE"))
+				{
+					strcpy(sSond, "\n");
+					fPre = 0;
+				}
+				else if( !strcmp(sSond, "TR") )
+				{
+					strcpy(sSond, "\n");
+					nStartSpalte = 0;
+				}
+				else if( !strcmp(sSond, "TD") )
+				{
+					strcpy(sSond, "  ");
+				}
+				else if( !strcmp(sSond, "TABLE") )
+				{
+					strcpy(sSond, "\n");
 					nStartSpalte = 4;
 				}
-				else if( !strcmp(sSond, "/TABLE") )	
-				{ 
-					strcpy(sSond, "\n"); 
+				else if( !strcmp(sSond, "/TABLE") )
+				{
+					strcpy(sSond, "\n");
 					nStartSpalte = 0;
 				}
-				else if( !strcmp(sSond, "A") ) 
-				{ 
-					// href= analysieren 
-					// test auf # 
-					strcpy(sRef, sArgs); 
+				else if( !strcmp(sSond, "A") )
+				{
+					// href= analysieren
+					// test auf #
+					strcpy(sRef, sArgs);
 					strcpy(sSond, "");
 				}
-				else if( !strcmp(sSond, "/A") ) 
-				{ 
-					//  suchen von sRef im Speicher 
-					//  nRef,sRef 
-					// sprintf(sSond," [%d] ",nRef); 
+				else if( !strcmp(sSond, "/A") )
+				{
+					//  suchen von sRef im Speicher
+					//  nRef,sRef
+					// sprintf(sSond," [%d] ",nRef);
 					sSond[0] = '\0';
 					nRef++;
 					sRef[0] = '\0';
-				}  
-				else if( !strcmp(sSond, "HR" ) ) 
+				}
+				else if( !strcmp(sSond, "HR" ) )
 				{
 					strcpy(sSond, "\n---------------------------------------------------------------------\n");
 				}
@@ -1190,31 +1190,31 @@ void doOneChar( char c )
 					|| !strcmp(sSond, "H3")
 					|| !strcmp(sSond, "H4")
 					|| !strcmp(sSond, "H5")
-					|| !strcmp(sSond, "H6") ) 
+					|| !strcmp(sSond, "H6") )
 				{
 					strcpy(sSond, "\n\n");
 				}
 				else if( ((sSond[0] == '/') && (sSond[1] == 'H') && (sSond[2] >= '0')&& (sSond[2] <= '6'))
-					|| !strcmp(sSond, "/TITLE") ) 
+					|| !strcmp(sSond, "/TITLE") )
 				{
-					// Einen Strich unterm Titel 
+					// Einen Strich unterm Titel
 					strcpy(sSond, "\n\n");
 					nStrich = nCharInLine + 1;
 				}
 				else if( !strcmp(sSond, "/TD") )
-				{ 
+				{
 					int i;
 					sSond[0] = '\0';
 					for( i = 1; i <= (nCharInLine % 10); i++)
 						strncat(sSond, " ", 1);
 					nStartSpalte = nCharInLine + strlen(sSond);
 				}
-           			else 
+           			else
 				{
 					// strstr(sArgs,"ALT=");
 					if(!fHtml)
 					{
-						int i;		
+						int i;
 						int iLen = strlen(sSond);
 						state = cNorm;
 						sSond[iLen++] = '>';
@@ -1224,91 +1224,91 @@ void doOneChar( char c )
 						{
 							if (sSond[i]) doOneChar(sSond[i]);
 						}
-					} 
+					}
 					sSond[0] = '\0';
 				}
 //				printf("H: (%c:%u) In:%u spalte:%u\r\n",sSond[0],sSond[0],nIn,nStartSpalte);
-				if(sSond[0] != '\0') 
+				if(sSond[0] != '\0')
 				{
 					writeFOut(sSond);
 				}
 				state = cNorm;
-			} 
-			else 
+			}
+			else
 			{
-				if(( c >= 'a' ) && ( c <= 'z' )) 
+				if(( c >= 'a' ) && ( c <= 'z' ))
 				{
 					c -= ('a'-'A');
 				}
-				sHack[0] = c; 
+				sHack[0] = c;
 				sHack[1] = '\0';
 				strcat(sSond, sHack);
 			}
-			break; // InTag 
+			break; // InTag
 
 		// character conversion
 		case cSond :
 //			printf("S: (%c:%u) nSo:%u sSond:%s\r\n",c,c,nSo,sSond);
 
 			nSo++;
-			if( nSo == 1 )  
+			if( nSo == 1 )
 			{
 				sSond[0] = '\0';
 			}
 
-			if( (c == '&') || (c == ' ') || (c == ';') || (nSo > 7) ) 
+			if( (c == '&') || (c == ' ') || (c == ';') || (nSo > 7) )
 			{
 				int i = 0;
 				int fFound = 0;
 
-				if( sSond[0] =='#' ) 
+				if( sSond[0] =='#' )
 				{
 					i = atoi( &sSond[1] );
 					if( i == 153 ) strcpy(sSond, "(TM)");
-					else 
+					else
 					{
 						sSond[0] = (char)i;
 						sSond[1] = '\0';
 					}
 					fFound = 1;
-				} 
-				else 
+				}
+				else
 				{
 					fFound = 1;
 					if( !strcmp(sSond, "lt"  ) )
 					{
 						strcpy( sSond, "<");
 					}
-					else if( !strcmp(sSond, "gt"  ) )  
+					else if( !strcmp(sSond, "gt"  ) )
 					{
 						strcpy( sSond, ">");
 					}
-					else if( !strcmp(sSond, "quot") )  
+					else if( !strcmp(sSond, "quot") )
 					{
 						strcpy( sSond, "\"");
 					}
-					else if( !strcmp(sSond, "amp" ) )  
+					else if( !strcmp(sSond, "amp" ) )
 					{
 						strcpy( sSond, "&");
 					}
-					else if( !strcmp(sSond, "nbsp") )  
+					else if( !strcmp(sSond, "nbsp") )
 					{
 						strcpy( sSond, " ");
 					}
-					else if( !strcmp(sSond, "copy") )  
+					else if( !strcmp(sSond, "copy") )
 					{
 						strcpy( sSond, "(c)");
 					}
-					else if( !strcmp(sSond, "reg" ) )  
+					else if( !strcmp(sSond, "reg" ) )
 					{
 						strcpy( sSond, "(R)");
 					}
-					else 
+					else
 					{
 						fFound = 0;
-						for ( i = 0; i < szsize; i++) 
+						for ( i = 0; i < szsize; i++)
 						{
-							if( !strcmp(sSond, szTab[i]) ) 
+							if( !strcmp(sSond, szTab[i]) )
 							{
 								sSond[0] = (char)i+192;
 								sSond[1] = '\0';
@@ -1321,7 +1321,7 @@ void doOneChar( char c )
 
 				state = cNorm;
 
-				if( fFound ) 
+				if( fFound )
 				{
 					int iLen = strlen(sSond);
 					for (i = 0; i < iLen; i++)
@@ -1333,14 +1333,14 @@ void doOneChar( char c )
 						else
 						{
 							AddChar2Mail(sSond[i]);
-						}	
+						}
 					}
-				} 
-				else 
+				}
+				else
 				{ // we didn't find a conversion
 					char sTmp[300];
 
-					sprintf(sTmp,"&%s%c",sSond,c);					
+					sprintf(sTmp,"&%s%c",sSond,c);
 					int iLen = strlen(sTmp);
 					for( i = 0 ; i < iLen; i++)
 					{
@@ -1354,27 +1354,27 @@ void doOneChar( char c )
 						}
 					}
 				}
-			} 
+			}
 			else
 			{
-				sHack[0] = c; 
+				sHack[0] = c;
 				sHack[1] = '\0';
 				strcat(sSond, sHack);
 			}
 			break;
 
 		case cInComment:
-			if( (nHyp == 2) & (c == '>') ) 
+			if( (nHyp == 2) & (c == '>') )
 			{
 				state = cNorm;
-			} 
-			else 
+			}
+			else
 			{
 				if( c == '-' )
 				{
 					nHyp++;
 				}
-				else            
+				else
 				{
 					nHyp = 0;
 				}
@@ -1393,14 +1393,14 @@ void writeFOut( char *s)
 	char sSond[255];
 
 	// paint a line ?
-	if( s[0] == '\n' ) 
+	if( s[0] == '\n' )
 	{
 		nCharInLine = 0;
-		if( nStrich > 0 ) 
+		if( nStrich > 0 )
 		{
 			/* Eine Zeile mit Strichen erzeugen */
 			if( nStrich > 80 )  nStrich = 75;
-			{ 
+			{
 				int i=0; char* p = sSond;
 				for(; i < nStrich; i++, p++)
 				{
@@ -1413,18 +1413,18 @@ void writeFOut( char *s)
 //			nWrite += nStrich;
 			nStrich = 0;
 		}
-		if( !strcmp(s, "\n" ) ) 
+		if( !strcmp(s, "\n" ) )
 		{
 			nCRLF++;
 		}
-	} 
-	else 
+	}
+	else
 	{
 		nCRLF = 0;
 	}
 
-	if( nCRLF < 3 ) 
-	{ 
+	if( nCRLF < 3 )
+	{
 		int i,l;
 		l = strlen(s);
 		for( i = 0 ; i < l ; i++)
@@ -1438,10 +1438,10 @@ void writeFOut( char *s)
 		fputs(s, fd_mail);
 	}
 
-	// Einrueckung durchfuehren 
-	if( s[0] == '\n' ) 
+	// Einrueckung durchfuehren
+	if( s[0] == '\n' )
 	{
-		if( nStartSpalte >0 ) 
+		if( nStartSpalte >0 )
 		{
 			int i;
 			for( i = 0 ; i < nStartSpalte; i++)
@@ -1481,7 +1481,7 @@ int SendPOPCommand(int command, char *param, int ssl)
 					*portpos = '\0';
 					portpos++;
 				}
-						
+
 				if(!(server = gethostbyname(send_buffer)))
 				{
 				    slog ? syslog(LOG_DAEMON | LOG_INFO, "could not resolve Host \"%s\", will try again in 10s", send_buffer) : printf("TuxMailD <could not resolve Host \"%s\", will try again in 10s>\n", send_buffer);
@@ -1655,12 +1655,12 @@ int SendPOPCommand(int command, char *param, int ssl)
     		nRead = nWrite = 0;
     		fPre = 0;
     		fHtml = 0;
-    		
+
 		if(command == RETR)
 		{
 		while((ssl == 1 ? SSL_read (c->sslHandle, &recv_buffer[3], 1) : recv(sock, &recv_buffer[3], 1, 0)) > 0)
 			{
-				if((nRead) && (nRead < 75000)) 
+				if((nRead) && (nRead < 75000))
 				{
 					nRead++;
 					doOneChar( recv_buffer[3] );
@@ -1671,7 +1671,7 @@ int SendPOPCommand(int command, char *param, int ssl)
   			{
 					nRead++;
 				}
-			
+
 				// this is normally the end of an email
 				if(recv_buffer[3] == '\n' && recv_buffer[1] == 46 && recv_buffer[0] == '\n')
 				{
@@ -1714,7 +1714,7 @@ int SendPOPCommand(int command, char *param, int ssl)
 					if((linelen < 100) || (command != TOP))		// restrict linelen
 					{
 						stringindex++;
-					} 
+					}
 				}
 				else
 				{
@@ -1789,7 +1789,7 @@ int SendPOPCommand(int command, char *param, int ssl)
 						memcpy(header, "??.???|??:??|", 13);
 						stringindex += 13;
 					}
-		
+
 					if((ptr = strstr(recv_buffer, "\nFrom:")))
 					{
 						ptr += 6;
@@ -1896,14 +1896,14 @@ int SendPOPCommand(int command, char *param, int ssl)
 								// check if we should look for a subject
 								if(((spamfilter[loop].address[0]=='#')	&& (strstr(ptr1, &spamfilter[loop].address[1]))) ||
 									 ((spamfilter[loop].address[0]=='!')	&& (!strcmp(ptr1, &spamfilter[loop].address[1]))))
-								{									
+								{
 									slog ? syslog(LOG_DAEMON | LOG_INFO, "Spamfilter active, delete Mail with Subj. \"%s\"", ptr1) : printf("TuxMailD <Spamfilter active, delete Mail with Subj. \"%s\">\n", ptr1);
 
 									spam_detected = 1;
 
 									break;
 								}
-							}						
+							}
 						}
 
 						header[stringindex++] = '|';
@@ -1917,7 +1917,7 @@ int SendPOPCommand(int command, char *param, int ssl)
 					header[stringindex] = '\0';
 
 					break;
-					
+
 				case DELE:
 				case RETR:
 					break;
@@ -1984,7 +1984,7 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 	int loop, day, hour, minute;
 	int linelen;
 	char* portpos;
-	
+
 	// build commandstring
 
 		switch(command)
@@ -1999,7 +1999,7 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 					*portpos = '\0';
 					portpos++;
 				}
-						
+
 				if(!(server = gethostbyname(send_buffer)))
 				{
 				    slog ? syslog(LOG_DAEMON | LOG_INFO, "could not resolve Host \"%s\", will try again in 10s", param) : printf("TuxMailD <could not resolve Host \"%s\", will try again in 10s>\n", param);
@@ -2141,7 +2141,7 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 				break;
 
 			case RETR:
-				
+
 				sprintf(send_buffer, "? FETCH %s BODY[TEXT]<0.75000>\r\n",param);
 
 				break;
@@ -2196,23 +2196,23 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
    		nRead = nWrite = 0;
    		fPre = 0;
    		fHtml = 0;
-    		
+
 		if(command == RETR)
 		{
 			while((ssl == 1 ? SSL_read (c->sslHandle, &recv_buffer[stringindex], 1) : recv(sock, &recv_buffer[stringindex], 1, 0)) > 0)
 			{
 				// read line by line
-				if((nRead) && (nRead < 75000)) 
+				if((nRead) && (nRead < 75000))
 				{
 					nRead++;
 					doOneChar( recv_buffer[stringindex] );
 				}
-				
+
 				if(recv_buffer[stringindex] == '\n')
 				{
 					if( !nRead )
 					{
-						ptr2 = strstr(recv_buffer, "BODY[TEXT]<0> ");					
+						ptr2 = strstr(recv_buffer, "BODY[TEXT]<0> ");
 						sscanf(ptr2, "BODY[TEXT]<0> {%d", &linelen);
 						stringindex=0;
 						nRead++;
@@ -2240,7 +2240,7 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 				else
 				{
 					if(stringindex < (int)sizeof(recv_buffer) - 4)
-					{	
+					{
 						stringindex++;
 					}
 					else
@@ -2269,7 +2269,7 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 						nRead=stringindex + 1;
 					}
 				}
-	
+
 				if(stringindex < (int)sizeof(recv_buffer) - 4)
 				{
 					stringindex++;
@@ -2304,13 +2304,13 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 			switch(command)
 			{
 				case INIT:
-					
+
 					if(!strncmp(recv_buffer, "* OK", 4))
 					{
 						return 1;
 					}
 					break;
-					
+
 				case LOGIN:
 				case DELE:
 				case CLOSE:
@@ -2324,12 +2324,12 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 					break;
 
 				case SELECT:
-					
+
 					ptr1 = &recv_buffer[0];
-					ptr2 = strstr(recv_buffer, "EXISTS");					
+					ptr2 = strstr(recv_buffer, "EXISTS");
 					do
 					{
-						ptr = strchr(ptr1,'\n');					
+						ptr = strchr(ptr1,'\n');
 						if( ptr2 < ptr )
 						{
 							sscanf(ptr1, "* %d", &messages);
@@ -2337,8 +2337,8 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 						}
 						ptr1 = ptr + 1;
 					} while( ptr );
-			
-					ptr2 = strstr(recv_buffer, "UIDVALIDITY");					
+
+					ptr2 = strstr(recv_buffer, "UIDVALIDITY");
 					sscanf(ptr2, "UIDVALIDITY %ld", &v_uid);
 
 					if(!strncmp(&recv_buffer[nRead], "? OK", 4))
@@ -2349,7 +2349,7 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 
 				case UIDL:
 
-					ptr2 = strstr(recv_buffer, "UID");					
+					ptr2 = strstr(recv_buffer, "UID");
 					sscanf(ptr2, "UID %ld", &m_uid);
 					sprintf(uid,"%08lX%08lX",v_uid,m_uid);
 
@@ -2369,12 +2369,12 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 					else
 					{
 						*param2='U';
-					}					
+					}
 					if( strstr(recv_buffer, "\\Deleted") != NULL )
 					{
 						*param2=0;
 					}
-					
+
 					if(!strncmp(&recv_buffer[nRead], "? OK", 4))
 					{
 						return 1;
@@ -2413,7 +2413,7 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 						memcpy(header, "??.???|??:??|", 13);
 						stringindex += 13;
 					}
-		
+
 					if((ptr = strstr(recv_buffer, "\nFrom:")))
 					{
 						ptr += 6;
@@ -2512,7 +2512,7 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 								memcpy(&header[stringindex++], ptr++, 1);
 							}
 						}
-						
+
 						if(use_spamfilter)
 						{
 							for(loop = 0; loop < spam_entries; loop++)
@@ -2520,14 +2520,14 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 								// check if we should look for a subject
 								if(((spamfilter[loop].address[0]=='#')	&& (strstr(ptr1, &spamfilter[loop].address[1]))) ||
 									 ((spamfilter[loop].address[0]=='!')	&& (!strcmp(ptr1, &spamfilter[loop].address[1]))))
-								{									
+								{
 									slog ? syslog(LOG_DAEMON | LOG_INFO, "Spamfilter active, delete Mail with Subj. \"%s\"", ptr1) : printf("TuxMailD <Spamfilter active, delete Mail with Subj. \"%s\">\n", ptr1);
 
 									spam_detected = 1;
 
 									break;
 								}
-							}						
+							}
 						}
 
 						header[stringindex++] = '|';
@@ -2545,7 +2545,7 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 						return 1;
 					}
 					break;
-					
+
 				case LOGOUT:
 
 					close(sock);
@@ -2564,10 +2564,10 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 					}
 
 					return 1;
-					
+
 				default:
 					slog ? syslog(LOG_DAEMON | LOG_INFO, "IMAP Server (%s)", recv_buffer) : printf("TuxMailD <IMAP Server (%s)>\n", recv_buffer);
-				
+
 			}
 
 	slog ? syslog(LOG_DAEMON | LOG_INFO, "IMAP Server (%s)", recv_buffer) : printf("TuxMailD <IMAP Server (%s)>\n", recv_buffer);
@@ -2621,7 +2621,7 @@ int SendSMTPCommand(int command, char *param, int ssl)
 					*portpos = '\0';
 					portpos++;
 				}
-						
+
 				if(!(server = gethostbyname(send_buffer)))
 				{
 				    sleep(10);	/* give some routers a second chance */
@@ -2769,7 +2769,7 @@ int SendSMTPCommand(int command, char *param, int ssl)
 		}
 
 	// get server response
-	
+
 	// wait a second to give some servers the chance to prepare the answer
 		sleep(1);
 
@@ -2815,7 +2815,7 @@ int SendSMTPCommand(int command, char *param, int ssl)
 				if(strncmp(recv_buffer, "235", 3))
 				{
 					cancel = true;
-				}				
+				}
 
 				break;
 
@@ -3099,12 +3099,12 @@ int SaveMail(int account, char* mailuid)
 	int loop;
 	char mailnumber[12];
 	char imap1 = 0;
-	
+
 	if( account_db[account].imap[0] != '\0' )
 	{
 		imap1 = 1;
 	}
-	
+
 	if((fd_mail = fopen(POP3FILE, "w")))
 	{
 
@@ -3130,7 +3130,7 @@ int SaveMail(int account, char* mailuid)
 				{
 					fclose(fd_mail);
 				}
-	
+
 				return 0;
 			}
 
@@ -3140,7 +3140,7 @@ int SaveMail(int account, char* mailuid)
 				{
 					fclose(fd_mail);
 				}
-	
+
 				return 0;
 			}
 
@@ -3176,7 +3176,7 @@ int SaveMail(int account, char* mailuid)
 
 				return 0;
 			}
-		
+
 			// select folder, get mail count and UID
 			if(!SendIMAPCommand(SELECT, account_db[account].inbox, "", account_db[account].ssl))
 			{
@@ -3221,14 +3221,14 @@ int SaveMail(int account, char* mailuid)
 					return 0;
 				}
 			}
-			
+
 //			printf("TuxMailD <SaveFile idx(%u) uid(%s)>\n", loop,uid);
 			if(!strcmp(uid,mailuid))
 			{
 				printf("TuxMailD <SaveFile idx(%u) uid(%s)>\n", loop,uid);
 
 				if( !imap1 )
-				{ 
+				{
 					if(!SendPOPCommand(RETR, mailnumber, account_db[account].ssl))
 					{
 						if(fd_mail)
@@ -3237,8 +3237,8 @@ int SaveMail(int account, char* mailuid)
 						}
 
 						return 0;
-					}					
-				
+					}
+
 					fclose(fd_mail);
 					SendPOPCommand(QUIT, "", account_db[account].ssl);
 				}
@@ -3254,7 +3254,7 @@ int SaveMail(int account, char* mailuid)
 
 						return 0;
 					}
-					
+
 					if((!seen) || (!SendIMAPCommand(RETR, mailnumber, "", account_db[account].ssl)))
 					{
 						if(fd_mail)
@@ -3263,7 +3263,7 @@ int SaveMail(int account, char* mailuid)
 						}
 
 						return 0;
-					}					
+					}
 
 					if( seen == 'U' )
 					{
@@ -3275,19 +3275,19 @@ int SaveMail(int account, char* mailuid)
 							}
 
 							return 0;
-						}					
+						}
 					}
-									
+
 					fclose(fd_mail);
 					SendIMAPCommand(LOGOUT, "", "", account_db[account].ssl);
 				}
 				return 1;
-				
+
 			}
 		}
 
 		fclose(fd_mail);
-		
+
 		if( !imap1 )
 		{
 			SendPOPCommand(QUIT, "", account_db[account].ssl);
@@ -3308,18 +3308,18 @@ int SaveMail(int account, char* mailuid)
 int ExecuteMail(char* mailfile)
 {
 	// only execute if a securitystring is defined
-	if( strlen(security)==0 ) 
+	if( strlen(security)==0 )
 	{
 		return 0;
 	}
-	
+
 	char exit = -1;
 	FILE* fd_mail;
 	fd_mail = fopen(mailfile, "r");
 
 	char linebuffer[256];
 	char executeline[1024];
-	
+
 	// read first line of mail to check if we should execute it
 	if( fgets(linebuffer,sizeof(linebuffer),fd_mail) )
 	{
@@ -3342,9 +3342,9 @@ int ExecuteMail(char* mailfile)
 	}
 
 	if( exit )
-	{	
+	{
 		executeline[0] = '\0';
-		
+
 		while(fgets(linebuffer,sizeof(linebuffer),fd_mail))
 		{
 			while(( linebuffer[strlen(linebuffer)-1] == '\n' ) || ( linebuffer[strlen(linebuffer)-1] == '\r') )
@@ -3360,7 +3360,7 @@ int ExecuteMail(char* mailfile)
 				strcat(executeline,&linebuffer[1]);
 				if( executeline[strlen(executeline)-1] == '&' )
 				{
-					executeline[strlen(executeline)-1] = '\0';	
+					executeline[strlen(executeline)-1] = '\0';
 				}
 				else
 				{
@@ -3373,12 +3373,12 @@ int ExecuteMail(char* mailfile)
 				}
 			}
 			else
-			{	
+			{
 				exit = 1;
 				break;
 			}
 		}
-	}					
+	}
 	fclose(fd_mail);
 	return exit;
 }
@@ -3393,7 +3393,7 @@ int ScanMail(char* mailfile,int account,char* mailnumber, FILE* fd_status)
 	{
 		return 0;
 	}
-	
+
   int loop;
 	char spamcheck = 0;
 
@@ -3401,18 +3401,18 @@ int ScanMail(char* mailfile,int account,char* mailnumber, FILE* fd_status)
 	for(loop = 0; loop < spam_entries; loop++)
 	{
 		// check if we should look for inside the mailtext
-		if(spamfilter[loop].address[0]=='&')	
+		if(spamfilter[loop].address[0]=='&')
 		{
 			spamcheck=1;
 			break;
 		}
-	}		
+	}
 
 	if(!spamcheck)
 	{
 		return 0;
 	}
-	
+
 	int scancnt = 20;
 	char spam = 0;
 	FILE* fd_mail;
@@ -3421,10 +3421,10 @@ int ScanMail(char* mailfile,int account,char* mailnumber, FILE* fd_status)
   int filesize;
   char *known_uids = 0;
 	char *pointer;
-  	
+
 	// scan the first x lines of th file for a spam-tag
 	do
-	{	
+	{
 		while((fgets(linebuffer,sizeof(linebuffer),fd_mail)) && (!spam))
 		{
 			for(loop = 0; loop < spam_entries; loop++)
@@ -3436,20 +3436,20 @@ int ScanMail(char* mailfile,int account,char* mailnumber, FILE* fd_status)
 					{
 						linebuffer[strlen(linebuffer)-1] = '\0';
 					}
-												
+
 					slog ? syslog(LOG_DAEMON | LOG_INFO, "Spamfilter active, delete Mail with line \"%s\"", linebuffer) : printf("TuxMailD <Spamfilter active, delete Mail with line \"%s\" box:%d mail:<%s>>\n", linebuffer,account,mailnumber);
 
 					spam = 1;
 
 					break;
 				}
-			}						
+			}
 		}
 	}
 	while((--scancnt) && (!spam));
-	
+
 	fclose(fd_mail);
-	
+
 	// if we found a spam-tag, mark the state of the mail
 	if(spam)
 	{
@@ -3465,15 +3465,15 @@ int ScanMail(char* mailfile,int account,char* mailnumber, FILE* fd_status)
 
 				rewind(fd_status);
 				fread(known_uids, filesize, 1, fd_status);
-				
+
         pointer = strstr(known_uids, uid);
         if(pointer != 0)
         {
         	*(pointer-2)='D';
         }
-        
+
 				rewind(fd_status);
-				fwrite(known_uids, filesize, 1, fd_status);		
+				fwrite(known_uids, filesize, 1, fd_status);
 			}
 		}
 	}
@@ -3493,15 +3493,15 @@ int AddNewMailFile(int account, char *mailnumber, FILE *fd_status)
 	char idxfile[256];
 	char mailfile[256];
 	FILE *fd_mailidx;
-	
+
 	// if we do not store the mails
 	if( !mailcache )
 	{
 		return 0;
 	}
-	
+
 	sprintf(idxfile,"%stuxmail.idx%u",maildir,account);
-	
+
 	if((fd_mailidx = fopen(idxfile,"r")))
 	{
 		fseek(fd_mailidx, 0, SEEK_END);
@@ -3510,7 +3510,7 @@ int AddNewMailFile(int account, char *mailnumber, FILE *fd_status)
 		{
 			stored_uids = malloc(filesize + 1);
 			memset(stored_uids, 0, filesize + 1);
-	
+
 			rewind(fd_mailidx);
 			fread(stored_uids, filesize, 1, fd_mailidx);
 		}
@@ -3524,7 +3524,7 @@ int AddNewMailFile(int account, char *mailnumber, FILE *fd_status)
 		free(stored_uids);
 		return 1;
 	}
-	
+
 	if(!(fd_mailidx = fopen(idxfile, "w")))
 	{
 		slog ? syslog(LOG_DAEMON | LOG_INFO, "could not create Idx-File for Account %d", account) : printf("TuxMailD <could not create Idx-File for Account %d>\n", account);
@@ -3544,11 +3544,11 @@ int AddNewMailFile(int account, char *mailnumber, FILE *fd_status)
 				idx1 = 1;
 			}
 	  }
- 	  
+
 		sprintf(mailfile,"%stuxmail.idx%u.%u",maildir,account,idx1);
 //		printf("%stuxmail.idx%u.%u\n",maildir,account,idx1);
 		fd_mail=fopen(mailfile,"w");
-		
+
 		if(fd_mail)
 		{
 			if( !imap )
@@ -3567,14 +3567,14 @@ int AddNewMailFile(int account, char *mailnumber, FILE *fd_status)
 				}
 			}
 			else
-			{				
+			{
 				char seen=0;
 
 				if(!SendIMAPCommand(FLAGS, mailnumber, &seen, account_db[account].ssl))
 				{
 					seen=0;
 				}
-									
+
 				if((!seen) || (!SendIMAPCommand(RETR, mailnumber, "", account_db[account].ssl)))
 				{
 					// printf("error write email nr: %s at %stuxmail.idx%u.%u\n",mailnumber,maildir,account,idx1);
@@ -3599,7 +3599,7 @@ int AddNewMailFile(int account, char *mailnumber, FILE *fd_status)
 		if( idx1 )
 		{
 			fprintf(fd_mailidx, "|%02u|%s\n", idx1, uid);
-			
+
 			char cComp[5];
 			sprintf(cComp,"|%02u|",idx1);
 			if( filesize	)
@@ -3612,9 +3612,9 @@ int AddNewMailFile(int account, char *mailnumber, FILE *fd_status)
 			}
 		}
 
-		fclose(fd_mailidx);	
+		fclose(fd_mailidx);
 	}
-	
+
 	free(stored_uids);
 	if( idx1 )
 	{
@@ -3639,7 +3639,7 @@ int CheckAccount(int account)
 	int knownmails = 0;
 
 	imap = 0;
-		
+
 	// timestamp
 
 	time(&tt);
@@ -3661,7 +3661,7 @@ int CheckAccount(int account)
 		{
 			return 0;
 		}
-		
+
 		// select folder, get mail count and UID
 		if(!SendIMAPCommand(SELECT, account_db[account].inbox, "", account_db[account].ssl))
 		{
@@ -3696,7 +3696,7 @@ int CheckAccount(int account)
 			return 0;
 		}
 	}
-	
+
 		account_db[account].mail_all = messages;
 		account_db[account].mail_new = 0;
 		account_db[account].mail_unread = 0;
@@ -3768,7 +3768,7 @@ int CheckAccount(int account)
 						if(!SendPOPCommand(UIDL, mailnumber, account_db[account].ssl))
 						{
 							free(known_uids);
-	
+
 							if(fd_status) {
 								fclose(fd_status);
 							}
@@ -3784,7 +3784,7 @@ int CheckAccount(int account)
 						if(!SendIMAPCommand(UIDL, mailnumber, "", account_db[account].ssl))
 						{
 							free(known_uids);
-	
+
 							if(fd_status) {
 								fclose(fd_status);
 							}
@@ -3803,7 +3803,7 @@ int CheckAccount(int account)
 							if(!SendPOPCommand(TOP, mailnumber, account_db[account].ssl))
 							{
 								free(known_uids);
-	
+
 								if(fd_status) {
 									fclose(fd_status);
 								}
@@ -3820,7 +3820,7 @@ int CheckAccount(int account)
 							if(!SendIMAPCommand(FLAGS, mailnumber, &seen, account_db[account].ssl))
 							{
 								free(known_uids);
-	
+
 								if(fd_status) {
 									fclose(fd_status);
 								}
@@ -3834,7 +3834,7 @@ int CheckAccount(int account)
 							if(!SendIMAPCommand(FETCH, mailnumber, "", account_db[account].ssl))
 							{
 								free(known_uids);
-	
+
 								if(fd_status) {
 									fclose(fd_status);
 								}
@@ -3844,13 +3844,13 @@ int CheckAccount(int account)
 
 								return 0;
 							}
-							
+
 							if( seen == 'U' )
 							{
 								if(!SendIMAPCommand(UNSEEN, mailnumber, "", account_db[account].ssl))
 								{
 									free(known_uids);
-		
+
 									if(fd_status) {
 										fclose(fd_status);
 									}
@@ -3859,20 +3859,20 @@ int CheckAccount(int account)
 									}
 
 									return 0;
-								}					
+								}
 							}
-							
+
 						}
 
 						if(use_spamfilter && spam_detected)
 						{
 							if( !imap )
 							{
-								
+
 								if(!SendPOPCommand(DELE, mailnumber, account_db[account].ssl))
 								{
 									free(known_uids);
-	
+
 									if(fd_status) {
 										fclose(fd_status);
 									}
@@ -3888,7 +3888,7 @@ int CheckAccount(int account)
 								if(!SendIMAPCommand(DELE, mailnumber, "", account_db[account].ssl))
 								{
 									free(known_uids);
-	
+
 									if(fd_status) {
 										fclose(fd_status);
 									}
@@ -3910,7 +3910,7 @@ int CheckAccount(int account)
 								fprintf(fd_idx,"|%4d|%s\n",loop,uid);
 								readmails++;
 							}
-							
+
 							if(fd_status)
 							{
 								fprintf(fd_status, "|N|%s|%s\n", uid, header);
@@ -3922,7 +3922,7 @@ int CheckAccount(int account)
 						if((ptr = strstr(known_uids, uid)))
 						{
 							knownmails++;
-							
+
 							if(*(ptr - 2) == 'D')
 							{
 								if( !imap )
@@ -3930,7 +3930,7 @@ int CheckAccount(int account)
 									if(!SendPOPCommand(DELE, mailnumber, account_db[account].ssl))
 									{
 										free(known_uids);
-	
+
 										if(fd_status) {
 											fclose(fd_status);
 										}
@@ -3945,7 +3945,7 @@ int CheckAccount(int account)
 									if(!SendIMAPCommand(DELE, mailnumber, "", account_db[account].ssl))
 									{
 										free(known_uids);
-	
+
 										if(fd_status)
 										{
 											fclose(fd_status);
@@ -3959,7 +3959,7 @@ int CheckAccount(int account)
 
 								deleted_messages++;
 							}
-							else 
+							else
 							{
 								if(fd_status)
 								{
@@ -3983,7 +3983,7 @@ int CheckAccount(int account)
 									{
 										fprintf(fd_status, "|O|");
 									}
-									
+
 									while(*ptr != '\n')
 									{
 										fprintf(fd_status, "%c", *ptr++);
@@ -4000,7 +4000,7 @@ int CheckAccount(int account)
 								if(!SendPOPCommand(TOP, mailnumber, account_db[account].ssl))
 								{
 									free(known_uids);
-	
+
 									if(fd_status)
 									{
 										fclose(fd_status);
@@ -4017,7 +4017,7 @@ int CheckAccount(int account)
 								if(!SendIMAPCommand(FLAGS, mailnumber, &seen, account_db[account].ssl))
 								{
 									free(known_uids);
-		
+
 									if(fd_status)
 									{
 										fclose(fd_status);
@@ -4031,7 +4031,7 @@ int CheckAccount(int account)
 								if(!SendIMAPCommand(FETCH, mailnumber, "", account_db[account].ssl))
 								{
 									free(known_uids);
-	
+
 									if(fd_status) {
 										fclose(fd_status);
 									}
@@ -4046,7 +4046,7 @@ int CheckAccount(int account)
 									if(!SendIMAPCommand(UNSEEN, mailnumber, "", account_db[account].ssl))
 									{
 										free(known_uids);
-			
+
 										if(fd_status) {
 											fclose(fd_status);
 										}
@@ -4054,7 +4054,7 @@ int CheckAccount(int account)
 											fclose(fd_idx);
 										}
 										return 0;
-									}					
+									}
 								}
 
 							}
@@ -4065,7 +4065,7 @@ int CheckAccount(int account)
 									if(!SendPOPCommand(DELE, mailnumber, account_db[account].ssl))
 									{
 										free(known_uids);
-	
+
 										if(fd_status) {
 											fclose(fd_status);
 										}
@@ -4080,7 +4080,7 @@ int CheckAccount(int account)
 									if(!SendIMAPCommand(DELE, mailnumber, "", account_db[account].ssl))
 									{
 										free(known_uids);
-	
+
 										if(fd_status) {
 											fclose(fd_status);
 										}
@@ -4097,7 +4097,7 @@ int CheckAccount(int account)
 								if((!knownmails) || ( typeflag == 1 ))
 								{
 									account_db[account].mail_new++;
-	
+
 									if((fd_idx) && (readmails < mailcache))
 									{
 										fprintf(fd_idx,"|%4d|%s\n",loop,uid);
@@ -4110,16 +4110,16 @@ int CheckAccount(int account)
 									}
 								}
 								else
-								{				
-									// if new mail have been found after already found mails, mark the mails as unread, but not new			
+								{
+									// if new mail have been found after already found mails, mark the mails as unread, but not new
 									account_db[account].mail_unread++;
-	
+
 									if((fd_idx) && (readmails < mailcache))
 									{
 										fprintf(fd_idx,"|%4d|%s\n",loop,uid);
 										readmails++;
 									}
-	
+
 									if(fd_status)
 									{
 										fprintf(fd_status, "|n|%s|%s\n", uid, header);
@@ -4152,13 +4152,13 @@ int CheckAccount(int account)
 						}
 					}
 */
-					
+
 					// if we have a hard-disk, we have to wake-up the disk and to wait until the disk is awaken
 					if( readmails )
 					{
 						system(CFGPATH WAKEFILE);
 					}
-					
+
 					for( i=0; i<readmails; i++)
 					{
 						rewind(fd_idx);
@@ -4167,8 +4167,8 @@ int CheckAccount(int account)
 						{
 	//						printf("idx:%d j:%d line:%s\n",i,j,linebuffer);
 							j--;
-							if( !j ) break;							
-						}				
+							if( !j ) break;
+						}
 						linebuffer[strlen(linebuffer)-1]='\0';
 						linebuffer[5]='\0';
 						sscanf(&linebuffer[1],"%s",&mailnumber[0]);
@@ -4180,7 +4180,7 @@ int CheckAccount(int account)
 						}
 					}
 				}
-				
+
 				if(( !deleted_messages ) && ( !imap ))
 				{
 					if(!SendPOPCommand(RSET, "", account_db[account].ssl))
@@ -4196,7 +4196,7 @@ int CheckAccount(int account)
 						return 0;
 					}
 				}
-				
+
 				if(fd_status)
 				{
 					rewind(fd_status);
@@ -4236,24 +4236,24 @@ int CheckAccount(int account)
 			if(!SendPOPCommand(QUIT, "", account_db[account].ssl))
 			{
 				return 0;
-			}	
+			}
 		}
 		else
 		{
 			if(!SendIMAPCommand(EXPUNGE, "", "", account_db[account].ssl))
 			{
 				return 0;
-			}	
+			}
 			if(!SendIMAPCommand(CLOSE, "", "", account_db[account].ssl))
 			{
 				return 0;
-			}	
+			}
 			if(!SendIMAPCommand(LOGOUT, "", "", account_db[account].ssl))
 			{
 				return 0;
-			}	
+			}
 		}
-		
+
 	return 1;
 }
 
@@ -4365,9 +4365,9 @@ void PlaySound(const char *file)
 				while(count)
 				{
 					fread(&tmp, 1, 1, fd_wav);
-					count--;	
+					count--;
 				}
-				
+
 				// find data-chunk
 				do
 				{
@@ -4376,9 +4376,9 @@ void PlaySound(const char *file)
 					if(readcount < 8)
 					{
 						slog ? syslog(LOG_DAEMON | LOG_INFO, "could not find Sounddata") : printf("TuxMailD <could not find Sounddata>\n");
-	
+
 						fclose(fd_wav);
-	
+
 						return;
 					}
 				  if(wave->ChunkID3 != DATA)
@@ -4387,11 +4387,11 @@ void PlaySound(const char *file)
 						while(count)
 						{
 							fread(&tmp, 1, 1, fd_wav);
-							count--;	
-						}				  	
+							count--;
+						}
 				  }
 				}while(wave->ChunkID3 != DATA);
-				
+
 			// get samples
 
 				if(!(samples = (unsigned char*)malloc(wave->ChunkSize3)))
@@ -4510,9 +4510,9 @@ void ShowLCD(int mails)
 	int fd_lcd;
 	int x, y;
     static int sum = 0;
-    
+
     // mark lcd as locked
-    
+
 	    if(unlink(LCKFILE))
     	{
     		sum = mails;
@@ -4528,21 +4528,21 @@ void ShowLCD(int mails)
     			sum = mails;
     		}
     	}
-    
+
     	fclose(fopen(LCKFILE, "w"));
-    
+
     // clear counter area
-    
+
     	for(y = 0; y < 15; y++)
-    	{	
+    	{
         	for(x = 0; x < 34; x++)
     		{
     			lcd_buffer[74 + x + ((23 + y)/8)*120] &= ~(1 << ((23 + y)%8));
     		}
     	}
-    
+
     // set new counter
-    
+
     	if(sum > 99)
     	{
             RenderLCDDigit(sum/100, 74, 23);
@@ -4592,7 +4592,7 @@ void NotifyUser(int newmails, int oldmails)
 	int mails = newmails + oldmails;
 
 	// first check if we have to remove old notifications
-	
+
 	if(newmails == 0)									// we do not have new mails
 	{
 		if((typeflag != 1) && (oldmails == 0))			// we have no unread mails
@@ -4606,9 +4606,9 @@ void NotifyUser(int newmails, int oldmails)
 			return;
 		}
 	}
-	
+
 	// write notify-file (used by other programs to know the number of unread messages)
-	
+
 	    if(unlink(NOTIFILE))
    		{
 	   		sum = mails;
@@ -4640,12 +4640,12 @@ void NotifyUser(int newmails, int oldmails)
 		}
 
 	// further notification only if new mails have be detected
-	
+
 		if(newmails == 0)
 		{
 			return;
 		}
-		
+
 	// audio notify
 
 		if(audio == 'Y')
@@ -4700,7 +4700,7 @@ void NotifyUser(int newmails, int oldmails)
 				}
 
 				strcat(http_cmd, " HTTP/1.1\n");
-			
+
 				if(webuser[0])
 				{
 					strcat(http_cmd, "Authorization: Basic ");
@@ -4711,7 +4711,7 @@ void NotifyUser(int newmails, int oldmails)
 					EncodeBase64(decodedstring, strlen(decodedstring));
 
 					strcat(http_cmd, encodedstring);
-					strcat(http_cmd, "\n\n");			
+					strcat(http_cmd, "\n\n");
 				}
 				else
 				{
@@ -4742,8 +4742,8 @@ void NotifyUser(int newmails, int oldmails)
 			send(sock, http_cmd, strlen(http_cmd), 0);
 
 			close(sock);
-		}		
-}		
+		}
+}
 
 /******************************************************************************
  * SigHandler
@@ -4778,7 +4778,7 @@ void SigHandler(int signal)
 				printf("TuxMailD <wakeup>\n");
 			}
 			break;
-			
+
 		case SIGUSR2:
 			online = 0;
 			if(slog)
@@ -4855,7 +4855,7 @@ int main(int argc, char **argv)
 						fclose(pipeout);
 						return -1;
 					}
-	
+
 					// check from:
 					char *ptr1, *ptr2;
 					char szFrom[80];
@@ -4868,9 +4868,9 @@ int main(int argc, char **argv)
 						if( (ptr2=strchr(ptr1,'>')) )
 						{
 							*ptr2 = '\0';
-							strcpy(szFrom,ptr1);	
+							strcpy(szFrom,ptr1);
 						}
-					}		
+					}
 					// check to: (and ptr1 to result)
 					if( (ptr1=strchr(argv[param],'<')) )
 					{
@@ -4878,7 +4878,7 @@ int main(int argc, char **argv)
 						{
 							*ptr2 = '\0';
 						}
-					}		
+					}
 					else
 					{
 						ptr1 = argv[param];
@@ -4889,7 +4889,7 @@ int main(int argc, char **argv)
 					fprintf(pipeout,"<%s>\n",ptr1);
 					fprintf(pipeout,"From: %s\n",szFrom);
 					fprintf(pipeout,"To: %s\n",argv[param]);
-					
+
 					char linebuffer[250];
 					if( fgets(linebuffer, sizeof(linebuffer), pipein))
 					{
@@ -4898,7 +4898,7 @@ int main(int argc, char **argv)
 					while(fgets(linebuffer, sizeof(linebuffer), pipein))
 					{
 						fputs(linebuffer,pipeout);
-					}	
+					}
 					fputs("\n",pipeout);
 					fclose(pipein);
 					fclose(pipeout);
@@ -4909,7 +4909,7 @@ int main(int argc, char **argv)
 		}
 
 	// create daemon
-		
+
 		sscanf(cvs_revision, "%*s %s", versioninfo);
 
 		time(&tt);
@@ -5035,9 +5035,9 @@ int main(int argc, char **argv)
 		}
 
 	// remove any notification file
-	
+
 		unlink(NOTIFILE);
-		
+
 	// check accounts
 
 		if(!nodelay)
@@ -5064,7 +5064,7 @@ int main(int argc, char **argv)
 						if(CheckAccount(account))
 						{
 							slog ? syslog(LOG_DAEMON | LOG_INFO, "Account %d = %.3d(%.3d)/%.3d Mail(s) for %s", account, account_db[account].mail_new, account_db[account].mail_unread, account_db[account].mail_all - deleted_messages, account_db[account].name) : printf("TuxMailD <Account %d = %.3d(%.3d)/%.3d Mail(s) for %s>\n", account, account_db[account].mail_new, account_db[account].mail_unread, account_db[account].mail_all - deleted_messages, account_db[account].name);
-	
+
 							mailstatus += account_db[account].mail_new;
 							unread_mailstatus += account_db[account].mail_unread;
 						}
@@ -5095,7 +5095,7 @@ int main(int argc, char **argv)
 
 		    system("cp /tmp/tuxmail.[0-9] /var/tuxbox/config/tuxmail 2>/dev/null");
 		}
-		
+
 		unlink(PIDFILE);
 
 		time(&tt);
