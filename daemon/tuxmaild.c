@@ -1531,9 +1531,12 @@ int SendPOPCommand(int command, char *param, int ssl)
 					c->sslHandle = NULL;
 					c->sslContext = NULL;
 
-					SSL_load_error_strings ();
-					SSL_library_init ();
-
+#if OPENSSL_VERSION_NUMBER < 0x10100000
+					SSL_load_error_strings();
+					SSL_library_init();
+#else
+					OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, NULL);
+#endif
 					c->sslContext = SSL_CTX_new (SSLv23_client_method ());
 					if (c->sslContext == NULL) {
 						slog ? syslog(LOG_DAEMON | LOG_INFO, "could not set SSL client method") : printf("TuxMailD <could not set SSL client method>\n");
@@ -2049,9 +2052,12 @@ int SendIMAPCommand(int command, char *param, char *param2, int ssl)
 					c->sslHandle = NULL;
 					c->sslContext = NULL;
 
-					SSL_load_error_strings ();
-					SSL_library_init ();
-
+#if OPENSSL_VERSION_NUMBER < 0x10100000
+					SSL_load_error_strings();
+					SSL_library_init();
+#else
+					OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, NULL);
+#endif
 					c->sslContext = SSL_CTX_new (SSLv23_client_method ());
 					if (c->sslContext == NULL) {
 						slog ? syslog(LOG_DAEMON | LOG_INFO, "could not set SSL client method") : printf("TuxMailD <could not set SSL client method>\n");
@@ -2663,9 +2669,12 @@ int SendSMTPCommand(int command, char *param, int ssl)
 					c->sslHandle = NULL;
 					c->sslContext = NULL;
 
-					SSL_load_error_strings ();
-					SSL_library_init ();
-
+#if OPENSSL_VERSION_NUMBER < 0x10100000
+					SSL_load_error_strings();
+					SSL_library_init();
+#else
+					OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, NULL);
+#endif
 					c->sslContext = SSL_CTX_new (SSLv23_client_method ());
 					if (c->sslContext == NULL) {
 						slog ? syslog(LOG_DAEMON | LOG_INFO, "could not set SSL client method") : printf("TuxMailD <could not set SSL client method>\n");
