@@ -6,7 +6,7 @@
 # -----------------------------------------------------------
 # Installer Configs
 # -----------------------------------------------------------
-yI_version="1.4"
+yI_version="1.5"
 
 # -----------------------------------------------------------
 # Dirs
@@ -14,6 +14,7 @@ yI_version="1.4"
 y_path_varbin="/var/bin"
 y_path_config="/var/tuxbox/config"
 y_path_tmp="/tmp"
+y_path_install="$y_path_tmp/y-install"
 y_ywebover_dir="/var/httpd"
 y_ext_conf_dir="$y_path_config/y-ext"
 
@@ -118,9 +119,9 @@ chmod -R oug+rw $y_ywebover_dir
 # -----------------------------------------------------------
 # prepare log
 # -----------------------------------------------------------
-date +%y%m%d_%H%M%S >"$yI_install_log"
-echo "" >>yI_install_log
-echo "installing $yI_updatename [$yI_ext_tag/$yI_ext_version]" >>"yI_install_log"
+date +%y%m%d_%H%M%S > $yI_install_log
+echo "" >> $yI_install_log
+echo "installing $yI_updatename [$yI_ext_tag/$yI_ext_version]" >> $yI_install_log
 echo "installdir: $y_ywebover_dir"
 
 # -----------------------------------------------------------
@@ -140,5 +141,4 @@ cp ./*uninstall.inc "$y_ext_conf_dir/"
 # -----------------------------------------------------------
 # Clean Up
 # -----------------------------------------------------------
-cd /tmp
-rm -r /tmp/y-files
+rm -rf $y_path_install/y-files

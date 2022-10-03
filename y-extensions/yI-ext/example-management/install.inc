@@ -11,5 +11,5 @@ yI_uninstaller="${yI_ext_tag}_uninstall.sh"
 
 install() 
 {
-	cp -r /tmp/y-files/* $y_ywebover_dir
+	cp -r $y_path_install/y-files/* $y_ywebover_dir
 }

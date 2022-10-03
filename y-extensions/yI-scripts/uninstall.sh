@@ -6,7 +6,7 @@
 # -----------------------------------------------------------
 # Installer Configs
 # -----------------------------------------------------------
-yI_version="1.4"
+yI_version="1.5"
 
 # -----------------------------------------------------------
 # Dirs
@@ -14,6 +14,7 @@ yI_version="1.4"
 y_path_varbin="/var/bin"
 y_path_config="/var/tuxbox/config"
 y_path_tmp="/tmp"
+y_path_install="$y_path_tmp/y-install"
 y_ywebover_dir="/var/httpd"
 y_ext_conf_dir="$y_path_config/y-ext"
 
