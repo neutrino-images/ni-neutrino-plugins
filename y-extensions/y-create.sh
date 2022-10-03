@@ -41,6 +41,6 @@ ls -al --block-size=k $ytar
 
 #
 # n/m = type, menuitem, desc, file, tag, version, url, yweb_version, info_url
-# x   = type, menuitem, ymenu, file, tag, version, url, yweb_version, info_url
+# x   = type, menuitem, desc, ymenu, file, tag, version, url, yweb_version, info_url
 # u   = type, site, description, url
 #
