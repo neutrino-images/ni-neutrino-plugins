@@ -546,7 +546,7 @@ function media.getVideoUrl(yurl)
 		if data:find('LOGIN_REQUIRED') and youtube_dev_id then
 			local id = yurl:match("/watch%?v=([%w+%p+]+)")
 			if id then
-				local postdat='{"context": {"client": {"clientName": "ANDROID", "clientVersion": "16.20", "hl": "en", "clientScreen": "EMBED"}, "thirdParty": {"embedUrl": "https://google.com"}}, "videoId": "' .. id .. '", "playbackContext": {"contentPlaybackContext": {"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": 18872}}, "contentCheckOk": true, "racyCheckOk": true}'
+				local postdat='{"context": {"client": {"clientName": "TVHTML5_SIMPLY_EMBEDDED_PLAYER", "clientVersion": "2.0", "hl": "en"}, "thirdParty": {"embedUrl": "https://www.youtube.com/"}}, "videoId": "' .. id .. '", "playbackContext": {"contentPlaybackContext": {"html5Preference": "HTML5_PREF_WANTS", "signatureTimestamp": 19103}}, "contentCheckOk": "True", "racyCheckOk": "True"}'
 				local header_opt ={'content-type:application/json'}
 				data = getdata('https://www.youtube.com/youtubei/v1/player?key=' .. youtube_dev_id, nil, postdat, 0, header_opt)
 				if data then age_formats = true end
