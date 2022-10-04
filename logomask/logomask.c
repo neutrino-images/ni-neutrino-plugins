@@ -29,7 +29,9 @@
   SIGUSR1:         Toggles debug mode
 */
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
 #include <string.h>
 #include <time.h>
 #include <signal.h>

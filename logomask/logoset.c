@@ -21,7 +21,9 @@
  */
 // ISO 8859-1
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
 #include <string.h>
 #include <time.h>
 #include <linux/input.h>
