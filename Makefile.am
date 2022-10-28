@@ -66,7 +66,7 @@ SUBDIRS += vu-initfb
 SUBDIRS += vu-turnoff_power
 endif
 if BOXMODEL_VUPLUS_ARM
-SUBDIRS += vu-oled_ctrl
+SUBDIRS += oled_ctrl
 endif
 
 SUBDIRS += \

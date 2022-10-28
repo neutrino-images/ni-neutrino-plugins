@@ -416,6 +416,7 @@ input/Makefile
 logomask/Makefile
 logoview/Makefile
 msgbox/Makefile
+oled_ctrl/Makefile
 oscammon/Makefile
 satfind/Makefile
 scripts-lua/Makefile
@@ -474,7 +475,6 @@ tuxmail/daemon/Makefile
 tuxwetter/Makefile
 vinfo/Makefile
 vu-initfb/Makefile
-vu-oled_ctrl/Makefile
 vu-turnoff_power/Makefile
 ])
 
