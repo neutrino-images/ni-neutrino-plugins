@@ -63,7 +63,7 @@ endif
 
 if BOXMODEL_VUPLUS_ALL
 SUBDIRS += vu-initfb
-SUBDIRS += vu-turnoff_power
+SUBDIRS += turnoff_power
 endif
 if BOXMODEL_VUPLUS_ARM
 SUBDIRS += oled_ctrl

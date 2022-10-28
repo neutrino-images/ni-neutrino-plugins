@@ -467,6 +467,7 @@ shellexec/Makefile
 shellexec/shellexec.conf
 showiframe/Makefile
 stbup/Makefile
+turnoff_power/Makefile
 tuxcal/Makefile
 tuxcal/daemon/Makefile
 tuxcom/Makefile
@@ -475,7 +476,6 @@ tuxmail/daemon/Makefile
 tuxwetter/Makefile
 vinfo/Makefile
 vu-initfb/Makefile
-vu-turnoff_power/Makefile
 ])
 
 # init scripts
