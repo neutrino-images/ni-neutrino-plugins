@@ -62,7 +62,7 @@ SUBDIRS += vinfo
 endif
 
 if BOXMODEL_VUPLUS_ALL
-SUBDIRS += vu-initfb
+SUBDIRS += initfb
 SUBDIRS += turnoff_power
 endif
 if BOXMODEL_VUPLUS_ARM

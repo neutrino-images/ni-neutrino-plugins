@@ -412,6 +412,7 @@ emmrd/Makefile
 FritzCallMonitor/Makefile
 FritzInfoMonitor/Makefile
 getrc/Makefile
+initfb/Makefile
 input/Makefile
 logomask/Makefile
 logoview/Makefile
@@ -475,7 +476,6 @@ tuxmail/Makefile
 tuxmail/daemon/Makefile
 tuxwetter/Makefile
 vinfo/Makefile
-vu-initfb/Makefile
 ])
 
 # init scripts
