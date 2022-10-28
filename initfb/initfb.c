@@ -1,6 +1,6 @@
 /*
  * InitFB
- * Framebuffer initalisation helper for VUSOLO4K by BPanther (https://forum.mbremer.de)
+ * Framebuffer initalisation helper for VUPLUS / E4HD 4K Ultra by BPanther (https://forum.mbremer.de)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,18 +18,25 @@
  *
  */
 
+#include <config.h>
 #include <linux/fb.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <sys/ioctl.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/ioctl.h>
 
+#if BOXMODEL_E4HDULTRA
+#define FB_WIDTH_STD 220
+#define FB_HEIGHT_STD 176
+#define FB_BPP 16
+#else
 #define FB_WIDTH_STD 1280
 #define FB_HEIGHT_STD 720
 #define FB_WIDTH_HIGH 1920
 #define FB_HEIGHT_HIGH 1080
 #define FB_BPP 32
+#endif
 
 #ifndef FBIO_BLIT
 #define FBIO_SET_MANUAL_BLIT _IOW('F', 0x21, __u8)
@@ -37,7 +44,11 @@
 #endif
 
 int g_fbFd = -1;
+#if BOXMODEL_E4HDULTRA
+char g_fbDevice[] = "/dev/fb1";
+#else
 char g_fbDevice[] = "/dev/fb0";
+#endif
 unsigned char tmp;
 struct fb_var_screeninfo g_screeninfo_var;
 struct fb_fix_screeninfo g_screeninfo_fix;
@@ -57,12 +68,14 @@ int main(int argc, char **argv)
 	g_screeninfo_var.xres_virtual = g_screeninfo_var.xres = FB_WIDTH_STD;
 	g_screeninfo_var.yres_virtual = g_screeninfo_var.yres = FB_HEIGHT_STD;
 
+#if !BOXMODEL_E4HDULTRA
 	for(int x=1; x<argc; x++) {
 		if ((!strcmp(argv[x], "1"))) {
 			g_screeninfo_var.xres_virtual = g_screeninfo_var.xres = FB_WIDTH_HIGH;
 			g_screeninfo_var.yres_virtual = g_screeninfo_var.yres = FB_HEIGHT_HIGH;
 		}
 	}
+#endif
 
 	printf("OSD-RES: %i x %i\n", g_screeninfo_var.xres_virtual, g_screeninfo_var.yres_virtual);
 

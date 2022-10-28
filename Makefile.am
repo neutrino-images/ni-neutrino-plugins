@@ -69,6 +69,10 @@ if BOXMODEL_VUPLUS_ARM
 SUBDIRS += oled_ctrl
 endif
 
+if BOXMODEL_E4HDULTRA
+SUBDIRS += initfb
+endif
+
 SUBDIRS += \
 	scripts-lua \
 	scripts-sh
