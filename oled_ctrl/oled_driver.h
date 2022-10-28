@@ -20,6 +20,10 @@
 #ifndef _OLED_DRIVER_H_
 #define _OLED_DRIVER_H_
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdint.h>
 
 #include <ft2build.h>
@@ -52,7 +56,7 @@ int driver_close();
 int driver_start(const char *dev, int mode, int _brightness, int x_res, int y_res);
 void lcd_draw_character(FT_Bitmap* bitmap, FT_Int x, FT_Int y, int color);
 void lcd_write_text(const char* text);
-int lcd_ioctl(const char *io_ctl);
+int lcd_ioctl(long unsigned int io_ctl);
 int lcd_deepstandby();
 
 #endif

@@ -44,6 +44,10 @@
 #ifndef _MAIN_OLED_H_
 #define _MAIN_OLED_H_
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "lcd-ks0713.h"
 
 #define LCD_UP_X 0.5 // 50% of display width
@@ -76,7 +80,11 @@
 #define LCD_DOWN_SIZE_DIFFERENT 0.13 // 13% of display width
 #define LCD_DOWN_COLOR_DIFFERENT 0xffffffff
 
+#if BOXMODEL_E4HDULTRA
+#define LCD_DEVICE "/dev/fb1"
+#else
 #define LCD_DEVICE "/dev/oled0"
+#endif
 
 #define LCD_MY_BRIGHTNESS 5 // 0 = use last brightnes (0-10)
 #define LCD_MY_XRES 0 // 0 = get it from driver

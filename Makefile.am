@@ -71,6 +71,7 @@ endif
 
 if BOXMODEL_E4HDULTRA
 SUBDIRS += initfb
+SUBDIRS += oled_ctrl
 endif
 
 SUBDIRS += \

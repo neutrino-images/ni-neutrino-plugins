@@ -163,9 +163,10 @@ int lcd_print_text_up(const char* text, int color, int font_size, int align)
 	int up_x = lcd_get_xres() * LCD_UP_X;
 	int up_y = lcd_get_yres() * LCD_UP_Y;
 	int tmp;
+	float LCD_UP_SIZE_A = (LCD_UP_SIZE * 11.25 / strlen(text) <= LCD_UP_SIZE) ? LCD_UP_SIZE * 11.25 / strlen(text) : LCD_UP_SIZE;
 	if (!font_size)
 	{
-		tmp = lcd_get_xres() * LCD_UP_SIZE;
+		tmp = lcd_get_xres() * LCD_UP_SIZE_A;
 	}
 	else
 	{
@@ -179,9 +180,10 @@ int lcd_print_text_center(const char* text, int color, int font_size, int align)
 	int center_x = lcd_get_xres() * LCD_CENTER_X;
 	int center_y = lcd_get_yres() * LCD_CENTER_Y;
 	int tmp;
+	float LCD_CENTER_SIZE_A = (LCD_CENTER_SIZE * 11.25 / strlen(text) <= LCD_CENTER_SIZE) ? LCD_CENTER_SIZE * 11.25 / strlen(text) : LCD_CENTER_SIZE;
 	if (!font_size)
 	{
-		tmp = lcd_get_xres() * LCD_CENTER_SIZE;
+		tmp = lcd_get_xres() * LCD_CENTER_SIZE_A;
 	}
 	else
 	{
@@ -195,9 +197,10 @@ int lcd_print_text_down(const char* text, int color, int font_size, int align)
 	int down_x = lcd_get_xres() * LCD_DOWN_X;
 	int down_y = lcd_get_yres() * LCD_DOWN_Y;
 	int tmp;
+	float LCD_DOWN_SIZE_A = (LCD_DOWN_SIZE * 11.25 / strlen(text) <= LCD_DOWN_SIZE) ? LCD_DOWN_SIZE * 11.25 / strlen(text) : LCD_DOWN_SIZE;
 	if (!font_size)
 	{
-		tmp = lcd_get_xres() * LCD_DOWN_SIZE;
+		tmp = lcd_get_xres() * LCD_DOWN_SIZE_A;
 	}
 	else
 	{

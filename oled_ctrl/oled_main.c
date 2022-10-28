@@ -38,13 +38,13 @@ tArgs vArgs[] =
 {
 	{ "-b", " --setBrightness		", "Args: brightness\n\tSet oled brightness" },
 	{ "-c", " --clear			", "Args: No argumens\n\tClear oled display" },
-        { "-d", " --deepStandby		", "Args: No argumens\n\tEnter deep standby" },
-	{ "-tu", " --setTextUp		", "Args: text\n\tSet text to oled in up" },
+        { "-d", " --deepStandby			", "Args: No argumens\n\tEnter deep standby" },
+	{ "-tu", " --setTextUp			", "Args: text\n\tSet text to oled in up" },
 	{ "-tc", " --setTextCenter		", "Args: text\n\tSet text to oled in center" },
 	{ "-td", " --setTextDown		", "Args: text\n\tSet text to oled in down" },
-	{ "-tud", " --setTextUpDifferent	", "Args: text\n\tSet text to oled in up" },
-	{ "-tcd", " --setTextCenterDifferent	", "Args: text\n\tSet text to oled in center" },
-	{ "-tdd", " --setTextDownDifferent	", "Args: text\n\tSet text to oled in down" },
+	{ "-tud", " --setTextUpDifferent	", "Args: text\n\tSet text to oled in up (bigger font)" },
+	{ "-tcd", " --setTextCenterDifferent	", "Args: text\n\tSet text to oled in center (bigger font)" },
+	{ "-tdd", " --setTextDownDifferent	", "Args: text\n\tSet text to oled in down (bigger font)" },
 	{ NULL, NULL, NULL }
 };
 
@@ -52,7 +52,7 @@ void usage(char *prg, char *cmd)
 {
 	int i;
 	/* or printout a default usage */
-	fprintf(stderr, "Oled control tool, version 1.00 (VU ARM)\n");
+	fprintf(stderr, "Oled control tool, version 1.10 (VU 4K ARM, E4HD 4K Ultra)\n");
 	fprintf(stderr, "General usage:\n\n");
 	fprintf(stderr, "%s argument [optarg1] [optarg2]\n", prg);
 
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 					}
 					text = argv[i + 1];
 					/* set display text */
-					lcd_print_text_up(text, LCD_UP_COLOR, NULL, TEXT_ALIGN_CENTER);
+					lcd_print_text_up(text, LCD_UP_COLOR, 0, TEXT_ALIGN_CENTER);
 					lcd_draw();
 				}
 				i += 1;
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 					}
 					text = argv[i + 1];
 					/* set display text */
-					lcd_print_text_center(text, LCD_CENTER_COLOR, NULL, TEXT_ALIGN_CENTER);
+					lcd_print_text_center(text, LCD_CENTER_COLOR, 0, TEXT_ALIGN_CENTER);
 					lcd_draw();
 				}
 				i += 1;
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
 					}
 					text = argv[i + 1];
 					/* set display text */
-					lcd_print_text_down(text, LCD_DOWN_COLOR, NULL, TEXT_ALIGN_CENTER);
+					lcd_print_text_down(text, LCD_DOWN_COLOR, 0, TEXT_ALIGN_CENTER);
 					lcd_draw();
 				}
 				i += 1;
@@ -170,12 +170,12 @@ int main(int argc, char *argv[])
 					}
 					text = argv[i + 1];
 					/* set display text */
-					lcd_print_text_up_different(text, LCD_UP_COLOR_DIFFERENT, NULL, TEXT_ALIGN_CENTER);
+					lcd_print_text_up_different(text, LCD_UP_COLOR_DIFFERENT, 0, TEXT_ALIGN_CENTER);
 					lcd_draw();
 				}
 				i += 1;
 			}
-			else if ((strcmp(argv[i], "-tcd") == 0) || (strcmp(argv[i], "--setTextUpDifferent") == 0))
+			else if ((strcmp(argv[i], "-tcd") == 0) || (strcmp(argv[i], "--setTextCenterDifferent") == 0))
 			{
 				if (i + 1 <= argc)
 				{
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 					}
 					text = argv[i + 1];
 					/* set display text */
-					lcd_print_text_center_different(text, LCD_CENTER_COLOR_DIFFERENT, NULL, TEXT_ALIGN_CENTER);
+					lcd_print_text_center_different(text, LCD_CENTER_COLOR_DIFFERENT, 0, TEXT_ALIGN_CENTER);
 					lcd_draw();
 				}
 				i += 1;
@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
 					}
 					text = argv[i + 1];
 					/* set display text */
-					lcd_print_text_down_different(text, LCD_DOWN_COLOR_DIFFERENT, NULL, TEXT_ALIGN_CENTER);
+					lcd_print_text_down_different(text, LCD_DOWN_COLOR_DIFFERENT, 0, TEXT_ALIGN_CENTER);
 					lcd_draw();
 				}
 				i += 1;
