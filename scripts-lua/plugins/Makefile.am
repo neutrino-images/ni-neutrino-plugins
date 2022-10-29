@@ -74,7 +74,11 @@ if ENABLE_STB_STARTUP
 if BOXMODEL_VUPLUS_ALL
 SUBDIRS += stb_startup-ddt
 else
+if BOXMODEL_E4HDULTRA
+SUBDIRS += stb_startup-ddt
+else
 SUBDIRS += stb_startup
+endif
 endif
 endif
 if ENABLE_TIERWELT_TV

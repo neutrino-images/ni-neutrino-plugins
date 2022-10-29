@@ -3,8 +3,8 @@
 -- Copyright 2018 Markus Volk, Sven Hoefer, Don de Deckelwech
 -- STB-Startup for HD51/H7/BRE2ZE4K
 --
--- Changed, now also for VU+ SOLO 4K, VU+ DUO 4K, VU+ DUO 4K SE, VU+ ULTIMO 4K, VU+ UNO 4K, VU+ UNO 4K SE and VU+ ZERO 4K
--- by BPanther 28/Mar/2021
+-- Changed, now also for VU+ SOLO 4K, VU+ DUO 4K, VU+ DUO 4K SE, VU+ ULTIMO 4K, VU+ UNO 4K, VU+ UNO 4K SE, VU+ ZERO 4K and E4HD 4K ULTRA
+-- by BPanther 13/Oct/2022
 --
 -- Redistribution and use in source and binary forms, with or without modification, 
 -- are permitted provided that the following conditions are met:
@@ -28,7 +28,7 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
-caption = "STB-Startup v1.25 - "
+caption = "STB-Startup v1.26 - "
 bmbox = 0
 
 n = neutrino()
@@ -55,19 +55,16 @@ if vumodel == "solo4k" or vumodel == "uno4k" or vumodel == "uno4kse" or vumodel 
 	root2 = 7
 	root3 = 9
 	root4 = 11
---	vumodel = "VU+ " .. vumodel
 elseif vumodel == "duo4k" or vumodel == "duo4kse" then
 	root1 = 10
 	root2 = 12
 	root3 = 14
 	root4 = 16
---	vumodel = "VU+ " .. vumodel
 elseif vumodel == "zero4k" then
 	root1 = 8
 	root2 = 10
 	root3 = 12
 	root4 = 14
---	vumodel = "VU+ " .. vumodel
 elseif boxmodel == "hd51" or boxmodel == "h7" or boxmodel == "bre2ze4k" then
 	root1 = 3
 	root2 = 5
@@ -75,6 +72,12 @@ elseif boxmodel == "hd51" or boxmodel == "h7" or boxmodel == "bre2ze4k" then
 	root4 = 9
 	vumodel = boxmodel
 	bmbox = 1
+elseif boxmodel == "e4hd" then
+	root1 = 3
+	root2 = 5
+	root3 = 7
+	root4 = 9
+	vumodel = boxmodel
 else
 	return
 end
@@ -396,6 +399,8 @@ function make_cmdline(boxname, rn, rp)
 		else
 			cmdline = "boot emmcflash0.kernel" .. rn ..  " 'brcm_cma=440M@328M brcm_cma=192M@768M root=/dev/mmcblk0p" .. rp .. " rw rootwait " .. boxname .. "_4.boxmode=1'\n"
 		end
+	elseif boxname == "e4hd" then
+		cmdline = "boot emmcflash0.kernel" .. rn ..  " 'brcm_cma=504M@264M brcm_cma=192M@768M brcm_cma=1024M@2048M root=/dev/mmcblk0p" .. rp .. " rw rootwait " .. boxname .. "_4.boxmode=5'\n"
 	end
 	return cmdline
 end
