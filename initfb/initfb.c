@@ -1,6 +1,6 @@
 /*
  * InitFB
- * Framebuffer initalisation helper for VUPLUS / E4HD 4K Ultra by BPanther (https://forum.mbremer.de)
+ * Framebuffer initalisation helper for VUPLUS by BPanther (https://forum.mbremer.de)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,6 @@ char g_fbDevice[] = "/dev/fb0";
 #endif
 unsigned char tmp;
 struct fb_var_screeninfo g_screeninfo_var;
-struct fb_fix_screeninfo g_screeninfo_fix;
 
 int main(int argc, char **argv)
 {
