@@ -563,9 +563,11 @@ char rstr[512]={0}, *title=NULL, *format=NULL, *defstr=NULL, *aptr=NULL, *rptr=N
 		//init backbuffer
 		int stride = fix_screeninfo.line_length;
 		swidth = stride/sizeof(uint32_t);
-		if (stride == 7680 && var_screeninfo.xres == 1280) {
+#if !BOXMODEL_VUPLUS_ALL
+		if (stride == 7680 && var_screeninfo.xres == 1280)
+#endif
 			var_screeninfo.yres = 1080;
-		}
+
 		if(!(lbb = malloc(var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t))))
 		{
 			perror(__plugin__ " <allocating of Backbuffer>\n");
