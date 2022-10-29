@@ -1,8 +1,8 @@
 #!/bin/sh
 # Script for complete image backup
 # License: GPLv2 or later
-Version="1.31 vom 17.04.2021"
-Copyright="(C) 2018-2021 DboxOldie / BPanther / Frankenstone / Fritz / DdD"
+Version="1.32 vom 14.10.2022"
+Copyright="(C) 2018-2022 DboxOldie / BPanther / Frankenstone / Fritz / DdD"
 
 #
 file=$0
@@ -30,7 +30,7 @@ new_layout=0
 multi=0
 gui_mode=0
 bkp_part=1
-magic_number="0x016f2818" # HD51 / BRE2ZE4K / ZGEMMA H7 / VUSOLO4K / VUDUO4K / VUDUO4KSE / VUZERO4K / UTLIMATE4K / UNO4K / UNO4KSE
+magic_number="0x016f2818" # HD51 / BRE2ZE4K / ZGEMMA H7 / VUSOLO4K / VUDUO4K / VUDUO4KSE / VUZERO4K / UTLIMATE4K / UNO4K / UNO4KSE / E4HDULTRA
 dtb_magic_number="0xd00dfeed"
 
 #
@@ -47,7 +47,7 @@ read_bootargs_vu()
 }
 
 #
-# Subroutine für AX HD51 / Bre2ze 4K / Zgemma H7
+# Subroutine für AX HD51 / Bre2ze 4K / Zgemma H7 / E4HD 4K Ultra
 #
 read_bootargs()
 {
@@ -112,7 +112,7 @@ select_backup_dir() {
 #
 # Root und Kernel Partition bestimmen
 #
-if [ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ]; then
+if [ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" -o "$model" == "e4hd" ]; then
 	read_bootargs
 else
 	read_bootargs_vu
@@ -144,7 +144,7 @@ do
 		B_PART=`echo "Backup Partition: ${parm:2:3}"`
 	fi
 	if [ "$parm" == "-m1" ]; then
-		if [ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ]; then
+		if [ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" -o "$model" == "e4hd" ]; then
 			[ $new_layout == 0 ] && rootmtd=mmcblk0p3 && multi=1
 			[ $new_layout == 1 ] && kernelnumber=2 && rootsubdir="linuxrootfs1" && rootmtd=mmcblk0p3 && multi=1
 		elif [ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" -o "$model" == "zero4k" -o "$model" == "duo4k" -o "$model" == "duo4kse" ]; then
@@ -153,7 +153,7 @@ do
 		destname=${destname/${prefix}/${prefix}-${parm:1:2}}
 		B_PART=`echo "Backup Partition: ${parm:2:3}"`
 	elif [ "$parm" == "-m2" ]; then
-		if [ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ]; then
+		if [ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" -o "$model" == "e4hd" ]; then
 			[ $new_layout == 0 ] && rootmtd=mmcblk0p5 && multi=1
 			[ $new_layout == 1 ] && kernelnumber=4 && rootsubdir="linuxrootfs2" && rootmtd=$multidev && multi=1
 		elif [ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" -o "$model" == "zero4k" -o "$model" == "duo4k" -o "$model" == "duo4kse" ]; then
@@ -162,7 +162,7 @@ do
 		destname=${destname/${prefix}/${prefix}-${parm:1:2}}
 		B_PART=`echo "Backup Partition: ${parm:2:3}"`
 	elif [ "$parm" == "-m3" ]; then
-		if [ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ]; then
+		if [ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" -o "$model" == "e4hd" ]; then
 			[ $new_layout == 0 ] && rootmtd=mmcblk0p7 && multi=1
 			[ $new_layout == 1 ] && kernelnumber=5 && rootsubdir="linuxrootfs3" && rootmtd=$multidev && multi=1
 		elif [ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" -o "$model" == "zero4k" -o "$model" == "duo4k" -o "$model" == "duo4kse" ]; then
@@ -171,7 +171,7 @@ do
 		destname=${destname/${prefix}/${prefix}-${parm:1:2}}
 		B_PART=`echo "Backup Partition: ${parm:2:3}"`
 	elif [ "$parm" == "-m4" ]; then
-		if [ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ]; then
+		if [ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" -o "$model" == "e4hd" ]; then
 			[ $new_layout == 0 ] && rootmtd=mmcblk0p9 && multi=1
 			[ $new_layout == 1 ] && kernelnumber=6 && rootsubdir="linuxrootfs4" && rootmtd=$multidev && multi=1
 		elif [ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" -o "$model" == "zero4k" -o "$model" == "duo4k" -o "$model" == "duo4kse" ]; then
@@ -206,7 +206,7 @@ check_df=`df "$save_path" | tail -n1 | wc -w`
 
 echo "  Image Backup (Version: $Version)"
 echo "  $Copyright"
-echo "  AX HD51 4K, Bre2ze 4K, ZGEMMA H7,"
+echo "  AX HD51 4K, Bre2ze 4K, ZGEMMA H7, AXAS E4HD 4K ULTRA"
 echo "  VU+ DUO 4K, VU+ DUO 4K SE, VU+ UNO 4K, VU+ UNO 4K SE, VU+ ZERO 4K, VU+ ULTIMO 4K und VU+ SOLO 4K"
 echo
 echo "  $B_PART"
@@ -222,7 +222,7 @@ echo
 df "$save_path" | grep -q tmpfs && DIR_CHECK=$? || DIR_CHECK=$?
 [ "$DIR_CHECK" == "0" ] && [ "${save_path:0:4}" != "/tmp" ] && echo "  Das gewählte Verzeichnis ist ungültig !" && exit
 
-if [ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" ]; then
+if [ "$model" == "hd51" -o "$model" == "h7" -o "$model" == "bre2ze4k" -o "$model" == "e4hd" ]; then
 	echo "  Image Backup für Boxmodel '$model' startet..."
 	[ $new_layout == 0 ] && kernelnumber=$((rootnumber - 1))
 elif [ "$model" == "solo4k" -o "$model" == "ultimo4k" -o "$model" == "uno4k" -o "$model" == "uno4kse" ]; then
@@ -416,9 +416,11 @@ r_backup()
 	fi
 
 	echo
-	echo "  Erstelle 'rootfs${multipart}.tar.bz2'..."
+	echo "  Erstelle 'rootfs${multipart}.tar'..."
+	tar -cf "$save_path"/rootfs${multipart}.tar -C $tmproot ./ 2> /dev/null
+	echo "  Packe 'rootfs${multipart}.tar' zu rootfs${multipart}.tar.bz2'..."
 	echo "  Dauer ca. 2-10 Minuten (je nach Imagegröße)..."
-	tar -cjf "$save_path"/rootfs${multipart}.tar.bz2 -C $tmproot ./ 2> /dev/null
+	$bz2 "$save_path"/rootfs${multipart}.tar
 
 	umount -f $tmproot
 	[ -z "$(mount | grep $tmproot)" ] && rmdir $tmproot
