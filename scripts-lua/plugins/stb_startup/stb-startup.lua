@@ -266,8 +266,12 @@ function has_gpt_layout()
 end
 
 function has_boxmode()
-	for line in io.lines("/proc/cpuinfo") do
-		if line:match("Broadcom") then
+	for line in io.lines("/proc/stb/info/model") do
+		if line:match("hd51") then
+			return true
+		elseif line:match("h7") then
+			return true
+		elseif line:match("bre2ze4k") then
 			return true
 		end
 	end
@@ -453,6 +457,12 @@ function main()
 	chooser_x = SCREEN.OFF_X + (((SCREEN.END_X - SCREEN.OFF_X) - chooser_dx) / 2)
 	chooser_y = SCREEN.OFF_Y + (((SCREEN.END_Y - SCREEN.OFF_Y) - chooser_dy) / 2)
 
+	if has_boxmode() then
+		setup = "Boxmode"
+	else
+		setup = nil
+	end
+
 	local imagename = {}
 	tuxbox_cfg = {}
 	for n=1, 4 do
@@ -488,7 +498,7 @@ function main()
 		btnGreen = imagename[2],
 		btnYellow = imagename[3],
 		btnBlue = imagename[4],
-		btnSetup = "Boxmode"
+		btnSetup = setup
 	}
 
 	chooser_text = ctext.new {
