@@ -416,11 +416,9 @@ r_backup()
 	fi
 
 	echo
-	echo "  Erstelle 'rootfs${multipart}.tar'..."
-	tar -cf "$save_path"/rootfs${multipart}.tar -C $tmproot ./ 2> /dev/null
-	echo "  Packe 'rootfs${multipart}.tar' zu rootfs${multipart}.tar.bz2'..."
+	echo "  Erstelle 'rootfs${multipart}.tar.bz2'..."
 	echo "  Dauer ca. 2-10 Minuten (je nach Imagegröße)..."
-	$bz2 "$save_path"/rootfs${multipart}.tar
+	tar -cjf "$save_path"/rootfs${multipart}.tar.bz2 -C $tmproot ./ 2> /dev/null
 
 	umount -f $tmproot
 	[ -z "$(mount | grep $tmproot)" ] && rmdir $tmproot
