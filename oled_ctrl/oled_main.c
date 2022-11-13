@@ -52,7 +52,7 @@ void usage(char *prg, char *cmd)
 {
 	int i;
 	/* or printout a default usage */
-	fprintf(stderr, "Oled control tool, version 1.10 (VU 4K ARM, E4HD 4K Ultra)\n");
+	fprintf(stderr, "Oled control tool, version 1.10 (VU 4K ARM, E4HD 4K Ultra, Protek 4k UHD)\n");
 	fprintf(stderr, "General usage:\n\n");
 	fprintf(stderr, "%s argument [optarg1] [optarg2]\n", prg);
 
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 	int i;
 	if (argc > 1)
 	{
-#if BOXMODEL_E4HDULTRA
+#if BOXMODEL_E4HDULTRA || BOXMODEL_PROTEK4K
 		bool write_to_lcd = false;
 #endif
 		i = 1;
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 					text = argv[i + 1];
 					/* set display text */
 					lcd_print_text_up(text, LCD_UP_COLOR, 0, TEXT_ALIGN_CENTER);
-#if BOXMODEL_E4HDULTRA
+#if BOXMODEL_E4HDULTRA || BOXMODEL_PROTEK4K
 					write_to_lcd = true;
 #else
 					lcd_draw();
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 					text = argv[i + 1];
 					/* set display text */
 					lcd_print_text_center(text, LCD_CENTER_COLOR, 0, TEXT_ALIGN_CENTER);
-#if BOXMODEL_E4HDULTRA
+#if BOXMODEL_E4HDULTRA || BOXMODEL_PROTEK4K
 					write_to_lcd = true;
 #else
 					lcd_draw();
@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
 					text = argv[i + 1];
 					/* set display text */
 					lcd_print_text_down(text, LCD_DOWN_COLOR, 0, TEXT_ALIGN_CENTER);
-#if BOXMODEL_E4HDULTRA
+#if BOXMODEL_E4HDULTRA || BOXMODEL_PROTEK4K
 					write_to_lcd = true;
 #else
 					lcd_draw();
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
 					text = argv[i + 1];
 					/* set display text */
 					lcd_print_text_up_different(text, LCD_UP_COLOR_DIFFERENT, 0, TEXT_ALIGN_CENTER);
-#if BOXMODEL_E4HDULTRA
+#if BOXMODEL_E4HDULTRA || BOXMODEL_PROTEK4K
 					write_to_lcd = true;
 #else
 					lcd_draw();
@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
 					text = argv[i + 1];
 					/* set display text */
 					lcd_print_text_center_different(text, LCD_CENTER_COLOR_DIFFERENT, 0, TEXT_ALIGN_CENTER);
-#if BOXMODEL_E4HDULTRA
+#if BOXMODEL_E4HDULTRA || BOXMODEL_PROTEK4K
 					write_to_lcd = true;
 #else
 					lcd_draw();
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 					text = argv[i + 1];
 					/* set display text */
 					lcd_print_text_down_different(text, LCD_DOWN_COLOR_DIFFERENT, 0, TEXT_ALIGN_CENTER);
-#if BOXMODEL_E4HDULTRA
+#if BOXMODEL_E4HDULTRA || BOXMODEL_PROTEK4K
 					write_to_lcd = true;
 #else
 					lcd_draw();
@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
 			i++;
 		}
 
-#if BOXMODEL_E4HDULTRA
+#if BOXMODEL_E4HDULTRA || BOXMODEL_PROTEK4K
 		if (write_to_lcd)
 			lcd_draw();
 #endif

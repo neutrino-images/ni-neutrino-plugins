@@ -74,6 +74,11 @@ SUBDIRS += initfb
 SUBDIRS += oled_ctrl
 endif
 
+if BOXMODEL_PROTEK4K
+SUBDIRS += initfb
+SUBDIRS += oled_ctrl
+endif
+
 SUBDIRS += \
 	scripts-lua \
 	scripts-sh
