@@ -267,11 +267,7 @@ end
 
 function has_boxmode()
 	for line in io.lines("/proc/stb/info/model") do
-		if line:match("hd51") then
-			return true
-		elseif line:match("h7") then
-			return true
-		elseif line:match("bre2ze4k") then
+		if line:match("hd51") or line:match("bre2ze4k") or line:match("h7") then
 			return true
 		end
 	end
