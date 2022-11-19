@@ -25,7 +25,7 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
-version = "v1.20i"
+version = "v1.20j"
 
 on = "ein"; off = "aus"
 
@@ -122,6 +122,7 @@ function reboot()
 	elseif exists("/sbin/init") then
 		local file = assert(io.popen("sync && init 6"))
 	else
+		os.execute("umount -f -a -r")
 		local file = assert(io.popen("reboot"))
 	end
 end
