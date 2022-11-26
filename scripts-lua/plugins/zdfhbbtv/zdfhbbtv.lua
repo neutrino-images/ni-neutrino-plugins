@@ -1,11 +1,12 @@
   --[[
 	ZDF HBBTV
 	Copyright (C) 2021 Jacek Jendrzej 'satbaby'
+	Copyright (C) 2022 'bazi98' for Vers. 0.23 beta - add. UHD 
 	License: WTFPLv2
 ]]
 
 function init()
-	Version = 0.22
+	Version = 0.23
 	CONF_PATH = "/var/tuxbox/config/"
 	if DIR and DIR.CONFIGDIR then
 		CONF_PATH = DIR.CONFIGDIR .. '/'
@@ -641,10 +642,21 @@ function getZDFstream(tab)
 			tab.stream = nil
 			for _, streams in pairs(jnTab.streams) do
 				if streams and tab.stream == nil then
-					local mp4 = streams.h264_aac_mp4_http_na_na
+					local h265 = streams.h265_aac_mp4_http_na_na
+					local h264 = streams.h264_aac_mp4_http_na_na
+				if h265 == nil then
+					mp4 = h264
+					else
+					mp4 = h265
+				end
 					local m3u8 = streams.h264_aac_ts_http_m3u8_http
 					local mpd = streams.h264_aac_mp4_http_mpd_http
-					if maxRes > 1281 and mp4 and mp4.main and mp4.main.deu and mp4.main.deu.q3 then
+					if maxRes > 1921 and streams.h265_aac_mp4_http_na_na and mp4.main.deu.q5 then
+						tab.stream = mp4.main.deu.q5.url
+						break
+					elseif maxRes > 1281 and streams.h265_aac_mp4_http_na_na and mp4.main.deu.q3 then
+						tab.stream = mp4.main.deu.q3.url
+					elseif maxRes > 1281 and streams.h264_aac_mp4_http_na_na and mp4.main.deu.q3 then
 						tab.stream = mp4.main.deu.q3.url
 						break
 					elseif maxRes < 1281 and mp4 and mp4.main and mp4.main.deu and mp4.main.deu.q1 then
