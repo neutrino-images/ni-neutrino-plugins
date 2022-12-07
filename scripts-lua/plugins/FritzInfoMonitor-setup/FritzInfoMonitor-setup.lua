@@ -64,6 +64,9 @@ function init()
 	C["EASYMODE"]=0
 	H["EASYMODE"]="Einschalten wenn eine EasyBox statt einer Fritz!Box genutzt wird"
 
+	C["USER"]=""
+	H["USER"]="Der auf der Fritz!Box angegebene User"
+
 	C["PASSWD"]=""
 	H["PASSWD"]="Das auf der Fritz!Box angegebene Passwort"
 
@@ -209,6 +212,9 @@ EASYMODE=]].. C["EASYMODE"] .. "\n" ..[[
 
 # Passwort für die !FritzBox (Achtung - nur neues Loginverfahren mit SID)
 PASSWD=]].. C["PASSWD"] .. "\n" ..[[
+
+# USER für die !FritzBox (Achtung - nur neues Loginverfahren mit SID)
+USER=]].. C["USER"] .. "\n" ..[[
 
 # Bei der Übernahme der !FritzBox-Telefonbücher mit den FritzInfolMonitor (FIM),
 # kann eine fehlende Vorwahl automatisch mit der hier eingetragenen Ortsvorwahl ergänzt werden.
@@ -506,6 +512,17 @@ function pwd_menu(id)
 	pwd:exec()
 end
 
+function user_menu(id)
+	local user = menu.new{name="FRITZ!Box User", icon="settings"}
+	user:addKey{directkey=RC["home"], id="home", action="handle_key"}
+	user:addKey{directkey=RC["setup"], id="setup", action="handle_key"}
+	user:addItem{type="separator"}
+	user:addItem{type="back"}
+	user:addItem{type="separatorline"}
+	user:addItem{type="keyboardinput", action="set_string", id="USER", value=C["USER"], name="USER"}
+	user:exec()
+end
+
 function m_menu(id)
 	m = menu.new{name=caption, icon="settings"}
 	m:addKey{directkey=RC["home"], id="home", action="handle_key"}
@@ -517,6 +534,7 @@ function m_menu(id)
 	m:addItem{type="separatorline"}
 	m:addItem{type="keyboardinput", action="set_string", id="FRITZBOXIP", value=C["FRITZBOXIP"], hint=H["FRITZBOXIP"], name="FRITZ!Box IP/Name"}
 	m:addItem{type="stringinput", action="set_string", id="PORT", value=C["PORT"], hint=H["PORT"], valid_chars="0123456789 ", name="FRITZ!Box Port"}
+	m:addItem{type="keyboardinput", action="set_string", id="USER", value=C["USER"], hint=H["USER"], name="User"}
 	m:addItem{type="forwarder", name="Passwort eingeben", action="pwd_menu", hint=H["PASSWD"], id="PWD"}
 	m:addItem{type="separator"}
 	m:addItem{type="chooser", action="set_yesno", options={ yes, no }, id="EASYMODE", hint=H["EASYMODE"], value=num2yesno(C["EASYMODE"]), name="EasyBox statt FRITZ!Box"}
