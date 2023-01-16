@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * NI Fritz! Smart Home Info mit toggle V4.02   *
+# * NI Fritz! Smart Home Info mit toggle V4.03   *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team), LoginTeil zur     *
@@ -35,12 +35,12 @@ FRITZIP=`echo "$CONFIG" | grep '^FRITZBOXIP' | cut -d "=" -f2 | tr -d ' '`
 Passwd=`echo "$CONFIG" | grep '^PASSWD' | cut -d "=" -f2 | tr -d ' '`
 USERNAME=`echo "$CONFIG" | grep '^USERNM' | cut -d "=" -f2 | tr -d ' '`
 pluginpath=`echo "$CONFIG" | grep '^PLUGINPATH' | cut -d "=" -f2 | tr -d ' ' | tr -d '"'`
-
+OSVERSIONMAN=`echo "$CONFIG" | grep '^OSVERSION' | cut -d "=" -f2 | tr -d ' '`
 
 # ab hier keine Eintragung mehr nötig
 #################################################
-vinfo="V4.02"
-vinfo2="402"
+vinfo="V4.03"
+vinfo2="403"
 
 echo "--------------------------------------"
 echo "SmartHomeInfo "$vinfo" startet"
@@ -84,8 +84,14 @@ fi
 ## Login bei FritzBox / SessionID
 
 # OS-Version ermitteln
-#Version=`wget -q -O - http://$FRITZIP/jason_boxinfo.xml | grep Version | awk '{match($0,/>[^<>]+</); print substr($0,RSTART+4,5)}'`
-Version=`wget -q -O- http://$FRITZIP/jason_boxinfo.xml | grep Version | awk '{match($0,/>[^<>]+</); print substr($0,RSTART+RLENGTH-6,5)}'`
+
+if [ "$OSVERSIONMAN" = "" ]; then
+    #Version=`wget -q -O - http://$FRITZIP/jason_boxinfo.xml | grep Version | awk '{match($0,/>[^<>]+</); print substr($0,RSTART+4,5)}'`
+    Version=`wget -q -O- http://$FRITZIP/jason_boxinfo.xml | grep Version | awk '{match($0,/>[^<>]+</); print substr($0,RSTART+RLENGTH-6,5)}'`
+else
+    Version=$OSVERSIONMAN
+fi
+
 echo "SmartHomeInfo - Fritzbox-Software V"$Version" "
 
 if [ "$Version" \< "05.50" ]; then
@@ -241,7 +247,6 @@ sed -i -e ':a;N;$!ba;s|\n\([^<]\)|\1|g' /tmp/dectdatendraft.xml
 sed -e '/button identifier/,+3d' < /tmp/dectdatendraft.xml >> /tmp/dectdatendraft2.xml
 sed -e '/functionbitmask="1"/,+3d' < /tmp/dectdatendraft2.xml >> /tmp/dectdaten.xml
 
-
 LINES=`cat /tmp/dectdaten.xml | grep -oc identifier`
 
 if [ "$LINES" -ge "20" ]; then
@@ -260,6 +265,7 @@ for i in $(seq 1 $LINES); do
         echo DECTNAME$i=`echo $dectname | cut -d ";" -f$i | tr " " "-"` >> /tmp/dectnames
 done
 source /tmp/dectnames
+
 
 #dect=`cat /tmp/dectdaten.xml | grep "identifier" | sed 's/.*identifier="\(.*\)$/\1/' | cut -c 1-19 | sed 's|"|;|g' | tr "\n" ";" | sed 's|; id;|;|g' | sed 's|; id=;|;|g' `
 #dect=`cat /tmp/dectdaten.xml | grep "identifier" | sed 's/.*identifier="\(.*\)$/\1/' | sed 's/id=".*\(.*\)$/\1/' | sed 's|"|;|g' | sed 's|; id;|;|g' | sed 's|; |;|g'  `
