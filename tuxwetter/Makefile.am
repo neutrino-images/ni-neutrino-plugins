@@ -47,6 +47,20 @@ tuxwetter_DATA = \
 	tuxwetter.mcfg \
 	tuxwetter.png
 
+tuxwetter_iconsdir = $(CONFIGDIR)/tuxwetter/icons
+
+tuxwetter_icons_DATA = \
+	icons/clear-day.png \
+	icons/clear-night.png \
+	icons/cloudy.png \
+	icons/fog.png \
+	icons/partly-cloudy-day.png \
+	icons/partly-cloudy-night.png \
+	icons/rain.png \
+	icons/sleet.png \
+	icons/snow.png \
+	icons/wind.png
+
 install-data-hook:
 	ln -sf $(PLUGINDIR)/tuxwetter.so $(DESTDIR)$(bindir)/tuxwetter
 
