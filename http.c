@@ -51,7 +51,7 @@ int show_progress( void *clientp, double dltotal, double dlnow, double ultotal, 
 	return 0;
 }
 
-int HTTP_downloadFile(char *URL, char *downloadTarget, int showprogress, int tmo, int ctimo, int repeats)
+int HTTP_downloadFile(char *URL, char *downloadTarget, int showprogress, int tmo, int ctimo)
 {
 	CURLcode res = -1;
 	char *surl=URL;
@@ -76,7 +76,7 @@ int HTTP_downloadFile(char *URL, char *downloadTarget, int showprogress, int tmo
 		{
 			curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
 			curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L/*(showprogress)?0:1*/);
-			curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0");
+			curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36");
 			curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
 			curl_easy_setopt(curl, CURLOPT_WRITEDATA, tmpFile);

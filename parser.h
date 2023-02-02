@@ -44,51 +44,54 @@
 
 #	define ACT_LAT			1
 #	define ACT_LON			2
-#	define ACT_UPTIME		4
+#	define ELEVATION		5
+#	define ACT_UPTIME		6
 
-#	define ACT_COND			5 //| TRANSLATION
-#	define ACT_ICON			6
-#	define ACT_PRECIPINT	7
-#	define ACT_PRECIPPROP	8
-#	define ACT_TEMP			10
-#	define ACT_FTEMP		11
-#	define ACT_DEWPOINT		12
-#	define ACT_HMID			13
-#	define ACT_PRESS		14
-#	define ACT_WINDSPEED	15
-#	define ACT_WINDGUST		16
-#	define ACT_WINDDIR		17 //| TRANSLATION
-#	define ACT_CLOUDC		18
-#	define ACT_UVIND		19
-#	define ACT_VISIBILITY	20
-#	define ACT_OZONE		21
+#	define ACT_COND			7 | TRANSLATION
+#	define ACT_ICON			8
+#	define ACT_PRECIPINT	11
+#	define ACT_PRECIPPROP	12
+#	define ACT_TEMP			15
+#	define ACT_FTEMP		16
+#	define ACT_DEWPOINT		17
+#	define ACT_HMID			18
+#	define ACT_PRESS		19
+#	define ACT_WINDSPEED	20
+#	define ACT_WINDGUST		21
+#	define ACT_WINDDIR		22 //| TRANSLATION
+#	define ACT_CLOUDC		23
+#	define ACT_UVIND		24
+#	define ACT_VISIBILITY	25
+#	define ACT_OZONE		26
 
-#	define ACT_SUNR			27
-#	define ACT_SUNS			28
-#	define ACT_MOON			29 //| TRANSLATION
+#	define ACT_SUNR			32
+#	define ACT_SUNS			33
+#	define ACT_MOON			34 //| TRANSLATION
 #	define ACT_PRTEND		NA
 #	define ACT_UVTEXT		NA
 
 	// Preview Values
-#	define PRE_DAY			24
-#	define PRE_COND			25
-#	define PRE_ICON			26
-#	define PRE_SUNR			27
-#	define PRE_SUNS			28
-#	define PRE_MOON			29 //| TRANSLATION
-#	define PRE_PRECIPINT	30 //| TRANSLATION
-#	define PRE_PRECIPPROP	33
-#	define PRE_TEMPH		35
-#	define PRE_TEMPL		37
+#	define PRE_DAY			29
+#	define PRE_ICON			30
+#	define PRE_COND			31 | TRANSLATION
+#	define PRE_SUNR			32
+#	define PRE_SUNS			33
+#	define PRE_MOON			34 //| TRANSLATION
+#	define PRE_PRECIPINT	35 //| TRANSLATION
+#	define PRE_PRECIPPROP	38
+#	define PRE_TEMPH		41
+#	define PRE_TEMPL		43
 #	define PRE_SNOW			NA //| TRANSLATION
 
 #	define PRE_BT			NA
-#	define PRE_HMID			44
-#	define PRE_WINDSPEED	46
-#	define PRE_WINDGUST		47
-#	define PRE_WINDDIR		49 //| TRANSLATION
+#	define PRE_DEWPOINT		49
+#	define PRE_HMID			50
+#	define PRE_PRESS		51
+#	define PRE_WINDSPEED	52
+#	define PRE_WINDGUST		53
+#	define PRE_WINDDIR		55 //| TRANSLATION
 
-#define JSON_FILE	"/tmp/darksky.json"
+#define JSON_FILE	"/tmp/pirateweather.json"
 
 int  parser		(char *,const char *, int, int, int);
 int  prs_get_prev_count 	(void);
