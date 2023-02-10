@@ -127,7 +127,7 @@ int paintIcon(const char *const fname, int xstart, int ystart, int xsize, int ys
 {
 	FILE *tfh;
 	int x1, y1, rv=-1, alpha=0, bpp=0;
-	int imx,imy,dxo,dyo,dxp,dyp;
+	int imx=0,imy=0,dxo=0,dyo=0,dxp=0,dyp=0;
 	unsigned char *buffer=NULL;
 
 	xstart += sx;

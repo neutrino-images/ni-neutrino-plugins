@@ -412,7 +412,7 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	int rec = 0, flag = 0;
 	int cc = 0, exit_ind = -1;
 	size_t array_size;
-	char gettemp;
+	char tmpchar;
 	FILE *wxfile = NULL;
 
 	char url[512];
@@ -446,8 +446,11 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 		"time",
 		"summary",
 		"icon",
+		"nearestStormDistance",
+		"nearestStormBearing",
 		"precipIntensity",
 		"precipProbability",
+		"precipIntensityError",
 		"precipType",
 		"temperature",
 		"apparentTemperature",
@@ -465,8 +468,8 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	// daily
 	const char * keys_daily[] = {
 		"time",
-		"summary",
 		"icon",
+		"summary",
 		"sunriseTime",
 		"sunsetTime",
 		"moonPhase",
@@ -474,6 +477,7 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 		"precipIntensityMax",
 		"precipIntensityMaxTime",
 		"precipProbability",
+		"precipAccumulation",
 		"precipType",
 		"temperatureHigh",
 		"temperatureHighTime",
@@ -494,7 +498,6 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 		"uvIndex",
 		"uvIndexTime",
 		"visibility",
-		"ozone",
 		"temperatureMin",
 		"temperatureMinTime",
 		"temperatureMax",
@@ -506,10 +509,10 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	};
 
 	//FIXME KEY! and CITYCODE
-	sprintf (url,"https://api.darksky.net/forecast/%s/%s?lang=%s&units=%s&exclude=minutely,hourly,flags,alerts",key,citycode,(metric)?"de":"en",(metric)?"ca":"us");
+	sprintf (url,"https://api.pirateweather.net/forecast/%s/%s?lang=%s&units=%s&exclude=minutely,hourly",key,citycode,(metric)?"de":"en",(metric)?"ca":"us");
 	printf("url:%s\n",url);
 
-	exit_ind=HTTP_downloadFile(url, JSON_FILE, 0, inet, ctmo, 3);
+	exit_ind=HTTP_downloadFile(url, JSON_FILE, 0, inet, ctmo);
 
 	if(exit_ind != 0)
 	{
@@ -544,8 +547,8 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 			fseek(wxfile, 0L, SEEK_SET);
 			while (!feof(wxfile))
 			{
-				gettemp=fgetc(wxfile);
-				if(gettemp=='"')
+				tmpchar=fgetc(wxfile);
+				if(tmpchar=='"')
 				{
 					if(tag==0 && rec==0)
 					{
@@ -553,15 +556,16 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 					}
 					continue;
 				}
-				if(gettemp==':')
+				if(tmpchar==':')
 				{
 					keyname[tcc]='\0';
-					if(!strcmp(keyname,"currently") || !strcmp(keyname,"daily") || !strcmp(keyname,"data") || !strcmp(keyname,"offset"))
+					if(!strcmp(keyname,"currently") || !strcmp(keyname,"daily") || !strcmp(keyname,"data") || !strcmp(keyname,"flags"))
 					{
 						tcc=0;
 
-						if (!strcmp(keyname,"offset"))
+						if (!strcmp(keyname,"flags"))
 						{
+							// get out here
 							keyname[0]='\0';
 							break;
 						}
@@ -580,13 +584,13 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 					continue;
 				}
 
-				if (!strcmp(keyname_tmp,"currently") && gettemp=='{')
+				if (!strcmp(keyname_tmp,"currently") && tmpchar=='{')
 				{
 					// set keyname next
 					strcpy(keyname_next, keys_currently[0]);
 					next = 0;
 				}
-				if (!strcmp(keyname_tmp,"data") && gettemp=='{')
+				if (!strcmp(keyname_tmp,"data") && tmpchar=='{')
 				{
 					// set keyname next
 					strcpy(keyname_next, keys_daily[0]);
@@ -596,13 +600,13 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 
 				if(tag==1 && rec==0)
 				{
-					if(gettemp=='{' || gettemp=='[')
+					if(tmpchar=='{' || tmpchar=='[' || tmpchar==' ')
 					{
 						continue;
 					}
 
-					keyname[tcc]=gettemp;
-					//printf("tag_char[%d] [%c]\n",tcc,gettemp);
+					keyname[tcc]=tmpchar;
+					//printf("tag_char[%d] [%c]\n",tcc,tmpchar);
 					tcc++;
 					continue;
 				}
@@ -612,10 +616,10 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 					if(tag == 1)
 						tag = 0;
 
-					if(gettemp=='}' || gettemp==']')
+					if(tmpchar=='}' || tmpchar==']' || tmpchar==' ')
 						continue;
 
-					if(gettemp==',')
+					if(tmpchar==',')
 					{
 						int found = 0;
 						data[tc][cc]='\0';
@@ -695,7 +699,7 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 					}
 					else
 					{
-						data[tc][cc]=gettemp;
+						data[tc][cc]=tmpchar;
 						cc++;
 					}
 				}
@@ -746,8 +750,8 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	{
 		while (!feof(wxfile))
 		{
-			gettemp=fgetc(wxfile);
-			if (gettemp == 10)
+			tmpchar = fgetc(wxfile);
+			if (tmpchar == 10)
 			{
 				cc=0;
 				ptc++;
@@ -755,18 +759,18 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 			}
 			else
 			{
-				if (gettemp == 124)
+				if (tmpchar == 124)
 				{
 					cc=0;
 					flag=2;
 				}
-				if (gettemp == 13) gettemp = 0;
+				if (tmpchar == 13) tmpchar = 0;
 				if (flag==0)
 				{
-					if ((gettemp >=97) && (gettemp <=122)) gettemp = gettemp -32;
-					conveng[ptc][cc]=gettemp;
+					if ((tmpchar >=97) && (tmpchar <=122)) tmpchar = tmpchar -32;
+					conveng[ptc][cc]=tmpchar;
 				}
-				if (flag==1) convger[ptc][cc]=gettemp;
+				if (flag==1) convger[ptc][cc]=tmpchar;
 				cc++;
 				if (flag == 2)
 				{

@@ -120,6 +120,7 @@ PARTLY|teils
 PARTLY CLOUDY|teils wolkig
 PARTLY CLOUDY AND WINDY|teilweise bewölkt und stürmisch
 PARTLY CLOUDY / WIND|teils bewölkt und stürmisch
+PARTLYCLOUDY|teils wolkig
 PATCHES OF FOG|vereinzelt Nebel
 PATCHY FREEZING DRIZZLE NEARBY|leichter gefrierender Nieselregen in der Nähe
 PATCHY HEAVY SNOW|stellenweise starker Schneefall
@@ -217,6 +218,7 @@ WAXING CRESCENT|zunehmende Sichel
 WAXING GIBBOUS|zunehmender 3/4 Mond
 WAXING HALF, FIRST QUARTER|zunehmender Viertelmond
 WEDNESDAY|Mittwoch
+WINDY|windig
 WINTRY MIX|Schneeregen
 WINTRY MIX / WIND|Schneeregen, stürmisch
 

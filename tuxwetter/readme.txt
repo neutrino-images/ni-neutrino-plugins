@@ -1,13 +1,10 @@
 ﻿####################################################################################
-####                 New-Tuxwetter Version 3.54
+####                 New-Tuxwetter Version 4.50
 ####            Aktuelle Wetterinfos und Wettervorhersage
 ####                    Bugreport und Anregungen im Board:
 ####       http://www.dbox2-tuning.net/forum/viewforum.php?f=27&start=0
 ####      Das New-Tuxwetter-Team: SnowHead, Worschter, Seddi, Sanguiniker
 ####################################################################################
-
-ACHTUNG: Bei allen Versionen die älter als die Version 2.30 sind, funktionieren auf-
-grund einer Formatumstellung des Wetterservers die Vorschauen nicht mehr!!
 
 Vorraussetzung:
 ---------------
@@ -77,13 +74,12 @@ soll. Da New-Tuxwetter bei nicht erfolgter Verbindung einen zweiten Verbindungsv
 ternimmt, ist die Wartezeit bis zur Fehlermeldung also nn*2 Sekunden.
 
 
-Wer einen eigenen Account bei weather.com hat, kann seine eigenen Zugangsdaten verwenden,
+Wer einen eigenen Account bei https://pirateweather.net hat, kann seine eigenen Zugangsdaten verwenden,
 falls der public-Zugang wegen zu häufigem Aufruf mal deaktiviert werden sollte:
 
-ParterID=dddddddddd
 LicenseKey=hhhhhhhhhhhhhhhh
 
-Registrieren kann man sich hier: http://www.weather.com/services/xmloap.html
+Registrieren kann man sich hier: https://pirateweather.net/
 
 Die bis hier beschriebenen Parameter können auch separat in einer Datei "tuxwetter.mcfg" ge-
 halten werden, um eine schnelle Konfiguration durch das Flexible Menü-Plugin "Shellexec" zu
@@ -96,42 +92,12 @@ Die Stadtnamen und deren Codes sind in der beiliegenden Datei "Ortscodes.txt" ge
 
 Der Eintrag für die Städte erfolgt in der Form: 
     Stadt=Stadtname_für_TV_Anzeige,Stadtcode
+    Stadt=Berlin,latitude,longitude
 z.B.:
-    Stadt=Mönchengladbach,GMXX0086
+    Stadt=Berlin,52.52,13.40
 
-Wer seine gewünschte Stadt nicht in der Datei findet, kann man im Browser eingeben: 
-http://xoap.weather.com/search/search?where=StadtName
-
-Bsp:
-http://xoap.weather.com/search/search?where=dresden
-
-Antwort:
- <?xml version="1.0" encoding="ISO-8859-1" ?> 
-- <!-- This document is intended only for use by authorized licensees of The Weather Channel...
-  --> 
-- <search ver="2.0">
-  <loc id="GMXX0025" type="1">Dresden, Germany</loc> 
-  <loc id="USKS0157" type="1">Dresden, KS</loc> 
-  <loc id="USME0110" type="1">Dresden, ME</loc> 
-  <loc id="USNY0396" type="1">Dresden, NY</loc> 
-  <loc id="USOH0268" type="1">Dresden, OH</loc> 
-  <loc id="USTN0146" type="1">Dresden, TN</loc> 
-  </search>
-
-Der Stadtcode für Dresden wäre demnach GMXX0025. Wird keine Stadt zurückgegeben, sind für die
-angefragte Stadt keine Wetterdaten verfügbar. Dann muß man auf eine Stadt in der Umgebung aus-
-weichen.
-
-Eine weitere Möglichkeit Städtecodes zu finden ist, auf der Seite
-
-http://de.weather.com/search/search?where=deutschland&what=WeatherCity
-
-eine der aufgeführten Städte zu wählen (nicht über die Suche!!!)
-Die Adressleiste des aufgerufenen Fensters enthält den Stadtcode der benötigt wird.
-Es werden nur Städte mit dem Code GMXX0001 bis GMXX0280 unterstützt.
-Ist die gewünschte Stadt nicht in dem Bereich, so steht auf der Seite direkt unter
-dem Ort die Stadt Wetterstation von der die Daten kommen (z.B. wie Stuttgart).
-Dann sucht euch dafür den Stadtcode, denn die Daten sind identisch.
+Wer seine gewünschte Stadt nicht in der Datei findet, kann eine
+Abfrage über Längen-/Breitengrad - http://www.gpskoordinaten.de duchführen
 
 Der Aufbau der Menüs erfolgt über die Einträge "MENU=" als Anfangskennung und "ENDMENU" als
 Endekennung. Diese können beliebig tief verschachtelt und auch mit normalen Einträgen gemischt
@@ -194,6 +160,7 @@ Y : Jahr
 h : Stunde
 m : Minute
 s : Sekunde
+U : Unix Timestamp (lässt sich hinten anhängen)
 
 Die Anzahl der Formatzeichen bestimmt die Anzahl der Stellen mit der die Formatzeichen ersetzt 
 werden. Beispiel:
@@ -243,6 +210,9 @@ Wir nehmen an, es ist der 02.01.2005 um 03:16:25 MESZ
 
 
 Praxis: (ein viertelstündlich aktualisiertes Bild, Datum: 13.10.2004 21:16:00 MESZ)
+
+http://www.boerse-frankfurt.de/index/image-tradingfloor/DAX/ChartBig/chart_big.jpg?reload=|U  ergibt
+http://www.boerse-frankfurt.de/index/image-tradingfloor/DAX/ChartBig/chart_big.jpg?reload=1675325671
 
 http://www.wetteronline.de/daten/radar/dwdd/|YYYY/|MM/|DD|hh|R15mm.gif  ergibt
 http://www.wetteronline.de/daten/radar/dwdd/2004/10/131915.gif

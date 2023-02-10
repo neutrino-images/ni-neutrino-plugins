@@ -29,7 +29,6 @@
 #include <signal.h>
 #include <time.h>
 #include <math.h>
-//#include <linux/delay.h>
 #include "current.h"
 #include "parser.h"
 #include "text.h"
@@ -46,27 +45,33 @@
 #include "gifdecomp.h"
 #include "icons.h"
 
-#define P_VERSION "4.42"
+#define LOCAL_ICONS 1
+#define P_VERSION "4.50"
 #define S_VERSION ""
 
-char CONVERT_LIST[]= CFG_TUXWET "/convert.list";
+const char CONVERT_LIST[] = CFG_TUXWET "/convert.list";
 #define CFG_FILE     CFG_TUXWET "/tuxwetter.conf"
 #define MCF_FILE     CFG_TUXWET "/tuxwetter.mcfg"
-//#define TIME_FILE    CFG_TUXWET "/swisstime"
 #define START_PIC	 CFG_TUXWET "/startbild.jpg"
 #define TUX_ICON     CFG_TUXWET "/tuxwetter.png"
 #define NCF_FILE     CONFIGDIR "/neutrino.conf"
 #define ECF_FILE	 CONFIGDIR "/enigma/config"
 //#define BMP_FILE 	"tuxwetter.bmp"
+#ifdef LOCAL_ICONS
+char ICON_FILE[128] = "";
+#else
+const char icons_url[] = "https://darksky.net/images/weather-icons";
+#define ICON_FILE	"/tmp/icon.gif"
+#endif
 #define JPG_FILE	"/tmp/picture.jpg"
 #define GIF_FILE	"/tmp/picture.gif"
 #define GIF_MFILE	"/tmp/gpic"
 #define PNG_FILE	"/tmp/picture.png"
 #define PHP_FILE	"/tmp/php.htm"
 #define TMP_FILE	"/tmp/tuxwetter.tmp"
-#define ICON_FILE	"/tmp/icon.gif"
 #define TRANS_FILE	"/tmp/picture.html"
 static char TCF_FILE[128]="";
+
 
 #define LIST_STEP 	10
 #define MAX_DAYS	7
@@ -525,10 +530,11 @@ int PaintWideString(int dy/*linespace*/, const char *string, int _sx, int _sy, i
 int Transform_Entry(char *src, char *trg)
 {
 int tret=-1,fcnt,fpos,tval,ferr,tsub;
-int noprint,rndval,loctime=0;
-char fstr[5]={0},*cptr,*tptr,*aptr;
+int noprint,rndval,loctime=0,unix_timestamp=0;
+char fstr[16]={0},*cptr,*tptr,*aptr;
 time_t subtime;
 struct tm *tltime;
+time_t now = time(NULL);
 
 	tsub=0;
 	*trg=0;
@@ -558,6 +564,11 @@ struct tm *tltime;
 			{
 				++aptr;
 			}
+			if(*aptr=='U')
+			{
+				++aptr;
+				unix_timestamp=1;
+			}
 			if(sscanf(aptr,"%d",&tval)==1)
 			{
 				while((aptr<(cptr+strlen(cptr))) && (*aptr=='-' || ((*aptr>='0') && (*aptr<='9'))))
@@ -574,6 +585,7 @@ struct tm *tltime;
 						case 'h': tsub+=tval*3600; break;
 						case 'm': tsub+=tval*60; break;
 						case 's': tsub+=tval; break;
+						case 'U': break;
 					}
 				}
 			}
@@ -659,6 +671,9 @@ struct tm *tltime;
 						tval=tltime->tm_sec;
 						break;
 
+					case 'U':
+						break;
+
 					default:
 						ferr=1;
 						break;
@@ -669,6 +684,8 @@ struct tm *tltime;
 					{
 						tval=((int)(tval/rndval))*rndval;
 					}
+					if (unix_timestamp)
+						tval = now;
 					sprintf(trg+fpos,fstr,tval);
 					fpos+=fcnt;
 				}
@@ -680,7 +697,8 @@ struct tm *tltime;
 				++cptr;
 			}
 		}
-		*(trg+fpos)=0;
+		if(!unix_timestamp)
+			*(trg+fpos)=0;
 		tret=ferr;
 	}
 	else
@@ -1770,15 +1788,19 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				for(i=0; i<column; i++)
 				{
 					prs_get_val(i,PRE_ICON,prelate, iconName);
-
-					snprintf(iconUrl, sizeof(iconUrl), "https://darksky.net/images/weather-icons/%s.png", iconName);
-
-					if (HTTP_downloadFile(iconUrl, ICON_FILE, 0, intype, ctmo, 2) == 0)
+#ifdef LOCAL_ICONS
+					strcpy(ICON_FILE, "");
+					snprintf(ICON_FILE, sizeof(ICON_FILE), "%s/%s.png", CFG_TUXWET "/icons", iconName);
+					int picx=scale2res(80),picy=scale2res(80);
+					png_on_data(ICON_FILE, sx+gxs+(i*gicw)+((gicw/2)-(picx/2)),sy+gys+gyw+((gywf/2)-(picy/2)), picx, picy, 5, (i)?((i==4)?1:0):2, 0, 0);
+#else
+					snprintf(iconUrl, sizeof(iconUrl), "%s/%s.png", ICONS, iconName);
+					if (HTTP_downloadFile(iconUrl, ICON_FILE, 0, intype, ctmo) == 0)
 					{
 						int picx=scale2res(80),picy=scale2res(80);
 						png_on_data(iconUrl, sx+gxs+(i*gicw)+((gicw/2)-(picx/2)),sy+gys+gyw+((gywf/2)-(picy/2)), picx, picy, 5, (i)?((i==4)?1:0):2, 0, 0);
 					}
-
+#endif
 					prs_get_timeWday(i, PRE_DAY,vstr);
 
 					strcat(vstr,"_SIG");
@@ -1804,14 +1826,17 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 #endif
 				if(show_icons)
 				{
+#ifdef LOCAL_ICONS
+					strcpy(ICON_FILE, "");
+					snprintf(ICON_FILE, sizeof(ICON_FILE), "%s/%s.png", CFG_TUXWET "/icons", iconName);
+#else
 					xremove(ICON_FILE);
-
-					snprintf(iconUrl, sizeof(iconUrl), "https://darksky.net/images/weather-icons/%s.png", iconName);
-
-					if (HTTP_downloadFile(iconUrl, ICON_FILE, 0, intype, ctmo, 2) != 0)
+					snprintf(iconUrl, sizeof(iconUrl), "%s/%s.png", ICONS, iconName);
+					if (HTTP_downloadFile(iconUrl, ICON_FILE, 0, intype, ctmo) != 0)
 					{
 						printf("%s <unable to get icon>\n", __plugin__);
 					}
+#endif
 				}
 
 				sprintf(outstr,"%s",prs_translate("Aktuelles Wetter",CONVERT_LIST));
@@ -1821,7 +1846,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				RenderString(outstr, col1, vy, col2-col1, LEFT, FSIZE_MED, GREEN);
 				sprintf(outstr,"%s",city_name);
 				RenderString(outstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
-				vy+=dy;
+				vy+=(1.2*(double)dy);
 
 				sprintf(outstr,"%s",prs_translate("Längengrad:",CONVERT_LIST));
 				RenderString(outstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
@@ -1834,6 +1859,13 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				RenderString(outstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				prs_get_dbl(0, ACT_LAT, 0, vstr);
 				sprintf(outstr,"%s",vstr);
+				RenderString(outstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
+				vy+=dy;
+
+				sprintf(outstr,"%s",prs_translate("Höhe über NN:",CONVERT_LIST));
+				RenderString(outstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
+				prs_get_val(0, ELEVATION, 0, vstr);
+				sprintf(outstr,"%s m",vstr);
 				RenderString(outstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
 
@@ -1862,13 +1894,13 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 
 				RenderString(outstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 				vy+=dy;
-
+/*
 				sprintf(outstr,"%s",prs_translate("Lokale Uhrzeit:",CONVERT_LIST));
 				RenderString(outstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 				prs_get_val(0, ACT_LOCALTIME, 0, vstr);
 				sprintf(outstr,"%s",vstr);
-
 				RenderString(outstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
+*/
 				vy+=(1.5*(double)dy);
 
 				sprintf(outstr,"%s",prs_translate("Bedingung:",CONVERT_LIST));
@@ -1876,7 +1908,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				prs_get_val(0, ACT_COND, 0, vstr);
 				sprintf(outstr,"%s",vstr);
 				RenderString(outstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
-				vy+=dy;
+				vy+=(1.2*(double)dy);
 
 				sprintf(outstr,"%s",prs_translate("Temperatur:",CONVERT_LIST));
 				RenderString(outstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
@@ -2052,15 +2084,17 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 #endif
 				if(show_icons)
 				{
+#ifdef LOCAL_ICONS
+					strcpy(ICON_FILE, "");
+					snprintf(ICON_FILE, sizeof(ICON_FILE), "%s/%s.png", CFG_TUXWET "/icons", iconName);
+#else
 					xremove(ICON_FILE);
-
-					snprintf(iconUrl, sizeof(iconUrl), "https://darksky.net/images/weather-icons/%s.png", iconName);
-
-					if (HTTP_downloadFile(iconUrl, ICON_FILE,0,intype,ctmo,2) != 0)
-
+					snprintf(iconUrl, sizeof(iconUrl), "%s/%s.png", icons_url, iconName);
+					if (HTTP_downloadFile(iconUrl, ICON_FILE,0,intype,ctmo) != 0)
 					{
 						printf("%s <unable to get icon file \n", __plugin__);
 					}
+#endif
 				}
 
 				if(ix==1)
@@ -2152,6 +2186,22 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 
 				RenderString(outstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
 #endif
+				sprintf(outstr,"%s",prs_translate("Taupunkt:",CONVERT_LIST));
+				RenderString(outstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
+				prs_get_val(ix-1, PRE_DEWPOINT, 0, vstr);
+				sprintf(outstr,"%d %s",(int)round(atof(vstr)),tun);
+
+				RenderString(outstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
+				vy+=dy;
+
+				sprintf(outstr,"%s",prs_translate("Luftdruck:",CONVERT_LIST));
+				RenderString(outstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
+				prs_get_val(0, PRE_PRESS, 0, vstr);
+
+				sprintf(outstr,"%d %s",(int)round(atof(vstr)),pun);
+				RenderString(outstr, col2, vy, wxw-col2, LEFT, FSIZE_MED, CMCT);
+				vy+=dy;
+
 				sprintf(outstr,"%s",prs_translate("Luftfeuchtigkeit:",CONVERT_LIST));
 				RenderString(outstr, col1, vy, col2-col1, LEFT, FSIZE_MED, CMCT);
 
@@ -2721,7 +2771,7 @@ long flength = 0;
 			*pt3=0;
 			++pt3;
 			printf("%s <%s Downloading %s>\n",__plugin__, __func__, pt1);
-			if(!HTTP_downloadFile(pt1, TRANS_FILE, 1, intype, ctmo, 2))
+			if(!HTTP_downloadFile(pt1, TRANS_FILE, 1, intype, ctmo))
 			{
 				if((fh=fopen(TRANS_FILE,"r"))!=NULL)
 				{
@@ -2982,7 +3032,7 @@ int main (int argc, char **argv)
 {
 int ix=0,cindex=0,tv,rce,ferr=0,tret=-1;
 int mainloop=1,wloop=1, dloop=1;
-char rstr[BUFSIZE-255]={0}, *rptr=NULL;
+char rstr[BUFSIZE]={0}, *rptr=NULL;
 char tstr[BUFSIZE]={0};
 FILE *tfh;
 LISTENTRY epl={NULL, 0, TYP_TXTPLAIN, TYP_TXTPLAIN, 0, 0, 0};
@@ -3478,7 +3528,7 @@ PLISTENTRY pl=&epl;
 										++rptr;
 									}
 									printf("%s <%s Downloading %s>\n", __plugin__, __func__, rptr);
-									ferr=HTTP_downloadFile(rptr, (pl->pictype==PTYP_JPG)?JPG_FILE:(pl->pictype==PTYP_PNG)?PNG_FILE:(pl->pictype==PTYP_GIF)?GIF_FILE:PHP_FILE, 1, intype, ctmo, 2);
+									ferr=HTTP_downloadFile(rptr, (pl->pictype==PTYP_JPG)?JPG_FILE:(pl->pictype==PTYP_PNG)?PNG_FILE:(pl->pictype==PTYP_GIF)?GIF_FILE:PHP_FILE, 1, intype, ctmo);
 								}
 
 								if(!ferr)
@@ -3787,7 +3837,9 @@ PLISTENTRY pl=&epl;
 	xremove(TMP_FILE);
 	xremove(JSON_FILE);
 //	xremove("/tmp/bmps.tar");
+#ifndef LOCAL_ICONS
 	xremove(ICON_FILE);
+#endif
 	xremove("/tmp/tempgif.gif");
 	xremove(PHP_FILE);
 	put_instance(get_instance()-1);

@@ -6,11 +6,11 @@ InetConnection=fast
 #
 ConnectTimeout=5
 #
-# darksky API-Key			Bei darksky.net wird der API-Key als LicenseKey verwendet
-LicenseKey=
-#
 # SplashScreen=1/0			Startbildschirm anzeigen / nicht anzeigen
 SplashScreen=0
 #
 # ShowIcons=1/0				Wetter-Icons für Textanzeige downloaden / nicht downloaden
 ShowIcons=1
+#
+# LicenseKey				Bei pirateweather.net wird der API-Key als LicenseKey verwendet
+LicenseKey=
