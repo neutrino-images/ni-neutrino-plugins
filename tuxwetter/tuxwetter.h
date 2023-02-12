@@ -33,6 +33,9 @@
 #ifndef CFG_TUXWET
 #define CFG_TUXWET  CONFIGDIR "/tuxwetter"
 #endif
+#ifndef PLUG_TUXWET
+#define PLUG_TUXWET PLUGINDIR "/tuxwetter"
+#endif
 #define MISS_FILE   CFG_TUXWET "/missing_translations.txt"
 
 #define BUFSIZE 	4095

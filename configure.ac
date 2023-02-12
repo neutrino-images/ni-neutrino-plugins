@@ -475,6 +475,7 @@ tuxcom/Makefile
 tuxmail/Makefile
 tuxmail/daemon/Makefile
 tuxwetter/Makefile
+tuxwetter/icons/Makefile
 vinfo/Makefile
 ])
 

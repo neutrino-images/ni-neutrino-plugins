@@ -46,6 +46,7 @@
 #include "icons.h"
 
 #define LOCAL_ICONS 1
+
 #define P_VERSION "4.50"
 #define S_VERSION ""
 
@@ -1790,7 +1791,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 					prs_get_val(i,PRE_ICON,prelate, iconName);
 #ifdef LOCAL_ICONS
 					strcpy(ICON_FILE, "");
-					snprintf(ICON_FILE, sizeof(ICON_FILE), "%s/%s.png", CFG_TUXWET "/icons", iconName);
+					snprintf(ICON_FILE, sizeof(ICON_FILE), "%s/%s.png", PLUG_TUXWET "/icons", iconName);
 					int picx=scale2res(80),picy=scale2res(80);
 					png_on_data(ICON_FILE, sx+gxs+(i*gicw)+((gicw/2)-(picx/2)),sy+gys+gyw+((gywf/2)-(picy/2)), picx, picy, 5, (i)?((i==4)?1:0):2, 0, 0);
 #else
@@ -1828,7 +1829,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				{
 #ifdef LOCAL_ICONS
 					strcpy(ICON_FILE, "");
-					snprintf(ICON_FILE, sizeof(ICON_FILE), "%s/%s.png", CFG_TUXWET "/icons", iconName);
+					snprintf(ICON_FILE, sizeof(ICON_FILE), "%s/%s.png", PLUG_TUXWET "/icons", iconName);
 #else
 					xremove(ICON_FILE);
 					snprintf(iconUrl, sizeof(iconUrl), "%s/%s.png", ICONS, iconName);
@@ -2086,7 +2087,7 @@ char tun[8]="°C",sun[8]="km/h",dun[8]="km",pun[8]="hPa",iun[8]="mm/h", cun[20];
 				{
 #ifdef LOCAL_ICONS
 					strcpy(ICON_FILE, "");
-					snprintf(ICON_FILE, sizeof(ICON_FILE), "%s/%s.png", CFG_TUXWET "/icons", iconName);
+					snprintf(ICON_FILE, sizeof(ICON_FILE), "%s/%s.png", PLUG_TUXWET "/icons", iconName);
 #else
 					xremove(ICON_FILE);
 					snprintf(iconUrl, sizeof(iconUrl), "%s/%s.png", icons_url, iconName);
