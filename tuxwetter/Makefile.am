@@ -44,9 +44,9 @@ tuxwetterdir = $(CONFIGDIR)/tuxwetter
 
 tuxwetter_DATA = \
 	convert.list \
-	startbild.jpg \
 	tuxwetter.conf \
 	tuxwetter.mcfg \
+	tuxwetter.jpg \
 	tuxwetter.png
 
 install-data-hook:

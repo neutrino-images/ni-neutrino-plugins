@@ -53,7 +53,7 @@
 const char CONVERT_LIST[] = CFG_TUXWET "/convert.list";
 #define CFG_FILE     CFG_TUXWET "/tuxwetter.conf"
 #define MCF_FILE     CFG_TUXWET "/tuxwetter.mcfg"
-#define START_PIC	 CFG_TUXWET "/startbild.jpg"
+#define START_PIC	 CFG_TUXWET "/tuxwetter.jpg"
 #define TUX_ICON     CFG_TUXWET "/tuxwetter.png"
 #define NCF_FILE     CONFIGDIR "/neutrino.conf"
 #define ECF_FILE	 CONFIGDIR "/enigma/config"
@@ -3310,10 +3310,10 @@ PLISTENTRY pl=&epl;
 	if(show_splash && !cmdline)
 	{
 #if 0
-		sprintf (rstr,"cd /tmp\n/bin/busybox tar -xf bmps.tar startbild.jpg");
+		sprintf (rstr,"cd /tmp\n/bin/busybox tar -xf bmps.tar tuxwetter.jpg");
 		system(rstr);
-		show_jpg("/tmp/startbild.jpg", sx, sy, ex-sx, ey-sy, 5, 0, 1, 1);
-		xremove("/tmp/startbild.jpg");
+		show_jpg("/tmp/tuxwetter.jpg", sx, sy, ex-sx, ey-sy, 5, 0, 1, 1);
+		xremove("/tmp/tuxwetter.jpg");
 #endif
 		show_jpg(START_PIC, sx, sy, ex-sx, ey-sy, 5, 0, 1, 1);
 		clearBB();
