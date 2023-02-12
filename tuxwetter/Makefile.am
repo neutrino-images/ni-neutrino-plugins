@@ -40,14 +40,18 @@ plugin_DATA = \
 	tuxwetter.cfg \
 	tuxwetter_hint.png
 
+plugin_tuxwetterdir = $(PLUGINDIR)/tuxwetter
+
+plugin_tuxwetter_DATA = \
+	tuxwetter.jpg \
+	tuxwetter.png
+
 tuxwetterdir = $(CONFIGDIR)/tuxwetter
 
 tuxwetter_DATA = \
 	convert.list \
 	tuxwetter.conf \
-	tuxwetter.mcfg \
-	tuxwetter.jpg \
-	tuxwetter.png
+	tuxwetter.mcfg
 
 install-data-hook:
 	ln -sf $(PLUGINDIR)/tuxwetter.so $(DESTDIR)$(bindir)/tuxwetter

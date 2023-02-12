@@ -53,8 +53,8 @@
 const char CONVERT_LIST[] = CFG_TUXWET "/convert.list";
 #define CFG_FILE     CFG_TUXWET "/tuxwetter.conf"
 #define MCF_FILE     CFG_TUXWET "/tuxwetter.mcfg"
-#define START_PIC	 CFG_TUXWET "/tuxwetter.jpg"
-#define TUX_ICON     CFG_TUXWET "/tuxwetter.png"
+#define START_PIC    PLUG_TUXWET "/tuxwetter.jpg"
+#define TUX_ICON     PLUG_TUXWET "/tuxwetter.png"
 #define NCF_FILE     CONFIGDIR "/neutrino.conf"
 #define ECF_FILE	 CONFIGDIR "/enigma/config"
 //#define BMP_FILE 	"tuxwetter.bmp"
