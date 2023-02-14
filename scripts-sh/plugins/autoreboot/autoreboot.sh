@@ -29,5 +29,7 @@ then
 	sleep 20
 fi
 
+touch /var/etc/.power_standby
+
 echo "[${0##*/}] will reboot now"
 (sleep 1; reboot) &
