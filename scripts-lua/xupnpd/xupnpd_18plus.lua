@@ -4,8 +4,8 @@
 -- ******************************
 -- 22.08.2021
 -- 27.06.2022 update by jokel
--- 05.03.2023 update by det-box
 -- 06.03.2023 update by jokel
+-- 14.03.2023 update by jokel
 
 cfg.user_age=18
 cfg.youporn_max_pages=5
@@ -15,27 +15,27 @@ cfg.maxRes=720
 
 youporn_category=
 {
-    ['top_rated']='/top_rated/', ['most_viewed']='/most_viewed/', ['amateur']='/category/amateur/', ['anal']='/category/anal/',
-    ['asian']='/category/asian/', ['bbw']='/category/bbw/', ['big_butt']='/category/big-butt/', ['big_tits']='/category/big-tits/',
-    ['bisexual']='/category/bisexual/', ['blonde']='/category/blonde/', ['blowjob']='/category/blowjob/',
-    ['brunette']='/category/brunette/', ['coed']='/category/coed/', ['compilation']='/category/compilation/',
-    ['couples']='/category/couples/', ['creampie']='/category/creampie/', ['cumshots']='/category/cumshots/',
-    ['cunnilingus']='/category/cunnilingus/', ['dp']='/category/dp/', ['ebony']='/category/ebony/',
-    ['european']='/category/european/', ['facial']='/category/facial/', ['fantasy']='/category/fantasy/',
-    ['fetish']='/category/fetish/', ['fingering']='/category/fingering/', ['funny']='/category/funny/',
-    ['gay']='/category/gay/', ['german']='/category/german/', ['gonzo']='/category/gonzo/',
-    ['group_sex']='/category/group-sex/', ['hairy']='/category/hairy/', ['handjob']='/category/handjob/',
-    ['hentai']='/category/hentai/', ['instructional']='/category/instructional/', ['interracial']='/category/interracial/',
-    ['interview']='/category/interview/', ['kissing']='/category/kissing/', ['latina']='/category/latina/',
-    ['lesbian']='/category/lesbian/', ['milf']='/category/milf/', ['masturbate']='/category/masturbate/',
-    ['mature']='/category/mature/', ['pov']='/category/pov/', ['panties']='/category/panties/',
-    ['pantyhose']='/category/pantyhose/', ['public']='/category/public/', ['redhead']='/category/redhead/',
-    ['rimming']='/category/rimming/', ['romantic']='/category/romantic/', ['shaved']='/category/shaved/',
-    ['shemale']='/category/trans/', ['solo_male']='/category/solo-male/', ['solo_girl']='/category/solo-girl/',
-    ['squirting']='/category/squirting/', ['strt_sex']='/category/strt-sex/', ['swallow']='/category/swallow/',
-    ['teen']='/category/teen/', ['threesome']='/category/threesome/', ['vintage']='/category/vintage/',
-    ['voyeur']='/category/voyeur/', ['webcam']='/category/webcam/', ['3d']='/category/3d/', ['hd']='/category/hd/',
-    ['young-old']='/category/young-old/'
+    ['top_rated']='/top_rated/', ['most_viewed']='/most_viewed/', ['amateur']='/porntags/amateur/', ['anal']='/porntags/anal/',
+    ['asian']='/porntags/asian/', ['bbw']='/porntags/bbw/', ['big_butt']='/porntags/big-butt/', ['big_tits']='/porntags/big-tits/',
+    ['bisexual']='/porntags/bisexual/', ['blonde']='/porntags/blonde/', ['blowjob']='/porntags/blowjob/',
+    ['brunette']='/porntags/brunette/', ['coed']='/porntags/coed/', ['compilation']='/porntags/compilation/',
+    ['couples']='/porntags/couples/', ['creampie']='/porntags/creampie/', ['cumshots']='/porntags/cumshots/',
+    ['cunnilingus']='/porntags/cunnilingus/', ['dp']='/porntags/dp/', ['ebony']='/porntags/ebony/',
+    ['european']='/porntags/european/', ['facial']='/porntags/facial/', ['fantasy']='/porntags/fantasy/',
+    ['fetish']='/porntags/fetish/', ['fingering']='/porntags/fingering/', ['funny']='/porntags/funny/',
+    ['gay']='/porntags/gay/', ['german']='/porntags/german/', ['gonzo']='/porntags/gonzo/',
+    ['group_sex']='/porntags/group-sex/', ['hairy']='/porntags/hairy/', ['handjob']='/porntags/handjob/',
+    ['hentai']='/porntags/hentai/', ['instructional']='/porntags/instructional/', ['interracial']='/porntags/interracial/',
+    ['interview']='/porntags/interview/', ['kissing']='/porntags/kissing/', ['latina']='/porntags/latina/',
+    ['lesbian']='/porntags/lesbian/', ['milf']='/porntags/milf/', ['masturbate']='/porntags/masturbate/',
+    ['mature']='/porntags/mature/', ['pov']='/porntags/pov/', ['panties']='/porntags/panties/',
+    ['pantyhose']='/porntags/pantyhose/', ['public']='/porntags/public/', ['redhead']='/porntags/redhead/',
+    ['rimming']='/porntags/rimming/', ['romantic']='/porntags/romantic/', ['shaved']='/porntags/shaved/',
+    ['shemale']='/porntags/trans/', ['solo_male']='/porntags/solo-male/', ['solo_girl']='/porntags/solo-girl/',
+    ['squirting']='/porntags/squirting/', ['strt_sex']='/porntags/strt-sex/', ['swallow']='/porntags/swallow/',
+    ['teen']='/porntags/teen/', ['threesome']='/porntags/threesome/', ['vintage']='/porntags/vintage/',
+    ['voyeur']='/porntags/voyeur/', ['webcam']='/porntags/webcam/', ['3d']='/porntags/3d/', ['hd']='/porntags/hd/',
+    ['young-old']='/porntags/young-old/'
 }
 
 function check_if_double(tab,name)
