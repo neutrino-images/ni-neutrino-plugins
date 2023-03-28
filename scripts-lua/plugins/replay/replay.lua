@@ -254,7 +254,7 @@ function mainMenu()
 			end
 			replayMenu:addItem{ type="forwarder",
 				action="play_live",
-				name=_name
+				name=_name,
 				hint=_hint,
 				enabled=v.hasVideo,
 				id=i,
