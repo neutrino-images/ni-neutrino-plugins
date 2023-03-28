@@ -16,7 +16,7 @@ duplicates = false
 --duplicates = true
 
 -- list specific channels only
---channels = {1,14,20,12,5,15,19,7,36,3,4,33}
+--channels = {1, 14, 20, 12, 5, 15, 19, 7, 36, 3, 4, 33}
 channels = {}
 
 if next(channels) ~= nil then
@@ -140,7 +140,7 @@ function play_live(_id)
 
 		Title = nil
 		Epg = nil
-		repaint = true
+		repaint = false
 		return MENU_RETURN.EXIT
 	end
 end
@@ -186,7 +186,7 @@ function getReplayList_ARD()
 		--if data then
 		if data and string.sub(data,1,1) == "{" then
 			local jnTab = json:decode(data)
-			if jnTab and jnTab.diff then
+			if jnTab and jnTab.diff and jnTab.title then
 				if jnTab.subtitle then
 					subtitle = jnTab.subtitle
 					if subtitle == "" then
@@ -240,27 +240,14 @@ function mainMenu()
 	local d = 0
 	for i, v in ipairs(replayList) do
 		d = d+1
-		if v.hasvideo ~= nil then
-			local _name = "n/a"
-			local _hint = "n/a"
-			if v.name ~= nil and v.name ~= "" then
-				_name = v.name
-			end
-			if v.title ~= nil and v.title ~= "" then
-				_name = _name .. " - " .. v.title
-			end
-			if v.info1 ~= nil and v.info1 ~= "" then
-				_hint = v.info1
-			end
-			replayMenu:addItem{ type="forwarder",
-				action="play_live",
-				name=_name,
-				hint=_hint,
-				enabled=v.hasVideo,
-				id=i,
-				directkey=godirectkey(d)
-			}
-		end
+		replayMenu:addItem{ type="forwarder",
+			action="play_live",
+			name=v.name .. " - " .. v.title,
+			hint=v.info1,
+			enabled=v.hasVideo,
+			id=i,
+			directkey=godirectkey(d)
+		}
 	end
 	replayMenu:exec()
 	replayMenu:hide()
