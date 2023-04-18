@@ -15,52 +15,22 @@
 
 json = require "json"
 
-if #arg < 1 then return nil end
-local _url = arg[1]
-local ret = {}
-local Curl = nil
-local fname = ""
-
-function getdata(Url)
-	if Url == nil then return nil end
-	if Curl == nil then
-		Curl = curl.new()
-	end
-	local ret, data = Curl:download{ url=Url, ipv4=true, A="Mozilla/5.0"}
-	if ret == CURL.OK then
-		return data
-	else
-		return nil
-	end
+if #arg < 1 then
+	return nil
 end
 
-function getVideoData(url) -- Generate stream address and evaluate it according to the best resolution 
-	http = "http://stitcher-ipv4.pluto.tv/v1"
-	token = "?advertisingId=channel&appName=rokuchannel&appVersion=1.0&bmodel=bm1&channel_id=channel&content=channel&content_rating=ROKU_ADS_CONTENT_RATING&content_type=livefeed&coppa=false&deviceDNT=1&deviceId=channel&deviceMake=rokuChannel&deviceModel=web&deviceType=rokuChannel&deviceVersion=1.0&embedPartner=rokuChannel&genre=ROKU_ADS_CONTENT_GENRE&is_lat=1&platform=web&rdid=channel&studio_id=viacom&tags=ROKU_CONTENT_TAGS"
+local _url = arg[1]
+local ret = {}
 
-	local data = getdata(http .. "/stitch/embed/hls/channel/" .. url .."/master.m3u8" .. token) -- Calling the generated master.m3u8 
+function getVideoData(url) -- Generate stream address
+	http = "http://stitcher-ipv4.pluto.tv/v1/stitch/embed/hls/channel/"
+	token = "?advertisingId=channel&appName=rokuchannel&appVersion=1.0&bmodel=bm1&channel_id=channel&content=channel&content_rating=ROKU_ADS_CONTENT_RATING&content_type=livefeed&coppa=false&deviceDNT=1&deviceId=channel&deviceMake=rokuChannel&deviceModel=web&deviceType=rokuChannel&deviceVersion=1.0&embedPartner=rokuChannel&genre=ROKU_ADS_CONTENT_GENRE&is_lat=1&platform=web&rdid=channel&studio_id=viacom&tags=ROKU_CONTENT_TAGS&profilesFromStream=true"
 	local count = 0
-	if data then
-		local res = 0
-		for res1,res2,band, url2 in data:gmatch('RESOLUTION=(%d+)x(%d+),.-BANDWIDTH=(%d+).-(/proxy/.-)\n') do
-			if band and url2 then
-				local nr = tonumber(band)
-				if nr > res then
-					res=nr
-					local bnum = tonumber(band)
-					entry = {}
-					entry['url']  = http .. url2
-					entry['band'] = band
-					entry['res1'] = res1
-					entry['res2'] = res2
-					entry['name'] = "by Pluto TV US"
-					count = 1
-					ret[count] = {}
-					ret[count] = entry
-				end
-			end
-		end
-	end
+	entry = {}
+	entry['url'] = http .. url .. "livestitch/master.m3u8" .. token
+	count = 1
+	ret[count] = {}
+	ret[count] = entry
 	return count
 end
 
