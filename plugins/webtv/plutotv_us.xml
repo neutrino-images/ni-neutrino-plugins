@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <webtvs name="Pluto TV">
-	<webtv genre="US" title="Vevo '70s" url="5f32f26bcd8aea00071240e5" script="plutotv_us.lua" />
-	<webtv genre="US" title="Vevo '80s" url="5fd7b8bf927e090007685853" script="plutotv_us.lua" />
-	<webtv genre="US" title="Vevo '90s" url="5fd7bb1f86d94a000796e2c2" script="plutotv_us.lua" />
-	<webtv genre="US" title="Vevo 2K" url="5fd7bca3e0a4ee0007a38e8c" script="plutotv_us.lua" />
-	<webtv genre="US" title="Vevo Country" url="5da0d75e84830900098a1ea0" script="plutotv_us.lua" />
-	<webtv genre="US" title="Vevo Latino" url="5da0d64d0e8a62000964ebe4" script="plutotv_us.lua" />
-	<webtv genre="US" title="Vevo Pop" url="5d93b635b43dd1a399b39eee" script="plutotv_us.lua" />
-	<webtv genre="US" title="Vevo R&amp;B" url="5da0d83f66c9700009b96d0e" script="plutotv_us.lua" />
-	<webtv genre="US" title="Vevo Reggaetón &amp; Trap" url="5f32f397795b750007706448" script="plutotv_us.lua" />
+	<webtv genre="US" title="Vevo '70s" url="5f32f26bcd8aea00071240e5" xmltv="https://i.mjh.nz/PlutoTV/us.xml" epgmap="5f32f26bcd8aea00071240e5" script="plutotv_us.lua" />
+	<webtv genre="US" title="Vevo '80s" url="5fd7b8bf927e090007685853" xmltv="https://i.mjh.nz/PlutoTV/us.xml" epgmap="5fd7b8bf927e090007685853" script="plutotv_us.lua" />
+	<webtv genre="US" title="Vevo '90s" url="5fd7bb1f86d94a000796e2c2" xmltv="https://i.mjh.nz/PlutoTV/us.xml" epgmap="5fd7bb1f86d94a000796e2c2" script="plutotv_us.lua" />
+	<webtv genre="US" title="Vevo 2K" url="5fd7bca3e0a4ee0007a38e8c" xmltv="https://i.mjh.nz/PlutoTV/us.xml" epgmap="5fd7bca3e0a4ee0007a38e8c" script="plutotv_us.lua" />
+	<webtv genre="US" title="Vevo Country" url="5da0d75e84830900098a1ea0" xmltv="https://i.mjh.nz/PlutoTV/us.xml" epgmap="5da0d75e84830900098a1ea0" script="plutotv_us.lua" />
+	<webtv genre="US" title="Vevo Latino" url="5da0d64d0e8a62000964ebe4" xmltv="https://i.mjh.nz/PlutoTV/us.xml" epgmap="5da0d64d0e8a62000964ebe4" script="plutotv_us.lua" />
+	<webtv genre="US" title="Vevo Pop" url="5d93b635b43dd1a399b39eee" xmltv="https://i.mjh.nz/PlutoTV/us.xml" epgmap="5d93b635b43dd1a399b39eee" script="plutotv_us.lua" />
+	<webtv genre="US" title="Vevo R&amp;B" url="5da0d83f66c9700009b96d0e" xmltv="https://i.mjh.nz/PlutoTV/us.xml" epgmap="5da0d83f66c9700009b96d0e" script="plutotv_us.lua" />
+	<webtv genre="US" title="Vevo ReggaetÃ³n &amp; Trap" url="5f32f397795b750007706448" xmltv="https://i.mjh.nz/PlutoTV/us.xml" epgmap="5f32f397795b750007706448" script="plutotv_us.lua" />
 </webtvs>
