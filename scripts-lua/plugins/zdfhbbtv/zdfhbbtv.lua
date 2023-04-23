@@ -634,6 +634,7 @@ end
 function getZDFstream(tab)
 	local url = 'https://hbbtv.zdf.de/zdfm3/dyn/get.php?id=' .. tab.link.id
 	local jdata = getdata(url)
+	--local vf = nil
 	if jdata then
 		local jnTab = json:decode(jdata)
 		if jnTab and jnTab.streams then
@@ -642,29 +643,35 @@ function getZDFstream(tab)
 			tab.stream = nil
 			for _, streams in pairs(jnTab.streams) do
 				if streams and tab.stream == nil then
+
 					local h265 = streams.h265_aac_mp4_http_na_na
 					local h264 = streams.h264_aac_mp4_http_na_na
-				if h265 == nil then
-					mp4 = h264
-					else
-					mp4 = h265
-				end
 					local m3u8 = streams.h264_aac_ts_http_m3u8_http
 					local mpd = streams.h264_aac_mp4_http_mpd_http
-					if maxRes > 1921 and streams.h265_aac_mp4_http_na_na and mp4.main.deu.q5 then
-						tab.stream = mp4.main.deu.q5.url
+
+					if maxRes > 1281 and h265 and h265.main.deu.q5 then
+						tab.stream = h265.main.deu.q5.url
+						--vf = "h265 - UHD"
 						break
-					elseif maxRes > 1281 and streams.h265_aac_mp4_http_na_na and mp4.main.deu.q3 then
-						tab.stream = mp4.main.deu.q3.url
-					elseif maxRes > 1281 and streams.h264_aac_mp4_http_na_na and mp4.main.deu.q3 then
-						tab.stream = mp4.main.deu.q3.url
+					elseif maxRes > 1281 and h265 and h265.main.deu.q3 then
+						tab.stream = h265.main.deu.q3.url
+						--vf = "h265 - Full HD"
 						break
-					elseif maxRes < 1281 and mp4 and mp4.main and mp4.main.deu and mp4.main.deu.q1 then
-						tab.stream = mp4.main.deu.q1.url
-					elseif m3u8 and m3u8.main and m3u8.main.deu and m3u8.main.deu.q3 then
+					elseif maxRes > 1281 and m3u8 and m3u8.main.deu.q3 then
 						tab.stream , tab.audiostream = getVideoUrlM3U8(m3u8.main.deu.q3.url)
+						--vf = "m3u8"  -- HD or Full HD
+						break
+					elseif maxRes > 1281 and h264 and h264.main.deu.q3 then
+						tab.stream = h264.main.deu.q3.url
+						--vf = "HD"
+						break
+					elseif maxRes < 1281 and h264 and h264.main.deu.q1 then
+						tab.stream = h264.main.deu.q1.url
+						--vf = "mp4 q1"
+						break
 					elseif mpd and mpd.main and mpd.main.deu then
 						tab.stream = mpd.main.deu.url
+						--vf = "mpd"
 					end
 				end
 			end
@@ -692,6 +699,7 @@ function getZDFstream(tab)
 			end
 			tab.Epg = Epg
 			tab.Title = Title
+			--tab.Title = Title .. " - " .. vf
 			tab.Info1 = Info1
 			tab.Info2 = Info2
 		end
