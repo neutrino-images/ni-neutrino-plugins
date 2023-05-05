@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PIDFILE=/tmp/logomask.pid
+PIDFILE=/var/run/logomask.pid
 
 if [ -e $PIDFILE ]; then
 	echo "stopping logomask"

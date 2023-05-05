@@ -30,7 +30,7 @@
 #ifndef FONTDIR
 #define FONTDIR	"/usr/share/fonts"
 #endif
-#define PID_FILE "/tmp/logomask.pid"
+#define PID_FILE "/var/run/logomask.pid"
 
 #define BUFSIZE 4096
 

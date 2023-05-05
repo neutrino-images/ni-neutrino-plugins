@@ -63,7 +63,7 @@
 #define TMPPATH "/tmp/"					//! temp-path
 #define CFGFILE "/tuxcal/tuxcal.conf"			//! config-file
 #define EVTFILE "/tuxcal/tuxcal.list"			//! database-file
-#define PIDFILE "/tmp/tuxcald.pid"			//! PID file
+#define PIDFILE "/var/run/tuxcald.pid"			//! PID file
 #define CLKFILE "/tmp/tuxcal.clk"			//! clock file
 #define NOTIFILE "/tmp/tuxmail.new"			//! notify from tuxmail
 #define SNDFILE1 "/tuxcal/tuxcal_birthday.wav"		//! birthday sound

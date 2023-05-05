@@ -49,7 +49,7 @@
 #define SNDFILE "/tuxmail.wav"
 #define SCKFILE "/tmp/tuxmaild.socket"
 #define LOGFILE "/tmp/tuxmaild.log"
-#define PIDFILE "/tmp/tuxmaild.pid"
+#define PIDFILE "/var/run/tuxmaild.pid"
 #define LCKFILE "/tmp/lcd.locked"
 #define POP3FILE "/tmp/tuxmail.pop3"
 #define SMTPFILE "/tmp/tuxmail.smtp"

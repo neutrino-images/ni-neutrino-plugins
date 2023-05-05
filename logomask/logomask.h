@@ -28,7 +28,7 @@
 
 #define NCF_FILE CONFIGDIR "/neutrino.conf"
 #define CFG_FILE CONFIGDIR "/logomask.conf"
-#define PID_FILE "/tmp/logomask.pid"
+#define PID_FILE "/var/run/logomask.pid"
 
 #define BUFSIZE 4096
 
