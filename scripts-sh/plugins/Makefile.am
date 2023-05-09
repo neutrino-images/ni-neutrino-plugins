@@ -28,4 +28,5 @@ if ENABLE_WORTRATEN
 SUBDIRS += wortraten
 endif
 
+SUBDIRS += get-compiler
 SUBDIRS += plugins-hide

@@ -458,6 +458,7 @@ scripts-sh/plugins/autoreboot/Makefile
 scripts-sh/plugins/corona-info/Makefile
 scripts-sh/plugins/dropbox_uploader/Makefile
 scripts-sh/plugins/EPGscan/Makefile
+scripts-sh/plugins/get-compiler/Makefile
 scripts-sh/plugins/imgbackup/Makefile
 scripts-sh/plugins/mountpointmanagement/Makefile
 scripts-sh/plugins/plugins-hide/Makefile

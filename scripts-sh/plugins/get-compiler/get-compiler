@@ -1,0 +1,7 @@
+#!/bin/sh
+
+neutrino=$(which neutrino)
+
+if [ -n $neutrino ] ; then
+	cat $neutrino | strings | grep -m 1 "crosstool-NG"
+fi
