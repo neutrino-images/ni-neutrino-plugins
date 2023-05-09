@@ -3,7 +3,7 @@
 . /etc/init.d/functions
 . /etc/init.d/globals
 
-plugins_hide_conf=/var/tuxbox/config/plugins-hide.conf
+plugins_hide_conf=@CONFIGDIR@/plugins-hide.conf
 plugins_hide_entry="hide=1"
 
 plugin_dirs=" \
