@@ -1644,7 +1644,7 @@ void hauptseite(void)
 	}
 
 	RenderString("Features:", sx + h_abs, (linie_oben + v_abs), maxwidth, LEFT, FSIZE_MED, CMHT);
-    for (i = 0; i < partCount; i++) {
+	for (i = 0; i < partCount; i++) {
 		RenderString(parts[i], (abs_links + hoffs), (linie_oben + v_abs), maxwidth, LEFT, FSIZE_SMALL, CMCT);
 		if (i < partCount-1) {
 			v_abs += v_dist - OFFSET_MIN;
@@ -1932,7 +1932,7 @@ void up_main_mem(void)
 	if (read_nim_socket(chip_name, 2) < 0)
 		safe_strncpy(chip_name[0], "", MAX_NAME_LEN);
 
-	snprintf(temp_string, sizeof(temp_string),"Tuner: %s %s  Mode: %s", frontend_array[0].name, chip_name[0], type);
+	snprintf(temp_string, sizeof(temp_string),"Tuner A: %s %s  Mode: %s", frontend_array[0].name, chip_name[0], type);
 	RenderString(temp_string, ex - scale2res(530), LO + scale2res(225),scale2res(510), LEFT, FSIZE_SMALL, CMCT);
 
 	snprintf(temp_string, sizeof(temp_string),"SIG %d%c", sig, 37);
