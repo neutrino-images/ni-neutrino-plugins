@@ -141,6 +141,12 @@ AC_ARG_ENABLE(stbup,
 	[enable_stbup="yes"])
 AM_CONDITIONAL(ENABLE_STBUP, test "$enable_stbup" = "yes")
 
+AC_ARG_ENABLE(sysinfo,
+	AS_HELP_STRING([--enable-sysinfo], [enable sysinfo @<:@default=yes@:>@]),
+	[enable_sysinfo="$enableval"],
+	[enable_sysinfo="yes"])
+AM_CONDITIONAL(ENABLE_SYSINFO, test "$enable_sysinfo" = "yes")
+
 AC_ARG_ENABLE(tuxcal,
 	AS_HELP_STRING([--enable-tuxcal], [enable tuxcal @<:@default=yes@:>@]),
 	[enable_tuxcal="$enableval"],
@@ -469,6 +475,7 @@ shellexec/Makefile
 shellexec/shellexec.conf
 showiframe/Makefile
 stbup/Makefile
+sysinfo/Makefile
 turnoff_power/Makefile
 tuxcal/Makefile
 tuxcal/daemon/Makefile

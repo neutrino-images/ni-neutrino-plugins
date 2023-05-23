@@ -45,6 +45,9 @@ endif
 if ENABLE_STBUP
 SUBDIRS += stbup
 endif
+if ENABLE_SYSINFO
+SUBDIRS += sysinfo
+endif
 if ENABLE_TUXCAL
 SUBDIRS += tuxcal
 endif

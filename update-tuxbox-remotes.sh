@@ -1,6 +1,6 @@
 #!/bin/sh
 
-REPLIST="cooliTSclimax getrc input logomask logoview msgbox scripts-lua shellexec tuxcal tuxcom tuxmail tuxwetter"
+REPLIST="cooliTSclimax getrc input logomask logoview msgbox scripts-lua shellexec sysinfo tuxcal tuxcom tuxmail tuxwetter"
 
 export GIT_MERGE_AUTOEDIT=no
 for plugin in $REPLIST; do
