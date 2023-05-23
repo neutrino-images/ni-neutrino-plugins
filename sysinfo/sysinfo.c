@@ -849,6 +849,16 @@ int get_info_cpu(void)
 			{
 				daten_auslesen(line_buffer, cores, sizeof(cores), ':', '\n');
 			}
+#if HAVE_SH4_HARDWARE
+			if ((ptr = strstr(line_buffer, "cpu type")) != NULL)
+			{
+				daten_auslesen(line_buffer, processor, sizeof(processor),':', '\n');
+			}
+			if ((ptr = strstr(line_buffer, "bogomips")) != NULL)
+			{
+				daten_auslesen(line_buffer, bogomips, sizeof(bogomips),':', '\n');
+			}
+#else
 			if ((ptr = strstr(line_buffer, "Processor")) != NULL)
 			{
 				daten_auslesen(line_buffer, processor, sizeof(processor),':', '\n');
@@ -857,11 +867,23 @@ int get_info_cpu(void)
 			{
 				daten_auslesen(line_buffer, bogomips, sizeof(bogomips),':', '\n');
 			}
+#endif
 
 			if ((ptr = strstr(line_buffer, "Features")) != NULL)
 			{
 				daten_auslesen(line_buffer, features, sizeof(features),':', '\n');
 			}
+
+#if HAVE_SH4_HARDWARE
+			if ((ptr = strstr(line_buffer, "machine")) != NULL)
+			{
+				daten_auslesen(line_buffer, hardware, sizeof(hardware),':', '\n');
+			}
+			if ((ptr = strstr(line_buffer, "cut")) != NULL)
+			{
+				daten_auslesen(line_buffer, hard_rev, sizeof(hard_rev),':', '\n');
+			}
+#else
 			if ((ptr = strstr(line_buffer, "Hardware")) != NULL)
 			{
 				daten_auslesen(line_buffer, hardware, sizeof(hardware),':', '\n');
@@ -870,6 +892,7 @@ int get_info_cpu(void)
 			{
 				daten_auslesen(line_buffer, hard_rev, sizeof(hard_rev),':', '\n');
 			}
+#endif
 		}
 		fclose(file);
 	}
@@ -1052,6 +1075,7 @@ int show_FileS(void)
 				lauf = p_start;
 			break;
 		case KEY_OK:
+		case KEY_HOME:
 		case KEY_EXIT:
 			end_show = 1;
 			break;
@@ -1143,6 +1167,7 @@ int show_ps_status(int psnum)
 					bstart = bstart + max_lines;
 				}
 				break;
+			case KEY_HOME:
 			case KEY_EXIT:
 				end_show = 1;
 				break;
@@ -1273,6 +1298,7 @@ int show_ps_dmseg(char quote)
 				}
 				break;
 
+			case KEY_HOME:
 			case KEY_EXIT:
 				end_show = 1;
 				break;
@@ -1337,6 +1363,7 @@ int show_ps_dmseg(char quote)
 							}
 							break;
 
+						case KEY_HOME:
 						case KEY_EXIT:
 							ps_end = 1;
 							break;
@@ -2332,6 +2359,7 @@ void mem_full(void)
 		switch (ev.code)
 		{
 		case KEY_OK:
+		case KEY_HOME:
 		case KEY_EXIT:
 			end_show = 1;
 			break;
@@ -2360,6 +2388,7 @@ void perf_full(void)
 		switch (ev.code)
 		{
 		case KEY_OK:
+		case KEY_HOME:
 		case KEY_EXIT:
 			end_show = 1;
 			break;
@@ -2761,6 +2790,7 @@ void show_network(void)
 			break;
 
 		case KEY_OK:
+		case KEY_HOME:
 		case KEY_EXIT:
 			mainloop = 0;
 			break;
@@ -2844,6 +2874,7 @@ int main(void)
 			show_network();
 			break;
 
+		case KEY_HOME:
 		case KEY_EXIT:
 			mainloop = 0;
 			break;
