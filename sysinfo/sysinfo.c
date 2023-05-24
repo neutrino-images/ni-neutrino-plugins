@@ -2033,6 +2033,7 @@ int get_network_info(const char *interface, int *speed, char *duplex_mode) {
 	if (ioctl(fd, SIOCETHTOOL, &ifr) == -1) {
 		perror("ioctl");
 		close(fd);
+		strlcpy(duplex_mode, "Unknown", 20);
 		return -1;
 	}
 
@@ -2057,8 +2058,8 @@ void up_net(void)
 	int LO = linie_oben + 2;
 	int condition = 2, i, unit;
 	double dtemp;
-	int speed;
-	char duplex_mode[20];
+	int speed = 0;
+	char duplex_mode[20] = "";
 	static int of_read = 0, of_write = 0;
 
 	if (get_network_info(IFNAME, &speed, duplex_mode) == -1) {
@@ -2067,8 +2068,8 @@ void up_net(void)
 	//printf("Network Card Speed: %d Mb/s\n", speed);
 	//printf("Network Card Duplex Mode: %s\n", duplex_mode);
 
-	RenderBox(ex - scale2res(535), LO + scale2res(3), ex - OFFSET_MED, LO + scale2res(30), FILL, CMH, 0);	 // CMH
-	RenderBox(ex - scale2res(535), LO + scale2res(140), ex - OFFSET_MED, LO + scale2res(240), FILL, CMH, 0); // CMH
+	RenderBox(ex - scale2res(535), LO + scale2res(3), ex - OFFSET_MED, LO + scale2res(30), FILL, CMH, 0);		// CMH
+	RenderBox(ex - scale2res(535), LO + scale2res(140), ex - OFFSET_MED, LO + scale2res(240), FILL, CMH, 0);	// CMH
 
 	int slen = GetStringLen("Netzauslastung:", FSIZE_MED);
 	if (slen > scale2res(145))
@@ -2082,8 +2083,8 @@ void up_net(void)
 
 	if (x_pos == ex - scale2res(527))
 	{
-		RenderBox(ex - scale2res(530), LO + scale2res(32), ex - scale2res(60), LO + scale2res(138), FILL, CMCST, 0); // CMCST
-		RenderBox(ex - scale2res(530), LO + scale2res(32), ex - scale2res(60), LO + scale2res(138), GRID, CMCIT, 0); // CMCIT
+		RenderBox(ex - scale2res(530), LO + scale2res(32), ex - scale2res(60), LO + scale2res(138), FILL, CMCST, 0);	// CMCST
+		RenderBox(ex - scale2res(530), LO + scale2res(32), ex - scale2res(60), LO + scale2res(138), GRID, CMCIT, 0);	// CMCIT
 	}
 	if (if_active == -1) {
 		RenderString("No active interface", ex - scale2res(380), LO + scale2res(80), maxwidth, LEFT, FSIZE_SMALL - 2, CMHT);
