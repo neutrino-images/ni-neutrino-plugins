@@ -1924,7 +1924,7 @@ void up_main_mem(void)
 		}
 	}
 
-	char chip_name[2][MAX_NAME_LEN];
+	char chip_name[2][MAX_NAME_LEN] = {};
 	if (read_nim_socket(chip_name, 2) < 0)
 		safe_strncpy(chip_name[0], "", MAX_NAME_LEN);
 
