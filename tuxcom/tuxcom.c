@@ -32,15 +32,11 @@
 #define DEFAULT_XRES 1280
 #define DEFAULT_YRES 720
 static int stride;
-#if defined(HAVE_SPARK_HARDWARE) || defined(HAVE_DUCKBOX_HARDWARE)
-static int sync_blitter = 0;
-#endif
 
 /******************************************************************************
  * GetRCCode  (Code from Tuxmail)
  ******************************************************************************/
 
-#if defined HAVE_CST_HARDWARE || HAVE_TRIPLEDRAGON || HAVE_SPARK_HARDWARE || defined(HAVE_DUCKBOX_HARDWARE) || HAVE_ARM_HARDWARE || HAVE_MIPS_HARDWARE || HAVE_GENERIC_HARDWARE
 int GetRCCode()
 {
 	static int count = 0;
@@ -137,173 +133,6 @@ int GetRCCode()
 		usleep(1000000/100);
 		return 0;
 }
-#endif
-
-#if defined HAVE_DREAMBOX_HARDWARE || defined HAVE_IPBOX_HARDWARE
-int GetRCCode(int mode)
-{
-	static int count = 0;
-	//get code
-	static unsigned short LastKey = -1;
-	static char LastKBCode = 0x00;
-	rccode = -1;
-	int bytesavail = 0;
-	int bytesread = read(rc, &rccode, 2);
-	unsigned short tmprc;
-	kbcode = 0;
-
-	if (bytesread == 2)
-	{
-		if (read(rc, &tmprc, 2) == 2)
-		{
-			if (rccode == tmprc && count >= 0)
-				count++;
-		}
-	}
-
-
-	// Tastaturabfrage
-	ioctl(kb, FIONREAD, &bytesavail);
-	if (bytesavail>0)
-	{
-		char tch[100];
-		if (bytesavail > 99) bytesavail = 99;
-		read(kb,tch,bytesavail);
-		tch[bytesavail] = 0x00;
-		kbcode = tch[0];
-		LastKBCode = kbcode;
-		if (bytesavail == 1 && kbcode == 0x1b) { LastKey = RC_HOME ; rccode = -1  ; count = -1; return 1;} // ESC-Taste
-		if (bytesavail == 1 && kbcode == '\n') { LastKey = RC_OK   ; rccode = -1  ; count = -1; return 1;} // Enter-Taste
-		if (bytesavail == 1 && kbcode == '+' ) { LastKey = RC_PLUS ; rccode = -1  ; count = -1; return 1;}
-		if (bytesavail == 1 && kbcode == '-' ) { LastKey = RC_MINUS; rccode = -1  ; count = -1; return 1;}
-		if (bytesavail >= 3 && tch[0] == 0x1b && tch[1] == 0x5b)
-		{
-			if (tch[2] == 0x41 )                                    { kbcode = LastKBCode = 0x00; rccode = RC_UP        ; LastKey = rccode; count = -1; return 1; }// Cursortasten
-			if (tch[2] == 0x42 )                                    { kbcode = LastKBCode = 0x00; rccode = RC_DOWN      ; LastKey = rccode; count = -1; return 1; }// Cursortasten
-			if (tch[2] == 0x43 )                                    { kbcode = LastKBCode = 0x00; rccode = RC_RIGHT     ; LastKey = rccode; count = -1; return 1; }// Cursortasten
-			if (tch[2] == 0x44 )                                    { kbcode = LastKBCode = 0x00; rccode = RC_LEFT      ; LastKey = rccode; count = -1; return 1; }// Cursortasten
-			if (tch[2] == 0x33 && tch[3] == 0x7e)                   { kbcode = LastKBCode = 0x00; rccode = RC_MINUS     ; LastKey = rccode; count = -1; return 1; }// entf-Taste
-			if (tch[2] == 0x32 && tch[3] == 0x7e)                   { kbcode = LastKBCode = 0x00; rccode = RC_PLUS      ; LastKey = rccode; count = -1; return 1; }// einf-Taste
-			if (tch[2] == 0x35 && tch[3] == 0x7e)                   { kbcode = LastKBCode = 0x00; rccode = RC_PLUS      ; LastKey = rccode; count = -1; return 1; }// PgUp-Taste
-			if (tch[2] == 0x36 && tch[3] == 0x7e)                   { kbcode = LastKBCode = 0x00; rccode = RC_MINUS     ; LastKey = rccode; count = -1; return 1; }// PgDn-Taste
-			if (tch[2] == 0x5b && tch[3] == 0x45)                   { kbcode = LastKBCode = 0x00; rccode = RC_RED       ; LastKey = rccode; count = -1; return 1; }// F5-Taste
-			if (tch[2] == 0x31 && tch[3] == 0x37 && tch[4] == 0x7e) { kbcode = LastKBCode = 0x00; rccode = RC_GREEN     ; LastKey = rccode; count = -1; return 1; }// F6-Taste
-			if (tch[2] == 0x31 && tch[3] == 0x38 && tch[4] == 0x7e) { kbcode = LastKBCode = 0x00; rccode = RC_YELLOW    ; LastKey = rccode; count = -1; return 1; }// F7-Taste
-			if (tch[2] == 0x31 && tch[3] == 0x39 && tch[4] == 0x7e) { kbcode = LastKBCode = 0x00; rccode = RC_BLUE      ; LastKey = rccode; count = -1; return 1; }// F8-Taste
-			if (tch[2] == 0x32 && tch[3] == 0x30 && tch[4] == 0x7e) { kbcode = LastKBCode = 0x00; rccode = RC_DBOX      ; LastKey = rccode; count = -1; return 1; }// F9-Taste
-			if (tch[2] == 0x32 && tch[3] == 0x31 && tch[4] == 0x7e) { kbcode = LastKBCode = 0x00; rccode = RC_HELP      ; LastKey = rccode; count = -1; return 1; }// F10-Taste
-			if (tch[2] == 0x32 && tch[3] == 0x33 && tch[4] == 0x7e) { kbcode = LastKBCode = 0x00; rccode = RC_MUTE      ; LastKey = rccode; count = -1; return 1; }// F11-Taste
-		}
-		if (mode == RC_EDIT)
-		{
-/*
-			char tmsg[100];
-			int i;
-			sprintf(tmsg,"KeyboardCode:avail:%d, char:%c, rccode:%x ",bytesavail,(kbcode == 0x00 ? '*' : kbcode ),rccode);
-			for (i = 0; i < bytesavail; i++) sprintf(tmsg,"%s%x",tmsg,tch[i]);
-			MessageBox(tmsg,"",NOBUTTON);
-*/
-			LastKey = rccode;
-			count = -1;
-			switch (rccode)
-			{
-				case KEY_0:
-				case KEY_1:
-				case KEY_2:
-				case KEY_3:
-				case KEY_4:
-				case KEY_5:
-				case KEY_6:
-				case KEY_7:
-				case KEY_8:
-				case KEY_9:
-					// SMS-Style verhindern
-					rccode = -1;
-					break;
-			}
-			return 1;
-		}
-		else if (bytesread <= 0)
-		{
-			if (kbcode == '0') { kbcode = 0x00;rccode = RC_0  ; LastKey = rccode; return 1;}
-			if (kbcode == '1') { kbcode = 0x00;rccode = RC_1  ; LastKey = rccode; return 1;}
-			if (kbcode == '2') { kbcode = 0x00;rccode = RC_2  ; LastKey = rccode; return 1;}
-			if (kbcode == '3') { kbcode = 0x00;rccode = RC_3  ; LastKey = rccode; return 1;}
-			if (kbcode == '4') { kbcode = 0x00;rccode = RC_4  ; LastKey = rccode; return 1;}
-			if (kbcode == '5') { kbcode = 0x00;rccode = RC_5  ; LastKey = rccode; return 1;}
-			if (kbcode == '6') { kbcode = 0x00;rccode = RC_6  ; LastKey = rccode; return 1;}
-			if (kbcode == '7') { kbcode = 0x00;rccode = RC_7  ; LastKey = rccode; return 1;}
-			if (kbcode == '8') { kbcode = 0x00;rccode = RC_8  ; LastKey = rccode; return 1;}
-			if (kbcode == '9') { kbcode = 0x00;rccode = RC_9  ; LastKey = rccode; return 1;}
-		}
-	}
-	if (bytesread == 2)
-	{
-		if (rccode == LastKey && LastKBCode != 0x00 && LastKBCode == kbcode)
-		{
-				return 1;
-		}
-		LastKBCode = 0x00;
-		if (rccode == LastKey)
-		{
-			if (count < REPEAT_TIMER)
-			{
-				if (count >= 0)
-					count++;
-				rccode = -1;
-				return 1;
-			}
-		}
-		else
-			count = 0;
-		LastKey = rccode;
-		if ((rccode & 0xFF00) == 0x5C00)
-		{
-			kbcode = 0;
-			switch(rccode)
-			{
-				case KEY_UP:		rccode = RC_UP;			break;
-				case KEY_DOWN:		rccode = RC_DOWN;		break;
-				case KEY_LEFT:		rccode = RC_LEFT;		break;
-				case KEY_RIGHT:		rccode = RC_RIGHT;		break;
-				case KEY_OK:		rccode = RC_OK;			break;
-				case KEY_0:			rccode = RC_0;			break;
-				case KEY_1:			rccode = RC_1;			break;
-				case KEY_2:			rccode = RC_2;			break;
-				case KEY_3:			rccode = RC_3;			break;
-				case KEY_4:			rccode = RC_4;			break;
-				case KEY_5:			rccode = RC_5;			break;
-				case KEY_6:			rccode = RC_6;			break;
-				case KEY_7:			rccode = RC_7;			break;
-				case KEY_8:			rccode = RC_8;			break;
-				case KEY_9:			rccode = RC_9;			break;
-				case KEY_RED:		rccode = RC_RED;		break;
-				case KEY_GREEN:		rccode = RC_GREEN;		break;
-				case KEY_YELLOW:	rccode = RC_YELLOW;		break;
-				case KEY_BLUE:		rccode = RC_BLUE;		break;
-				case KEY_VOLUMEUP:	rccode = RC_PLUS;		break;
-				case KEY_VOLUMEDOWN:rccode = RC_MINUS;		break;
-				case KEY_MUTE:		rccode = RC_MUTE;		break;
-				case KEY_HELP:		rccode = RC_HELP;		break;
-				case KEY_SETUP:		rccode = RC_DBOX;		break;
-				case KEY_HOME:		rccode = RC_HOME;		break;
-				case KEY_POWER:		rccode = RC_STANDBY;	break;
-			}
-			return 1;
-		}
-		else
-		{
-			rccode &= 0x003F;
-		}
-		return 0;
-	}
-
-		rccode = -1;
-		usleep(1000000/100);
-		return 0;
-}
-#endif
-
 
 /******************************************************************************
  * MyFaceRequester
@@ -641,13 +470,6 @@ void RenderString(const char *_string, int _sx, int _sy, int maxwidth, int layou
 
 		_ex = _sx + maxwidth;
 
-#if defined(HAVE_SPARK_HARDWARE) || defined(HAVE_DUCKBOX_HARDWARE)
-		if(sync_blitter) {
-			sync_blitter = 0;
-			if (ioctl(fb, STMFBIO_SYNC_BLITTER) < 0)
-				perror("RenderString ioctl STMFBIO_SYNC_BLITTER");
-		}
-#endif
 		while(*string != '\0' && *string != '\n')
 		{
 			if ((charwidth = RenderChar(UTF8ToUnicode(&string, 1), _sx, _sy, _ex, color)) == -1) return; /* string > maxwidth */
@@ -662,41 +484,12 @@ void RenderString(const char *_string, int _sx, int _sy, int maxwidth, int layou
 
 void RenderBox(int _sx, int _sy, int _ex, int _ey, int mode, int color)
 {
-#if !defined(HAVE_SPARK_HARDWARE) || !defined(HAVE_DUCKBOX_HARDWARE)
 	int loop;
 	int tx;
-#endif
-#if !defined(HAVE_SPARK_HARDWARE) && !defined(HAVE_DUCKBOX_HARDWARE)
 	uint32_t *p1, *p2, *p3, *p4;
-#endif
 
-#if defined(HAVE_SPARK_HARDWARE) || defined(HAVE_DUCKBOX_HARDWARE)
-	sync_blitter = 1;
-#endif
 	if(mode == FILL)
 	{
-#if defined(HAVE_SPARK_HARDWARE) || defined(HAVE_DUCKBOX_HARDWARE)
-		STMFBIO_BLT_DATA bltData;
-		memset(&bltData, 0, sizeof(STMFBIO_BLT_DATA));
-
-		bltData.operation  = BLT_OP_FILL;
-		bltData.dstOffset  = 1920 * 1080 * 4;
-		bltData.dstPitch   = DEFAULT_XRES * 4;
-
-		bltData.dst_left   = StartX + _sx;
-		bltData.dst_top    = StartY + _sy;
-		bltData.dst_right  = StartX + _ex;
-		bltData.dst_bottom = StartY + _ey;
-
-		bltData.dstFormat  = SURF_ARGB8888;
-		bltData.srcFormat  = SURF_ARGB8888;
-		bltData.dstMemBase = STMFBGP_FRAMEBUFFER;
-		bltData.srcMemBase = STMFBGP_FRAMEBUFFER;
-		bltData.colour     = bgra[color];
-
-		if (ioctl(fb, STMFBIO_BLT, &bltData ) < 0)
-			perror("RenderBox ioctl STMFBIO_BLT");
-#else
 		p1 = lbb + (StartX + _sx) + stride * (StartY + _sy);
 		for(; _sy < _ey; _sy++)
 		{
@@ -708,16 +501,9 @@ void RenderBox(int _sx, int _sy, int _ex, int _ey, int mode, int color)
 			}
 			p1 += stride;
 		}
-#endif
 	}
 	else
 	{
-#if defined(HAVE_SPARK_HARDWARE) || defined(HAVE_DUCKBOX_HARDWARE)
-		RenderBox(_sx, _sy, _ex, _sy + 1, FILL, color);
-		RenderBox(_sx, _ey - 1, _ex, _ey, FILL, color);
-		RenderBox(_sx, _sy + 1, _sx + 1, _ey - 1, FILL, color);
-		RenderBox(_ex - 1, _sy + 1, _ex, _ey - 1, FILL, color);
-#else
 		p1 = lbb + (StartX + _sx) + stride * (StartY + _sy);
 		p2 = lbb + (StartX + _sx) + stride * (StartY + _ey);
 		p3 = p1 + stride;
@@ -752,7 +538,6 @@ void RenderBox(int _sx, int _sy, int _ex, int _ey, int mode, int color)
 			p3 = p1 + 1;
 			p4 = p2 - 1;
 		}
-#endif
 	}
 }
 void SetLanguage()
@@ -834,44 +619,7 @@ void read_neutrino_osd_conf(int *Ex,int *Sx,int *Ey, int *Sy)
 
 
 void blit(void) {
-# if defined(HAVE_SPARK_HARDWARE) || defined(HAVE_DUCKBOX_HARDWARE)
-	STMFBIO_BLT_DATA  bltData;
-	memset(&bltData, 0, sizeof(STMFBIO_BLT_DATA));
-
-	bltData.operation  = BLT_OP_COPY;
-
-	bltData.srcOffset  = 1920 * 1080 * 4;
-	bltData.srcPitch   = DEFAULT_XRES * 4;
-
-	bltData.src_right  = DEFAULT_XRES - 1;
-	bltData.src_bottom = DEFAULT_YRES - 1;
-
-	bltData.srcFormat = SURF_BGRA8888;
-	bltData.srcMemBase = STMFBGP_FRAMEBUFFER;
-
-	bltData.dstPitch   = pitch;
-	bltData.dstFormat = SURF_BGRA8888;
-	bltData.dstMemBase = STMFBGP_FRAMEBUFFER;
-
-	if(ioctl(fb, STMFBIO_SYNC_BLITTER) < 0)
-		perror("blit ioctl STMFBIO_SYNC_BLITTER 1");
-	msync(lbb, DEFAULT_XRES * DEFAULT_YRES * 4, MS_SYNC);
-
-	bltData.dst_left  = startX;
-	bltData.dst_top = startY;
-	bltData.dst_right  = endX;
-	bltData.dst_bottom = endY;
-	if (ioctl(fb, STMFBIO_BLT, &bltData ) < 0)
-		perror("STMFBIO_BLT");
-#if 0
-	if(ioctl(fb, STMFBIO_SYNC_BLITTER) < 0)
-		perror("blit ioctl STMFBIO_SYNC_BLITTER 2");
-#else
-	sync_blitter = 1;
-# endif
-#else
 	memcpy(lfb, lbb, fix_screeninfo.line_length*var_screeninfo.yres);
-#endif
 }
 
 int main()
@@ -921,30 +669,13 @@ int main()
 		return 2;
 	}
 
-# if defined(HAVE_SPARK_HARDWARE) || defined(HAVE_DUCKBOX_HARDWARE)
-	fix_screeninfo.line_length = DEFAULT_XRES << 2;
-	stride = DEFAULT_XRES;
-	struct fb_var_screeninfo s;
-	if (ioctl(fb, FBIOGET_VSCREENINFO, &s) == -1)
-		perror("blit FBIOGET_VSCREENINFO");
-	startX = (sx * s.xres) / DEFAULT_XRES; 
-	startY = (sy * s.yres) / DEFAULT_YRES; 
-	endX = (ex * s.xres) / DEFAULT_XRES; 
-	endY = (ey * s.yres) / DEFAULT_YRES;
-	pitch = s.xres * 4, sx = 0, sy = 0, ex = DEFAULT_XRES - 1, ey = DEFAULT_YRES - 1;
-# else
 	stride = fix_screeninfo.line_length >> 2;
-# endif
 
 	if(ioctl(fb, FBIOGET_VSCREENINFO, &var_screeninfo) == -1)
 	{
 		printf("TuxCom <FBIOGET_VSCREENINFO failed>\n");
 		return 2;
 	}
-#if defined(HAVE_SPARK_HARDWARE) || defined(HAVE_DUCKBOX_HARDWARE)
-	var_screeninfo.xres = DEFAULT_XRES;
-	var_screeninfo.yres = DEFAULT_YRES;
-#endif
 
 	if(!(lfb = (uint32_t*)mmap(0, fix_screeninfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0)))
 	{
@@ -1014,9 +745,6 @@ int main()
 
 	//init backbuffer
 
-#if defined(HAVE_SPARK_HARDWARE) || defined(HAVE_DUCKBOX_HARDWARE)
-	lbb = lfb + 1920 * 1080;
-#else
 	if (!(lbb = malloc(fix_screeninfo.line_length * var_screeninfo.yres)))
 	{
 		printf("TuxCom <allocating of Backbuffer failed>\n");
@@ -1025,7 +753,6 @@ int main()
 		munmap(lfb, fix_screeninfo.smem_len);
 		return 2;
 	}
-#endif
 	//printf("TuxCom init: FB %dx%dx%d stride %d\n", var_screeninfo.xres, var_screeninfo.yres, var_screeninfo.bits_per_pixel, fix_screeninfo.line_length);;
 	RenderBox(0,0,var_screeninfo.xres,var_screeninfo.yres,FILL,BLACK);
 	printf("TuxCom init: complete\n");
@@ -1117,15 +844,6 @@ int main()
 		}
 		firstentry = 0;
 
-#if defined HAVE_DREAMBOX_HARDWARE || defined HAVE_IPBOX_HARDWARE
-		if (kbcode != 0)
-		{
-			if (kbcode == 0x09) // tab
-			{
-				rccode = (curframe == 1 ? RC_LEFT : RC_RIGHT);
-			}
-		}
-#endif
 		int len = 0;
 		switch(rccode)
 		{
@@ -1739,9 +1457,7 @@ int main()
 	FTC_Manager_Done(manager);
 	FT_Done_FreeType(library);
 
-#if !defined(HAVE_SPARK_HARDWARE) || !defined(HAVE_DUCKBOX_HARDWARE)
 	free(lbb);
-#endif
 	munmap(lfb, fix_screeninfo.smem_len);
 
 	// enable keyboard-conversion again
@@ -1763,9 +1479,6 @@ int main()
 	ClearMarker    (RIGHTFRAME);
 	ClearZipEntries(LEFTFRAME );
 	ClearZipEntries(RIGHTFRAME);
-#if defined HAVE_DREAMBOX_HARDWARE || defined HAVE_IPBOX_HARDWARE
-	if (kb != -1) close(kb);
-#endif
 	close(rc);
 	return 0;
 }

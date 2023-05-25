@@ -3,9 +3,6 @@
  *
  * DEZ 2010 - FlatTV - MPCSMON goes to OSCAMMON
  ******************************************************************************/
-#define MPCSMON_DREAM_7025
-#define MPCSMON_FB_32BPP
-
 #define CFGFILE  "/var/tuxbox/config/oscammon.conf"
 
 #include <errno.h>

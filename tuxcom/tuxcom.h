@@ -42,9 +42,6 @@
 #include <sys/dir.h>
 #include <sys/stat.h>
 //#include <plugin.h>
-#if defined(HAVE_SPARK_HARDWARE) || defined(HAVE_DUCKBOX_HARDWARE)
-#include <linux/stmfb.h>
-#endif
 
 #include <netinet/in.h>
 #include <netdb.h>

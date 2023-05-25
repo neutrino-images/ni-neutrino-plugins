@@ -2565,18 +2565,6 @@ unsigned char *buffer=NULL/*,*gbuf*/;
 			if(single & 2)
 			{
 				single &= ~2;
-#if 0
-// don't know what this is about
-#ifndef HAVE_DREAMBOX_HARDWARE
-				i=var_screeninfo.xres*var_screeninfo.yres*sizeof(uint32_t);
-				gbuf=lfb;
-				while(i--)
-					if(*gbuf >=127)
-						*(gbuf++)-=127;
-					else
-						*(gbuf++)=11;
-#endif
-#endif
 			}
 
 			fb_display(buffer, imx, imy, dxp, dyp, dxo, dyo, 0, single, 0/*alpha*/);
