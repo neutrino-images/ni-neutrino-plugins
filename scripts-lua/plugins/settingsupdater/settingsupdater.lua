@@ -61,6 +61,8 @@ fh = filehelpers.new()
 tmp = "/tmp/settingupdate"
 neutrino_conf_base = "/var/tuxbox/config"
 icondir = "/usr/share/tuxbox/neutrino/icons"
+this_dir = debug.getinfo(1,"S").source:sub(2):match("(.*/)")
+bgimage = this_dir .. "settingsupdater.png"
 neutrino_conf = neutrino_conf_base .. "/neutrino.conf"
 zapitdir = neutrino_conf_base .. "/zapit"
 setting_intro = tmp .. "/lua"
@@ -210,14 +212,14 @@ function start_update()
 	else
 		ret:hide();
 	end
-	local success = execute_command("rsync -rlpgoD --size-only " .. setting_intro .. "/settingupdater_" .. nconf_value("osd_resolution") .. ".png " .. icondir .. "/settingupdater.png")
-	if not success then
-		ret:hide()
-		print("rsync missing?")
-		os.execute("cp -f " .. setting_intro .. "/settingupdater_" .. nconf_value("osd_resolution") .. ".png " .. icondir .. "/settingupdater.png")
-	else
-		ret:hide();
-	end
+-- 	local success = execute_command("rsync -rlpgoD --size-only " .. setting_intro .. "/settingupdater_" .. nconf_value("osd_resolution") .. ".png " .. bgimage)
+-- 	if not success then
+-- 		ret:hide()
+-- 		print("rsync missing?")
+-- 		os.execute("cp -f " .. setting_intro .. "/settingupdater_" .. nconf_value("osd_resolution") .. ".png " .. bgimage)
+-- 	else
+-- 		ret:hide();
+-- 	end
 	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].write_settings};
 	ret:paint();
 	local positions ={}
@@ -434,8 +436,7 @@ function main()
 	btnRed = locale[lang].menu_options
 	}
 
-	image = icondir .. "/settingupdater.png"
-	chooser:setBodyImage{image_path=image}
+	chooser:setBodyImage{image_path=bgimage}
 
 	chooser:paint()
 	i = 0

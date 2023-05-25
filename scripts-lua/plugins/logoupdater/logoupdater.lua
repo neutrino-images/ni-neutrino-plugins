@@ -30,6 +30,8 @@ fh = filehelpers.new()
 
 tmp = "/tmp/logoupdate"
 icondir = "/usr/share/tuxbox/neutrino/icons"
+this_dir = debug.getinfo(1,"S").source:sub(2):match("(.*/)")
+bgimage = this_dir .. "logoupdater.png"
 logo_source = tmp .. "/logos"
 logo_event_source = tmp .. "/logos-events"
 logo_popup_source = tmp .. "/logos-popup"
@@ -198,7 +200,7 @@ function start_update()
 		ret:hide();
 	end
 
-	os.execute("rsync -rlpgoD --size-only " .. logo_intro .. "/logoupdater_" .. osd_resolution .. ".png " .. icondir .. "/logoupdater.png")
+	--os.execute("rsync -rlpgoD --size-only " .. logo_intro .. "/logoupdater_" .. osd_resolution .. ".png " .. icondir .. "/logoupdater.png")
 
 	local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].copy_logos };
 	ret:paint();
@@ -351,8 +353,7 @@ function main()
 	btnRed = locale[lang].menu_options
 	}
 
-	image = icondir .. "/logoupdater.png"
-	chooser:setBodyImage{image_path=image}
+	chooser:setBodyImage{image_path=bgimage}
 
 	chooser:paint()
 	i = 0

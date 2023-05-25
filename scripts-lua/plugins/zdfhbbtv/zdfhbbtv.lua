@@ -1,12 +1,12 @@
   --[[
 	ZDF HBBTV
 	Copyright (C) 2021 Jacek Jendrzej 'satbaby'
-	Copyright (C) 2022 'bazi98' for Vers. 0.23 beta - add. UHD 
+	Copyright (C) 2022 'bazi98' for Vers. 0.24  - add. UHD and FullHD
 	License: WTFPLv2
 ]]
 
 function init()
-	Version = 0.23
+	Version = 0.24
 	CONF_PATH = "/var/tuxbox/config/"
 	if DIR and DIR.CONFIGDIR then
 		CONF_PATH = DIR.CONFIGDIR .. '/'

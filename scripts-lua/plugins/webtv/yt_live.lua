@@ -571,7 +571,7 @@ end
 function getVideoData(yurl)
 	if yurl == nil then return 0 end
 
-	if yurl:find("www.youtube.com/user/") or yurl:find("youtube.com/channel") or yurl:find("youtube.com/c/") then --check user link or channel alias
+	if yurl:find("www.youtube.com/user/") or yurl:find("youtube.com/channel") or yurl:find("youtube.com/c/") or yurl:find("youtube.com/@") then --check user link or channel alias
 		local youtube_user = getdata(yurl)
 		if youtube_user == nil then return 0 end
 		local youtube_live_url = youtube_user:match('"url":"(/watch.-)"') or youtube_user:match('feature=c4.-href="(/watch.-)"')
