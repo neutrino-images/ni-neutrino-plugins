@@ -104,6 +104,7 @@ char zeit[36] = "";
 char cores[12] = "";
 char processor[64] = "";
 char hardware[64] = "";
+char boxname[64] = "";
 char tuner[16] = "";
 char features[256] = "";
 char hard_rev[32] = "";
@@ -1411,6 +1412,25 @@ int get_mem(void)
 	return 0;
 }
 
+void get_boxname()
+{
+	FILE *fd;
+#if BOXMODEL_VUPLUS_ALL
+	fd = fopen("/proc/stb/info/vumodel", "r");
+#else
+	fd = fopen("/proc/stb/info/model", "r");
+#endif
+	if (fd)
+	{
+		fgets(boxname, 64, fd);
+		fclose(fd);
+	}
+	correct_string(boxname);
+	char *p;
+	for (p = boxname; *p != '\0'; p++)
+		*p = (char) toupper(*p);
+}
+
 void get_homepage(const char* filename, char* out) {
 	FILE* fp = fopen(filename, "r");
 	if (fp == NULL) {
@@ -1450,25 +1470,60 @@ void get_homepage(const char* filename, char* out) {
 	strcpy(out, start);
 }
 
+void get_imagename(const char* filename, char* out) {
+	FILE* fp = fopen(filename, "r");
+	if (fp == NULL) {
+		*out = '\0';
+		perror("Fehler beim Oeffnen der Datei");
+		return;
+	}
+
+	char line[256];
+	char* start = NULL;
+	while (fgets(line, sizeof(line), fp) != NULL) {
+		if ((start = strstr(line, "imagename=")) != NULL) {
+			start += strlen("imagename=");
+			break;
+		}
+	}
+
+	fclose(fp);
+
+	if (start == NULL) {
+		*out = '\0';
+		return;
+	}
+
+	correct_string(start);
+	strcpy(out, start);
+}
+
 void hintergrund(void)
 {
-	char vstr[128];
+	get_boxname();
+	char vstr[256];
+	char imgname[128];
 
 	setBackground(CMCST);
 	RenderBox(sx, sy, ex, ey, FILL, CMCIT, 0);
 
-	RenderBox(sx + rahmen, sy + rahmen, ex - rahmen, linie_oben - rabs, FILL, CMCST, 0);			  // CMCST
-	RenderBox(sx + rahmen, linie_oben + rabs - 1, ex - rahmen, linie_unten - rabs + 1, FILL, CMH, 0); // CMH
-	RenderBox(sx + rahmen, linie_unten + rabs, ex - rahmen, ey - rahmen, FILL, CMCST, 0);			  // CMCST
+	RenderBox(sx + rahmen, sy + rahmen, ex - rahmen, linie_oben - rabs, FILL, CMCST, 0);			// CMCST
+	RenderBox(sx + rahmen, linie_oben + rabs - 1, ex - rahmen, linie_unten - rabs + 1, FILL, CMH, 0);	// CMH
+	RenderBox(sx + rahmen, linie_unten + rabs, ex - rahmen, ey - rahmen, FILL, CMCST, 0);			// CMCST
 
-	RenderBox(sx + rabs, sy + rabs, ex - rabs, linie_oben, GRID, CMCST, 0);			  // CMCST
-	RenderBox(sx + rabs, linie_oben - 1, ex - rabs, linie_unten + 1, GRID, CMCST, 0); // CMCST
-	RenderBox(sx + rabs, linie_unten, ex - rabs, ey - rabs, GRID, CMCST, 0);		  // CMCST
+	RenderBox(sx + rabs, sy + rabs, ex - rabs, linie_oben, GRID, CMCST, 0);					// CMCST
+	RenderBox(sx + rabs, linie_oben - 1, ex - rabs, linie_unten + 1, GRID, CMCST, 0);			// CMCST
+	RenderBox(sx + rabs, linie_unten, ex - rabs, ey - rabs, GRID, CMCST, 0);				// CMCST
 
 	snprintf(vstr, sizeof(vstr), "Sysinfo %.2f", SH_VERSION);
 	RenderString(vstr, sx + 2 * OFFSET_MED, sy + 4 * OFFSET_MED + 4 * OFFSET_MIN, scale2res(300), LEFT, scale2res(38), GREEN);
 
+#if 0	// homepage
 	get_homepage(VERSION_FILE, vstr);
+#else	// imagename and boxname
+	get_imagename(VERSION_FILE, imgname);
+	snprintf(vstr, sizeof(vstr), "%s - %s", imgname, boxname);
+#endif
 	RenderString(vstr, sx + scale2res(360), sy + 4 * OFFSET_MED + 2 * OFFSET_MIN, scale2res(450), LEFT, scale2res(30), BLUE0); // BLUE3
 }
 
