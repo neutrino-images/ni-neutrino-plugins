@@ -24,5 +24,7 @@ sysinfo_LDADD = \
 	@PNG_LIBS@
 
 install-exec-local:
-	install -d $(DESTDIR)/usr/bin
-	install -m 0755 input $(DESTDIR)/usr/bin/sysinfo
+	install -d $(DESTDIR)/var/tuxbox/plugins
+	install -m 0644 sysinfo.cfg $(DESTDIR)/var/tuxbox/plugins
+	install -m 0644 sysinfo_hint.png $(DESTDIR)/var/tuxbox/plugins
+	install -m 0755 sysinfo $(DESTDIR)/var/tuxbox/plugins/sysinfo.so
