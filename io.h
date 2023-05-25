@@ -77,6 +77,7 @@
 #define	RC_MINUS	0x16
 #define	RC_HELP		0x17
 #define	RC_DBOX		0x18
+#define	RC_EXIT		0x1E
 #define	RC_HOME		0x1F
 
 int InitRC(void);

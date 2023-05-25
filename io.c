@@ -123,7 +123,8 @@ int GetRCCode()
 				case KEY_INFO:			rccode = RC_HELP;	break;
 				case KEY_SETUP:			rccode = RC_DBOX;	break;
 				case KEY_MENU:			rccode = RC_DBOX;	break;
-				case KEY_EXIT:			rccode = RC_HOME;	break;
+				case KEY_EXIT:			rccode = RC_EXIT;	break;
+				case KEY_HOME:			rccode = RC_HOME;	break;
 				case KEY_POWER:			rccode = RC_STANDBY;break;
 				default:				rccode = -1;
 			}
