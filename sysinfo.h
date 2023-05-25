@@ -22,6 +22,8 @@
 #ifndef __SYSINFO_H__
 #define __SYSINFO_H__
 
+#include <config.h>
+
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>

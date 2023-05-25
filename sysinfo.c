@@ -1481,7 +1481,11 @@ void hauptseite(void)
 
 	get_info_cpu();
 	get_uptime();
+#if BOXMODEL_VUPLUS_ARM
+	mtd_count = 0;
+#else
 	mtd_count = get_mtd();
+#endif
 
 	if (mtd_count)
 	{
@@ -1658,10 +1662,18 @@ void hauptseite(void)
 				RenderString(temp_string, sx + h_abs + longest_length + 2*OFFSET_MED + scale2res(110), linie_oben + v_abs, maxwidth, LEFT, FSIZE_SMALL, CMCT);
 
 				snprintf(temp_string, sizeof(temp_string), "%d%%", (int) floor(mmcblk_info[i].usage_percent + 0.5));
+#if BOXMODEL_VUPLUS_ARM
+				draw_progressbar(sx + h_abs + longest_length + 2*OFFSET_MED + scale2res(230), linie_oben + v_abs - 2*OFFSET_MED, sx + h_abs + longest_length + 2*OFFSET_MED + scale2res(310),
+#else
 				draw_progressbar(sx + h_abs + longest_length + 2*OFFSET_MED + scale2res(230), linie_oben + v_abs - 2*OFFSET_MED, sx + h_abs + longest_length + 2*OFFSET_MED + scale2res(340),
+#endif
 					(linie_oben + v_abs - 2*OFFSET_MED + scale2res(16)), PB_LEFT_GREEN70, (int) floor(mmcblk_info[i].usage_percent + 0.5));
 				// used
+#if BOXMODEL_VUPLUS_ARM
+				RenderString(temp_string, sx + h_abs + longest_length + 2*OFFSET_MED + scale2res(320), (linie_oben + v_abs - OFFSET_MIN), maxwidth, LEFT, FSIZE_VSMALL, CMCT);
+#else
 				RenderString(temp_string, sx + h_abs + longest_length + 2*OFFSET_MED + scale2res(350), (linie_oben + v_abs - OFFSET_MIN), maxwidth, LEFT, FSIZE_VSMALL, CMCT);
+#endif
 			}
 		}
 		// Freigabe des mmcblk_info Speichers
