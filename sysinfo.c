@@ -874,6 +874,17 @@ int get_info_cpu(void)
 		fclose(file);
 	}
 
+	if (atoi(bogomips) == 0)
+	{
+		file = fopen("/sys/kernel/debug/clk/fixed0/clk_rate", "r");
+		if (file)
+		{
+			fgets(line_buffer, sizeof(line_buffer), file);
+			snprintf(bogomips, sizeof(bogomips), "%.2f", atof(line_buffer) / 1000000);
+			fclose(file);
+		}
+	}
+
 	file = fopen("/proc/version", "r");
 	if (file)
 	{
