@@ -46,7 +46,7 @@
 #include "mmcblk_info.h"
 #include "mtddevice_info.h"
 
-#define SH_VERSION 1.24
+#define SH_VERSION 1.25
 
 FT_Error error;
 FT_Library library;
@@ -1450,62 +1450,39 @@ int get_mem(void)
 	return 0;
 }
 
-void get_boxname()
+int get_boxinfo(char* vendor,char* boxname, char* boxarch)
 {
-	FILE *fd;
-#if BOXMODEL_VUPLUS_ALL
-	fd = fopen("/proc/stb/info/vumodel", "r");
-#else
-	fd = fopen("/proc/stb/info/model", "r");
-#endif
-	if (fd)
-	{
-		fgets(boxname, 64, fd);
-		fclose(fd);
-	}
-	correct_string(boxname);
-	char *p;
-	for (p = boxname; *p != '\0'; p++)
-		*p = (char) toupper(*p);
-}
+	FILE *pipe;
+	int ret = -1;
+	char buffer[128];
 
-void get_homepage(const char* filename, char* out) {
-	FILE* fp = fopen(filename, "r");
-	if (fp == NULL) {
-		*out = '\0';
-		perror("Fehler beim Oeffnen der Datei");
-		return;
+	pipe = popen("wget http://127.0.0.1/control/boxinfo -q -O -", "r");
+	if (pipe == NULL) {
+		perror("popen");
+		return -1;
 	}
 
-	char line[256];
-	char* start = NULL;
-	while (fgets(line, sizeof(line), fp) != NULL) {
-		if ((start = strstr(line, "homepage=")) != NULL) {
-			start += strlen("homepage=");
-			break;
+	while (fgets(buffer, sizeof(buffer), pipe) != NULL) {
+		// Prozessiere jede Zeile der Ausgabe
+		char *equalsign = strchr(buffer, '=');
+		if (equalsign != NULL) {
+			*equalsign = '\0';  // Setze das "="-Zeichen auf Null, um den Key zu terminieren
+			char *value = equalsign + 1;  // Zeiger auf das Value
+			value[strcspn(value, "\n")] = '\0';  // Entferne den Zeilenumbruch, falls vorhanden
+
+			// Speichere die Werte entsprechend den übergebenen Zeigern
+			if (strcmp(buffer, "vendor") == 0) {
+				strcpy(vendor, value);
+			} else if (strcmp(buffer, "boxname") == 0) {
+				strcpy(boxname, value);
+			} else if (strcmp(buffer, "boxarch") == 0) {
+				strcpy(boxarch, value);
+			}
+			ret = 0;
 		}
 	}
-
-	fclose(fp);
-
-	if (start == NULL) {
-		*out = '\0';
-		return;
-	}
-
-	const char* prefix1 = "http://";
-	const char* prefix2 = "https://";
-	size_t prefix1_len = strlen(prefix1);
-	size_t prefix2_len = strlen(prefix2);
-
-	if (strncmp(start, prefix1, prefix1_len) == 0) {
-		start += prefix1_len;
-	} else if (strncmp(start, prefix2, prefix2_len) == 0) {
-		start += prefix2_len;
-	}
-	correct_string(start);
-
-	strcpy(out, start);
+	pclose(pipe);
+	return ret;
 }
 
 void get_imagename(const char* filename, char* out) {
@@ -1538,9 +1515,11 @@ void get_imagename(const char* filename, char* out) {
 
 void hintergrund(void)
 {
-	get_boxname();
 	char vstr[256];
-	char imgname[128];
+	char vendor[32];
+	char imgname[64];
+	char boxname[32];
+	char boxarch[32];
 
 	setBackground(CMCST);
 	RenderBox(sx, sy, ex, ey, FILL, CMCIT, 0);
@@ -1556,13 +1535,14 @@ void hintergrund(void)
 	snprintf(vstr, sizeof(vstr), "Sysinfo %.2f", SH_VERSION);
 	RenderString(vstr, sx + 2 * OFFSET_MED, sy + 4 * OFFSET_MED + 4 * OFFSET_MIN, scale2res(300), LEFT, scale2res(38), GREEN);
 
-#if 0	// homepage
-	get_homepage(VERSION_FILE, vstr);
-#else	// imagename and boxname
 	get_imagename(VERSION_FILE, imgname);
-	snprintf(vstr, sizeof(vstr), "%s - %s", imgname, boxname);
-#endif
-	RenderString(vstr, sx + scale2res(360), sy + 4 * OFFSET_MED + 2 * OFFSET_MIN, scale2res(450), LEFT, scale2res(30), BLUE0); // BLUE3
+	if (get_boxinfo(vendor, boxname, boxarch) == 0) {
+		snprintf(vstr, sizeof(vstr), "%s - %s %s (%s)", imgname, vendor, boxname, boxarch);
+	}
+	else {
+		snprintf(vstr, sizeof(vstr), "%s", imgname);
+	}
+	RenderString(vstr, sx + scale2res(235), sy + 4 * OFFSET_MED + 2 * OFFSET_MIN, scale2res(700), CENTER, scale2res(30), BLUE0); // BLUE3
 }
 
 void hauptseite(void)
