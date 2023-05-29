@@ -3,9 +3,11 @@ AM_CPPFLAGS =  \
 	@PNG_CFLAGS@ \
 	-I$(top_srcdir)/include
 
-bin_PROGRAMS = sysinfo
+plugindir = $(PLUGINDIR)
 
-sysinfo_SOURCES = \
+plugin_PROGRAMS = sysinfo.so
+
+sysinfo_so_SOURCES = \
 	sysinfo.c \
 	io.c \
 	text.c \
@@ -19,12 +21,10 @@ sysinfo_SOURCES = \
 	pngw.cpp \
 	png_helper.cpp
 
-sysinfo_LDADD = \
+sysinfo_so_LDADD = \
 	@FREETYPE_LIBS@ \
 	@PNG_LIBS@
 
-install-exec-local:
-	install -d $(DESTDIR)/var/tuxbox/plugins
-	install -m 0644 sysinfo.cfg $(DESTDIR)/var/tuxbox/plugins
-	install -m 0644 sysinfo_hint.png $(DESTDIR)/var/tuxbox/plugins
-	install -m 0755 sysinfo $(DESTDIR)/var/tuxbox/plugins/sysinfo.so
+plugin_DATA = \
+	sysinfo.cfg \
+	sysinfo_hint.png
