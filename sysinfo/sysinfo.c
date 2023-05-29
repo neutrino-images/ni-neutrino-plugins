@@ -1213,7 +1213,10 @@ int show_ps_dmseg(char quote)
 	}
 	else
 	{
+#if 0
 		system("ps -A > /tmp/systmp");
+#endif
+		system("ps > /tmp/systmp");
 	}
 	if ((f = fopen("/tmp/systmp", "r")) != NULL)
 	{
@@ -1365,6 +1368,7 @@ int show_ps_dmseg(char quote)
 							ps_end = 1;
 							break;
 
+						case KEY_HELP:
 						case KEY_INFO: // Info
 							fseek(f, 0L, SEEK_SET);
 							for (y = 0; y <= ps_pointer; y++)
@@ -1466,9 +1470,9 @@ int get_boxinfo(char* vendor,char* boxname, char* boxarch)
 		// Prozessiere jede Zeile der Ausgabe
 		char *equalsign = strchr(buffer, '=');
 		if (equalsign != NULL) {
-			*equalsign = '\0';  // Setze das "="-Zeichen auf Null, um den Key zu terminieren
-			char *value = equalsign + 1;  // Zeiger auf das Value
-			value[strcspn(value, "\n")] = '\0';  // Entferne den Zeilenumbruch, falls vorhanden
+			*equalsign = '\0';			// Setze das "="-Zeichen auf Null, um den Key zu terminieren
+			char *value = equalsign + 1;		// Zeiger auf das Value
+			value[strcspn(value, "\n")] = '\0';	// Entferne den Zeilenumbruch, falls vorhanden
 
 			// Speichere die Werte entsprechend den übergebenen Zeigern
 			if (strcmp(buffer, "vendor") == 0) {
@@ -1735,14 +1739,14 @@ void hauptseite(void)
 				RenderString(temp_string, sx + h_abs + longest_length + 2*OFFSET_MED + scale2res(110), linie_oben + v_abs, maxwidth, LEFT, FSIZE_SMALL, CMCT);
 
 				snprintf(temp_string, sizeof(temp_string), "%d%%", (int) floor(mmcblk_info[i].usage_percent + 0.5));
-#if BOXMODEL_VUPLUS_ARM
+#if 1	//looks better :)
 				draw_progressbar(sx + h_abs + longest_length + 2*OFFSET_MED + scale2res(230), linie_oben + v_abs - 2*OFFSET_MED, sx + h_abs + longest_length + 2*OFFSET_MED + scale2res(310),
 #else
 				draw_progressbar(sx + h_abs + longest_length + 2*OFFSET_MED + scale2res(230), linie_oben + v_abs - 2*OFFSET_MED, sx + h_abs + longest_length + 2*OFFSET_MED + scale2res(340),
 #endif
 					(linie_oben + v_abs - 2*OFFSET_MED + scale2res(16)), PB_LEFT_GREEN70, (int) floor(mmcblk_info[i].usage_percent + 0.5));
 				// used
-#if BOXMODEL_VUPLUS_ARM
+#if 1	//looks better :)
 				RenderString(temp_string, sx + h_abs + longest_length + 2*OFFSET_MED + scale2res(320), (linie_oben + v_abs - OFFSET_MIN), maxwidth, LEFT, FSIZE_VSMALL, CMCT);
 #else
 				RenderString(temp_string, sx + h_abs + longest_length + 2*OFFSET_MED + scale2res(350), (linie_oben + v_abs - OFFSET_MIN), maxwidth, LEFT, FSIZE_VSMALL, CMCT);

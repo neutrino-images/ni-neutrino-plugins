@@ -1,4 +1,3 @@
-
 #include "pngw.h"
 
 int png_load_ext(const char *filename, unsigned char **buffer, int* xp, int* yp, int* bpp);
@@ -18,4 +17,3 @@ int png_getsize(const char *filename, int *x, int *y)
 }
 
 }
-

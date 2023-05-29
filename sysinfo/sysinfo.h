@@ -46,16 +46,16 @@
 #include FT_CACHE_SMALL_BITMAPS_H
 
 #ifndef FB_DEVICE
-#define FB_DEVICE	"/dev/fb/0"
+#define FB_DEVICE "/dev/fb/0"
 #endif
 #ifndef FB_DEVICE_FALLBACK
-#define FB_DEVICE_FALLBACK	"/dev/fb0"
+#define FB_DEVICE_FALLBACK "/dev/fb0"
 #endif
 #ifndef CONFIGDIR
 #define CONFIGDIR "/var/tuxbox/config"
 #endif
 #ifndef FONTDIR
-#define FONTDIR	"/share/fonts"
+#define FONTDIR	"/usr/share/fonts"
 #endif
 
 #define NCFFILE CONFIGDIR "/neutrino.conf"

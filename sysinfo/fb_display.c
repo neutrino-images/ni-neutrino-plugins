@@ -154,4 +154,3 @@ void* convertRGB2FB(unsigned char* rgbbuff, unsigned long count, int bpp, int* c
     }
     return (void*)fbbuff;
 }
-

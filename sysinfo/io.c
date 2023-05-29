@@ -102,22 +102,22 @@ int GetRCCode()
 				case KEY_LEFT:			rccode = RC_LEFT;	break;
 				case KEY_RIGHT:			rccode = RC_RIGHT;	break;
 				case KEY_OK:			rccode = RC_OK;		break;
-				case KEY_0:				rccode = RC_0;		break;
-				case KEY_1:				rccode = RC_1;		break;
-				case KEY_2:				rccode = RC_2;		break;
-				case KEY_3:				rccode = RC_3;		break;
-				case KEY_4:				rccode = RC_4;		break;
-				case KEY_5:				rccode = RC_5;		break;
-				case KEY_6:				rccode = RC_6;		break;
-				case KEY_7:				rccode = RC_7;		break;
-				case KEY_8:				rccode = RC_8;		break;
-				case KEY_9:				rccode = RC_9;		break;
+				case KEY_0:			rccode = RC_0;		break;
+				case KEY_1:			rccode = RC_1;		break;
+				case KEY_2:			rccode = RC_2;		break;
+				case KEY_3:			rccode = RC_3;		break;
+				case KEY_4:			rccode = RC_4;		break;
+				case KEY_5:			rccode = RC_5;		break;
+				case KEY_6:			rccode = RC_6;		break;
+				case KEY_7:			rccode = RC_7;		break;
+				case KEY_8:			rccode = RC_8;		break;
+				case KEY_9:			rccode = RC_9;		break;
 				case KEY_RED:			rccode = RC_RED;	break;
 				case KEY_GREEN:			rccode = RC_GREEN;	break;
 				case KEY_YELLOW:		rccode = RC_YELLOW;	break;
 				case KEY_BLUE:			rccode = RC_BLUE;	break;
 				case KEY_VOLUMEUP:		rccode = RC_PLUS;	break;
-				case KEY_VOLUMEDOWN:	rccode = RC_MINUS;	break;
+				case KEY_VOLUMEDOWN:		rccode = RC_MINUS;	break;
 				case KEY_MUTE:			rccode = RC_MUTE;	break;
 				case KEY_HELP:			rccode = RC_HELP;	break;
 				case KEY_INFO:			rccode = RC_HELP;	break;
@@ -125,8 +125,8 @@ int GetRCCode()
 				case KEY_MENU:			rccode = RC_DBOX;	break;
 				case KEY_EXIT:			rccode = RC_EXIT;	break;
 				case KEY_HOME:			rccode = RC_HOME;	break;
-				case KEY_POWER:			rccode = RC_STANDBY;break;
-				default:				rccode = -1;
+				case KEY_POWER:			rccode = RC_STANDBY;	break;
+				default:			rccode = -1;
 			}
 			return rccode;
 		}
@@ -138,4 +138,3 @@ int GetRCCode()
 	}
 	return -1;
 }
-
