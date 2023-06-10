@@ -846,54 +846,85 @@ int get_info_cpu(void)
 	{
 		while (fgets(line_buffer, sizeof(line_buffer), file))
 		{
-			if ((ptr = strstr(line_buffer, "processor")) != NULL)
-			{
-				daten_auslesen(line_buffer, cores, sizeof(cores), ':', '\n');
-			}
 #if HAVE_SH4_HARDWARE
-			if ((ptr = strstr(line_buffer, "cpu type")) != NULL)
-			{
-				daten_auslesen(line_buffer, processor, sizeof(processor),':', '\n');
-			}
-			if ((ptr = strstr(line_buffer, "bogomips")) != NULL)
-			{
-				daten_auslesen(line_buffer, bogomips, sizeof(bogomips),':', '\n');
-			}
-#else
-			if ((ptr = strstr(line_buffer, "Processor")) != NULL)
-			{
-				daten_auslesen(line_buffer, processor, sizeof(processor),':', '\n');
-			}
-			if ((ptr = strstr(line_buffer, "BogoMIPS")) != NULL)
-			{
-				daten_auslesen(line_buffer, bogomips, sizeof(bogomips),':', '\n');
-			}
-#endif
-
-			if ((ptr = strstr(line_buffer, "Features")) != NULL)
-			{
-				daten_auslesen(line_buffer, features, sizeof(features),':', '\n');
-			}
-
-#if HAVE_SH4_HARDWARE
+			// Hardware
 			if ((ptr = strstr(line_buffer, "machine")) != NULL)
 			{
 				daten_auslesen(line_buffer, hardware, sizeof(hardware),':', '\n');
 			}
+			// Revision
 			if ((ptr = strstr(line_buffer, "cut")) != NULL)
 			{
 				daten_auslesen(line_buffer, hard_rev, sizeof(hard_rev),':', '\n');
 			}
+#elif BOXMODEL_VUDUO2
+			// Hardware
+			if ((ptr = strstr(line_buffer, "system type")) != NULL)
+			{
+				daten_auslesen(line_buffer, hardware, sizeof(hardware),':', '\n');
+			}
+			// Revision
+			if ((ptr = strstr(line_buffer, "machine")) != NULL)
+			{
+				daten_auslesen(line_buffer, hard_rev, sizeof(hard_rev),':', '\n');
+			}
 #else
+			// Hardware
 			if ((ptr = strstr(line_buffer, "Hardware")) != NULL)
 			{
 				daten_auslesen(line_buffer, hardware, sizeof(hardware),':', '\n');
 			}
+			// Revision
 			if ((ptr = strstr(line_buffer, "Revision")) != NULL)
 			{
 				daten_auslesen(line_buffer, hard_rev, sizeof(hard_rev),':', '\n');
 			}
 #endif
+			// Cores
+			if ((ptr = strstr(line_buffer, "processor")) != NULL)
+			{
+				daten_auslesen(line_buffer, cores, sizeof(cores), ':', '\n');
+			}
+#if HAVE_SH4_HARDWARE
+			// Processor
+			if ((ptr = strstr(line_buffer, "cpu type")) != NULL)
+			{
+				daten_auslesen(line_buffer, processor, sizeof(processor),':', '\n');
+			}
+			// BogoMIPS
+			if ((ptr = strstr(line_buffer, "bogomips")) != NULL)
+			{
+				daten_auslesen(line_buffer, bogomips, sizeof(bogomips),':', '\n');
+			}
+#elif BOXMODEL_VUDUO2
+			// Processor
+			if ((ptr = strstr(line_buffer, "cpu model")) != NULL)
+			{
+				daten_auslesen(line_buffer, processor, sizeof(processor),':', '\n');
+			}
+			// BogoMIPS
+			if ((ptr = strstr(line_buffer, "BogoMIPS")) != NULL)
+			{
+				daten_auslesen(line_buffer, bogomips, sizeof(bogomips),':', '\n');
+			}
+#else
+			// Processor
+			if ((ptr = strstr(line_buffer, "Processor")) != NULL)
+			{
+				daten_auslesen(line_buffer, processor, sizeof(processor),':', '\n');
+			}
+			// BogoMIPS
+			if ((ptr = strstr(line_buffer, "BogoMIPS")) != NULL)
+			{
+				daten_auslesen(line_buffer, bogomips, sizeof(bogomips),':', '\n');
+			}
+#endif
+			// Features
+			if ((ptr = strstr(line_buffer, "Features")) != NULL)
+			{
+				daten_auslesen(line_buffer, features, sizeof(features),':', '\n');
+			}
+
 		}
 		fclose(file);
 	}
@@ -1792,6 +1823,9 @@ void hauptseite(void)
 #if HAVE_SH4_HARDWARE // FIXME, SH4 braucht Vollbild, da laengere Texte
 			RenderString(temp_string, sx + longest_length + OFFSET_SMALL, linie_oben + v_abs_progress-OFFSET_MIN, scale2res(125), RIGHT, FSIZE_VSMALL, CMCT);
 			draw_progressbar(sx  + longest_length + scale2res(140), linie_oben + v_abs_progress - 2*OFFSET_MED+1, sx + longest_length + scale2res(165),
+#elif BOXMODEL_VUDUO2 // FIXME, VUDUO2 braucht Vollbild, da laengere Texte
+			RenderString(temp_string, sx + longest_length + OFFSET_SMALL, linie_oben + v_abs_progress-OFFSET_MIN, scale2res(135), RIGHT, FSIZE_VSMALL, CMCT);
+			draw_progressbar(sx  + longest_length + scale2res(155), linie_oben + v_abs_progress - 2*OFFSET_MED+1, sx + longest_length + scale2res(190),
 #else
 			RenderString(temp_string, sx + longest_length + OFFSET_SMALL, linie_oben + v_abs_progress-OFFSET_MIN, scale2res(150), RIGHT, FSIZE_VSMALL, CMCT);
 			draw_progressbar(sx  + longest_length + scale2res(165), linie_oben + v_abs_progress - 2*OFFSET_MED+1, sx + longest_length + scale2res(245),
@@ -1801,6 +1835,8 @@ void hauptseite(void)
 			snprintf(temp_string, sizeof(temp_string), "%d %c", (int)devices[i].used_percentage, 37);
 #if HAVE_SH4_HARDWARE // FIXME, SH4 braucht Vollbild, da laengere Texte
 			RenderString(temp_string, sx + longest_length + scale2res(160) , linie_oben + v_abs_progress-OFFSET_MIN, scale2res(40), RIGHT, FSIZE_VSMALL, CMCT);
+#elif BOXMODEL_VUDUO2 // FIXME, VUDUO2 braucht Vollbild, da laengere Texte
+			RenderString(temp_string, sx + longest_length + scale2res(195) , linie_oben + v_abs_progress-OFFSET_MIN, scale2res(40), RIGHT, FSIZE_VSMALL, CMCT);
 #else
 			RenderString(temp_string, sx + longest_length + scale2res(245) , linie_oben + v_abs_progress-OFFSET_MIN, scale2res(40), RIGHT, FSIZE_VSMALL, CMCT);
 #endif
