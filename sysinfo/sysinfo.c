@@ -1553,7 +1553,7 @@ void hauptseite(void)
 {
 	int i = 0, y = 0, mtd_count = 0, slen = 0, longest_length = 0;
 	int abs_links = 0, maxwidth = 0, v_dist = scale2res(24), hoffs = 0;
-	int h_abs = scale2res(40), v_abs = scale2res(46);
+	int h_abs = scale2res(18), v_abs = scale2res(36);
 	char temp_string[256] = {0};
 
 	get_info_cpu();
@@ -1785,13 +1785,22 @@ void hauptseite(void)
 		for (i = 0; i < num_mtd_devices; i++) {
 			v_abs_progress += (v_dist - 2 * OFFSET_MIN);
 			snprintf(temp_string, sizeof(temp_string), "%s / %s", devices[i].used_size_str, devices[i].total_size_str);
-			RenderString(temp_string, sx + longest_length + OFFSET_SMALL, linie_oben + v_abs_progress-OFFSET_MIN, scale2res(150), RIGHT, FSIZE_VSMALL, CMCT);
 
+#if HAVE_SH4_HARDWARE // FIXME, SH4 braucht Vollbild, da laengere Texte
+			RenderString(temp_string, sx + longest_length + OFFSET_SMALL, linie_oben + v_abs_progress-OFFSET_MIN, scale2res(125), RIGHT, FSIZE_VSMALL, CMCT);
+			draw_progressbar(sx  + longest_length + scale2res(140), linie_oben + v_abs_progress - 2*OFFSET_MED+1, sx + longest_length + scale2res(165),
+#else
+			RenderString(temp_string, sx + longest_length + OFFSET_SMALL, linie_oben + v_abs_progress-OFFSET_MIN, scale2res(150), RIGHT, FSIZE_VSMALL, CMCT);
 			draw_progressbar(sx  + longest_length + scale2res(165), linie_oben + v_abs_progress - 2*OFFSET_MED+1, sx + longest_length + scale2res(245),
+#endif
 				linie_oben + v_abs_progress - 2*OFFSET_MED+1 + scale2res(14), PB_LEFT_GREEN70, (int)devices[i].used_percentage);
 
 			snprintf(temp_string, sizeof(temp_string), "%d %c", (int)devices[i].used_percentage, 37);
+#if HAVE_SH4_HARDWARE // FIXME, SH4 braucht Vollbild, da laengere Texte
+			RenderString(temp_string, sx + longest_length + scale2res(160) , linie_oben + v_abs_progress-OFFSET_MIN, scale2res(40), RIGHT, FSIZE_VSMALL, CMCT);
+#else
 			RenderString(temp_string, sx + longest_length + scale2res(245) , linie_oben + v_abs_progress-OFFSET_MIN, scale2res(40), RIGHT, FSIZE_VSMALL, CMCT);
+#endif
 		}
 	}
 
