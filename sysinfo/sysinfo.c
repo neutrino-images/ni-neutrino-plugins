@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <signal.h>
 #include <math.h>
 #include <linux/dvb/frontend.h>
@@ -1213,10 +1214,12 @@ int show_ps_dmseg(char quote)
 	}
 	else
 	{
-#if 0
+		struct stat buf;
+		int xx;
 		system("ps -A > /tmp/systmp");
-#endif
-		system("ps > /tmp/systmp");
+		xx = stat("/tmp/systmp", &buf);
+		if (buf.st_size == 0)
+			system("ps > /tmp/systmp");
 	}
 	if ((f = fopen("/tmp/systmp", "r")) != NULL)
 	{
