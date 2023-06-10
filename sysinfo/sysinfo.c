@@ -389,9 +389,9 @@ int get_active_interface(char *interface_name)
 int init_fb(void)
 {
 	char *tstr = NULL;
-	static char menucoltxt[][25] = {"Content_Selected_Text", "Content_Selected",
-									"Content_Text", "Content", "Content_inactive_Text", "Content_inactive",
-									"Head_Text", "Head"};
+	static char menucoltxt[][25] = { "Content_Selected_Text", "Content_Selected",
+					 "Content_Text", "Content", "Content_inactive_Text",
+					 "Content_inactive", "Head_Text", "Head"};
 	int index = 0, cindex = 0, tv;
 
 	fb = open(FB_DEVICE, O_RDWR);
@@ -857,7 +857,7 @@ int get_info_cpu(void)
 			{
 				daten_auslesen(line_buffer, hard_rev, sizeof(hard_rev),':', '\n');
 			}
-#elif BOXMODEL_VUDUO2
+#elif BOXMODEL_VUDUO || BOXMODEL_VUDUO2
 			// Hardware
 			if ((ptr = strstr(line_buffer, "system type")) != NULL)
 			{
@@ -896,7 +896,7 @@ int get_info_cpu(void)
 			{
 				daten_auslesen(line_buffer, bogomips, sizeof(bogomips),':', '\n');
 			}
-#elif BOXMODEL_VUDUO2
+#elif BOXMODEL_VUDUO || BOXMODEL_VUDUO2
 			// Processor
 			if ((ptr = strstr(line_buffer, "cpu model")) != NULL)
 			{
@@ -1340,7 +1340,7 @@ int show_ps_dmseg(char quote)
 			case KEY_OK:
 				if (quote != 0)
 				{
-					//							printf("aussseeeen i= %d - ps_pointer = %d - endf= %d\n",i,ps_pointer,endf); fflush(stdout);
+					// printf("aussseeeen i= %d - ps_pointer = %d - endf= %d\n",i,ps_pointer,endf); fflush(stdout);
 					RenderBox(sx + 2 * ((ex - sx - 3 * OFFSET_MED) / 4), linie_unten + 2 * OFFSET_MIN, sx + 4 * OFFSET_MED + (((ex - sx - 3 * OFFSET_MED) / 4) * 3), ey - 4 * OFFSET_MIN, FILL, CMCST, 0); // CMCST
 					png_getsize(ICON_BUTTON_INFO, &icon_w, &icon_h);
 					paintIcon(ICON_BUTTON_INFO, sx + scale2res((icon_w / 2)) + ((int)((ex - sx - 3 * OFFSET_MED) / 4) * 2), linie_unten + 3 * OFFSET_SMALL + OFFSET_MIN - (icon_h / 2), 0, 0, &iw, &ih);
