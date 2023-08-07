@@ -1,8 +1,8 @@
 #!/bin/sh
 # Script for complete image backup
 # License: GPLv2 or later
-Version="1.32 vom 14.10.2022"
-Copyright="(C) 2018-2022 DboxOldie / BPanther / Frankenstone / Fritz / DdD"
+Version="1.33 vom 01.08.2023"
+Copyright="(C) 2018-2023 DboxOldie / BPanther / Frankenstone / Fritz / DdD"
 
 #
 file=$0
@@ -26,6 +26,7 @@ klen=0
 bz2=$(which bzip2)
 hexd=$(which hexdump)
 xxdmp=$(which xxd)
+prtd=$(which parted)
 new_layout=0
 multi=0
 gui_mode=0
@@ -138,7 +139,15 @@ do
 
 	if [ "$parm" == "gui" ]; then
 		gui_mode=1
-		msgbox title="Partitions-Backup erstellen" msg="~cDiese Partitionen stehen zur Auswahl:" select="Partition 1, Partition 2, Partition 3, Partition 4" order=4 default=$bkp_part
+		if [ -z "$prtd" ]; then
+			msgbox title="parted nicht gefunden" msg="~cPartitionen auf 4 gesetzt." icon="error"
+			part_count=4
+		else
+			part_count=`$prtd /dev/mmcblk0 print | grep -c rootfs`
+		fi
+		[ $part_count -gt 2 ] && PART_3=", Partition 3"
+		[ $part_count -gt 3 ] && PART_4=", Partition 4"
+		msgbox title="Partitions-Backup erstellen" msg="~cDiese Partitionen stehen zur Auswahl:" select="Partition 1, Partition 2 $PART_3 $PART_4" order=4 default=$bkp_part
 		parm=-m$?
 		[ "$parm" == "-m0" ] && echo "  Abbruch!" && exit
 		B_PART=`echo "Backup Partition: ${parm:2:3}"`
