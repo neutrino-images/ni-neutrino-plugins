@@ -4,7 +4,7 @@
 -- STB-Startup for HD51/H7/BRE2ZE4K
 --
 -- Changed, now also for VU+ SOLO 4K, VU+ DUO 4K, VU+ DUO 4K SE, VU+ ULTIMO 4K, VU+ UNO 4K, VU+ UNO 4K SE, VU+ ZERO 4K, E4HD 4K ULTRA and Protek 4K UHD
--- by BPanther 13/Oct/2022
+-- by BPanther 29/Jul/2023
 --
 -- Redistribution and use in source and binary forms, with or without modification, 
 -- are permitted provided that the following conditions are met:
@@ -28,7 +28,7 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
-caption = "STB-Startup v1.26 - "
+caption = "STB-Startup v1.27 - "
 bmbox = 0
 
 n = neutrino()
@@ -105,6 +105,16 @@ locale["english"] = {
 	off = "off",
 	react = "Select partition again after changing boxmode."
 }
+
+function count_root()
+	local cnt = 4
+	local f = assert(io.popen("parted /dev/mmcblk0 print | grep -c rootfs"))
+	if f then
+		cnt = tonumber(f:read('*line'))
+		f:close()
+	end
+	return cnt
+end
 
 function sleep (a)
 	local sec = tonumber(os.clock() + a);
@@ -296,6 +306,15 @@ chooser_dy = n:scale2Res(200)
 chooser_x = SCREEN.OFF_X + (((SCREEN.END_X - SCREEN.OFF_X) - chooser_dx) / 2)
 chooser_y = SCREEN.OFF_Y + (((SCREEN.END_Y - SCREEN.OFF_Y) - chooser_dy) / 2)
 
+_btnRed = get_imagename(root1) .. is_active(root1)
+_btnGreen = get_imagename(root2) .. is_active(root2)
+if count_root() > 2 then
+	_btnYellow = get_imagename(root3) .. is_active(root3)
+end
+if count_root() > 3 then
+	_btnBlue = get_imagename(root4) .. is_active(root4)
+end
+
 if bmbox == 1 then
 	chooser = cwindow.new {
 		x = chooser_x,
@@ -305,10 +324,10 @@ if bmbox == 1 then
 		title = caption .. vumodel:upper(),
 		icon = "settings",
 		has_shadow = true,
-		btnRed = get_imagename(root1) .. is_active(root1),
-		btnGreen = get_imagename(root2) .. is_active(root2),
-		btnYellow = get_imagename(root3) .. is_active(root3),
-		btnBlue = get_imagename(root4) .. is_active(root4),
+		btnRed = _btnRed,
+		btnGreen = _btnGreen,
+		btnYellow = _btnYellow,
+		btnBlue = _btnBlue,
 		btnSetup = "Boxmode"
 	}
 else
@@ -320,10 +339,10 @@ else
 		title = caption .. vumodel:upper(),
 		icon = "settings",
 		has_shadow = true,
-		btnRed = get_imagename(root1) .. is_active(root1),
-		btnGreen = get_imagename(root2) .. is_active(root2),
-		btnYellow = get_imagename(root3) .. is_active(root3),
-		btnBlue = get_imagename(root4) .. is_active(root4)
+		btnRed = _btnRed,
+		btnGreen = _btnGreen,
+		btnYellow = _btnYellow,
+		btnBlue = _btnBlue
 	}
 end
 
@@ -359,11 +378,11 @@ repeat
 		root = root2
 		rootnum = 2
 		colorkey = true
-	elseif (msg == RC['yellow']) then
+	elseif (count_root() > 2 and msg == RC['yellow']) then
 		root = root3
 		rootnum = 3
 		colorkey = true
-	elseif (msg == RC['blue']) then
+	elseif (count_root() > 3 and msg == RC['blue']) then
 		root = root4
 		rootnum = 4
 		colorkey = true
