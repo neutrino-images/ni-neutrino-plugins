@@ -1,15 +1,14 @@
 <?xml version="1.0"?>
 <webtvs name="YouTube Livestreams">
-	<webtv title="Al Jazeera English" url="https://www.youtube.com/user/AlJazeeraEnglish"	script="yt_live.lua" description="YouTube Livestream" />
-	<webtv title="Bloomberg" url="https://www.youtube.com/user/Bloomberg"			script="yt_live.lua" description="YouTube Livestream"/>
-	<webtv title="ChillYourMind Radio" url="https://www.youtube.com/user/ChillYourMind"	script="yt_live.lua" description="YouTube Livestream"/>
-	<webtv title="fashion TV" url="https://www.youtube.com/user/fashiontvFMEN"		script="yt_live.lua" description="YouTube Livestream"/>
+	<webtv title="Bloomberg" url="https://www.youtube.com/watch?v=dp8PhLsUcFE"			script="yt_live.lua" description="YouTube Livestream"/>
+	<webtv title="Chillout Lounge" url="https://www.youtube.com/watch?v=9UMxZofMNbA"	script="yt_live.lua" description="Chillout Lounge - Calm & Relaxing Background Music | Study, Work, Sleep, Meditation, Chill"/>
+	<webtv title="ChillYourMind Radio" url="https://www.youtube.com/watch?v=NJyCwdWT80c"	script="yt_live.lua" description="YouTube Livestream"/>
+	<webtv title="Deephouse Chillout" url="https://www.youtube.com/watch?v=4s6MpCdhovo&list"	script="yt_live.lua" description="Ed Sheeran, Martin Garrix, Avicii, Kygo, Dua Lipa, The Chainsmokers Style - Feeling Me"/>
+	<webtv title="Deutsche Welle TV" url="https://www.youtube.com/watch?v=ldF_RlOhRf4"	script="yt_live.lua" description="DW - Deutsche Welle Live TV (Deutsch)"/>
 	<webtv title="FOX 5" url="https://www.youtube.com/watch?v=fj4Wy7cu_QU"			script="yt_live.lua" description="YouTube Livestream"/>
-	<webtv title="NASA ISS" url="https://www.youtube.com/user/NASAtelevision"		script="yt_live.lua" description="YouTube Livestream"/>
-	<webtv title="Newsmax TV" url="https://www.youtube.com/user/NewsmaxTV"			script="yt_live.lua" description="YouTube Livestream"/>
-	<webtv title="Sky News" url="https://www.youtube.com/user/skynews"			script="yt_live.lua" description="YouTube Livestream"/>
-	<webtv title="Star TV Switzerland" url="https://www.youtube.com/user/startv"		script="yt_live.lua" description="YouTube Livestream"/>
-	<webtv title="TecTime TV" url="https://www.youtube.com/user/DrDishTelevision"		script="yt_live.lua" description="YouTube Livestream"/>
-	<webtv title="The Good Life Radio" url="https://www.youtube.com/user/SensualMusique1"	script="yt_live.lua" description="YouTube Livestream"/>
-	<webtv title="TOP CALCIO 24" url="https://www.youtube.com/user/TelelombardiaWeb"	script="yt_live.lua" description="YouTube Livestream"/>
-</webtvs>
+	<webtv title="NASA TV" url="https://www.youtube.com/watch?v=nA9UZF-SZoQ"		script="yt_live.lua" description="NASA Live: Official Stream of NASA TV's Media Channel"/>
+	<webtv title="NASA TV" url="https://www.youtube.com/watch?v=21X5lGlDOfg"		script="yt_live.lua" description="NASA Live: Official Stream of NASA TV"/>
+	<webtv title="Newsmax TV" url="https://www.youtube.com/watch?v=DBczKxWQlXA"			script="yt_live.lua" description="Newsmax TV, America’s fastest-growing cable news channel, broadcasts breaking news from NY and Washington DC, the latest in politics, health, financial news and more."/>
+	<webtv title="Sky News" url="https://www.youtube.com/watch?v=9Auq9mYxFEE"			script="yt_live.lua" description="Watch Sky News live."/>
+	<webtv title="The Good Life Radio" url="https://www.youtube.com/watch?v=36YnV9STBqc"	script="yt_live.lua" description="The Good Life Radio • 24/7 Live Radio | Best Relax House, Chillout, Study, Running, Gym, Happy Music"/>
+	<webtv title="Welt" url="https://www.youtube.com/watch?v=PULbYYA_mVs"	script="yt_live.lua" description="WELT Nachrichtensender"/></webtvs>
