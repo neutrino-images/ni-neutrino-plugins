@@ -1,5 +1,6 @@
 json = require "json"
 local media = {}
+
 function pop(cmd)
 	local f = assert(io.popen(cmd, 'r'))
 	local s = assert(f:read('*a'))
@@ -14,10 +15,10 @@ function media.getVideoUrl(yurl)
 		h:paint()
 	end
 
-	local data = pop("python /usr/bin/yt-dlp --no-check-certificate --dump-single-json " .. yurl)
+	local data = pop("python /usr/bin/yt-dlp --dump-single-json " .. yurl)
 	local itagnum = 0
 	local urls = {}
-	media.VideoUrl = nil
+    media.VideoUrl = nil
 
 	if data then
 		local jnTab = json:decode(data)
@@ -32,13 +33,13 @@ function media.getVideoUrl(yurl)
 			end
 		end
 		local audio = urls[140] or urls[251] or urls[250] or urls[249]
-		local maxRes = getMaxVideoRes()
+        local maxRes = getMaxVideoRes()
 		local video = urls[628]
 		if maxRes < 2561 or video == nil then
 			video = urls[623] or video
 		end
 		if maxRes < 1981 or video == nil then
-			video = urls[270] or urls[137] or urls[617] or urls[614] or urls[248] or urls[616] or video
+            video = urls[270] or urls[137] or urls[617] or urls[614] or urls[248] or urls[616] or video
 		end
 		if maxRes < 1281 or video == nil then
 			video = urls[22] or urls[232] or urls[136] or urls[612] or urls[609] or urls[247] or video
@@ -51,8 +52,8 @@ function media.getVideoUrl(yurl)
 		end
 		if audio then
 			media.UrlVideoAudio = audio
-        end
-        if video then
+		end
+		if video then
 			media.VideoUrl = video
 		end
 	end

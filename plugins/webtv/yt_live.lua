@@ -16,16 +16,6 @@ function pop(cmd)
 	return s
 end
 
-function getJSdata(js_url)
-	if js_url and jsdata ==  nil then
-		jsdata = getdata("https://www.youtube.com" .. js_url)
-	end
-	if jsdata then
-		return jsdata
-	end
-	return nil
-end
-
 function add_entry(vurl,aurl,res1,res2,newname,count)
 	entry = {}
 	entry['url']  = vurl
@@ -42,7 +32,6 @@ function add_entry(vurl,aurl,res1,res2,newname,count)
 	ret[count] = entry
 	return count
 end
-
 
 function get_MaxRes_YTKey()
 	local maxRes = 1280
@@ -63,7 +52,7 @@ function getVideoData(yurl)
 		h:paint()
 	end
 
-	local data = pop("python /usr/bin/yt-dlp --no-check-certificate --dump-single-json " .. yurl)
+	local data = pop("python /usr/bin/yt-dlp --dump-single-json " .. yurl)
 	local itagnum = 0
 	local urls = {}
 	local count = 0
@@ -104,10 +93,10 @@ function getVideoData(yurl)
 			video = urls[230] or urls[134] or urls[18] or urls[605] or urls[243] or video
 			res1, res2 = 640, 480
 		end
-        if video then
-            count = count + 1
-            add_entry(video,audio,res1,res2,"",count)
-        end
+		if video then
+			count = count + 1
+			add_entry(video,audio,res1,res2,"",count)
+		end
 	end
 	if h then
 		h:hide()
