@@ -10,6 +10,7 @@ end
 
 function media.getVideoUrl(yurl)
 	if yurl == nil then return 0 end
+
 	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
 	if h then
 		h:paint()
@@ -18,7 +19,7 @@ function media.getVideoUrl(yurl)
 	local data = pop("python /usr/bin/yt-dlp --dump-single-json " .. yurl)
 	local itagnum = 0
 	local urls = {}
-    media.VideoUrl = nil
+	media.VideoUrl = nil
 
 	if data then
 		local jnTab = json:decode(data)
@@ -33,13 +34,13 @@ function media.getVideoUrl(yurl)
 			end
 		end
 		local audio = urls[140] or urls[251] or urls[250] or urls[249]
-        local maxRes = getMaxVideoRes()
+		local maxRes = getMaxVideoRes()
 		local video = urls[628]
 		if maxRes < 2561 or video == nil then
 			video = urls[623] or video
 		end
 		if maxRes < 1981 or video == nil then
-            video = urls[270] or urls[137] or urls[617] or urls[614] or urls[248] or urls[616] or video
+			video = urls[270] or urls[137] or urls[617] or urls[614] or urls[248] or urls[616] or video
 		end
 		if maxRes < 1281 or video == nil then
 			video = urls[22] or urls[232] or urls[136] or urls[612] or urls[609] or urls[247] or video
@@ -57,6 +58,7 @@ function media.getVideoUrl(yurl)
 			media.VideoUrl = video
 		end
 	end
+
 	if h then
 		h:hide()
 	end
