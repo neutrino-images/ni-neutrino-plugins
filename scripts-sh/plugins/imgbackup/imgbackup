@@ -1,7 +1,7 @@
 #!/bin/sh
 # Script for complete image backup
 # License: GPLv2 or later
-Version="1.33 vom 01.08.2023"
+Version="1.34 vom 29.11.2023"
 Copyright="(C) 2018-2023 DboxOldie / BPanther / Frankenstone / Fritz / DdD"
 
 #
@@ -40,7 +40,11 @@ dtb_magic_number="0xd00dfeed"
 read_bootargs_vu()
 {
 	rootmtd=`readlink /dev/root`
-	PARTS=`parted /dev/mmcblk0 print free -s`
+	if [ -z "$prtd" ]; then
+		echo "  parted nicht gefunden - Abbruch!" && exit
+	else
+		PARTS=`parted /dev/mmcblk0 print free -s`
+	fi
 	[ "$rootmtd" == "`echo -n "mmcblk0p" && echo \"$PARTS\" | grep rootfs_1 | awk '{print $1}'`" ] && bkp_part=1
 	[ "$rootmtd" == "`echo -n "mmcblk0p" && echo \"$PARTS\" | grep rootfs_2 | awk '{print $1}'`" ] && bkp_part=2
 	[ "$rootmtd" == "`echo -n "mmcblk0p" && echo \"$PARTS\" | grep rootfs_3 | awk '{print $1}'`" ] && bkp_part=3
