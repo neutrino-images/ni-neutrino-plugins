@@ -15,8 +15,30 @@ function media.getVideoUrl(yurl)
 	if h then
 		h:paint()
 	end
-
-	local data = pop("python /usr/bin/yt-dlp --dump-single-json " .. yurl)
+	local data = getdata(yurl)
+	if data then
+		local m3u_url = data:match('hlsManifestUrl.:.(https:.-m3u8)') or data:match('hlsManifestUrl..:..(https:\\.-m3u8)') or data:match('hlsvp.:.(https:\\.-m3u8)')
+		if m3u_url == nil then
+			m3u_url = data:match('hlsManifestUrl.:.(https%%3A%.-m3u8)') or data:match('hlsManifestUrl..:..(https%%3A%%2F%%2F.-m3u8)') or data:match('hlsvp=(https%%3A%%2F%%2F.-m3u8)')
+			if m3u_url then
+				m3u_url = unescape_uri(m3u_url)
+			end
+		end
+		if m3u_url then
+			m3u_url = m3u_url:gsub("\\", "")
+			video_url = getVideoUrlM3U8(m3u_url)
+			if video_url and #video_url > 8 then
+				media.VideoUrl=video_url
+			end
+			if video_url then
+				if h then
+					h:hide()
+				end
+				return
+			end
+		end
+	end
+	data = pop("python /usr/bin/yt-dlp --dump-single-json " .. yurl)
 	local itagnum = 0
 	local urls = {}
 	media.VideoUrl = nil
