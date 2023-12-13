@@ -16,6 +16,35 @@ function pop(cmd)
 	return s
 end
 
+function getdata(Url,outputfile,Postfields,pass_headers,httpheaders)
+	if Url == nil then return nil end
+	if Curl == nil then
+		Curl = curl.new()
+	end
+
+	if Url:sub(1, 2) == '//' then
+		Url =  'http:' .. Url
+	end
+
+	local ret, data = Curl:download{ url=Url, A="com.google.android.youtube/17.31.35 (Linux; U; Android 11) gzip",maxRedirs=5,followRedir=true,postfields=Postfields,header=pass_headers,o=outputfile,httpheader=httpheaders }
+	if ret == CURL.OK then
+		if outputfile then
+			return 1
+		end
+		return data
+	else
+		return nil
+	end
+end
+
+function hex2char(hex)
+  return string.char(tonumber(hex, 16))
+end
+function unescape_uri(url)
+	if url == nil then return nil end
+	return url:gsub("%%(%x%x)", hex2char)
+end
+
 function add_entry(vurl,aurl,res1,res2,newname,count)
 	entry = {}
 	entry['url']  = vurl
@@ -51,11 +80,46 @@ function getVideoData(yurl)
 	if h then
 		h:paint()
 	end
+	local maxRes,key = get_MaxRes_YTKey()
+	local data = getdata(yurl)
+	local count = 0
 
-	local data = pop("python /usr/bin/yt-dlp --dump-single-json " .. yurl)
+	if data then
+		local newname = data:match('<title>(.-)</title>')
+		local m3u_url = data:match('hlsManifestUrl.:.(https:.-m3u8)') or data:match('hlsManifestUrl..:..(https:\\.-m3u8)') or data:match('hlsvp.:.(https:\\.-m3u8)')
+		if m3u_url == nil then
+			m3u_url = data:match('hlsManifestUrl.:.(https%%3A%.-m3u8)') or data:match('hlsManifestUrl..:..(https%%3A%%2F%%2F.-m3u8)') or data:match('hlsvp=(https%%3A%%2F%%2F.-m3u8)')
+			if m3u_url then
+				m3u_url = unescape_uri(m3u_url)
+			end
+		end
+
+		if m3u_url then
+			m3u_url = m3u_url:gsub("\\", "")
+			local videodata = getdata(m3u_url)
+			for band, res1, res2, url in videodata:gmatch('#EXT.X.STREAM.INF.BANDWIDTH=(%d+).-RESOLUTION=(%d+)x(%d+).-(http.-)\n') do
+				if url and res1 then
+					local nr = tonumber(res1)
+					if nr <= maxRes then
+						url = url:gsub("/keepalive/yes","")--fix for new ffmpeg
+						url = url:gsub("\x0d","")
+						count = count + 1
+						add_entry(url,nil,res1,res2,newname,count)
+					end
+				end
+			end
+			if count > 0 then
+				if h then
+					h:hide()
+				end
+				return count
+			end
+		end
+	end
+	data = pop("python /usr/bin/yt-dlp --dump-single-json " .. yurl)
 	local itagnum = 0
 	local urls = {}
-	local count = 0
+	count = 0
 
 	if data then
 		local jnTab = json:decode(data)
@@ -70,7 +134,6 @@ function getVideoData(yurl)
 			end
 		end
 		local audio = urls[140] or urls[251] or urls[250] or urls[249]
-		local maxRes,key = get_MaxRes_YTKey()
 		local res1, res2 = 3840, 2160
 		local video = urls[628]
 		if maxRes < 2561 or video == nil then
