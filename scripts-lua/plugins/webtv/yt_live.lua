@@ -76,6 +76,20 @@ end
 
 function getVideoData(yurl)
 	if yurl == nil then return 0 end
+
+	if yurl:find("www.youtube.com/user/") or yurl:find("youtube.com/channel") or yurl:find("youtube.com/c/") or yurl:find("youtube.com/@") then --check user link or channel alias
+		local youtube_user = getdata(yurl)
+		if youtube_user == nil then return 0 end
+		local youtube_live_url = youtube_user:match('"url":"(/watch.-)"') or youtube_user:match('feature=c4.-href="(/watch.-)"') or  youtube_user:match('ytimg.com\\/vi\\/([a-zA-Z0-9_$%[%]]+)\\/default_live') or  youtube_user:match('ytimg.com\\/vi\\/([a-zA-Z0-9_$%[%]]+)\\/hqdefault_live')
+		if youtube_live_url == nil then
+			youtube_user = getdata(yurl .. "/streams")
+			youtube_live_url = youtube_user:match('"url":"(/watch.-)"') or youtube_user:match('feature=c4.-href="(/watch.-)"') or  youtube_user:match('ytimg.com\\/vi\\/([a-zA-Z0-9_$%[%]]+)\\/default_live') or  youtube_user:match('ytimg.com\\/vi\\/([a-zA-Z0-9_$%[%]]+)\\/hqdefault_live')
+		end
+		if youtube_live_url == nil then return 0 end
+		if not youtube_live_url:find("/watch") then youtube_live_url = "/watch?v=" .. youtube_live_url end
+		yurl = 'https://www.youtube.com' .. youtube_live_url
+	end
+
 	local h = hintbox.new{caption="Please Wait ...", text="I'm Thinking."}
 	if h then
 		h:paint()
