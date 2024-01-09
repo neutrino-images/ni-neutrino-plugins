@@ -3,9 +3,6 @@ SUBDIRS =
 if ENABLE_AUTOREBOOT
 SUBDIRS += autoreboot
 endif
-if ENABLE_CORONA_INFO
-SUBDIRS += corona-info
-endif
 if ENABLE_DROPBOX_UPLOADER
 SUBDIRS += dropbox_uploader
 endif
