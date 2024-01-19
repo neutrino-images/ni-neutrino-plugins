@@ -13,8 +13,7 @@ n = neutrino()
 configdir = DIR.CONFIGDIR
 webtvdir = DIR.WEBTVDIR
 
---xmltv = "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/de.xml"
-xmltv = "https://nocords.xyz/pluto/epg.xml"
+xmltv = "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/de.xml"
 
 locale = {}
 locale["deutsch"] = {
