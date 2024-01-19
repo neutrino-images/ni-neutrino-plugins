@@ -149,6 +149,7 @@ do
 		else
 			part_count=`$prtd /dev/mmcblk0 print | grep -c rootfs`
 		fi
+		[ $part_count == 1 ] && part_count=4 # subdirboot layout
 		[ $part_count -gt 2 ] && PART_3=", Partition 3"
 		[ $part_count -gt 3 ] && PART_4=", Partition 4"
 		msgbox title="Partitions-Backup erstellen" msg="~cDiese Partitionen stehen zur Auswahl:" select="Partition 1, Partition 2 $PART_3 $PART_4" order=4 default=$bkp_part
