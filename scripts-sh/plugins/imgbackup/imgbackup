@@ -1,8 +1,8 @@
 #!/bin/sh
 # Script for complete image backup
 # License: GPLv2 or later
-Version="1.34 vom 29.11.2023"
-Copyright="(C) 2018-2023 DboxOldie / BPanther / Frankenstone / Fritz / DdD"
+Version="1.35 vom 20.01.2024"
+Copyright="(C) 2018-2024 DboxOldie / BPanther / Frankenstone / Fritz / DdD"
 
 #
 file=$0
@@ -147,9 +147,8 @@ do
 			msgbox title="parted nicht gefunden" msg="~cPartitionen auf 4 gesetzt." icon="error"
 			part_count=4
 		else
-			part_count=`$prtd /dev/mmcblk0 print | grep -c rootfs`
+			[ $new_layout == 1 ] && part_count=`$prtd /dev/mmcblk0 print | grep -c linuxkernel` || part_count=`$prtd /dev/mmcblk0 print | grep -c rootfs`
 		fi
-		[ $part_count == 1 ] && part_count=4 # subdirboot layout
 		[ $part_count -gt 2 ] && PART_3=", Partition 3"
 		[ $part_count -gt 3 ] && PART_4=", Partition 4"
 		msgbox title="Partitions-Backup erstellen" msg="~cDiese Partitionen stehen zur Auswahl:" select="Partition 1, Partition 2 $PART_3 $PART_4" order=4 default=$bkp_part
