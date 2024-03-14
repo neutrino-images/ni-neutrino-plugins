@@ -1,67 +1,90 @@
 --[[
-	Replay Plugin
-
-	Copyright (C) 2022 Jacek Jendrzej 'satbaby'
-	Copyright (C) 2022 Sven Hoefer 'vanhofen'
-
-	License: WTFPLv2
+	replay.lua
+	
+	16/2/2024 by jokel
+	Version 0.80 beta
 ]]
 
--- version 0.1 add ard
 
-plugin_name = "Replay"
+local sender_mpd =
+{	["Das Erste HD"] = "https://mcdn.daserste.de/daserste/dash/manifest.mpd",
+	["arte HD"] = "https://arteliveext.akamaized.net/dash/live/2031004/artelive_de/dash.mpd",
+	["SWR BW HD"] = "https://swrbw-dash.akamaized.net/dash/live/2018674/swrbwd/manifest.mpd",
+	["SWR RP HD"] = "https://swrrp-dash.akamaized.net/dash/live/2018680/swrrpd/manifest.mpd",
+	["WDR HD Köln"] = "https://wdrfs247.akamaized.net/dash/live/2016702/wdrfs247_geo/dash.mpd",
+	["WDR HD Aachen"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018107/wdrlz_aachen/dash.mpd",
+	["WDR HD Bielefeld"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018117/wdrlz_bielefeld/dash.mpd",
+	["WDR HD Bonn"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018112/wdrlz_bonn/dash.mpd",
+	["WDR HD Dortmund"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018113/wdrlz_dortmund/dash.mpd",
+	["WDR HD Duisburg"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018115/wdrlz_duisburg/dash.mpd",
+	["WDR HD Düsseldorf"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018114/wdrlz_duesseldorf/dash.mpd",
+	["WDR HD Essen"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018118/wdrlz_essen/dash.mpd",
+	["WDR HD Münster"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018116/wdrlz_muensterland/dash.mpd",
+	["WDR HD Siegen"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018111/wdrlz_siegen/dash.mpd",
+	["WDR HD Wuppertal"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018126/wdrlz_wuppertal/dash.mpd",
+	["BR Süd HD"] = "https://bfrsueddash.akamaized.net/dash/live/2016970/bfs_sued_de/dvbt2/manifest.mpd",
+	["BR Fernsehen Süd HD"] = "https://bfrsueddash.akamaized.net/dash/live/2016970/bfs_sued_de/dvbt2/manifest.mpd",
+	["BR Fernsehen Nord HD"] = "https://bfrnorddash.akamaized.net/dash/live/2016971/bfs_nord_de/dvbt2/manifest.mpd",
+	["NDR FS NDS HD"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_nds/ndr_hbbtv_nds.mpd",
+	["NDR FS MV HD"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_mv/ndr_hbbtv_mv.mpd",
+	["NDR FS HH HD"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_hh/ndr_hbbtv_hh.mpd",
+	["NDR FS SH HD"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_sh/ndr_hbbtv_sh.mpd",
+	["phoenix HD"] = "https://zdf-dash-19.akamaized.net/dash/live/2016512/de/manifest.mpd",
+	["PHOENIX HD"] = "https://zdf-dash-19.akamaized.net/dash/live/2016512/de/manifest.mpd",
+	["tagesschau24 HD"] = "https://tagesschau.akamaized.net/dash/live/2020098/tagesschau/tagesschau_3/tagesschau_3.mpd",
+	["ONE HD"] = "https://mcdn.one.ard.de/ardone/dash/manifest.mpd",
+	["ARD alpha HD"] = "https://ardalphadash.akamaized.net/dash/live/2016972/ard_alpha/dvbt2/manifest.mpd",
+	["SR Fernsehen HD"] = "https://swrsrfs-dash.akamaized.net/dash/live/2018687/srfsgeo/dash.mpd",
+	["Radio Bremen HD"] = "https://rbdashlive.akamaized.net/dash/live/2020436/rbfs/dash.mpd",
+	["rbb Brandenburg HD"] = "https://rbb-dash-brandenburg.akamaized.net/dash/live/2017827/rbb_brandenburg/manifest.mpd",
+	["rbb Berlin HD"] = "https://rbb-dash-berlin.akamaized.net/dash/live/2017826/rbb_berlin/manifest.mpd",
+	["MDR Sachsen HD"] = "https://mdrtvsndash.akamaized.net/dash/live/2094117/mdrtvsn/dash.mpd",
+	["MDR S-Anhalt HD"] = "https://mdrtvsadash.akamaized.net/dash/live/2094116/mdrtvsa/dash.mpd",
+	["MDR Thüringen HD"] = "https://mdrtvthdash.akamaized.net/dash/live/2094118/mdrtvth/dash.mpd",
+	["hr-fernsehen HD"] = "https://hrdashde.akamaized.net/dash/live/2024544/hrdashde/manifest.mpd",
+	["ZDF HD"] = "https://zdf-dash-15.akamaized.net/dash/live/2016508/de/manifest.mpd",
+	["ZDFinfo HD"] = "https://zdf-dash-17.akamaized.net/dash/live/2016510/de/manifest.mpd",
+	["zdf_neo HD"] = "https://zdf-dash-16.akamaized.net/dash/live/2016509/de/manifest.mpd",
+	["3sat HD"] = "https://zdf-dash-18.akamaized.net/dash/live/2016511/dach/manifest.mpd",
+	["KiKA HD"] = "https://kikageoilsdash.akamaized.net/dash/live/2099498/dashhbbtv-ebu-proxy-full/manifest.mpd"
+}
 
--- list duplicates
-duplicates = false
---duplicates = true
+local outputfile = "/tmp/output.mpd"
+local dir = "/tmp/lcd/"
+local service = dir .. "service"
+local duration = dir .. "duration"
+local event = dir .. "event"
 
--- list specific channels only
---channels = {1, 14, 20, 12, 5, 15, 19, 7, 36, 3, 4, 33}
-channels = {}
 
-if next(channels) ~= nil then
-	duplicates = true
+function pop(cmd)
+	local f = assert(io.popen(cmd, 'r'))
+	local s = assert(f:read('*a'))
+	f:close()
+	return s
 end
 
-json = require "json"
-n = neutrino()
-replayList = {}
-replayMenu = nil
-vPlay = video.new()
-repaint = false
-Title = nil
-Epg = nil
 
-locale = {}
-locale["deutsch"] = {
-	wait = "Bitte warten ...",
-	read_data = "Lese Daten ..."
-}
-locale["english"] = {
-	wait = "Please wait ...",
-	read_data = "Read data ..."
-}
-
-neutrino_conf = configfile.new()
-neutrino_conf:loadConfig("/var/tuxbox/config/neutrino.conf")
-lang = neutrino_conf:getString("language", "english")
-if locale[lang] == nil then
-	lang = "english"
+function sleep(a)
+	local sec = tonumber(os.clock() + a)
+	while (os.clock() < sec) do
+	end
 end
 
--- ----------------------------------------------------------------------------
 
-function getdata(Url,Postfields,outputfile,pass_headers,httpheaders)
+function umlaute(s)
+	s=s:gsub("\xe4","ä")
+	s=s:gsub("\xfc","ü")
+	s=s:gsub("\xf6","ö")
+	return s
+end
+
+
+function getdata(Url, outputfile)
 	if Url == nil then return nil end
 	if Curl == nil then
 		Curl = curl.new()
 	end
-
-	if Url:sub(1, 2) == '//' then
-		Url = 'https:' .. Url
-	end
-
-	local ret, data = Curl:download{ url=Url, A="Mozilla/5.0",maxRedirs=5,followRedir=false,postfields=Postfields,header=pass_headers,o=outputfile,httpheader=httpheaders }
+	local ret, data = Curl:download{ url=Url, A="Mozilla/5.0", o=outputfile }
 	if ret == CURL.OK then
 		if outputfile then
 			return 1
@@ -72,197 +95,110 @@ function getdata(Url,Postfields,outputfile,pass_headers,httpheaders)
 	end
 end
 
-function godirectkey(d)
-	if d == nil then return d end
-	local _dkey = ""
-	if d == 1 then
-		_dkey = RC.red
-	elseif d == 2 then
-		_dkey = RC.green
-	elseif d == 3 then
-		_dkey = RC.yellow
-	elseif d == 4 then
-		_dkey = RC.blue
-	elseif d < 14 then
-		_dkey = RC[""..d - 4 ..""]
-	elseif d == 14 then
-		_dkey = RC["0"]
+
+function putdata(output, outputfile)
+	file_write = io.open(outputfile, "w")
+	file_write:write(output)
+	file_write:close()
+end
+
+
+function get_text(dir_file)
+	local file_read = io.open(dir_file, "r")
+	local data = {}
+	local i = 0
+	if file_read then
+		for line in file_read:lines() do
+			i = i + 1
+			data[i] = line
+		end
+		file_read:close()
+		--print("file found")
+		return data
 	else
-		-- rest
-		_dkey = ""
-	end
-	return _dkey
-end
-
-function hideMenu(menu)
-	if menu ~= nil then
-		menu:hide()
+		--print("file not found")
+		return nil
 	end
 end
 
-function epgInfo(xres, yres, aspectRatio, framerate)
-	local dx = n:scale2Res(800);
-	local dy = n:scale2Res(450);
-	local x = ((SCREEN['END_X'] - SCREEN['OFF_X']) - dx) / 2;
-	local y = ((SCREEN['END_Y'] - SCREEN['OFF_Y']) - dy) / 2;
 
-	local wh = cwindow.new{x=x, y=y, dx=dx, dy=dy, title=Title, icon="", show_footer=false};
-	local ct = ctext.new{parent=wh, text=Epg, font_text=FONT['MENU'], mode="ALIGN_SCROLL | ALIGN_TOP"};
-	wh:paint()
-
-	repeat
-		msg, data = n:GetInput(500)
-		if msg == RC.up or msg == RC.page_up then
-			ct:scroll{dir="up"};
-		elseif msg == RC.down or msg == RC.page_down then
-			ct:scroll{dir="down"};
-		end
-		msg, data = n:GetInput(500)
-	until msg == RC.ok or msg == RC.home or msg == RC.info
-
-	wh:hide()
+function replay(name,title)
+	local vPlay = video.new()
+	vPlay:setSinglePlay(true)
+	vPlay:PlayFile("Replay - " .. name, outputfile, title[1], title[2] )
 end
 
-function play_live(_id)
-	local id = tonumber(_id)
-	if replayList[id].stream == nil then
-		getStream(id)
-	end
-	if replayList[id].stream then
-		hideMenu(replayMenu)
-		Title = replayList[id].title
-		Epg = replayList[id].info1 .. "\n" .. replayList[id].info2
-		if Title and Epg ~= "\n" then
-			vPlay:setInfoFunc("epgInfo")
-		end
 
-		vPlay:PlayFile(replayList[id].name, replayList[id].stream, replayList[id].title, replayList[id].info1, replayList[id].audiostream or "")
-
-		Title = nil
-		Epg = nil
-		repaint = false
-		return MENU_RETURN.EXIT
-	end
-end
-
-function getStream_ARD(id)
-	local url = replayList[id].url
-	local jdata = getdata(url)
-	if jdata then
-		local jnTab = json:decode(jdata)
-		if jnTab and jnTab.streamurl and jnTab.diff then
-			replayList[id].stream = jnTab.streamurl .. jnTab.diff .. '/manifest.mpd'
-		end
-	end
-end
-
-function getStream(id)
-	local url = replayList[id].url
-	if url and replayList[id].ch == "ard" then
-		getStream_ARD(id)
-	end
-	return replayList[id].stream
-end
-
-function getReplayList_ARD()
-	local titleList = {}
-	local h = hintbox.new{caption=locale[lang].wait, text=locale[lang].read_data}
+function message(txt,s)
+	local h = hintbox.new{caption="Hinweis ...", text= txt}
 	if h then
-		h:paint()
+		 h:paint()
 	end
-	if next(channels) == nil then
-		-- add all channels
-		channels = {}
-		for i = 1, 37 do
-			table.insert(channels, i)
-		end
-	end
-	for _, i in ipairs(channels) do
-		local duplicate = false
-		local subtitle = ""
-		local detail = ""
-		local link = 'http://itv.ard.de/replay/dyn/index.php?sid=' .. i
-		local data = getdata(link)
-		--if data then
-		if data and string.sub(data,1,1) == "{" then
-			local jnTab = json:decode(data)
-			if jnTab and jnTab.diff and jnTab.title then
-				if jnTab.subtitle then
-					subtitle = jnTab.subtitle
-					if subtitle == "" then
-						subtitle = jnTab.title
-					end
-				end
-				if jnTab.detail then
-					detail = jnTab.detail
-					if detail == "" then
-						detail = subtitle
-					end
-				end
-				if duplicates == false then
-					for j, v in ipairs(titleList) do
-						if v.title == jnTab.title then
-							duplicate = true
-						end
-					end
-				end
-				if duplicate == false then
-					table.insert(titleList, {title=jnTab.title})
-					table.insert(replayList, {
-						name = "ARD: " .. jnTab.name,
-						title = jnTab.title,
-						url = link,
-						stream = nil,
-						audiostream = nil,
-						info1 = subtitle,
-						info2 = detail,
-						hasVideo = true,
-						ch = 'ard'})
-				end
+	sleep(s)
+	h:hide()
+end
+
+
+------------------- replay ------------------------------
+
+
+
+local name = get_text(service)
+
+if name == nil then
+	message("Die LCD4Linux Unterstützung ist ausgeschaltet \n\n Bitte einschalten.", 5)
+	return
+end
+
+name = umlaute(name[1])
+local mpd_url = sender_mpd[name]
+
+if mpd_url then
+	local file = getdata(mpd_url, outputfile)
+	if file then
+		local mpd_pos = (mpd_url:reverse()):find("/")
+		local mpd_tmp = mpd_url:sub( 1, #mpd_url - mpd_pos + 1)
+		local host = mpd_tmp
+		local mpdlines = get_text(outputfile)
+		mpdlines[2] = string.gsub(mpdlines[2],'timeShiftBufferDepth="PT(.-)S"', 'timeShiftBufferDepth="PT3H0M0S"')
+		if string.match(mpdlines[3], "<BaseURL") then
+			--print ("BaseURL gefunden")
+			if string.match(mpdlines[4], "<BaseURL") then
+				table.remove(mpdlines, 4)
 			end
+
+			mpdlines[8] = string.gsub(mpdlines[8],"video_00", "video_01") -- zdf handling
+			mpdlines[9] = string.gsub(mpdlines[9],"video_01", "video_00")
+		else
+			--print ("BaseURL nicht gefunden")
+			table.insert(mpdlines, 3,'  <BaseURL>' .. host .. '</BaseURL>')
 		end
+
+		local output = table.concat(mpdlines, "\n")
+		local zeit = get_text(duration)
+		zeit = zeit[2]
+		zeit = tonumber(zeit-1,10) -- vergangene zeit
+
+		if string.find(mpdlines[4],"<Period") then
+			--print("Period gefunden")
+			local per_tmp = mpdlines[4]
+			output = string.gsub(output,per_tmp, '  <Period id="1" start="PT' .. zeit .. 'M">')
+		end
+
+		local title = get_text(event) -- action
+		putdata(output, outputfile)
+		replay(name, title)
+
+	else
+		message("konnte mpd nicht finden / laden", 3)
 	end
-	if h then
-		h:hide()
-	end
-	titleList = {}
+else
+	message("kein Replay für diesen Sender", 3)
 end
 
-function mainMenu()
-	if #replayList == 0 then
-		return
-	end
+local  replay_end = pop("rm " .. outputfile)
+collectgarbage()
 
-	replayMenu = menu.new{name=plugin_name, icon="streaming"}
-	replayMenu:addItem{type="separator"}
-	replayMenu:addItem{type="back"}
-	replayMenu:addItem{type="separatorline"}
-	local d = 0
-	for i, v in ipairs(replayList) do
-		d = d+1
-		replayMenu:addItem{ type="forwarder",
-			action="play_live",
-			name=v.name .. " - " .. v.title,
-			hint=v.info1,
-			enabled=v.hasVideo,
-			id=i,
-			directkey=godirectkey(d)
-		}
-	end
-	replayMenu:exec()
-	replayMenu:hide()
-end
 
--- ----------------------------------------------------------------------------
 
-getReplayList_ARD()
 
-repeat
-	mainMenu()
-	if repaint then
-		replayList = {}
-		getReplayList_ARD()
-		repaint = false
-	end
-	collectgarbage()
-until repaint == false
