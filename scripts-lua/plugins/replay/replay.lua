@@ -1,10 +1,9 @@
 --[[
 	replay.lua
-	
+
 	16/2/2024 by jokel
 	Version 0.80 beta
 ]]
-
 
 local sender_mpd =
 {	["Das Erste HD"] = "https://mcdn.daserste.de/daserste/dash/manifest.mpd",
@@ -55,7 +54,6 @@ local service = dir .. "service"
 local duration = dir .. "duration"
 local event = dir .. "event"
 
-
 function pop(cmd)
 	local f = assert(io.popen(cmd, 'r'))
 	local s = assert(f:read('*a'))
@@ -63,13 +61,11 @@ function pop(cmd)
 	return s
 end
 
-
 function sleep(a)
 	local sec = tonumber(os.clock() + a)
 	while (os.clock() < sec) do
 	end
 end
-
 
 function umlaute(s)
 	s=s:gsub("\xe4","ä")
@@ -77,7 +73,6 @@ function umlaute(s)
 	s=s:gsub("\xf6","ö")
 	return s
 end
-
 
 function getdata(Url, outputfile)
 	if Url == nil then return nil end
@@ -95,13 +90,11 @@ function getdata(Url, outputfile)
 	end
 end
 
-
 function putdata(output, outputfile)
 	file_write = io.open(outputfile, "w")
 	file_write:write(output)
 	file_write:close()
 end
-
 
 function get_text(dir_file)
 	local file_read = io.open(dir_file, "r")
@@ -121,13 +114,11 @@ function get_text(dir_file)
 	end
 end
 
-
 function replay(name,title)
 	local vPlay = video.new()
 	vPlay:setSinglePlay(true)
 	vPlay:PlayFile("Replay - " .. name, outputfile, title[1], title[2] )
 end
-
 
 function message(txt,s)
 	local h = hintbox.new{caption="Hinweis ...", text= txt}
@@ -138,10 +129,7 @@ function message(txt,s)
 	h:hide()
 end
 
-
 ------------------- replay ------------------------------
-
-
 
 local name = get_text(service)
 
@@ -171,7 +159,7 @@ if mpd_url then
 			mpdlines[9] = string.gsub(mpdlines[9],"video_01", "video_00")
 		else
 			--print ("BaseURL nicht gefunden")
-			table.insert(mpdlines, 3,'  <BaseURL>' .. host .. '</BaseURL>')
+			table.insert(mpdlines, 3,' <BaseURL>' .. host .. '</BaseURL>')
 		end
 
 		local output = table.concat(mpdlines, "\n")
@@ -182,7 +170,7 @@ if mpd_url then
 		if string.find(mpdlines[4],"<Period") then
 			--print("Period gefunden")
 			local per_tmp = mpdlines[4]
-			output = string.gsub(output,per_tmp, '  <Period id="1" start="PT' .. zeit .. 'M">')
+			output = string.gsub(output,per_tmp, ' <Period id="1" start="PT' .. zeit .. 'M">')
 		end
 
 		local title = get_text(event) -- action
@@ -196,9 +184,5 @@ else
 	message("kein Replay für diesen Sender", 3)
 end
 
-local  replay_end = pop("rm " .. outputfile)
+local replay_end = pop("rm " .. outputfile)
 collectgarbage()
-
-
-
-
