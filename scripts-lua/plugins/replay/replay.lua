@@ -159,7 +159,7 @@ if mpd_url then
 			mpdlines[9] = string.gsub(mpdlines[9],"video_01", "video_00")
 		else
 			--print ("BaseURL nicht gefunden")
-			table.insert(mpdlines, 3,' <BaseURL>' .. host .. '</BaseURL>')
+			table.insert(mpdlines, 3,'  <BaseURL>' .. host .. '</BaseURL>')
 		end
 
 		local output = table.concat(mpdlines, "\n")
@@ -170,7 +170,7 @@ if mpd_url then
 		if string.find(mpdlines[4],"<Period") then
 			--print("Period gefunden")
 			local per_tmp = mpdlines[4]
-			output = string.gsub(output,per_tmp, ' <Period id="1" start="PT' .. zeit .. 'M">')
+			output = string.gsub(output,per_tmp, '  <Period id="1" start="PT' .. zeit .. 'M">')
 		end
 
 		local title = get_text(event) -- action
