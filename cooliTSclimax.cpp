@@ -52,8 +52,10 @@ bool parsets(struct movieinfo *mi)
 
 	static AVInputFormat *iformat = NULL;
 	AVFormatContext *ic = NULL;
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
 	avcodec_register_all();
 	av_register_all();
+#endif
 	if (avformat_open_input(&ic, mi->filename.c_str(), iformat, NULL) != 0) {
 		printf("Couldn't open  Movie file\n");
 	}
