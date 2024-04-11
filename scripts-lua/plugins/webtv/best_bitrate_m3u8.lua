@@ -1,4 +1,7 @@
---parse best m3u8 RESOLUTION
+-- parse best m3u8 RESOLUTION
+-- add parse Referer in Url by GetAway
+-- Version 1.1
+
 if #arg < 1 then return nil end
 
 json = require "json"
@@ -11,13 +14,44 @@ if DIR and DIR.CONFIGDIR then
 	CONF_PATH = DIR.CONFIGDIR .. '/'
 end
 
+function extractParam(hdrs, paramName)
+	local paramPos = string.find(hdrs, paramName)
+	if paramPos then
+		local referer = hdrs:match("Referer=([^&]+)")
+		return referer
+	end
+	return ""
+end
+
+function generateHeaders(Url)
+	local headers = {}
+		local pos = string.find(string.reverse(Url), '#')
+		if pos then
+		    local hdrs = string.sub(Url, -pos + 1)
+		    val = extractParam(hdrs, "Referer=")
+		    if val ~= "" then
+		        table.insert(headers, "Referer: " .. val)
+		    end
+			if #headers > 0 then
+				io.write("Headers: ")
+				for i, header in ipairs(headers) do
+					print(header)
+				end
+				Url = string.sub(Url, 1, -pos - 1)
+			end
+		end
+	return headers, Url
+end
+
 function getdata(Url,Agent)
 	if Url == nil then return nil end
 	if Curl == nil then
 		Curl = curl.new()
 	end
 	if Agent == nil then Agent = "Mozilla/5.0" end
-	local ret, data = Curl:download{ url=Url, A=Agent,connectTimeout=5,maxRedirs=5,followRedir=true}
+	local headers, Url = generateHeaders(Url)
+
+	local ret, data = Curl:download{ url=Url, A=Agent, httpheader=headers, connectTimeout=5, maxRedirs=5, followRedir=true}
 	if ret == CURL.OK then
 		return data
 	else
@@ -41,7 +75,7 @@ function getVideoUrl(m3u8_url)
 	if not tmpurl:find('m3u8') then return -2 end
 
 	local res = 0
-	local agent = m3u8_url:match("User%-Agent=(.*)")
+	local agent = m3u8_url:match("User%-Agent=([^&]+)")
 	local data = getdata(m3u8_url,agent)
 	if data then
 		res = 1
