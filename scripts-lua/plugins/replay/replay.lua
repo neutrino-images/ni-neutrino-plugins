@@ -3,10 +3,13 @@
 
 	16/2/2024 by jokel
 	Version 0.80 beta
+
+	Changed by BPanther - 30/Apr/2024
 ]]
 
-local sender_mpd =
-{	["Das Erste HD"] = "https://mcdn.daserste.de/daserste/dash/manifest.mpd",
+local sender_mpd = {
+-- HD
+	["Das Erste HD"] = "https://mcdn.daserste.de/daserste/dash/manifest.mpd",
 	["arte HD"] = "https://arteliveext.akamaized.net/dash/live/2031004/artelive_de/dash.mpd",
 	["SWR BW HD"] = "https://swrbw-dash.akamaized.net/dash/live/2018674/swrbwd/manifest.mpd",
 	["SWR RP HD"] = "https://swrrp-dash.akamaized.net/dash/live/2018680/swrrpd/manifest.mpd",
@@ -45,14 +48,53 @@ local sender_mpd =
 	["ZDFinfo HD"] = "https://zdf-dash-17.akamaized.net/dash/live/2016510/de/manifest.mpd",
 	["zdf_neo HD"] = "https://zdf-dash-16.akamaized.net/dash/live/2016509/de/manifest.mpd",
 	["3sat HD"] = "https://zdf-dash-18.akamaized.net/dash/live/2016511/dach/manifest.mpd",
-	["KiKA HD"] = "https://kikageoilsdash.akamaized.net/dash/live/2099498/dashhbbtv-ebu-proxy-full/manifest.mpd"
+	["KiKA HD"] = "https://kikageoilsdash.akamaized.net/dash/live/2099498/dashhbbtv-ebu-proxy-full/manifest.mpd",
+-- SD
+	["Das Erste"] = "https://mcdn.daserste.de/daserste/dash/manifest.mpd",
+	["arte"] = "https://arteliveext.akamaized.net/dash/live/2031004/artelive_de/dash.mpd",
+	["SWR BW"] = "https://swrbw-dash.akamaized.net/dash/live/2018674/swrbwd/manifest.mpd",
+	["SWR RP"] = "https://swrrp-dash.akamaized.net/dash/live/2018680/swrrpd/manifest.mpd",
+	["WDR Köln"] = "https://wdrfs247.akamaized.net/dash/live/2016702/wdrfs247_geo/dash.mpd",
+	["WDR Aachen"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018107/wdrlz_aachen/dash.mpd",
+	["WDR Bielefeld"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018117/wdrlz_bielefeld/dash.mpd",
+	["WDR Bonn"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018112/wdrlz_bonn/dash.mpd",
+	["WDR Dortmund"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018113/wdrlz_dortmund/dash.mpd",
+	["WDR Duisburg"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018115/wdrlz_duisburg/dash.mpd",
+	["WDR Düsseldorf"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018114/wdrlz_duesseldorf/dash.mpd",
+	["WDR Essen"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018118/wdrlz_essen/dash.mpd",
+	["WDR Münster"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018116/wdrlz_muensterland/dash.mpd",
+	["WDR Siegen"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018111/wdrlz_siegen/dash.mpd",
+	["WDR Wuppertal"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018126/wdrlz_wuppertal/dash.mpd",
+	["BR Süd"] = "https://bfrsueddash.akamaized.net/dash/live/2016970/bfs_sued_de/dvbt2/manifest.mpd",
+	["BR Fernsehen Süd"] = "https://bfrsueddash.akamaized.net/dash/live/2016970/bfs_sued_de/dvbt2/manifest.mpd",
+	["BR Fernsehen Nord"] = "https://bfrnorddash.akamaized.net/dash/live/2016971/bfs_nord_de/dvbt2/manifest.mpd",
+	["NDR FS NDS"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_nds/ndr_hbbtv_nds.mpd",
+	["NDR FS MV"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_mv/ndr_hbbtv_mv.mpd",
+	["NDR FS HH"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_hh/ndr_hbbtv_hh.mpd",
+	["NDR FS SH"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_sh/ndr_hbbtv_sh.mpd",
+	["phoenix"] = "https://zdf-dash-19.akamaized.net/dash/live/2016512/de/manifest.mpd",
+	["PHOENIX"] = "https://zdf-dash-19.akamaized.net/dash/live/2016512/de/manifest.mpd",
+	["tagesschau24"] = "https://tagesschau.akamaized.net/dash/live/2020098/tagesschau/tagesschau_3/tagesschau_3.mpd",
+	["ONE"] = "https://mcdn.one.ard.de/ardone/dash/manifest.mpd",
+	["ARD alpha"] = "https://ardalphadash.akamaized.net/dash/live/2016972/ard_alpha/dvbt2/manifest.mpd",
+	["SR Fernsehen"] = "https://swrsrfs-dash.akamaized.net/dash/live/2018687/srfsgeo/dash.mpd",
+	["Radio Bremen"] = "https://rbdashlive.akamaized.net/dash/live/2020436/rbfs/dash.mpd",
+	["rbb Brandenburg"] = "https://rbb-dash-brandenburg.akamaized.net/dash/live/2017827/rbb_brandenburg/manifest.mpd",
+	["rbb Berlin"] = "https://rbb-dash-berlin.akamaized.net/dash/live/2017826/rbb_berlin/manifest.mpd",
+	["MDR Sachsen"] = "https://mdrtvsndash.akamaized.net/dash/live/2094117/mdrtvsn/dash.mpd",
+	["MDR S-Anhalt"] = "https://mdrtvsadash.akamaized.net/dash/live/2094116/mdrtvsa/dash.mpd",
+	["MDR Thüringen"] = "https://mdrtvthdash.akamaized.net/dash/live/2094118/mdrtvth/dash.mpd",
+	["hr-fernsehen"] = "https://hrdashde.akamaized.net/dash/live/2024544/hrdashde/manifest.mpd",
+	["ZDF"] = "https://zdf-dash-15.akamaized.net/dash/live/2016508/de/manifest.mpd",
+	["ZDFinfo"] = "https://zdf-dash-17.akamaized.net/dash/live/2016510/de/manifest.mpd",
+	["zdf_neo"] = "https://zdf-dash-16.akamaized.net/dash/live/2016509/de/manifest.mpd",
+	["3sat"] = "https://zdf-dash-18.akamaized.net/dash/live/2016511/dach/manifest.mpd",
+	["KiKA"] = "https://kikageoilsdash.akamaized.net/dash/live/2099498/dashhbbtv-ebu-proxy-full/manifest.mpd"
 }
 
 local outputfile = "/tmp/output.mpd"
-local dir = "/tmp/lcd/"
-local service = dir .. "service"
-local duration = dir .. "duration"
-local event = dir .. "event"
+local chinfo = "http://127.0.0.1/control/getchannelinfo"
+local choutputfile = "/tmp/choutput.mpd"
 
 function pop(cmd)
 	local f = assert(io.popen(cmd, 'r'))
@@ -68,9 +110,13 @@ function sleep(a)
 end
 
 function umlaute(s)
+	s=s:gsub("\xc4","Ä")
 	s=s:gsub("\xe4","ä")
-	s=s:gsub("\xfc","ü")
+	s=s:gsub("\xd6","Ö")
 	s=s:gsub("\xf6","ö")
+	s=s:gsub("\xdc","Ü")
+	s=s:gsub("\xfc","ü")
+	s=s:gsub("\x1e9e","ß")
 	return s
 end
 
@@ -79,7 +125,7 @@ function getdata(Url, outputfile)
 	if Curl == nil then
 		Curl = curl.new()
 	end
-	local ret, data = Curl:download{ url=Url, A="Mozilla/5.0", o=outputfile }
+	local ret, data = Curl:download{url=Url, A="Mozilla/5.0", o=outputfile}
 	if ret == CURL.OK then
 		if outputfile then
 			return 1
@@ -114,14 +160,15 @@ function get_text(dir_file)
 	end
 end
 
-function replay(name,title)
+function replay(name, epg_now, epg_next)
 	local vPlay = video.new()
 	vPlay:setSinglePlay(true)
-	vPlay:PlayFile("Replay - " .. name, outputfile, title[1], title[2] )
+	vPlay:PlayFile("Replay - " .. name, outputfile, epg_now, epg_next)
 end
 
-function message(txt,s)
-	local h = hintbox.new{caption="Hinweis ...", text= txt}
+function message(txt, s)
+	if s == nil then s = 3 end
+	local h = hintbox.new{caption="Hinweis ...", text=txt}
 	if h then
 		 h:paint()
 	end
@@ -131,21 +178,16 @@ end
 
 ------------------- replay ------------------------------
 
-local name = get_text(service)
-
-if name == nil then
-	message("Die LCD4Linux Unterstützung ist ausgeschaltet \n\n Bitte einschalten.", 5)
-	return
-end
-
-name = umlaute(name[1])
+getdata(chinfo, choutputfile)
+local channelinfo = get_text(choutputfile)
+local name = umlaute(channelinfo[1])
 local mpd_url = sender_mpd[name]
 
 if mpd_url then
 	local file = getdata(mpd_url, outputfile)
 	if file then
 		local mpd_pos = (mpd_url:reverse()):find("/")
-		local mpd_tmp = mpd_url:sub( 1, #mpd_url - mpd_pos + 1)
+		local mpd_tmp = mpd_url:sub(1, #mpd_url - mpd_pos + 1)
 		local host = mpd_tmp
 		local mpdlines = get_text(outputfile)
 		mpdlines[2] = string.gsub(mpdlines[2],'timeShiftBufferDepth="PT(.-)S"', 'timeShiftBufferDepth="PT3H0M0S"')
@@ -160,12 +202,16 @@ if mpd_url then
 		else
 			--print ("BaseURL nicht gefunden")
 			table.insert(mpdlines, 3,'  <BaseURL>' .. host .. '</BaseURL>')
+
+			if string.match(mpdlines[6], "<Role") then -- arte handling
+				if string.match(mpdlines[12], "720") then
+					mpdlines[8] = mpdlines[12]
+				end
+			end
 		end
 
 		local output = table.concat(mpdlines, "\n")
-		local zeit = get_text(duration)
-		zeit = zeit[2]
-		zeit = tonumber(zeit-1,10) -- vergangene zeit
+		local zeit = tonumber(channelinfo[3]:sub(1, channelinfo[3]:find("/")-1)) -- vergangene zeit
 
 		if string.find(mpdlines[4],"<Period") then
 			--print("Period gefunden")
@@ -173,16 +219,15 @@ if mpd_url then
 			output = string.gsub(output,per_tmp, '  <Period id="1" start="PT' .. zeit .. 'M">')
 		end
 
-		local title = get_text(event) -- action
 		putdata(output, outputfile)
-		replay(name, title)
+		replay(name, umlaute(channelinfo[2]), umlaute(channelinfo[4]))
 
 	else
-		message("konnte mpd nicht finden / laden", 3)
+		message("Konnte mpd nicht finden / laden.", 3)
 	end
 else
-	message("kein Replay für diesen Sender", 3)
+	message("Sender unbekannt, kein Replay für diesen Sender.", 3)
 end
 
-local replay_end = pop("rm " .. outputfile)
+local replay_end = pop("rm " .. outputfile .. " " .. choutputfile)
 collectgarbage()
