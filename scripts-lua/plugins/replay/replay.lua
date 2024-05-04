@@ -9,11 +9,32 @@
 
 local sender_mpd = {
 -- HD
-	["Das Erste HD"] = "https://mcdn.daserste.de/daserste/dash/manifest.mpd",
+	["3sat HD"] = "https://zdf-dash-18.akamaized.net/dash/live/2016511/dach/manifest.mpd",
+	["ARD alpha HD"] = "https://ardalphadash.akamaized.net/dash/live/2016972/ard_alpha/dvbt2/manifest.mpd",
 	["arte HD"] = "https://arteliveext.akamaized.net/dash/live/2031004/artelive_de/dash.mpd",
+	["BR Fernsehen Nord HD"] = "https://bfrnorddash.akamaized.net/dash/live/2016971/bfs_nord_de/dvbt2/manifest.mpd",
+	["BR Fernsehen Süd HD"] = "https://bfrsueddash.akamaized.net/dash/live/2016970/bfs_sued_de/dvbt2/manifest.mpd",
+	["BR Süd HD"] = "https://bfrsueddash.akamaized.net/dash/live/2016970/bfs_sued_de/dvbt2/manifest.mpd",
+	["Das Erste HD"] = "https://mcdn.daserste.de/daserste/dash/manifest.mpd",
+	["hr-fernsehen HD"] = "https://hrdashde.akamaized.net/dash/live/2024544/hrdashde/manifest.mpd",
+	["KiKA HD"] = "https://kikageoilsdash.akamaized.net/dash/live/2099498/dashhbbtv-ebu-proxy-full/manifest.mpd",
+	["MDR Sachsen HD"] = "https://mdrtvsndash.akamaized.net/dash/live/2094117/mdrtvsn/dash.mpd",
+	["MDR S-Anhalt HD"] = "https://mdrtvsadash.akamaized.net/dash/live/2094116/mdrtvsa/dash.mpd",
+	["MDR Thüringen HD"] = "https://mdrtvthdash.akamaized.net/dash/live/2094118/mdrtvth/dash.mpd",
+	["NDR FS HH HD"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_hh/ndr_hbbtv_hh.mpd",
+	["NDR FS MV HD"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_mv/ndr_hbbtv_mv.mpd",
+	["NDR FS NDS HD"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_nds/ndr_hbbtv_nds.mpd",
+	["NDR FS SH HD"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_sh/ndr_hbbtv_sh.mpd",
+	["ONE HD"] = "https://mcdn.one.ard.de/ardone/dash/manifest.mpd",
+	["phoenix HD"] = "https://zdf-dash-19.akamaized.net/dash/live/2016512/de/manifest.mpd",
+	["PHOENIX HD"] = "https://zdf-dash-19.akamaized.net/dash/live/2016512/de/manifest.mpd",
+	["Radio Bremen HD"] = "https://rbdashlive.akamaized.net/dash/live/2020436/rbfs/dash.mpd",
+	["rbb Berlin HD"] = "https://rbb-dash-berlin.akamaized.net/dash/live/2017826/rbb_berlin/manifest.mpd",
+	["rbb Brandenburg HD"] = "https://rbb-dash-brandenburg.akamaized.net/dash/live/2017827/rbb_brandenburg/manifest.mpd",
+	["SR Fernsehen HD"] = "https://swrsrfs-dash.akamaized.net/dash/live/2018687/srfsgeo/dash.mpd",
 	["SWR BW HD"] = "https://swrbw-dash.akamaized.net/dash/live/2018674/swrbwd/manifest.mpd",
 	["SWR RP HD"] = "https://swrrp-dash.akamaized.net/dash/live/2018680/swrrpd/manifest.mpd",
-	["WDR HD Köln"] = "https://wdrfs247.akamaized.net/dash/live/2016702/wdrfs247_geo/dash.mpd",
+	["tagesschau24 HD"] = "https://tagesschau.akamaized.net/dash/live/2020098/tagesschau/tagesschau_3/tagesschau_3.mpd",
 	["WDR HD Aachen"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018107/wdrlz_aachen/dash.mpd",
 	["WDR HD Bielefeld"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018117/wdrlz_bielefeld/dash.mpd",
 	["WDR HD Bonn"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018112/wdrlz_bonn/dash.mpd",
@@ -21,40 +42,40 @@ local sender_mpd = {
 	["WDR HD Duisburg"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018115/wdrlz_duisburg/dash.mpd",
 	["WDR HD Düsseldorf"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018114/wdrlz_duesseldorf/dash.mpd",
 	["WDR HD Essen"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018118/wdrlz_essen/dash.mpd",
+	["WDR HD Köln"] = "https://wdrfs247.akamaized.net/dash/live/2016702/wdrfs247_geo/dash.mpd",
 	["WDR HD Münster"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018116/wdrlz_muensterland/dash.mpd",
 	["WDR HD Siegen"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018111/wdrlz_siegen/dash.mpd",
 	["WDR HD Wuppertal"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018126/wdrlz_wuppertal/dash.mpd",
-	["BR Süd HD"] = "https://bfrsueddash.akamaized.net/dash/live/2016970/bfs_sued_de/dvbt2/manifest.mpd",
-	["BR Fernsehen Süd HD"] = "https://bfrsueddash.akamaized.net/dash/live/2016970/bfs_sued_de/dvbt2/manifest.mpd",
-	["BR Fernsehen Nord HD"] = "https://bfrnorddash.akamaized.net/dash/live/2016971/bfs_nord_de/dvbt2/manifest.mpd",
-	["NDR FS NDS HD"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_nds/ndr_hbbtv_nds.mpd",
-	["NDR FS MV HD"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_mv/ndr_hbbtv_mv.mpd",
-	["NDR FS HH HD"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_hh/ndr_hbbtv_hh.mpd",
-	["NDR FS SH HD"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_sh/ndr_hbbtv_sh.mpd",
-	["phoenix HD"] = "https://zdf-dash-19.akamaized.net/dash/live/2016512/de/manifest.mpd",
-	["PHOENIX HD"] = "https://zdf-dash-19.akamaized.net/dash/live/2016512/de/manifest.mpd",
-	["tagesschau24 HD"] = "https://tagesschau.akamaized.net/dash/live/2020098/tagesschau/tagesschau_3/tagesschau_3.mpd",
-	["ONE HD"] = "https://mcdn.one.ard.de/ardone/dash/manifest.mpd",
-	["ARD alpha HD"] = "https://ardalphadash.akamaized.net/dash/live/2016972/ard_alpha/dvbt2/manifest.mpd",
-	["SR Fernsehen HD"] = "https://swrsrfs-dash.akamaized.net/dash/live/2018687/srfsgeo/dash.mpd",
-	["Radio Bremen HD"] = "https://rbdashlive.akamaized.net/dash/live/2020436/rbfs/dash.mpd",
-	["rbb Brandenburg HD"] = "https://rbb-dash-brandenburg.akamaized.net/dash/live/2017827/rbb_brandenburg/manifest.mpd",
-	["rbb Berlin HD"] = "https://rbb-dash-berlin.akamaized.net/dash/live/2017826/rbb_berlin/manifest.mpd",
-	["MDR Sachsen HD"] = "https://mdrtvsndash.akamaized.net/dash/live/2094117/mdrtvsn/dash.mpd",
-	["MDR S-Anhalt HD"] = "https://mdrtvsadash.akamaized.net/dash/live/2094116/mdrtvsa/dash.mpd",
-	["MDR Thüringen HD"] = "https://mdrtvthdash.akamaized.net/dash/live/2094118/mdrtvth/dash.mpd",
-	["hr-fernsehen HD"] = "https://hrdashde.akamaized.net/dash/live/2024544/hrdashde/manifest.mpd",
 	["ZDF HD"] = "https://zdf-dash-15.akamaized.net/dash/live/2016508/de/manifest.mpd",
 	["ZDFinfo HD"] = "https://zdf-dash-17.akamaized.net/dash/live/2016510/de/manifest.mpd",
 	["zdf_neo HD"] = "https://zdf-dash-16.akamaized.net/dash/live/2016509/de/manifest.mpd",
-	["3sat HD"] = "https://zdf-dash-18.akamaized.net/dash/live/2016511/dach/manifest.mpd",
-	["KiKA HD"] = "https://kikageoilsdash.akamaized.net/dash/live/2099498/dashhbbtv-ebu-proxy-full/manifest.mpd",
 -- SD
-	["Das Erste"] = "https://mcdn.daserste.de/daserste/dash/manifest.mpd",
+	["3sat"] = "https://zdf-dash-18.akamaized.net/dash/live/2016511/dach/manifest.mpd",
+	["ARD alpha"] = "https://ardalphadash.akamaized.net/dash/live/2016972/ard_alpha/dvbt2/manifest.mpd",
 	["arte"] = "https://arteliveext.akamaized.net/dash/live/2031004/artelive_de/dash.mpd",
-	["SWR BW"] = "https://swrbw-dash.akamaized.net/dash/live/2018674/swrbwd/manifest.mpd",
-	["SWR RP"] = "https://swrrp-dash.akamaized.net/dash/live/2018680/swrrpd/manifest.mpd",
-	["WDR Köln"] = "https://wdrfs247.akamaized.net/dash/live/2016702/wdrfs247_geo/dash.mpd",
+	["BR Fernsehen Nord"] = "https://bfrnorddash.akamaized.net/dash/live/2016971/bfs_nord_de/dvbt2/manifest.mpd",
+	["BR Fernsehen Süd"] = "https://bfrsueddash.akamaized.net/dash/live/2016970/bfs_sued_de/dvbt2/manifest.mpd",
+	["BR Süd"] = "https://bfrsueddash.akamaized.net/dash/live/2016970/bfs_sued_de/dvbt2/manifest.mpd",
+	["Das Erste"] = "https://mcdn.daserste.de/daserste/dash/manifest.mpd",
+	["hr-fernsehen"] = "https://hrdashde.akamaized.net/dash/live/2024544/hrdashde/manifest.mpd",
+	["KiKA"] = "https://kikageoilsdash.akamaized.net/dash/live/2099498/dashhbbtv-ebu-proxy-full/manifest.mpd",
+	["MDR Sachsen"] = "https://mdrtvsndash.akamaized.net/dash/live/2094117/mdrtvsn/dash.mpd",
+	["MDR S-Anhalt"] = "https://mdrtvsadash.akamaized.net/dash/live/2094116/mdrtvsa/dash.mpd",
+	["MDR Thüringen"] = "https://mdrtvthdash.akamaized.net/dash/live/2094118/mdrtvth/dash.mpd",
+	["NDR FS HH"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_hh/ndr_hbbtv_hh.mpd",
+	["NDR FS MV"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_mv/ndr_hbbtv_mv.mpd",
+	["NDR FS NDS"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_nds/ndr_hbbtv_nds.mpd",
+	["NDR FS SH"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_sh/ndr_hbbtv_sh.mpd",
+	["ONE"] = "https://mcdn.one.ard.de/ardone/dash/manifest.mpd",
+	["phoenix"] = "https://zdf-dash-19.akamaized.net/dash/live/2016512/de/manifest.mpd",
+	["PHOENIX"] = "https://zdf-dash-19.akamaized.net/dash/live/2016512/de/manifest.mpd",
+	["Radio Bremen TV"] = "https://rbdashlive.akamaized.net/dash/live/2020436/rbfs/dash.mpd",
+	["rbb Berlin"] = "https://rbb-dash-berlin.akamaized.net/dash/live/2017826/rbb_berlin/manifest.mpd",
+	["rbb Brandenburg"] = "https://rbb-dash-brandenburg.akamaized.net/dash/live/2017827/rbb_brandenburg/manifest.mpd",
+	["SR Fernsehen"] = "https://swrsrfs-dash.akamaized.net/dash/live/2018687/srfsgeo/dash.mpd",
+	["SWR Fernsehen BW"] = "https://swrbw-dash.akamaized.net/dash/live/2018674/swrbwd/manifest.mpd",
+	["SWR Fernsehen RP"] = "https://swrrp-dash.akamaized.net/dash/live/2018680/swrrpd/manifest.mpd",
+	["tagesschau24"] = "https://tagesschau.akamaized.net/dash/live/2020098/tagesschau/tagesschau_3/tagesschau_3.mpd",
 	["WDR Aachen"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018107/wdrlz_aachen/dash.mpd",
 	["WDR Bielefeld"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018117/wdrlz_bielefeld/dash.mpd",
 	["WDR Bonn"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018112/wdrlz_bonn/dash.mpd",
@@ -62,34 +83,13 @@ local sender_mpd = {
 	["WDR Duisburg"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018115/wdrlz_duisburg/dash.mpd",
 	["WDR Düsseldorf"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018114/wdrlz_duesseldorf/dash.mpd",
 	["WDR Essen"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018118/wdrlz_essen/dash.mpd",
+	["WDR Köln"] = "https://wdrfs247.akamaized.net/dash/live/2016702/wdrfs247_geo/dash.mpd",
 	["WDR Münster"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018116/wdrlz_muensterland/dash.mpd",
 	["WDR Siegen"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018111/wdrlz_siegen/dash.mpd",
 	["WDR Wuppertal"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018126/wdrlz_wuppertal/dash.mpd",
-	["BR Süd"] = "https://bfrsueddash.akamaized.net/dash/live/2016970/bfs_sued_de/dvbt2/manifest.mpd",
-	["BR Fernsehen Süd"] = "https://bfrsueddash.akamaized.net/dash/live/2016970/bfs_sued_de/dvbt2/manifest.mpd",
-	["BR Fernsehen Nord"] = "https://bfrnorddash.akamaized.net/dash/live/2016971/bfs_nord_de/dvbt2/manifest.mpd",
-	["NDR FS NDS"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_nds/ndr_hbbtv_nds.mpd",
-	["NDR FS MV"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_mv/ndr_hbbtv_mv.mpd",
-	["NDR FS HH"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_hh/ndr_hbbtv_hh.mpd",
-	["NDR FS SH"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_sh/ndr_hbbtv_sh.mpd",
-	["phoenix"] = "https://zdf-dash-19.akamaized.net/dash/live/2016512/de/manifest.mpd",
-	["PHOENIX"] = "https://zdf-dash-19.akamaized.net/dash/live/2016512/de/manifest.mpd",
-	["tagesschau24"] = "https://tagesschau.akamaized.net/dash/live/2020098/tagesschau/tagesschau_3/tagesschau_3.mpd",
-	["ONE"] = "https://mcdn.one.ard.de/ardone/dash/manifest.mpd",
-	["ARD alpha"] = "https://ardalphadash.akamaized.net/dash/live/2016972/ard_alpha/dvbt2/manifest.mpd",
-	["SR Fernsehen"] = "https://swrsrfs-dash.akamaized.net/dash/live/2018687/srfsgeo/dash.mpd",
-	["Radio Bremen"] = "https://rbdashlive.akamaized.net/dash/live/2020436/rbfs/dash.mpd",
-	["rbb Brandenburg"] = "https://rbb-dash-brandenburg.akamaized.net/dash/live/2017827/rbb_brandenburg/manifest.mpd",
-	["rbb Berlin"] = "https://rbb-dash-berlin.akamaized.net/dash/live/2017826/rbb_berlin/manifest.mpd",
-	["MDR Sachsen"] = "https://mdrtvsndash.akamaized.net/dash/live/2094117/mdrtvsn/dash.mpd",
-	["MDR S-Anhalt"] = "https://mdrtvsadash.akamaized.net/dash/live/2094116/mdrtvsa/dash.mpd",
-	["MDR Thüringen"] = "https://mdrtvthdash.akamaized.net/dash/live/2094118/mdrtvth/dash.mpd",
-	["hr-fernsehen"] = "https://hrdashde.akamaized.net/dash/live/2024544/hrdashde/manifest.mpd",
 	["ZDF"] = "https://zdf-dash-15.akamaized.net/dash/live/2016508/de/manifest.mpd",
 	["ZDFinfo"] = "https://zdf-dash-17.akamaized.net/dash/live/2016510/de/manifest.mpd",
-	["zdf_neo"] = "https://zdf-dash-16.akamaized.net/dash/live/2016509/de/manifest.mpd",
-	["3sat"] = "https://zdf-dash-18.akamaized.net/dash/live/2016511/dach/manifest.mpd",
-	["KiKA"] = "https://kikageoilsdash.akamaized.net/dash/live/2099498/dashhbbtv-ebu-proxy-full/manifest.mpd"
+	["zdf_neo"] = "https://zdf-dash-16.akamaized.net/dash/live/2016509/de/manifest.mpd"
 }
 
 local outputfile = "/tmp/output.mpd"
@@ -160,15 +160,15 @@ function get_text(dir_file)
 	end
 end
 
-function replay(name, epg_now, epg_next)
+function replay(name, epg_now, epg_next, full_time)
 	local vPlay = video.new()
 	vPlay:setSinglePlay(true)
-	vPlay:PlayFile("Replay - " .. name, outputfile, epg_now, epg_next)
+	vPlay:PlayFile("Replay - " .. name, outputfile, epg_now .. " (" .. full_time .. " min)", epg_next)
 end
 
 function message(txt, s)
 	if s == nil then s = 3 end
-	local h = hintbox.new{caption="Hinweis ...", text=txt}
+	local h = hintbox.new{caption="Hinweis", text=txt}
 	if h then
 		 h:paint()
 	end
@@ -211,7 +211,8 @@ if mpd_url then
 		end
 
 		local output = table.concat(mpdlines, "\n")
-		local zeit = tonumber(channelinfo[3]:sub(1, channelinfo[3]:find("/")-1)) -- vergangene zeit
+		local zeit = tonumber(channelinfo[3]:sub(1, channelinfo[3]:find("/")-1)) -- vergangene Zeit
+		local fzeit = tonumber(channelinfo[3]:sub(channelinfo[3]:find("/")+1, 10)) -- volle Laufzeit
 
 		if string.find(mpdlines[4],"<Period") then
 			--print("Period gefunden")
@@ -220,7 +221,7 @@ if mpd_url then
 		end
 
 		putdata(output, outputfile)
-		replay(name, umlaute(channelinfo[2]), umlaute(channelinfo[4]))
+		replay(name, umlaute(channelinfo[2]), umlaute(channelinfo[4]), fzeit)
 
 	else
 		message("Konnte mpd nicht finden / laden.", 3)
