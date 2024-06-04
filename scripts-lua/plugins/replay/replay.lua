@@ -204,8 +204,8 @@ if mpd_url then
 			table.insert(mpdlines, 3,'  <BaseURL>' .. host .. '</BaseURL>')
 
 			if string.match(mpdlines[6], "<Role") then -- arte handling
-				if string.match(mpdlines[12], "720") then
-					mpdlines[8] = mpdlines[12]
+				if string.match(mpdlines[16], "720") then
+					mpdlines[7] = mpdlines[16]
 				end
 			end
 		end
