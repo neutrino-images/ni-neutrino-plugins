@@ -1,6 +1,6 @@
 -- parse best m3u8 RESOLUTION
 -- add parse Referer in Url by GetAway
--- Version 1.1
+-- Version 1.2
 
 if #arg < 1 then return nil end
 
@@ -122,6 +122,7 @@ function getVideoUrl(m3u8_url)
 			for adata in data:gmatch('TYPE%=AUDIO,(.-)\n') do
 				local lname = adata:match('NAME="(.-)"')
 				local lang = adata:match('LANGUAGE="(.-)"')
+				if lang == nil and lname ~= nil then lang = lname end
 				local aurl = adata:match('URI="(.-)"')
 				if aurl then
 					local low_lang = lang:lower()
