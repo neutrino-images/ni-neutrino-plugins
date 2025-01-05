@@ -160,7 +160,7 @@ l.statusDLTool			= "Executable Binary: %s"
 l.statusDLNotFound		= "Not found - Download not possibe"
 l.statusDLNoPath		= "The download path from your settings '%s' is most likely not correctly set!"
 l.statusDLStarted		= "Download started ..."
-l.statusDLWhat			= "Title: %s\nFile: %s\nURL: %s\nQuality: %s\nBy: %s"
+l.statusDLWhat			= "Channel: %s\nProgram: %s\nDescription: %s\nTheme: %s\nTime: %s\nProgram date/time: %s %s\nQuality: %s\nFile: %s\nURL: %s\nVia: %s"
 l.statusDLSpace			= "Disk Space Overview ..."
 
 l.startMediathek		= "Start Mediathek"
