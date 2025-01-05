@@ -622,6 +622,19 @@ function formatMinDuration(duration)
 	return tostring(duration) .. ' ' .. l.formatDurationMin
 end
 
+function count_active_downloads()
+	local count = 0
+	local command = "find /tmp -name '.mediathek_dl_*.sh' -maxdepth 1 | wc -l"
+	local handle = io.popen(command)
+
+	if handle then
+		count = tonumber(handle:read("*a")) or 0
+		handle:close()
+	end
+
+	return count
+end
+
 function startMediathek()
 	leftMenuEntry = {}
 	local function fillLeftMenuEntry(e1, e2, e3, e4, e5)
@@ -738,18 +751,13 @@ function startMediathek()
 		-- exit plugin
 		checkKillKey(msg)
 
-		local countWGETRunning = runACommand('ps -ef | grep -c wget')
-		if (countWGETRunning == nil) then
-			countWGETRunning = 0
-		else
-			countWGETRunning = tonumber(countWGETRunning)
-		end
-		if (countWGETRunning > 2) then
+		local countDLRunning = tonumber(count_active_downloads())
+		if (countDLRunning > 0) then
 			G.hideInfoBox(topRightBox)
-			if (countWGETRunning == 3) then -- including ps and wget commands
+			if (countDLRunning == 1) then
 				topRightBox = paintTopRightInfoBox(l.statusDLRunning1)
 			else
-				topRightBox = paintTopRightInfoBox(string.format(l.statusDLRunningN, countWGETRunning-2)) -- w/o ps and grep commands
+				topRightBox = paintTopRightInfoBox(string.format(l.statusDLRunningN, countDLRunning))
 			end
 		else
 			G.hideInfoBox(topRightBox)

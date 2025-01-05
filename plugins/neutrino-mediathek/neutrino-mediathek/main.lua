@@ -130,12 +130,13 @@ volumeNeutrino		= 0
 
 function beforeStart()
 	V:zapitStopPlayBack()
-	V:ShowPicture(backgroundImage)
 
 	muteStatusNeutrino = M:isMuted()
 	volumeNeutrino = M:getVolume()
 	M:enableMuteIcon(false)
 	M:AudioMute(true, false)
+
+	V:ShowPicture(backgroundImage)
 
 --	timerThread = threads.new(_timerThread)
 --	timerThread:start()
