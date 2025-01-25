@@ -119,7 +119,11 @@ dlDebug = true
 	end
 end
 
-function playMovie(url, title, info1, info2, enableMovieInfo)
+function playMovie(url, title, info1, info2, enableMovieInfo, url2)
+	if not url then
+		return nil
+	end
+
 	local function muteSleep(mute, wait)
 		local threadFunc = [[
 			local t = ...
@@ -130,26 +134,25 @@ function playMovie(url, title, info1, info2, enableMovieInfo)
 			M:AudioMute(t._mute, true)
 			return 1
 		]]
-		local mt = threads.new(threadFunc, {_mute=mute, _wait=wait})
-		mt:start()
+		local mt = threads.new(threadFunc, {_mute = mute, _wait = wait})
 		return mt
 	end
 
 	local muteThread
-	if (moviePlayed == false) then
-		volumePlugin = M:getVolume()
-		muteThread = muteSleep(muteStatusPlugin, 1)
-	else
-		M:AudioMute(muteStatusPlugin, true)
-		M:setVolume(volumePlugin)
-	end
+	volumePlugin = M:getVolume()
+	muteThread = muteSleep(muteStatusPlugin, 1)
+	muteThread:start()
 
 	if enableMovieInfo == true then
 		V:setInfoFunc('movieInfoMP')
 	end
 
-	local status = V:PlayFile(title, url, info1, info2)
-	if status == PLAYSTATE.LEAVE_ALL then forcePluginExit = true end
+	url2 = url2 or ""
+
+	local status = V:PlayFile(title, url, info1, info2, url2)
+	if status == PLAYSTATE.LEAVE_ALL then
+		forcePluginExit = true
+	end
 
 	muteStatusPlugin = M:isMuted()
 	volumePlugin = M:getVolume()
@@ -157,9 +160,12 @@ function playMovie(url, title, info1, info2, enableMovieInfo)
 	M:enableInfoClock(false)
 
 	V:ShowPicture(backgroundImage)
-	moviePlayed = true
+
 	if muteThread ~= nil then
-		muteThread:join()
+		local joined, err = muteThread:join()
+		if not joined then
+			print(string.format("[Error] Failed to join mute thread: %s", tostring(err)))
+		end
 	end
 end
 
