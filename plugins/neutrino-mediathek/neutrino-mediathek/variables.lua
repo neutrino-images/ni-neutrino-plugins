@@ -14,7 +14,7 @@ end
 function initVars()
 	pluginVersionMajor	= 0
 	pluginVersionMinor	= 4
-	pluginVersionBeta	= 5
+	pluginVersionBeta	= 6
 	if (pluginVersionBeta == 0) then
 		pvbTmp = ''
 	else
@@ -72,7 +72,6 @@ function initVars()
 	WHERE.CENTER	= 5
 
 	mainScreen	= 0
-	moviePlayed	= false
 
 	MINUTE	= 60
 	HOUR	= 3600

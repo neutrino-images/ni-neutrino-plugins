@@ -133,8 +133,8 @@ function beforeStart()
 
 	muteStatusNeutrino = M:isMuted()
 	volumeNeutrino = M:getVolume()
+	M:AudioMute(false, false)
 	M:enableMuteIcon(false)
-	M:AudioMute(true, false)
 
 	V:ShowPicture(backgroundImage)
 
@@ -144,9 +144,8 @@ end
 
 function afterStop()
 	hideMainWindow()
-	if (moviePlayed == false) then
-		V:channelRezap()
-	end
+	V:channelRezap()
+
 	local rev, box = M:GetRevision()
 	if rev == 1 and box == 'Spark' then V:StopPicture() end
 
