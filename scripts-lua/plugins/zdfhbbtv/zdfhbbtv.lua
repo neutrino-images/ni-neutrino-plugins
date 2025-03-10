@@ -6,7 +6,7 @@
 ]]
 
 function init()
-	Version = 0.24
+	Version = 0.25
 	CONF_PATH = "/var/tuxbox/config/"
 	if DIR and DIR.CONFIGDIR then
 		CONF_PATH = DIR.CONFIGDIR .. '/'
@@ -672,6 +672,45 @@ function getZDFstream(tab)
 					elseif mpd and mpd.main and mpd.main.deu then
 						tab.stream = mpd.main.deu.url
 						--vf = "mpd"
+--[[
+			-- tuxbox-version for loop above
+			for i=1,2,1 do
+				for _, streams in pairs(jnTab.streams) do
+					if streams and tab.stream == nil then
+						local h265 = streams.h265_aac_mp4_http_na_na
+						local h264 = streams.h264_aac_mp4_http_na_na
+						if h265 == nil then
+							mp4 = h264
+							else
+							mp4 = h265
+						end
+						local m3u8 = streams.h264_aac_ts_http_m3u8_http
+						local mpd = streams.h264_aac_mp4_http_mpd_http
+						if maxRes > 1921 and streams.h265_aac_mp4_http_na_na and mp4.main.deu.q5 then
+							tab.stream = mp4.main.deu.q5.url
+							break
+						elseif maxRes > 1281 and streams.h265_aac_mp4_http_na_na and mp4.main.deu.q4 then
+							tab.stream = mp4.main.deu.q4.url
+						elseif maxRes > 1281 and streams.h265_aac_mp4_http_na_na and mp4.main.deu.q3 then
+							tab.stream = mp4.main.deu.q3.url
+						elseif maxRes > 1281 and streams.h264_aac_mp4_http_na_na and mp4.main.deu.q4 then
+							tab.stream = mp4.main.deu.q4.url
+							break
+						elseif maxRes > 1281 and streams.h264_aac_mp4_http_na_na and mp4.main.deu.q3 then
+							tab.stream = mp4.main.deu.q3.url
+							break
+						elseif maxRes < 1281 and mp4 and mp4.main and mp4.main.deu and mp4.main.deu.q1 then
+							tab.stream = mp4.main.deu.q1.url
+						elseif m3u8 and m3u8.main and m3u8.main.deu and m3u8.main.deu.q3 then
+							tab.stream , tab.audiostream = getVideoUrlM3U8(m3u8.main.deu.q3.url)
+						elseif mpd and mpd.main and mpd.main.deu then
+							tab.stream = mpd.main.deu.url
+						end
+						if tab.stream then break end
+						if h265 and tab.stream == nil then
+							streams.h265_aac_mp4_http_na_na = nil
+						end
+]]
 					end
 				end
 			end

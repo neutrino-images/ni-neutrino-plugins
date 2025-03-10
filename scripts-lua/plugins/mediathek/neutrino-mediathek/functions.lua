@@ -24,6 +24,17 @@ function addKillKey(menu)
 	menu:addKey{directkey=RC.standby,	id='standby',	action='killPlugin'}
 end
 
+local function generate_sid(length)
+	math.randomseed(os.time())
+	local chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	local sid = {}
+	for i = 1, length do
+		local rand_index = math.random(1, #chars)
+		sid[i] = chars:sub(rand_index, rand_index)
+	end
+	return table.concat(sid)
+end
+
 function curlDownload(url, file, postData, hideBox, _ua, uriDecode)
 	return downloadFileInternal(url, file, hideBox, _ua, postData, uriDecode)
 end
@@ -108,7 +119,11 @@ dlDebug = true
 	end
 end
 
-function playMovie(url, title, info1, info2, enableMovieInfo)
+function playMovie(url, title, info1, info2, enableMovieInfo, url2)
+	if not url then
+		return nil
+	end
+
 	local function muteSleep(mute, wait)
 		local threadFunc = [[
 			local t = ...
@@ -119,26 +134,25 @@ function playMovie(url, title, info1, info2, enableMovieInfo)
 			M:AudioMute(t._mute, true)
 			return 1
 		]]
-		local mt = threads.new(threadFunc, {_mute=mute, _wait=wait})
-		mt:start()
+		local mt = threads.new(threadFunc, {_mute = mute, _wait = wait})
 		return mt
 	end
 
 	local muteThread
-	if (moviePlayed == false) then
-		volumePlugin = M:getVolume()
-		muteThread = muteSleep(muteStatusPlugin, 1)
-	else
-		M:AudioMute(muteStatusPlugin, true)
-		M:setVolume(volumePlugin)
-	end
+	volumePlugin = M:getVolume()
+	muteThread = muteSleep(muteStatusPlugin, 1)
+	muteThread:start()
 
 	if enableMovieInfo == true then
 		V:setInfoFunc('movieInfoMP')
 	end
 
-	local status = V:PlayFile(title, url, info1, info2)
-	if status == PLAYSTATE.LEAVE_ALL then forcePluginExit = true end
+	url2 = url2 or ""
+
+	local status = V:PlayFile(title, url, info1, info2, url2)
+	if status == PLAYSTATE.LEAVE_ALL then
+		forcePluginExit = true
+	end
 
 	muteStatusPlugin = M:isMuted()
 	volumePlugin = M:getVolume()
@@ -146,9 +160,12 @@ function playMovie(url, title, info1, info2, enableMovieInfo)
 	M:enableInfoClock(false)
 
 	V:ShowPicture(backgroundImage)
-	moviePlayed = true
+
 	if muteThread ~= nil then
-		muteThread:join()
+		local joined, err = muteThread:join()
+		if not joined then
+			print(string.format("[Error] Failed to join mute thread: %s", tostring(err)))
+		end
 	end
 end
 
@@ -199,24 +216,9 @@ function downloadMovie(url, channel, title, description, theme, duration, date, 
 
 		local s = ''
 		for i=1, #xml do
-			s = s .. escape(xml[i], '\'') .. string.char(10)	-- NL
+			s = s .. escape(xml[i], '\'') .. string.char(10)
 		end
 		return s
-	end
-
-	local function muteSleep(mute, wait)
-		local threadFunc = [[
-			local t = ...
-			local P = require 'posix'
-			print(string.format(">>>>>[muteSleep] set AudioMute to %s, wait %d sec", tostring(t._mute), t._wait))
-			P.sleep(t._wait)
-			M = misc.new()
-			M:AudioMute(t._mute, true)
-			return 1
-		]]
-		local mt = threads.new(threadFunc, {_mute=mute, _wait=wait})
-		mt:start()
-		return mt
 	end
 
 	local function validName(s)
@@ -226,8 +228,8 @@ function downloadMovie(url, channel, title, description, theme, duration, date, 
 			if ((r >= 'A' and r <= 'Z') or
 				(r >= 'a' and r <= 'z') or
 				(r >= '0' and r <= '9') or
-				r == '.' or r == ',' or r == '-' or
-				r == '(' or r == ')' or r == '!') then
+				r == '.' or r == ',' or r == ':' or r == ';' or
+				r == '-' or r == '?' or r == '!') then -- () removed, because download problems [BP]
 				t = t .. r
 			else
 				t = t .. '_'
@@ -236,37 +238,73 @@ function downloadMovie(url, channel, title, description, theme, duration, date, 
 		return t
 	end
 
-	local muteThread
-	if (moviePlayed == false) then
-		volumePlugin = M:getVolume()
-		muteThread = muteSleep(muteStatusPlugin, 1)
-	else
-		M:AudioMute(muteStatusPlugin, true)
-		M:setVolume(volumePlugin)
-	end
-
 	if (conf.downloadPath ~= '/') then
-		if (string.sub(url, -4) == '.mp4') then
-			local date4Name = string.sub(date, 7, 10) .. string.sub(date, 4, 5) .. string.sub(date, 1, 2)
-			local time4Name = string.sub(time, 1,  2) .. string.sub(time, 4, 5) .. '00'
-			local filePathNameWOExt = conf.downloadPath .. '/' .. validName(channel) .. '_' .. validName(title) .. '_' .. date4Name .. '_' .. time4Name
-			local fileMP4 = '"' .. filePathNameWOExt .. '.mp4"'
-			local fileLOG = '"' .. filePathNameWOExt .. '.log"'
-			local fileLST = '"' .. filePathNameWOExt .. '.lst"'
-			local fileERR = '"' .. filePathNameWOExt .. '.err"'
-			local fileCMD = '"' .. filePathNameWOExt .. '.cmd"'
-			local fileXML = '"' .. filePathNameWOExt .. '.xml"'
-			local info1 = l.statusDLStarted
-			local info2 = string.format(l.statusDLWhat, channel, title, description, theme, duration, date, time, conf.downloadQuality, fileMP4, url)
-			paintInfoBoxAndWait(info1, info2, conf.guiTimeMsg)
-			local durationInMinutes = tostring(tonumber(string.sub(duration, 1, 2)) * 60 + tonumber(string.sub(duration, 4, 5)) + 1)
-			local tagsXML = constructXMLFile(channel, title, description, theme, durationInMinutes, date, time, conf.downloadQuality)
-			os.execute('echo \'' .. tagsXML .. '\' > ' .. fileXML)
-			local wgetCMD = 'wget --verbose --continue --no-check-certificate --inet4-only --user-agent=' .. user_agent2 .. ' --progress=dot:mega --output-document=' .. fileMP4 .. ' --output-file=' .. fileLOG .. ' ' .. url .. ' > ' .. fileLST .. ' 2> ' .. fileERR .. ' &'
-			os.execute('echo \'' .. wgetCMD .. '\' > ' .. fileCMD)
-			os.execute(wgetCMD)
+		local format_ext = 'mp4'
+		local download_cmd = ""
+		local fileMP4 = ""
+		local filePathNameWOExt = ""
+		local info1 = ""
+		local info2 = ""
+		if (string.sub(url, -4) == '.mp4') or (string.sub(url, -5) == '.m3u8') then
+			local DLtool = url:match("%.mp4$") and "wget" or "ffmpeg"
+			local DLbin = H.which(DLtool)
+			if DLbin == "" then
+				local warn1 = string.format(l.statusDLTool, DLtool)
+				local warn2 = l.statusDLNotFound
+				paintInfoBoxAndWait(warn1, warn2, 3)
+			else
+				local date4Name = string.sub(date, 7, 10) .. string.sub(date, 4, 5) .. string.sub(date, 1, 2)
+				local time4Name = string.sub(time, 1,  2) .. string.sub(time, 4, 5) .. '00'
+				filePathNameWOExt = conf.downloadPath .. '/' .. validName(channel) .. '_' .. validName(title) .. '_' .. date4Name .. '_' .. time4Name
+				fileMP4 = '"' .. filePathNameWOExt .. '.mp4"'
+				local fileXML = '"' .. filePathNameWOExt .. '.xml"'
+				info1 = l.statusDLStarted
+				info2 = string.format(l.statusDLWhat, channel, title, description, theme, duration, date, time, conf.downloadQuality, fileMP4, url, DLtool)
+				local durationInMinutes = tostring(tonumber(string.sub(duration, 1, 2)) * 60 + tonumber(string.sub(duration, 4, 5)) + 1)
+				local tagsXML = constructXMLFile(channel, title, description, theme, durationInMinutes, date, time, conf.downloadQuality)
+				os.execute('echo \'' .. tagsXML .. '\' > ' .. fileXML)
+				if (string.sub(url, -4) == '.mp4') then
+					if (is_BB_wget() == true) then
+						download_cmd = 'wget -c --no-check-certificate -U ' .. user_agent2 .. ' -O ' .. fileMP4 .. ' ' .. url
+					else
+						download_cmd = 'wget --continue --no-check-certificate --user-agent=' .. user_agent2 .. ' -O ' .. fileMP4 .. ' ' .. url
+					end
+				elseif (string.sub(url, -5) == '.m3u8') then
+					local cur_major, cur_minor, cur_patch = getLibavformatVersion()
+					if isFFmpegGreater(cur_major, cur_minor, cur_patch, 58, 8, 99) then
+						download_cmd = 'ffmpeg -y -user_agent \"Mozilla/5.0\" -i ' .. url.. ' -bsf:a aac_adtstoasc -vcodec copy -c copy ' .. fileMP4
+					else
+						download_cmd = 'ffmpeg -y -user-agent \"Mozilla/5.0\" -i ' .. url.. ' -bsf:a aac_adtstoasc -vcodec copy -c copy ' .. fileMP4
+					end
+				end
+			end
 		else
 			paintAnInfoBoxAndWait(l.statusDLNot, WHERE.CENTER, conf.guiTimeMsg)
+		end
+
+		if (download_cmd ~= "") then
+			local loopback = '127.0.0.1'
+			local file_id = generate_sid(16)
+			local encoded_title = url_encode(title)
+			local dl_sh  = "/tmp/.mediathek_dl_" .. file_id .. ".sh"
+			local script=io.open(dl_sh, "w")
+			script:write('echo "download start" ;\n')
+			script:write(download_cmd .. "\n")
+			script:write('if [ $? -eq 0 ]; then \n')
+			script:write('sleep 2 ;\n')
+			if format_ext == 'mp4' then
+				script:write('mv -f ' .. filePathNameWOExt .. '.' .. format_ext .. ' ' .. filePathNameWOExt .. '.ts\n')
+			end
+			script:write('wget -q ' .. loopback .. '/control/message?popup="Video \\"' .. encoded_title .. '\\" wurde heruntergeladen." -O /dev/null &\n')
+			script:write('echo "download success" ;\n')
+			script:write('else \n')
+			script:write('wget -q ' .. loopback .. '/control/message?popup="Download \\"' .. encoded_title .. '\\" FEHLGESCHLAGEN" -O /dev/null &\n')
+			script:write('echo "download failed" ;\n')
+			script:write('fi \n')
+			script:write('rm ' .. dl_sh .. ' ; \n')
+			script:close()
+			os.execute('sh  ' .. dl_sh .. ' &')
+			paintInfoBoxAndWait(info1, info2, conf.guiTimeMsg)
 		end
 	else
 		paintAnInfoBoxAndWait(string.format(l.statusDLNoPath, conf.downloadPath), WHERE.CENTER, conf.guiTimeMsg)
@@ -275,16 +313,7 @@ function downloadMovie(url, channel, title, description, theme, duration, date, 
 		paintInfoBoxAndWait(info1, info2, conf.guiTimeMsg)
 	end
 
-	muteStatusPlugin = M:isMuted()
-	volumePlugin = M:getVolume()
-	M:enableMuteIcon(false)
-	M:enableInfoClock(false)
-
 	V:ShowPicture(backgroundImage)
-	moviePlayed = true
-	if muteThread ~= nil then
-		muteThread:join()
-	end
 end
 
 function debugPrint(msg)
@@ -381,13 +410,11 @@ function url_decode(str)
 end
 
 function url_encode(str)
-	if (str) then
-		str = string.gsub (str, '\n', '\r\n')
-		str = string.gsub (str, '([^%w %-%_%.%~])',
-			function (c) return string.format ('%%%02X', string.byte(c)) end)
-		str = string.gsub (str, ' ', '+')
-	end
-	return str
+    -- Ersetze jedes Zeichen durch seinen Prozent-codierten Wert
+    str = string.gsub(str, "([^%w%-%.%_])", function(c)
+        return string.format("%%%02X", string.byte(c))
+    end)
+    return str
 end
 
 function decodeImage(b64Data, imgTyp, path)
@@ -440,11 +467,11 @@ function setFonts()
 end
 
 function paintInfoBox(txt1, txt2)
-	local tmp1_h = math.floor(fontLeftMenu1_h+N:scale2Res(4))
-	local tmp2_h = math.floor(fontLeftMenu2_h+N:scale2Res(4))
+	local tmp1_h = math.floor(fontLeftMenu1_h + N:scale2Res(4))
+	local tmp2_h = math.floor(fontLeftMenu2_h + N:scale2Res(4))
 
 	local crCount2 = 0
-	for i=1, #txt2 do
+	for i = 1, #txt2 do
 		if string.sub(txt2, i, i) == '\n' then
 			crCount2 = crCount2 + 1
 		end
@@ -455,58 +482,55 @@ function paintInfoBox(txt1, txt2)
 
 	local _txt = txt2
 	local maxLen = 0
-	for i=1, crCount2 do
+	for i = 1, crCount2 do
 		local s, e = string.find(_txt, '\n')
---		paintAnInfoBoxAndWait("s: " .. s .. " e: " .. e, WHERE.CENTER, 3)
 		if s ~= nil then
 			local txt = string.sub(_txt, 1, s - 1)
 			_txt = string.sub(_txt, e + 1)
---			paintAnInfoBoxAndWait("Teil: " .. txt, WHERE.CENTER, 3)
 			local len = N:getRenderWidth(useDynFont, fontLeftMenu2, txt)
-			if (len > maxLen) then maxLen = len end
+			if len > maxLen then maxLen = len end
 		end
 	end
-	if (maxLen > SCREEN.END_X - SCREEN.OFF_X) then maxLen = SCREEN.END_X - SCREEN.OFF_X - 20 end
 
-	local centerX = math.floor((SCREEN.END_X - SCREEN.OFF_X) / 2)
-	local centerY = math.floor((SCREEN.END_Y - SCREEN.OFF_Y) / 2)
+	local screenWidth = SCREEN.END_X - SCREEN.OFF_X
+	local margin = 15 -- Abstand links und rechts
+	local boxWidth = screenWidth - 2 * margin -- Box-Breite mit symmetrischem Abstand
 
-	local startX = math.floor(centerX - (maxLen/2))
-	local startY = math.floor(centerY - (((crCount2*tmp2_h) + tmp1_h)/2))
-	local dx = maxLen + 10
-	local dy = (crCount2*tmp2_h) + tmp1_h + 10
+	if maxLen > boxWidth - 30 then maxLen = boxWidth - 30 end
 
---paintAnInfoBoxAndWait("tmp1_h: " .. tmp1_h, WHERE.CENTER, 3)
-	G.paintSimpleFrame(startX-5, startY-5, dx, dy, COL.FRAME, COL.BACKGROUND)
-	local ib = paintEmptyInfoBox(startX-5, startY-5, dx, dy)
+	local boxHeight = (crCount2 * tmp2_h) + tmp1_h + 10
+	local startX = SCREEN.OFF_X + margin
+	local startY = math.floor((SCREEN.END_Y - SCREEN.OFF_Y) / 2 - boxHeight / 2)
 
-	local _x = startX
-	local _y = startY
+	local ib = paintEmptyInfoBox(startX, startY, boxWidth, boxHeight)
+	G.paintSimpleFrame(startX, startY, boxWidth - 1, boxHeight - 1, COL.FRAME)
+
+	local _x = startX + 15
+	local _y = startY + tmp1_h
 	local widthX = N:getRenderWidth(useDynFont, fontLeftMenu1, txt1)
-	_y = _y + tmp1_h
-	N:RenderString(useDynFont, fontLeftMenu1, txt1, _x+5, _y+5, COL.MENUCONTENT_TEXT, widthX, tmp1_h, 0)
+	N:RenderString(useDynFont, fontLeftMenu1, txt1, _x, _y, COL.MENUCONTENT_TEXT, widthX, tmp1_h, 0)
 
 	_txt = txt2
-	for i=1, crCount2 do
+	_y = _y + tmp1_h
+	for i = 1, crCount2 do
 		local s, e = string.find(_txt, '\n')
---		paintAnInfoBoxAndWait("s: " .. s .. " e: " .. e, WHERE.CENTER, 3)
 		if s ~= nil then
 			local txt = string.sub(_txt, 1, s - 1)
 			_txt = string.sub(_txt, e + 1)
---			paintAnInfoBoxAndWait("Teil: " .. txt, WHERE.CENTER, 3)
 			local widthX = N:getRenderWidth(useDynFont, fontLeftMenu2, txt)
-			if (widthX > maxLen) then
-				while N:getRenderWidth(useDynFont, fontLeftMenu2, txt) > maxLen-8 do
-					txt = string.sub(txt, 1 , -2)
+			if widthX > maxLen then
+				while N:getRenderWidth(useDynFont, fontLeftMenu2, txt) > maxLen - 12 do
+					txt = string.sub(txt, 1, -2)
 				end
 				txt = txt .. "..."
 				widthX = N:getRenderWidth(useDynFont, fontLeftMenu2, txt)
 			end
-			local _x = math.floor(centerX - (widthX/2))
+			local _x = math.floor((startX + boxWidth / 2) - (widthX / 2))
+			N:RenderString(useDynFont, fontLeftMenu2, txt, _x, _y, COL.MENUCONTENT_TEXT, widthX, tmp2_h, 0)
 			_y = _y + tmp2_h
-			N:RenderString(useDynFont, fontLeftMenu2, txt, _x, _y+5, COL.MENUCONTENT_TEXT, widthX, tmp2_h, 0)
 		end
 	end
+
 	return ib
 end
 
@@ -617,4 +641,56 @@ function runACommand(cmd)
 	local result = handle:read("*a")
 	handle:close()
 	return result
+end
+
+function getLibavformatVersion()
+	local paths = {"/usr/lib", "/lib"}
+	for _, dir in ipairs(paths) do
+		local pipe = io.popen("ls -l " .. dir .. "/libavformat.so* 2>/dev/null")
+		if pipe then
+			for line in pipe:lines() do
+				local major, minor, patch = line:match("libavformat.so%.(%d+)%.(%d+)%.(%d+)$")
+				if major ~= nil then
+						pipe:close()
+						return major, minor, patch
+				end
+			end
+			pipe:close()
+		end
+	end
+	return nil, nil, nil
+end
+
+function isFFmpegGreater(cur_major, cur_minor, cur_patch, major, minor, patch)
+	if tonumber(cur_major) ~= major then
+		return tonumber(cur_major) > major
+	end
+	if tonumber(cur_minor) ~= minor then
+		return tonumber(cur_minor) > minor
+	end
+	return tonumber(cur_patch) > patch
+end
+
+function is_BB_wget()
+	local handle = io.popen("which wget 2>/dev/null")
+	local wget_path = handle:read("*a"):gsub("%s+", "")
+	handle:close()
+
+	if wget_path == "" then
+		return nil
+	end
+
+	-- Check if the file is a symbolic link
+	handle = io.popen("ls -l " .. wget_path .. " 2>/dev/null")
+	local ls_output = handle:read("*a"):lower()
+	handle:close()
+
+	if ls_output:match("->") then
+		-- It's a symlink, check if it links to BusyBox
+		if ls_output:match("busybox") then
+			return true
+		end
+	end
+
+	return false
 end

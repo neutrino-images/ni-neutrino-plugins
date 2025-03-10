@@ -9,7 +9,13 @@
 --			Error corrections and added download capabilities
 -- v 0.4 beta 3:	2020-04-05			Author: Roland Oberle
 --			Error corrections and .xml generation and background cleaning
---
+-- v 0.4 beta 4:	2022-03-26			Author: GetAway
+--			fix movieInfo window
+-- v 0.4 beta 5:	2024-12-31			Author: GetAway
+--			ported download m3u8 from BPanther, rework download and some fixes
+-- v 0.4 beta 6:	2015-01-19			Author: GetAway
+--			fix Livestreams resolutions, use url2 for audio
+
 N = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES)
 -- check lua api version
 local req_major = 1
