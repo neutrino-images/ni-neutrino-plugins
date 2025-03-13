@@ -72,8 +72,8 @@
 
 	// Preview Values
 #	define PRE_DAY			29
-#	define PRE_ICON			30
-#	define PRE_COND			31 | TRANSLATION
+#	define PRE_COND			30 | TRANSLATION
+#	define PRE_ICON			31
 #	define PRE_SUNR			32
 #	define PRE_SUNS			33
 #	define PRE_MOON			34 //| TRANSLATION
