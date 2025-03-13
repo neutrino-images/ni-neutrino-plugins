@@ -31,16 +31,16 @@
 
 #	define NA			0
 	//offset simpleforecast
-#	define PRE_STEP		39
-#	define NIGHT_STEP	0
+#	define PRE_STEP			39
+#	define NIGHT_STEP		0
 	//offset forecast
-#	define PRE_STEP2	39
-#	define NIGHT_STEP2	0
+#	define PRE_STEP2		39
+#	define NIGHT_STEP2		0
 
 	// actual Values
 #	define ACT_CITY			NA
 #	define ACT_OBST			NA
-#	define ACT_LOCALTIME	NA
+#	define ACT_LOCALTIME		NA
 
 #	define ACT_LAT			1
 #	define ACT_LON			2
@@ -49,19 +49,19 @@
 
 #	define ACT_COND			7 | TRANSLATION
 #	define ACT_ICON			8
-#	define ACT_PRECIPINT	11
-#	define ACT_PRECIPPROP	12
+#	define ACT_PRECIPINT		11
+#	define ACT_PRECIPPROP		12
 #	define ACT_TEMP			15
 #	define ACT_FTEMP		16
 #	define ACT_DEWPOINT		17
 #	define ACT_HMID			18
 #	define ACT_PRESS		19
-#	define ACT_WINDSPEED	20
+#	define ACT_WINDSPEED		20
 #	define ACT_WINDGUST		21
 #	define ACT_WINDDIR		22 //| TRANSLATION
 #	define ACT_CLOUDC		23
 #	define ACT_UVIND		24
-#	define ACT_VISIBILITY	25
+#	define ACT_VISIBILITY		25
 #	define ACT_OZONE		26
 
 #	define ACT_SUNR			32
@@ -77,8 +77,8 @@
 #	define PRE_SUNR			32
 #	define PRE_SUNS			33
 #	define PRE_MOON			34 //| TRANSLATION
-#	define PRE_PRECIPINT	35 //| TRANSLATION
-#	define PRE_PRECIPPROP	38
+#	define PRE_PRECIPINT		35 //| TRANSLATION
+#	define PRE_PRECIPPROP		38
 #	define PRE_TEMPH		41
 #	define PRE_TEMPL		43
 #	define PRE_SNOW			NA //| TRANSLATION
@@ -87,7 +87,7 @@
 #	define PRE_DEWPOINT		49
 #	define PRE_HMID			50
 #	define PRE_PRESS		51
-#	define PRE_WINDSPEED	52
+#	define PRE_WINDSPEED		52
 #	define PRE_WINDGUST		53
 #	define PRE_WINDDIR		55 //| TRANSLATION
 
