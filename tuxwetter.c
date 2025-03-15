@@ -45,7 +45,7 @@
 #include "icons.h"
 
 #define LOCAL_ICONS 1
-#define P_VERSION "4.50"
+#define P_VERSION "4.51"
 #define S_VERSION ""
 
 const char CONVERT_LIST[] = CFG_TUXWET "/convert.list";
