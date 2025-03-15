@@ -1,6 +1,6 @@
 #!/bin/sh
 # ************************************************
-# * NI Fritz! Smart Home Info mit toggle V4.03   *
+# * NI Fritz! Smart Home Info mit toggle V4.04   *
 # *                                              *
 # * zusammengestellt und angepasst von           *
 # * fred_feuerstein (NI-Team), LoginTeil zur     *
@@ -39,7 +39,7 @@ OSVERSIONMAN=`echo "$CONFIG" | grep '^OSVERSION' | cut -d "=" -f2 | tr -d ' '`
 
 # ab hier keine Eintragung mehr nötig
 #################################################
-vinfo="V4.03"
+vinfo="V4.04"
 vinfo2="403"
 
 echo "--------------------------------------"
@@ -504,7 +504,7 @@ if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = 
    typ1="Thermo"
   elif [ "$produkt" = "FRITZ!DECT Repeater 100" ]; then
    typ1="Repeat."
-  elif [ "$produkt" = "FRITZ!Powerline 546E" -o "$produkt" = "FRITZ!DECT 200" -o "$produkt" = "FRITZ!DECT 210" ]; then
+  elif [ "$produkt" = "FRITZ!Powerline 546E" -o "$produkt" = "FRITZ!DECT 200" -o "$produkt" = "FRITZ!DECT 210" -o "$produkt" = "FRITZ!Smart Energy 200" -o "$produkt" = "FRITZ!Smart Energy 210" ]; then
    typ1="Socket"
   elif [ "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]; then
    typ1="Remote"
