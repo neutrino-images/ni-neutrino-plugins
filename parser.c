@@ -468,8 +468,8 @@ int parser(char *citycode, const char *trans, int metric, int inet, int ctmo)
 	// daily
 	const char * keys_daily[] = {
 		"time",
-		"icon",
 		"summary",
+		"icon",
 		"sunriseTime",
 		"sunsetTime",
 		"moonPhase",
