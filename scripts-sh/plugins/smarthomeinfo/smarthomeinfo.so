@@ -40,7 +40,7 @@ OSVERSIONMAN=`echo "$CONFIG" | grep '^OSVERSION' | cut -d "=" -f2 | tr -d ' '`
 # ab hier keine Eintragung mehr nötig
 #################################################
 vinfo="V4.04"
-vinfo2="403"
+vinfo2="404"
 
 echo "--------------------------------------"
 echo "SmartHomeInfo "$vinfo" startet"
