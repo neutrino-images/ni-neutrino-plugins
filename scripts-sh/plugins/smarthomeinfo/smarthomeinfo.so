@@ -270,6 +270,7 @@ source /tmp/dectnames
 #dect=`cat /tmp/dectdaten.xml | grep "identifier" | sed 's/.*identifier="\(.*\)$/\1/' | cut -c 1-19 | sed 's|"|;|g' | tr "\n" ";" | sed 's|; id;|;|g' | sed 's|; id=;|;|g' `
 #dect=`cat /tmp/dectdaten.xml | grep "identifier" | sed 's/.*identifier="\(.*\)$/\1/' | sed 's/id=".*\(.*\)$/\1/' | sed 's|"|;|g' | sed 's|; id;|;|g' | sed 's|; |;|g'  `
 dect=`cat /tmp/dectdaten.xml | grep "identifier" | sed 's/.*identifier="\(.*\)$/\1/' | sed 's/id=".*\(.*\)$/\1/' | sed 's|"||g' | tr "\n" ";"  `
+functionbitmask=`cat /tmp/dectdaten.xml | grep "functionbitmask" | sed 's/.*functionbitmask="\(.*\)$/\1/' | sed 's/fwversion=".*\(.*\)$/\1/' | sed 's|"||g' | tr "\n" ";"  `
 
 rm -f /tmp/dectainx
 for i in $(seq 1 $LINES); do
@@ -283,6 +284,12 @@ for i in $(seq 1 $LINES); do
         echo id$i=`echo $id | cut -d ";" -f$i | tr -d ' '` >> /tmp/dectidx
 done
 source /tmp/dectidx
+
+rm -f /tmp/dectfunction
+for i in $(seq 1 $LINES); do
+        echo function$i=\"$(echo $functionbitmask | cut -d ";" -f$i | sed 's/.$//')\" >> /tmp/dectfunction
+done
+source /tmp/dectfunction
 
 }
 
@@ -459,6 +466,7 @@ batterie="-"
 humidity="-"
 
 DECTSEARCH=`echo $dect | cut -d ";" -f$i | sed 's/.$//'`
+functionbit=`echo $functionbitmask | cut -d ";" -f$i | sed 's/.$//'`
 
 if [ "$DECTSEARCH" = "" ] ; then
     DECTSEARCH="      "
@@ -483,7 +491,10 @@ if [ "$Version" \< "07.20" ]; then
 else
 	if [ "$produkt" = "FRITZ!DECT Repeater 100" ]; then
 	    NR=11
-	   elif [ "$produkt" = "" ]; then
+	   elif [ "$produkt" = "" -a "$functionbit" = "237572" ]; then
+ 		  NR=25
+ 		  produkt="FRITZ!DECT 500"
+	   elif [ "$produkt" = "" -a "$functionbit" = "37504" ]; then
  		  NR=16
  		  produkt="Gruppen "
      elif [ "$produkt" = "FRITZ!Powerline 546E" ]; then
@@ -493,7 +504,7 @@ else
      elif [ "$produkt" = "FRITZ!DECT 440" ]; then
       NR=14
       #NR=24
-     elif [ "$produkt" = "FRITZ!DECT 500" ]; then
+     elif [ "$produkt" = "FRITZ!DECT 500" -o "$produkt" = "HAN-FUN" ]; then
       NR=25
      else
  		  NR=20
@@ -508,7 +519,7 @@ if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = 
    typ1="Socket"
   elif [ "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]; then
    typ1="Remote"
-  elif [ "$produkt" = "FRITZ!DECT 500" ]; then
+  elif [ "$produkt" = "FRITZ!DECT 500" -o "$produkt" = "HAN-FUN" ]; then
    typ1="LED"
   elif [ "$produkt" = "Gruppen " ]; then
    typ1="Group"
@@ -516,7 +527,7 @@ if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = 
    typ1="-"
 fi
 
-if [ "$produkt" = "FRITZ!DECT 500" ]; then
+if [ "$produkt" = "FRITZ!DECT 500" -o "$produkt" = "HAN-FUN" ]; then
   #level=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</level>" | cut -d ">" -f2 | cut -d "<" -f1`
   levelpercentage=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</levelpercentage>" | cut -d ">" -f2 | cut -d "<" -f1`
   farbtemp=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</temperature>" | cut -d ">" -f2 | cut -d "<" -f1`
@@ -588,7 +599,7 @@ connect=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</present>" 
     else
         templinks="0"
     fi
-  if [ "$connect" = "0" -o "$produkt" = "FRITZ!DECT 500" ]; then
+  if [ "$connect" = "0" -o "$produkt" = "FRITZ!DECT 500" -o "$produkt" = "HAN-FUN" ]; then
     tempfinal1="-"
   else
     tempfinal1=`echo $templinks","$temprechts`
@@ -628,7 +639,7 @@ connect=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</present>" 
             absktemprechts=`cat /tmp/reftemp.tmp | grep $absktemp | cut -d ";" -f3 `
                absktempfinal1=`echo $absktemplinks","$absktemprechts`
              fi
-          elif [ "$produkt" = "FRITZ!DECT 500" ]; then    
+          elif [ "$produkt" = "FRITZ!DECT 500" -o "$produkt" = "HAN-FUN" ]; then    
              solltempfinal1=$hue
              absktempfinal1=$farbtemp
              comftempfinal1=$saturation
@@ -641,7 +652,7 @@ connect=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</present>" 
  
 	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$connect" = "0" -o "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" -o "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]; then
       modus1="-"
-    elif [ "$produkt" = "FRITZ!DECT 500" ]; then    
+    elif [ "$produkt" = "FRITZ!DECT 500" -o "$produkt" = "HAN-FUN" ]; then    
       modus1=$farbmode
     else
 	    if [ "$produkt" = "Gruppen " -o "$produkt" = "FRITZ!Powerline 546E" ]; then
@@ -711,7 +722,7 @@ power=`cat /tmp/dectdaten.xml | grep -A $NR "$DECTSEARCH" | grep "</power>" | cu
 powerlinks=`echo $power | sed 's/\(.*\)...$/\1/'`
 powerrechts=`echo $power | sed 's/.*\(.\{3\}\)$/\1/'`
 
-	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$produkt" = "Gruppen " -o "$connect" = "0" -o "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" -o "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" -o "$produkt" = "FRITZ!DECT 500" ]; then
+	if [ "$produkt" = "FRITZ!DECT Repeater 100" -o "$produkt" = "Gruppen " -o "$connect" = "0" -o "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" -o "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" -o "$produkt" = "FRITZ!DECT 500" -o "$produkt" = "HAN-FUN" ]; then
     	powerfinal1="-"
       	else if [ ${#power} = 3 ]
         then powerfinal1=`echo "0,"$power`
@@ -884,6 +895,7 @@ msgbox msg=/tmp/dectuebersicht.txt size=9 icon=$path title=$titletext1"Smart Hom
 done
 
 getrennt=`echo $DECT200`
+
 
       rm -f /tmp/dect*
       rm -f /tmp/anruf*
@@ -1175,13 +1187,18 @@ sed -i -e ':a;N;$!ba;s|\n\([^<]\)|\1|g' /tmp/dectdatendraft.xml
 sed -e '/button identifier/,+3d' < /tmp/dectdatendraft.xml >> /tmp/dectdatendraft2.xml
 sed -e '/functionbitmask="1"/,+3d' < /tmp/dectdatendraft2.xml >> /tmp/dectdaten.xml
 
-produkt=`cat /tmp/dectdaten.xml | grep "$getrennt" | grep "productname" | sed 's/.*productname="\(.*\)$/\1/' | sed 's/">\(.*\)$/\1/'`
+
+
+functionbit2=`cat /tmp/dectdaten.xml | grep "$getrennt" | grep "functionbitmask" | sed 's/.*functionbitmask="\(.*\)$/\1/' | sed 's/fwversion=".*\(.*\)$/\1/' | sed 's|"||g' | sed 's/.$//'`
+produkt=`cat /tmp/dectdaten.xml | grep "$getrennt" | grep "productname" | sed 's/.*productname="\(.*\)$/\1/' | sed 's/">\(.*\)$/\1/' `
+
 if [ "$Version" \< "07.20" ]; then
 	if [ "$produkt" = "FRITZ!DECT Repeater 100" ]; then
 	    NR=7
 	   elif [ "$produkt" = "" ]; then
  		  NR=12
  		  produkt="Gruppen "
+ 		  echo "TEST FALSCH"
      elif [ "$produkt" = "FRITZ!Powerline 546E" ]; then
       NR=12
      elif [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = "FRITZ!DECT 301" ]; then
@@ -1194,8 +1211,11 @@ if [ "$Version" \< "07.20" ]; then
 else
 	if [ "$produkt" = "FRITZ!DECT Repeater 100" ]; then
 	    NR=11
-	   elif [ "$produkt" = "" ]; then
- 		  NR=16
+	   elif [ "$produkt" = "" -a "$functionbit2" = "237572" ]; then
+ 		  NR=25
+ 		  produkt="FRITZ!DECT 500"
+	   elif [ "$produkt" = "" -a "$functionbit2" = "37504" ]; then
+ 		  NR=20
  		  produkt="Gruppen "
      elif [ "$produkt" = "FRITZ!Powerline 546E" ]; then
       NR=16
@@ -1204,7 +1224,7 @@ else
      elif [ "$produkt" = "FRITZ!DECT 440" ]; then
       NR=14
       #NR=24
-     elif [ "$produkt" = "FRITZ!DECT 500" ]; then
+     elif [ "$produkt" = "FRITZ!DECT 500" -o "$produkt" = "HAN-FUN" ]; then
       NR=25
 	 	else
  		  NR=20
@@ -1363,7 +1383,7 @@ zustand=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt" | grep "</status>" | c
          fi
  fi      
 
-if [ "$produkt" = "FRITZ!DECT 500" ]; then
+if [ "$produkt" = "FRITZ!DECT 500" -o "$produkt" = "HAN-FUN" ]; then
   #level=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</level>" | cut -d ">" -f2 | cut -d "<" -f1`
   levelpercentage=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</levelpercentage>" | cut -d ">" -f2 | cut -d "<" -f1`
   farbtemp=`cat /tmp/dectdaten.xml | grep -A $NR "$getrennt"  | grep "</temperature>" | cut -d ">" -f2 | cut -d "<" -f1`
@@ -1468,7 +1488,7 @@ if [ "$produkt" = "Comet DECT" -o "$produkt" = "FRITZ!DECT 300" -o "$produkt" = 
    then icondetail="$pluginpath/smarthomeinfopics/440.png"
   elif [ "$produkt" = "FRITZ!DECT 400" ]
    then icondetail="$pluginpath/smarthomeinfopics/400.png"
-  elif [ "$produkt" = "FRITZ!DECT 500" ]
+  elif [ "$produkt" = "FRITZ!DECT 500" -o "$produkt" = "HAN-FUN" ]
    then icondetail="$pluginpath/smarthomeinfopics/500.png"
   else
    icondetail="$pluginpath/smarthomeinfopics/logo.png"
@@ -1522,7 +1542,7 @@ elif [ "$produkt" = "FRITZ!DECT 440" -o "$produkt" = "FRITZ!DECT 400" ]
 
 menu4
 
-elif [ "$produkt" = "FRITZ!DECT 500" ]
+elif [ "$produkt" = "FRITZ!DECT 500" -o "$produkt" = "HAN-FUN" ]
  then
   echo "~B"$produkt"~S Name:   ~T0600~B"$name"~S" >> /tmp/dectdetail.txt
   echo "~s" >> /tmp/dectdetail.txt
