@@ -55,7 +55,7 @@ function media.getVideoUrl(yurl)
 				end
 			end
 		end
-		local audio = urls[140] or urls[251] or urls[250] or urls[249]
+		local audio = urls[140] or urls[234] or urls[251] or urls[250] or urls[249]
 		local maxRes = getMaxVideoRes()
 		local video = urls[628]
 		if maxRes < 2561 or video == nil then
