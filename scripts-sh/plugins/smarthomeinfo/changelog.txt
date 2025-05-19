@@ -1,5 +1,11 @@
 Changelog 
 
+V4.04
+- nötige Anpassungen bei Steckdosen und LED-Lampen, da AVM die Geräte intern umbenannt hat und die Erkennung nicht mehr funktionierte
+
+V4.03
+- kleinere Anpassungen
+- added new variable to config. Only required if the firmware version cannot be read from the Fritzbox. This is the case, for example, with Fritz Labor versions.
 
 V4.02
 - bei Updateroutine die cfg entfernt, da in der cfg Personalisierungen enthalten sein können (Integration, Menübuttons, etc.), die sonst überschrieben werden.
