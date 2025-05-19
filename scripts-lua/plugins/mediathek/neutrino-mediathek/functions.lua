@@ -124,24 +124,8 @@ function playMovie(url, title, info1, info2, enableMovieInfo, url2)
 		return nil
 	end
 
-	local function muteSleep(mute, wait)
-		local threadFunc = [[
-			local t = ...
-			local P = require 'posix'
-			print(string.format(">>>>>[muteSleep] set AudioMute to %s, wait %d sec", tostring(t._mute), t._wait))
-			P.sleep(t._wait)
-			M = misc.new()
-			M:AudioMute(t._mute, true)
-			return 1
-		]]
-		local mt = threads.new(threadFunc, {_mute = mute, _wait = wait})
-		return mt
-	end
-
-	local muteThread
 	volumePlugin = M:getVolume()
-	muteThread = muteSleep(muteStatusPlugin, 1)
-	muteThread:start()
+	M:AudioMute(muteStatusPlugin, true)
 
 	if enableMovieInfo == true then
 		V:setInfoFunc('movieInfoMP')
@@ -161,12 +145,7 @@ function playMovie(url, title, info1, info2, enableMovieInfo, url2)
 
 	V:ShowPicture(backgroundImage)
 
-	if muteThread ~= nil then
-		local joined, err = muteThread:join()
-		if not joined then
-			print(string.format("[Error] Failed to join mute thread: %s", tostring(err)))
-		end
-	end
+	M:AudioMute(false, true)
 end
 
 function downloadMovie(url, channel, title, description, theme, duration, date, time)

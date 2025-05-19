@@ -14,7 +14,7 @@ end
 function initVars()
 	pluginVersionMajor	= 0
 	pluginVersionMinor	= 4
-	pluginVersionBeta	= 6
+	pluginVersionBeta	= 7
 	if (pluginVersionBeta == 0) then
 		pvbTmp = ''
 	else
