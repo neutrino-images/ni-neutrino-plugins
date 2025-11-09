@@ -17,6 +17,8 @@
 --			fix Livestreams resolutions, use url2 for audio
 -- v 0.4 beta 7:	2025-05-10			Author: GetAway
 --			fix mute / unmute
+-- v 0.5.0:		2025-11-09			Author: tuxbox-neutrino
+--			add configurable API base + env override, new docs
 
 N = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES)
 -- check lua api version
