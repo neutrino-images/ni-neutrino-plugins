@@ -1,3 +1,14 @@
+local function logCurlRequest(url, file, post, mode)
+	local postPreview = ''
+	if post ~= nil then
+		postPreview = tostring(post)
+		if #postPreview > 200 then
+			postPreview = postPreview:sub(1, 200) .. '…'
+		end
+	end
+	H.printf('[neutrino-mediathek] mode=%s url=%s file=%s post=%s', tostring(mode), tostring(url), tostring(file), postPreview)
+end
+
 function getJsonData2(url, file, post, mode)
 	local box = nil
 	local data = nil
@@ -10,6 +21,7 @@ function getJsonData2(url, file, post, mode)
 		if (H.fileExist(data) == true) then dataExist = true end
 	end
 	if ((dataExist == false) or (noCacheFiles == true)) then
+		logCurlRequest(url, data, post, mode)
 		if ((mode > queryMode_None) and (mode < queryMode_beginPOSTmode)) then
 			box = curlDownload(   url, data, nil,      false,  false, true)
 		end
@@ -21,8 +33,9 @@ function getJsonData2(url, file, post, mode)
 	local fp, s
 	fp = io.open(data, 'r')
 	if fp == nil then
+		H.printf('[neutrino-mediathek] fopen failed for %s', tostring(data))
 		G.hideInfoBox(box)
-		error('Error connecting to database server.')
+		error(string.format('Error connecting to database server.\nURL: %s\nFile: %s', tostring(url), tostring(data)))
 	end
 	s = fp:read('*a')
 	fp:close()

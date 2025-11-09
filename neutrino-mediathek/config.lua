@@ -23,12 +23,21 @@ function _loadConfig()
 	conf.networkIPV4Only	= config:getString('networkIPV4Only',	'off')
 	conf.networkDlSilent	= config:getString('networkDlSilent',	'off')
 	conf.networkDlVerbose	= config:getString('networkDlVerbose',	'off')
+	conf.apiBaseUrl		= config:getString('apiBaseUrl',	url_new_default)
+
+	if NEUTRINO_MEDIATHEK_API_OVERRIDE ~= nil and NEUTRINO_MEDIATHEK_API_OVERRIDE ~= '' then
+		if conf.apiBaseUrl ~= NEUTRINO_MEDIATHEK_API_OVERRIDE then
+			H.printf("[neutrino-mediathek] apiBaseUrl override via env (config=%s, env=%s)", tostring(conf.apiBaseUrl), tostring(NEUTRINO_MEDIATHEK_API_OVERRIDE))
+		end
+		conf.apiBaseUrl = NEUTRINO_MEDIATHEK_API_OVERRIDE
+	end
 
 	if (conf.networkIPV4Only == 'on') then
 		url_base = url_base_4
 	else
 		url_base = url_base_b
 	end
+	url_new = conf.apiBaseUrl
 end
 
 function _saveConfig()
@@ -57,6 +66,7 @@ function _saveConfig()
 	config:setString('networkIPV4Only',	conf.networkIPV4Only)
 	config:setString('networkDlSilent',	conf.networkDlSilent)
 	config:setString('networkDlVerbose',	conf.networkDlVerbose)
+	config:setString('apiBaseUrl',		conf.apiBaseUrl)
 
 	config:saveConfig(confFile)
 end
@@ -150,6 +160,15 @@ function changeNetworkDLVerbose(k, v)
 	setConfigOnOff(k, v)
 end
 
+function changeApiBaseUrl(dummy, value)
+	if value == nil or value == '' then
+		value = url_new_default
+	end
+	conf.apiBaseUrl = value
+	url_new = conf.apiBaseUrl
+	return MENU_RETURN.REPAINT
+end
+
 function networkSetup()
 	local screen = saveFullScreen()
 	m_nw_conf = menu.new{name=l.networkHeader, icon=pluginIcon}
@@ -175,6 +194,17 @@ function networkSetup()
 	end
 	local opt={l.on, l.off}
 	m_configSilent = m_nw_conf:addItem{type="chooser", enabled=enabled, action="setConfigOnOff", hint_icon="hint_service", hint=l.networkProgressH, options=opt, id="networkDlSilent", value=unTranslateOnOff(conf.networkDlSilent), name=l.networkProgress}
+
+	m_nw_conf:addItem{
+		type="stringinput",
+		action="changeApiBaseUrl",
+		hint_icon="hint_service",
+		hint=l.networkApiBaseUrlH,
+		id="apiBaseUrl",
+		value=conf.apiBaseUrl,
+		name=l.networkApiBaseUrl,
+		valid_chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789:/.?&=_-%"
+	}
 
 	m_nw_conf:exec()
 	restoreFullScreen(screen, true)

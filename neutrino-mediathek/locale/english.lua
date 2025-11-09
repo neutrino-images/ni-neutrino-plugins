@@ -62,6 +62,8 @@ l.networkFull			= "Complete"
 l.networkFullH			= "Shall full debug information be stored?"
 l.networkProgress		= "Download Progress"
 l.networkProgressH		= "Shall download progress be shown?"
+l.networkApiBaseUrl		= "API base URL"
+l.networkApiBaseUrlH		= "Endpoint used by the backend (e.g. http://localhost:18080/mt-api)"
 
 l.versionHeader			= "Version Information"
 l.formatVersion			= "Plugin v%s\n \nDatabase\nVersion: %s (Update %s)\n \nDatabase MediathekView => Neutrino Mediathek\n%s (%s)\n \nServer API\n%s (%s)\n \nDatabase MediathekView:\n%s\n%d Entries (dated as of %s)"

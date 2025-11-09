@@ -1,3 +1,5 @@
+NEUTRINO_MEDIATHEK_API_OVERRIDE = nil
+
 function initLocale()
 	l={}
 	l.key = {}
@@ -9,6 +11,18 @@ function initLocale()
 	end
 
 	dofile(pluginScriptPath .. '/locale/' .. language .. '.lua')
+end
+
+local function detectDefaultApiBase()
+	local env = os.getenv('NEUTRINO_MEDIATHEK_API')
+	if env ~= nil and env ~= '' then
+		NEUTRINO_MEDIATHEK_API_OVERRIDE = env
+		H.printf("[neutrino-mediathek] NEUTRINO_MEDIATHEK_API=%s", env)
+		return env
+	end
+	NEUTRINO_MEDIATHEK_API_OVERRIDE = nil
+	H.printf("[neutrino-mediathek] NEUTRINO_MEDIATHEK_API not set, fallback to localhost backend")
+	return 'http://localhost:18080/mt-api'
 end
 
 function initVars()
@@ -34,7 +48,8 @@ function initVars()
 	url_base_b	= 'http://mediathek.slknet.de'
 	url_base_4	= 'http://mediathek4.slknet.de'
 	url_base	= url_base_b
-	url_new		= 'https://api.coolithek.slknet.de'
+	url_new_default	= detectDefaultApiBase()
+	url_new		= url_new_default
 
 	conf		= {}
 	conf.livestream	= {}

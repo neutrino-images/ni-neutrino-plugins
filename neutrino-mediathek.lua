@@ -51,6 +51,8 @@ H	= loadLuaLib('n_helpers')
 local CONF_PATH = "/var/tuxbox/config/"
 if DIR and DIR.CONFIGDIR then
 	CONF_PATH = DIR.CONFIGDIR .. '/'
+elseif DIR and DIR.NEUTRINO and DIR.NEUTRINO.CONFDIR then
+	CONF_PATH = DIR.NEUTRINO.CONFDIR .. '/'
 end
 
 pluginScriptPath = H.scriptPath() .. '/' .. H.scriptBase()
@@ -58,6 +60,12 @@ pluginTmpPath    = '/tmp/' .. H.scriptBase()
 confFile         = CONF_PATH .. H.scriptBase() .. '.conf'
 FH:rmdir(pluginTmpPath)
 FH:mkdir(pluginTmpPath)
+H.printf("[neutrino-mediathek] pluginScriptPath=%s", pluginScriptPath)
+H.printf("[neutrino-mediathek] pluginTmpPath=%s", pluginTmpPath)
+local env_api = os.getenv('NEUTRINO_MEDIATHEK_API')
+if env_api ~= nil and env_api ~= '' then
+	H.printf("[neutrino-mediathek] NEUTRINO_MEDIATHEK_API=%s", env_api)
+end
 
 -- include lua files
 dofile(pluginScriptPath .. '/variables.lua')
