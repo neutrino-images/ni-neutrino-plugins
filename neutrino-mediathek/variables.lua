@@ -22,7 +22,7 @@ local function detectDefaultApiBase()
 	end
 	NEUTRINO_MEDIATHEK_API_OVERRIDE = nil
 	H.printf("[neutrino-mediathek] NEUTRINO_MEDIATHEK_API not set, fallback to localhost backend")
-	return 'http://localhost:18080/mt-api'
+	return 'http://192.168.1.202:18080/mt-api'
 end
 
 function initVars()
