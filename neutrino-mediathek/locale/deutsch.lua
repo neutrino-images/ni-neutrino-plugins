@@ -63,7 +63,7 @@ l.networkFullH				= "Sollen ausführliche Debug-Informationen gespeichert werden
 l.networkProgress			= "Download Fortschritt"
 l.networkProgressH			= "Soll der Downloadfortschritt angezeigt werden?"
 l.networkApiBaseUrl			= "API-Basis-URL"
-l.networkApiBaseUrlH			= "Endpunkt des Backends (z. B. http://localhost:18080/mt-api)"
+l.networkApiBaseUrlH			= "Endpunkt des Backends (z. B. https://mt.api.tuxbox-neutrino.org/mt-api)"
 
 l.versionHeader				= "Versioninfo"
 l.formatVersion				= "Plugin v%s\n \nDatenbank\nVersion: %s (Update %s)\n \nDatenbank MediathekView => Neutrino Mediathek\n%s (%s)\n \nServer API\n%s (%s)\n \nDatenbank MediathekView:\n%s\n%d Einträge (Stand vom %s)"

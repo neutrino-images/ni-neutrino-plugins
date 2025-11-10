@@ -6,7 +6,7 @@ Das Neutrino-Mediathek-Plugin ist ein Lua-Client, der auf die von der Community 
 ## Voraussetzungen
 - Ein Neutrino-Build aus dem DX-Projekt (`make neutrino`, `make runtime-sync`).
 - Dieses Repository als Checkout (z. B. unter `sources/neutrino-mediathek`) oder ein beliebiger Pfad, der per `NEUTRINO_MEDIATHEK_SRC` hinterlegt ist.
-- Ein erreichbarer API-Endpunkt (lokal via `make -C services/mediathek-backend smoke` oder z. B. `https://test.novatux.de/mt-api`).
+- Ein erreichbarer API-Endpunkt (lokal via `make -C services/mediathek-backend smoke` oder z. B. `https://mt.api.tuxbox-neutrino.org/mt-api`).
 - Optional: die Umgebungsvariable `NEUTRINO_MEDIATHEK_API`, um den Endpunkt beim Start automatisch zu setzen.
 
 ## Installation & Aktualisierung (Generic-PC-Setup)

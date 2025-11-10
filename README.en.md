@@ -6,7 +6,7 @@ The Neutrino Mediathek plugin provides a Lua-based client for the community-driv
 ## Requirements
 - A Neutrino build produced from the DX repo (`make neutrino`, `make runtime-sync`).
 - This repository checked out next to the build tree (e.g. `sources/neutrino-mediathek` inside `neutrino-generic-build`) or anywhere else referenced via `NEUTRINO_MEDIATHEK_SRC`.
-- A reachable API endpoint that implements the Mediathek contract (either run `make -C services/mediathek-backend smoke` locally or use a hosted URL such as `https://test.novatux.de/mt-api`).
+- A reachable API endpoint that implements the Mediathek contract (either run `make -C services/mediathek-backend smoke` locally or use the hosted URL `https://mt.api.tuxbox-neutrino.org/mt-api`).
 - Optional: `NEUTRINO_MEDIATHEK_API` environment variable if you want to override the API base automatically during launch.
 
 ## Installation & Update (Generic PC dev setup)
@@ -27,7 +27,7 @@ The demo build system is only meant for local development. To ship the plugin to
 The backend configuration steps below stay the same; only the transport to the device differs.
 
 ## Configure the API base
-- **Environment variable:** Export `NEUTRINO_MEDIATHEK_API=<scheme>://<host>/mt-api` before invoking `make run-direct` / `make run`. The build wrapper now forwards this variable through Docker as well as the Neutrino runtime wrapper, so the plugin logs a line such as `[neutrino-mediathek] NEUTRINO_MEDIATHEK_API=https://test.novatux.de/mt-api`.
+- **Environment variable:** Export `NEUTRINO_MEDIATHEK_API=<scheme>://<host>/mt-api` before invoking `make run-direct` / `make run`. The build wrapper now forwards this variable through Docker as well as the Neutrino runtime wrapper, so the plugin logs a line such as `[neutrino-mediathek] NEUTRINO_MEDIATHEK_API=https://mt.api.tuxbox-neutrino.org/mt-api`.
 - **In-UI setting:** Open the plugin → `Menu` → `Network Settings` → `API base URL` and enter the endpoint. This writes `/var/tuxbox/config/neutrino-mediathek.conf`. Environment overrides take precedence during the current session but do not overwrite the stored value.
 
 ## Testing workflow
