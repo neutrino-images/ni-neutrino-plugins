@@ -24,6 +24,9 @@ function _loadConfig()
 	conf.networkDlSilent	= config:getString('networkDlSilent',	'off')
 	conf.networkDlVerbose	= config:getString('networkDlVerbose',	'off')
 	conf.apiBaseUrl		= config:getString('apiBaseUrl',	url_new_default)
+	if conf.apiBaseUrl == nil or conf.apiBaseUrl == '' then
+		conf.apiBaseUrl = url_new_default
+	end
 
 	if NEUTRINO_MEDIATHEK_API_OVERRIDE ~= nil and NEUTRINO_MEDIATHEK_API_OVERRIDE ~= '' then
 		if conf.apiBaseUrl ~= NEUTRINO_MEDIATHEK_API_OVERRIDE then
@@ -196,14 +199,14 @@ function networkSetup()
 	m_configSilent = m_nw_conf:addItem{type="chooser", enabled=enabled, action="setConfigOnOff", hint_icon="hint_service", hint=l.networkProgressH, options=opt, id="networkDlSilent", value=unTranslateOnOff(conf.networkDlSilent), name=l.networkProgress}
 
 	m_nw_conf:addItem{
-		type="stringinput",
+		type="keyboardinput",
 		action="changeApiBaseUrl",
 		hint_icon="hint_service",
 		hint=l.networkApiBaseUrlH,
 		id="apiBaseUrl",
 		value=conf.apiBaseUrl,
 		name=l.networkApiBaseUrl,
-		valid_chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789:/.?&=_-%"
+		size=160
 	}
 
 	m_nw_conf:exec()
