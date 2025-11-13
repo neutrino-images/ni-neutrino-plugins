@@ -25,6 +25,9 @@ function _loadConfig()
 	conf.networkDlVerbose	= config:getString('networkDlVerbose',	'off')
 	conf.apiBaseUrl		= config:getString('apiBaseUrl',	url_new_default)
 	conf.privacyAccepted	= config:getString('privacyAccepted',	'off')
+	conf.sortMode		= config:getString('sortMode',		'date_desc')
+	conf.geoMode		= config:getString('geoMode',		'all')
+	conf.qualityFilter	= config:getString('qualityFilter',	'all')
 	if conf.apiBaseUrl == nil or conf.apiBaseUrl == '' then
 		conf.apiBaseUrl = url_new_default
 	end
@@ -75,6 +78,9 @@ function _saveConfig()
 	config:setString('networkDlVerbose',	conf.networkDlVerbose)
 	config:setString('apiBaseUrl',		conf.apiBaseUrl)
 	config:setString('privacyAccepted',	conf.privacyAccepted)
+	config:setString('sortMode',		conf.sortMode)
+	config:setString('geoMode',		conf.geoMode)
+	config:setString('qualityFilter',	conf.qualityFilter)
 
 	config:saveConfig(confFile)
 end

@@ -5,6 +5,9 @@ function repaintMediathek()
 	leftMenuEntry[3][2] = formatTheme(conf.allThemes, conf.theme)
 	leftMenuEntry[4][2] = formatseePeriod()
 	leftMenuEntry[5][2] = formatMinDuration(conf.seeMinimumDuration)
+	leftMenuEntry[6][2] = formatSortMode()
+	leftMenuEntry[7][2] = formatGeoMode()
+	leftMenuEntry[8][2] = formatQualityMode()
 	paintMtLeftMenu()
 
 	mtRightMenu_select	= 1
@@ -323,6 +326,102 @@ function minDurationMenu()
 	mi:exec()
 	restoreFullScreen(screen, true)
 	if (conf.seeMinimumDuration ~= old_seeMinimumDuration) then
+		repaintMediathek()
+	end
+end
+
+function setSortMode(mode)
+	conf.sortMode = mode
+	return MENU_RETURN.EXIT_ALL
+end
+
+function sortMenu()
+	local old_mode = conf.sortMode
+	local screen = saveFullScreen()
+	local mi = menu.new{name=l.sortHeader, icon=pluginIcon}
+	mi:addItem{type="subhead", name=l.sortSubheader}
+	mi:addItem{type="separator"}
+	mi:addItem{type="back", hint_icon="hint_back", hint=l.backH}
+	mi:addItem{type="separatorline"}
+	addKillKey(mi)
+
+	for _, mode in ipairs(sortModeOrder) do
+		local labelFn = sortModeLabels[mode]
+		local label = labelFn and labelFn() or mode
+		local marker = ''
+		if mode == conf.sortMode then
+			marker = l.menuActive
+		end
+		mi:addItem{type="forwarder", action="setSortMode", hint_icon="hint_service", hint=l.menuSortHint, id=mode, value=marker, name=label}
+	end
+
+	mi:exec()
+	restoreFullScreen(screen, true)
+	if (conf.sortMode ~= old_mode) then
+		repaintMediathek()
+	end
+end
+
+function setGeoMode(mode)
+	conf.geoMode = mode
+	return MENU_RETURN.EXIT_ALL
+end
+
+function geoFilterMenu()
+	local old_mode = conf.geoMode
+	local screen = saveFullScreen()
+	local mi = menu.new{name=l.geoHeader, icon=pluginIcon}
+	mi:addItem{type="subhead", name=l.geoSubheader}
+	mi:addItem{type="separator"}
+	mi:addItem{type="back", hint_icon="hint_back", hint=l.backH}
+	mi:addItem{type="separatorline"}
+	addKillKey(mi)
+
+	for _, mode in ipairs(geoModeOrder) do
+		local labelFn = geoModeLabels[mode]
+		local label = labelFn and labelFn() or mode
+		local marker = ''
+		if mode == conf.geoMode then
+			marker = l.menuActive
+		end
+		mi:addItem{type="forwarder", action="setGeoMode", hint_icon="hint_service", hint=l.geoFilterHint, id=mode, value=marker, name=label}
+	end
+
+	mi:exec()
+	restoreFullScreen(screen, true)
+	if (conf.geoMode ~= old_mode) then
+		repaintMediathek()
+	end
+end
+
+function setQualityFilter(mode)
+	conf.qualityFilter = mode
+	return MENU_RETURN.EXIT_ALL
+end
+
+function qualityFilterMenu()
+	local old_mode = conf.qualityFilter
+	local screen = saveFullScreen()
+	local mi = menu.new{name=l.qualityHeader, icon=pluginIcon}
+	mi:addItem{type="subhead", name=l.qualitySubheader}
+	mi:addItem{type="separator"}
+	mi:addItem{type="back", hint_icon="hint_back", hint=l.backH}
+	mi:addItem{type="separatorline"}
+	addKillKey(mi)
+
+	for _, mode in ipairs(qualityModeOrder) do
+		local labelFn = qualityModeLabels[mode]
+		local label = labelFn and labelFn() or mode
+		local marker = ''
+		if mode == conf.qualityFilter then
+			marker = l.menuActive
+		end
+		mi:addItem{type="forwarder", action="setQualityFilter", hint_icon="hint_service", hint=l.qualityFilterHint, id=mode, value=marker, name=label}
+	end
+
+	mi:exec()
+	restoreFullScreen(screen, true)
+	if (conf.qualityFilter ~= old_mode) then
 		repaintMediathek()
 	end
 end
