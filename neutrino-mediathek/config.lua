@@ -24,8 +24,12 @@ function _loadConfig()
 	conf.networkDlSilent	= config:getString('networkDlSilent',	'off')
 	conf.networkDlVerbose	= config:getString('networkDlVerbose',	'off')
 	conf.apiBaseUrl		= config:getString('apiBaseUrl',	url_new_default)
+	conf.privacyAccepted	= config:getString('privacyAccepted',	'off')
 	if conf.apiBaseUrl == nil or conf.apiBaseUrl == '' then
 		conf.apiBaseUrl = url_new_default
+	end
+	if conf.privacyAccepted == nil or conf.privacyAccepted == '' then
+		conf.privacyAccepted = 'off'
 	end
 
 	if NEUTRINO_MEDIATHEK_API_OVERRIDE ~= nil and NEUTRINO_MEDIATHEK_API_OVERRIDE ~= '' then
@@ -70,6 +74,7 @@ function _saveConfig()
 	config:setString('networkDlSilent',	conf.networkDlSilent)
 	config:setString('networkDlVerbose',	conf.networkDlVerbose)
 	config:setString('apiBaseUrl',		conf.apiBaseUrl)
+	config:setString('privacyAccepted',	conf.privacyAccepted)
 
 	config:saveConfig(confFile)
 end

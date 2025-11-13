@@ -2,6 +2,26 @@ function showErrorDialog(text)
 	messagebox.exec{title=pluginName, text=text, buttons={'ok'}}
 end
 
+function ensurePrivacyConsent()
+	if conf.privacyAccepted == 'on' then
+		return true
+	end
+	local ret = messagebox.exec{
+		title = pluginName,
+		text = l.privacyNotice,
+		icon = "info",
+		buttons = { "yes", "no" },
+		default = "no"
+	}
+	if ret == "yes" then
+		conf.privacyAccepted = 'on'
+		return true
+	end
+	messagebox.exec{title=pluginName, text=l.privacyDeclined, buttons={'ok'}}
+	forcePluginExit = true
+	return false
+end
+
 function getVersionInfo()
 	local s, err = getJsonData2(url_new .. actionCmd_versionInfo, nil, nil, queryMode_Info)
 	if not s then
@@ -72,6 +92,7 @@ end
 
 function paintMainWindow(menuOnly, win)
 	if (not win) then win = h_mainWindow end
+	if not win then return end
 	if (menuOnly == false) then
 		win:paint{do_save_bg=true}
 	end
@@ -79,7 +100,9 @@ function paintMainWindow(menuOnly, win)
 end
 
 function hideMainWindow()
-	h_mainWindow:hide()
+	if h_mainWindow then
+		h_mainWindow:hide()
+	end
 	N:PaintBox(0, 0, SCREEN.X_RES, SCREEN.Y_RES, COL.BACKGROUND)
 end
 
@@ -186,6 +209,11 @@ function main()
 	initVars()
 	beforeStart()
 	_loadConfig()
+	if not ensurePrivacyConsent() then
+		_saveConfig()
+		afterStop()
+		return
+	end
 	setFonts()
 	startBox = paintAnInfoBox(l.startPluginInfoMsg, WHERE.CENTER)
 	createImages()
