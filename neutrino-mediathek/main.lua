@@ -6,9 +6,10 @@ function ensurePrivacyConsent()
 	if conf.privacyAccepted == 'on' then
 		return true
 	end
+	local notice_text = string.format(l.privacyNotice, tostring(url_new or url_new_default))
 	local ret = messagebox.exec{
 		title = pluginName,
-		text = l.privacyNotice,
+		text = notice_text,
 		icon = "info",
 		buttons = { "yes", "no" },
 		default = "no"
