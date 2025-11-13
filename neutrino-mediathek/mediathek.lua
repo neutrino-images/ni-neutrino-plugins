@@ -213,7 +213,12 @@ function paintMtRightMenu()
 
 			local dataFile = createCacheFileName(post, 'json')
 			post = C:setUriData('data1', post)
-			local s = getJsonData2(url_new .. actionCmd_sendPostData, dataFile, post, queryMode_listVideos)
+			local s, err = getJsonData2(url_new .. actionCmd_sendPostData, dataFile, post, queryMode_listVideos)
+			if not s then
+				G.hideInfoBox(box)
+				messagebox.exec{title=pluginName, text=l.networkError, buttons={'ok'}}
+				return false
+			end
 --	H.printf("\nretData:\n%s\n", tostring(s))
 
 			local endentries = actentries+limit-1
@@ -226,8 +231,10 @@ function paintMtRightMenu()
 			end
 			local box = paintAnInfoBox(string.format(l.searchTitleInfoMsg, actentries, endentries, tostring(totalentries)), WHERE.CENTER)
 				local j_table = {}
-			j_table = decodeJson(s)
+			j_table, err = decodeJson(s)
 			if (j_table == nil) then
+				G.hideInfoBox(box)
+				messagebox.exec{title=pluginName, text=l.jsonError, buttons={'ok'}}
 				os.execute('rm -f ' .. dataFile)
 				return false
 			end
@@ -360,12 +367,18 @@ function paintMtRightMenu()
 	
 		local dataFile = createCacheFileName(post, 'json')
 		post = C:setUriData('data1', post)
-		local s = getJsonData2(url_new .. actionCmd_sendPostData, dataFile, post, queryMode_listVideos)
+		local s, err = getJsonData2(url_new .. actionCmd_sendPostData, dataFile, post, queryMode_listVideos)
+		if not s then
+			messagebox.exec{title=pluginName, text=l.networkError, buttons={'ok'}}
+			os.execute('rm -f ' .. dataFile)
+			return false
+		end
 --		H.printf("\nretData:\n%s\n", tostring(s))
 	
 		local j_table = {}
-		j_table = decodeJson(s)
+		j_table, err = decodeJson(s)
 		if (j_table == nil) then
+			messagebox.exec{title=pluginName, text=l.jsonError, buttons={'ok'}}
 			os.execute('rm -f ' .. dataFile)
 			return false
 		end

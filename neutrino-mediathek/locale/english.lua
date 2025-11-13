@@ -64,6 +64,8 @@ l.networkProgress		= "Download Progress"
 l.networkProgressH		= "Shall download progress be shown?"
 l.networkApiBaseUrl		= "API base URL"
 l.networkApiBaseUrlH		= "Endpoint used by the backend (e.g. https://mt.api.tuxbox-neutrino.org/mt-api)"
+l.networkError				= "Unable to reach the Mediathek backend.\nPlease check your network connection or API base URL."
+l.jsonError				= "Received invalid data from the Mediathek backend."
 
 l.versionHeader			= "Version Info"
 l.formatVersion			= "Plugin v%s\n \nDatabase\nVersion: %s (Update %s)\n \nDatabase MediathekView => Neutrino Mediathek\n%s (%s)\n \nServer API\n%s (%s)\n \nDatabase MediathekView:\n%s\n%d Entries (dated as of %s)"

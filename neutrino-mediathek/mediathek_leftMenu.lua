@@ -111,12 +111,17 @@ function channelMenu()
 
 	local query_url = url_new .. actionCmd_listChannels
 	local dataFile = createCacheFileName(query_url, 'json')
-	local s = getJsonData2(query_url, dataFile, nil, queryMode_listChannels)
+	local s, err = getJsonData2(query_url, dataFile, nil, queryMode_listChannels)
+	if not s then
+		messagebox.exec{title=pluginName, text=l.networkError, buttons={'ok'}}
+		return false
+	end
 --	H.printf("\nretData:\n%s\n", tostring(s))
 
 	local j_table = {}
-	j_table = decodeJson(s)
-	if (j_table == nil) then
+	j_table, err = decodeJson(s)
+	if not j_table then
+		messagebox.exec{title=pluginName, text=l.jsonError, buttons={'ok'}}
 		os.execute('rm -f ' .. dataFile)
 		return false
 	end
@@ -224,7 +229,12 @@ function themeMenu()
 		end
 		local box = paintAnInfoBox(string.format(l.searchThemeInfoMsg, actentries, endentries, tostring(totalentries)), WHERE.CENTER)
 		local j_table = {}
-		j_table = decodeJson(s)
+		j_table, err = decodeJson(s)
+		if not j_table then
+			messagebox.exec{title=pluginName, text=l.jsonError, buttons={'ok'}}
+			os.execute('rm -f ' .. dataFile)
+			return MENU_RETURN.EXIT_ALL
+		end
 		if (j_table == nil) then
 			os.execute('rm -f ' .. dataFile)
 			return false

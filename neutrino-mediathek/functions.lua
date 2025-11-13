@@ -108,15 +108,7 @@ dlDebug = true
 		G.hideInfoBox(box)
 		box = nil
 	end
-	if ret == CURL.OK then
-		if file ~= '' then
-			return box, ret, nil
-		else
-			return box, ret, data
-		end
-	else
-		return     box, ret, data
-	end
+	return box, ret, data
 end
 
 function playMovie(url, title, info1, info2, enableMovieInfo, url2)

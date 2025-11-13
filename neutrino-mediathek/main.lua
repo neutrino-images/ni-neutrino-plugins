@@ -1,7 +1,19 @@
+function showErrorDialog(text)
+	messagebox.exec{title=pluginName, text=text, buttons={'ok'}}
+end
+
 function getVersionInfo()
-	local s = getJsonData2(url_new .. actionCmd_versionInfo, nil, nil, queryMode_Info)
+	local s, err = getJsonData2(url_new .. actionCmd_versionInfo, nil, nil, queryMode_Info)
+	if not s then
+		showErrorDialog(l.networkError)
+		return false
+	end
 --	H.printf("\nretData:\n%s\n", tostring(s))
-	local j_table = decodeJson(s)
+	local j_table; j_table, err = decodeJson(s)
+	if not j_table then
+		showErrorDialog(l.jsonError)
+		return false
+	end
 	if checkJsonError(j_table) == false then return false end
 
 	local vdate  = os.date(l.formatDate .. ' / ' .. l.formatTime, j_table.entry[1].vdate)
