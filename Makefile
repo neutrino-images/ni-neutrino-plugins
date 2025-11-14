@@ -66,15 +66,27 @@ fi
 endef
 
 install:
+ifeq ($(strip $(PLUGIN_DIR)),)
+	@true
+else
 	$(call install_target,$(DESTDIR)$(PLUGIN_DIR))
-ifneq ($(PLUGIN_DIR),$(LUAPLUGIN_DIR))
+endif
+ifneq ($(strip $(LUAPLUGIN_DIR)),)
+ifneq ($(strip $(LUAPLUGIN_DIR)),$(strip $(PLUGIN_DIR)))
 	$(call install_target,$(DESTDIR)$(LUAPLUGIN_DIR))
+endif
 endif
 
 uninstall:
+ifeq ($(strip $(PLUGIN_DIR)),)
+	@true
+else
 	$(call uninstall_target,$(DESTDIR)$(PLUGIN_DIR))
-ifneq ($(PLUGIN_DIR),$(LUAPLUGIN_DIR))
+endif
+ifneq ($(strip $(LUAPLUGIN_DIR)),)
+ifneq ($(strip $(LUAPLUGIN_DIR)),$(strip $(PLUGIN_DIR)))
 	$(call uninstall_target,$(DESTDIR)$(LUAPLUGIN_DIR))
+endif
 endif
 
 clean:
