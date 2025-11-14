@@ -74,6 +74,7 @@ function initVars()
 	backgroundImage		= pluginScriptPath .. '/background.jpg'
 	videoTable		= {}
 	h_mainWindow	= nil
+	geoIcon		= nil
 
 	fontMainMenu	= nil
 	fontMiniInfo	= nil

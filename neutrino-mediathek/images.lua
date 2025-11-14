@@ -49,4 +49,16 @@ function createImages()
 		btnRed		= '/usr/share/tuxbox/neutrino/icons/btn_red.png'
 		btnYellow	= '/usr/share/tuxbox/neutrino/icons/btn_yellow.png'
 	end -- icon types
+
+	local candidates = {
+		'/usr/share/tuxbox/neutrino/icons/marker_lock.png',
+		'/usr/share/tuxbox/neutrino/icons/lock.png'
+	}
+	geoIcon = nil
+	for _, path in ipairs(candidates) do
+		if H.fileExist(path) == true then
+			geoIcon = path
+			break
+		end
+	end
 end

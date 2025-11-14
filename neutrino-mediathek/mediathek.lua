@@ -123,15 +123,30 @@ function paint_mtItemLine(count)
 		_item_x = _item_x + w
 	end
 
+	local function paintGeoIndicator(entry)
+		local vH = 5
+		local w = math.floor(((rightItem_w / 100) * vH))
+		if (entry.geo ~= nil and entry.geo ~= '') then
+			if geoIcon ~= nil then
+				local size = math.min(w-4, subMenuHight-4)
+				local ix = _item_x + math.floor((w - size)/2)
+				local iy = _itemLine_y + math.floor((subMenuHight - size)/2)
+				N:DisplayImage(geoIcon, ix, iy, size, size, 1)
+			else
+				local txt = 'X'
+				N:RenderString(useDynFont, fontLeftMenu1, txt, _item_x, _itemLine_y+subMenuHight, txtCol, w, subMenuHight, 1)
+			end
+		end
+		_item_x = _item_x + w
+	end
+
 	if (count <= #mtList) then
 		paintItem(29,	mtList[count].theme,	0)
 		paintItem(40,	mtList[count].title,	0)
 		paintItem(11,	mtList[count].date,	1)
 		paintItem(6,	mtList[count].time,	1)
 		paintItem(9,	mtList[count].duration,	1)
-		local geo = ''
-		if (mtList[count].geo ~= '') then geo = 'X' end
-		paintItem(5,	geo,			1)
+		paintGeoIndicator(mtList[count])
 	end
 end
 
