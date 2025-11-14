@@ -1,0 +1,26 @@
+Neutrino Mediathek Plugin
+Copyright (C) 2017-2018 Michael Liebmann
+Copyright (C) 2020 Markus Volk
+Copyright (C) 2020-2022  Roland Oberle
+Copyright (C) 2025 Thilo Graf
+
+Additional contributions according to `git shortlog --all` (chronological order):
+vanhofen, GetAway, Knicko007, Jacek Jendrzej, Markus Volk,
+Tuxbox-Neutrino Team, BuildingTeams and other community maintainers.
+
+This plugin is distributed under the terms of the GNU General Public
+License v2 (or any later version).  See the file COPYING in the Neutrino
+build tree or visit https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+for the full license text.
+
+The plugin ships Lua source code, artwork (PNG hint icon) and build
+scripts that are all covered by the same license.  Embedded third-party
+assets:
+
+- Icons / fonts that are part of Neutrino’s standard install remain
+  Copyright (C) their respective authors (e.g. “Font Awesome 6 Free”).
+- Backend data is provided by the MediathekView project and subject
+  to their terms.
+
+Please keep this file together with the plugin sources when copying or
+redistributing Neutrino Mediathek.
