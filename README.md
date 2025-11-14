@@ -7,7 +7,8 @@ Choose your preferred language:
 
 ## Installation
 
-For packaging systems (e.g. Yocto/OE) invoke the provided Makefile:
+For packaging systems (e.g. Yocto/OE) or any build environment that
+supports a classic `make install` step, invoke the provided Makefile:
 
 ```
 make install DESTDIR=<pkgdir> PREFIX=/usr/share/tuxbox/neutrino
@@ -17,4 +18,17 @@ The installation step copies the Lua sources, configuration file, hint icon
 and resource directory to both `plugins` and `luaplugins` targets below the
 selected prefix so that classic Neutrino builds and LuaJIT-based setups locate
 identical content.  Uninstallation can be performed with `make uninstall
-DESTDIR=<pkgdir> PREFIX=...`.
+DESTDIR=<pkgdir> PREFIX=...`. The Makefile contains no build logic and is
+therefore safe to call from any external build system that expects the
+conventional install/uninstall targets.
+
+To avoid naming conflicts the Makefile honours `PROGRAM_PREFIX`,
+`PROGRAM_SUFFIX` and `PROGRAM_TRANSFORM_NAME`, mirroring the Autotools
+convention. They influence both the Lua entry point and the resource
+directory names:
+
+```
+make install PROGRAM_PREFIX=foo- DESTDIR=<pkgdir>
+make install PROGRAM_SUFFIX=-bar DESTDIR=<pkgdir>
+make install PROGRAM_TRANSFORM_NAME='s/-mediathek/-alt/' DESTDIR=<pkgdir>
+```
