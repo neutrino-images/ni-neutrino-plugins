@@ -7,8 +7,14 @@ PROGRAM_SUFFIX ?=
 PROGRAM_TRANSFORM_NAME ?=
 
 PLUGIN_NAME := neutrino-mediathek
-PLUGIN_DIR  := $(PREFIX)/$(PLUGIN_SUBDIR)
+PLUGIN_DIR  :=
+LUAPLUGIN_DIR :=
+ifneq ($(PLUGIN_SUBDIR),)
+PLUGIN_DIR := $(PREFIX)/$(PLUGIN_SUBDIR)
+endif
+ifneq ($(LUAPLUGIN_SUBDIR),)
 LUAPLUGIN_DIR := $(PREFIX)/$(LUAPLUGIN_SUBDIR)
+endif
 
 PLUGIN_SRC := neutrino-mediathek
 PLUGIN_LUA := neutrino-mediathek.lua
@@ -35,33 +41,41 @@ hint_dst="$${name}_hint.png"; \
 dir_dst="$$name"
 endef
 
+define install_target
+@set -e; \
+$(call compute_names); \
+if [ -n "$1" ]; then \
+	$(MKDIR) "$1"; \
+	$(MKDIR) "$1/$$dir_dst"; \
+	$(INSTALL) -m 0644 "$(PLUGIN_LUA)" "$1/$$lua_dst"; \
+	$(INSTALL) -m 0644 "$(PLUGIN_CFG)" "$1/$$cfg_dst"; \
+	$(INSTALL) -m 0644 "$(PLUGIN_HINT)" "$1/$$hint_dst"; \
+	$(CP) -a "$(PLUGIN_SRC)"/. "$1/$$dir_dst/"; \
+fi
+endef
+
+define uninstall_target
+@set -e; \
+$(call compute_names); \
+if [ -n "$1" ]; then \
+	$(RM) "$1/$$lua_dst"; \
+	$(RM) "$1/$$cfg_dst"; \
+	$(RM) "$1/$$hint_dst"; \
+	$(RM) -r "$1/$$dir_dst"; \
+fi
+endef
+
 install:
-	@set -e; \
-	$(call compute_names); \
-	$(MKDIR) "$(DESTDIR)$(PLUGIN_DIR)"; \
-	$(MKDIR) "$(DESTDIR)$(PLUGIN_DIR)/$$dir_dst"; \
-	$(MKDIR) "$(DESTDIR)$(LUAPLUGIN_DIR)"; \
-	$(MKDIR) "$(DESTDIR)$(LUAPLUGIN_DIR)/$$dir_dst"; \
-	$(INSTALL) -m 0644 "$(PLUGIN_LUA)" "$(DESTDIR)$(PLUGIN_DIR)/$$lua_dst"; \
-	$(INSTALL) -m 0644 "$(PLUGIN_LUA)" "$(DESTDIR)$(LUAPLUGIN_DIR)/$$lua_dst"; \
-	$(INSTALL) -m 0644 "$(PLUGIN_CFG)" "$(DESTDIR)$(PLUGIN_DIR)/$$cfg_dst"; \
-	$(INSTALL) -m 0644 "$(PLUGIN_CFG)" "$(DESTDIR)$(LUAPLUGIN_DIR)/$$cfg_dst"; \
-	$(INSTALL) -m 0644 "$(PLUGIN_HINT)" "$(DESTDIR)$(PLUGIN_DIR)/$$hint_dst"; \
-	$(INSTALL) -m 0644 "$(PLUGIN_HINT)" "$(DESTDIR)$(LUAPLUGIN_DIR)/$$hint_dst"; \
-	$(CP) -a "$(PLUGIN_SRC)"/. "$(DESTDIR)$(PLUGIN_DIR)/$$dir_dst/"; \
-	$(CP) -a "$(PLUGIN_SRC)"/. "$(DESTDIR)$(LUAPLUGIN_DIR)/$$dir_dst/"
+	$(call install_target,$(DESTDIR)$(PLUGIN_DIR))
+ifneq ($(PLUGIN_DIR),$(LUAPLUGIN_DIR))
+	$(call install_target,$(DESTDIR)$(LUAPLUGIN_DIR))
+endif
 
 uninstall:
-	@set -e; \
-	$(call compute_names); \
-	$(RM) "$(DESTDIR)$(PLUGIN_DIR)/$$lua_dst"; \
-	$(RM) "$(DESTDIR)$(PLUGIN_DIR)/$$cfg_dst"; \
-	$(RM) "$(DESTDIR)$(PLUGIN_DIR)/$$hint_dst"; \
-	$(RM) "$(DESTDIR)$(LUAPLUGIN_DIR)/$$lua_dst"; \
-	$(RM) "$(DESTDIR)$(LUAPLUGIN_DIR)/$$cfg_dst"; \
-	$(RM) "$(DESTDIR)$(LUAPLUGIN_DIR)/$$hint_dst"; \
-	$(RM) -r "$(DESTDIR)$(PLUGIN_DIR)/$$dir_dst"; \
-	$(RM) -r "$(DESTDIR)$(LUAPLUGIN_DIR)/$$dir_dst"
+	$(call uninstall_target,$(DESTDIR)$(PLUGIN_DIR))
+ifneq ($(PLUGIN_DIR),$(LUAPLUGIN_DIR))
+	$(call uninstall_target,$(DESTDIR)$(LUAPLUGIN_DIR))
+endif
 
 clean:
 	@echo "Nothing to clean"
