@@ -75,6 +75,8 @@ function createImages()
 			'/usr/share/tuxbox/neutrino/icons/information.png'
 		})
 		iconExit = pickIcon({
+			'/usr/share/tuxbox/neutrino/icons/home.png',
+			'/usr/share/tuxbox/neutrino/icons/home.jpg',
 			'/usr/share/tuxbox/neutrino/icons/exit.png',
 			'/usr/share/tuxbox/neutrino/icons/power.png',
 			'/usr/share/tuxbox/neutrino/icons/shutdown.png',
