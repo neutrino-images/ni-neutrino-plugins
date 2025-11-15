@@ -474,7 +474,7 @@ function paintInfoBox(txt1, txt2)
 	local startY = math.floor((SCREEN.END_Y - SCREEN.OFF_Y) / 2 - boxHeight / 2)
 
 	local ib = paintEmptyInfoBox(startX, startY, boxWidth, boxHeight)
-	G.paintSimpleFrame(startX, startY, boxWidth - 1, boxHeight - 1, COL.FRAME)
+	G.paintSimpleFrame(startX, startY, boxWidth - 1, boxHeight - 1, COL.FRAME_PLUS_0)
 
 	local _x = startX + 15
 	local _y = startY + tmp1_h

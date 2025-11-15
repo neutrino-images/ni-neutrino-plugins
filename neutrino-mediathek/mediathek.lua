@@ -152,7 +152,7 @@ end
 
 function paintMtRightMenu()
 	local bg_col		= COL.MENUCONTENT_PLUS_0
-	local frameColor	= COL.FRAME
+	local frameColor	= COL.FRAME_PLUS_0
 	local textColor		= COL.MENUCONTENT_TEXT
 
 	G.paintSimpleFrame(mtRightMenu_x, mtMenu_y, mtRightMenu_w, mtMenu_h, frameColor, 0)
@@ -504,12 +504,12 @@ function paintMtRightMenu()
 end
 
 function paintLeftInfoBox(txt)
-	G.paintSimpleFrame(leftInfoBox_x, leftInfoBox_y, leftInfoBox_w, leftInfoBox_h, COL.FRAME, COL.MENUCONTENT_PLUS_1)
+G.paintSimpleFrame(leftInfoBox_x, leftInfoBox_y, leftInfoBox_w, leftInfoBox_h, COL.FRAME_PLUS_0, COL.MENUCONTENT_PLUS_1)
 	N:RenderString(useDynFont, fontLeftMenu2, txt, leftInfoBox_x, leftInfoBox_y+subMenuHight, COL.MENUCONTENT_TEXT, leftInfoBox_w, subMenuHight, 1)
 end
 
 function paintMtLeftMenu()
-	local frameColor	= COL.FRAME
+	local frameColor	= COL.FRAME_PLUS_0
 	local textColor		= COL.MENUCONTENT_TEXT
 
 	local txtCol = COL.MENUCONTENT_TEXT

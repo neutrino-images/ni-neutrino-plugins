@@ -97,7 +97,7 @@ function paintMainWindow(menuOnly, win)
 	if (menuOnly == false) then
 		win:paint{do_save_bg=true}
 	end
-	paintMainMenu(OFFSET.INNER_SMALL, COL.FRAME, COL.MENUCONTENT_TEXT, mainMenuEntry, #mainMenuEntry)
+	paintMainMenu(OFFSET.INNER_SMALL, COL.FRAME_PLUS_0, COL.MENUCONTENT_TEXT, mainMenuEntry, #mainMenuEntry)
 end
 
 function hideMainWindow()
