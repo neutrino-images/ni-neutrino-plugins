@@ -250,7 +250,7 @@ function configMenu()
 	addKillKey(m_conf)
 
 	local opt={l.on, l.off}
-	m_conf:addItem{type="chooser", action="setConfigOnOFF", hint_icon="hint_service", hint=l.settingsSysIconsH, options=opt, id="guiUseSystemIcons", value=unTranslateOnOff(conf.guiUseSystemIcons), name=l.settingsSysIcons}
+	m_conf:addItem{type="chooser", action="setConfigOnOff", hint_icon="hint_service", hint=l.settingsSysIconsH, options=opt, id="guiUseSystemIcons", value=unTranslateOnOff(conf.guiUseSystemIcons), name=l.settingsSysIcons}
 	m_conf:addItem{type="numeric", action="setConfigValue", range="24,55", hint_icon="hint_service", hint=l.settingsSizeMenuH, id="guiMainMenuSize", value=conf.guiMainMenuSize, name=l.settingsSizeMenu}
 	m_conf:addItem{type="numeric", action="setConfigValue", range="1,60", hint_icon="hint_service", hint=l.settingsTimeMsgH, id="guiTimeMsg", value=conf.guiTimeMsg, name=l.settingsTimeMsg}
 
