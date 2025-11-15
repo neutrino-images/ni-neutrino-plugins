@@ -51,6 +51,7 @@ function createImages()
 	end -- icon types
 
 	local candidates = {
+		'/usr/share/tuxbox/neutrino/icons/marker_dialog_off.png',
 		'/usr/share/tuxbox/neutrino/icons/marker_lock.png',
 		'/usr/share/tuxbox/neutrino/icons/lock.png'
 	}
