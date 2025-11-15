@@ -517,6 +517,13 @@ function paintMtLeftMenu()
 
 	buttonCol_w, buttonCol_h = N:GetSize(btnBlue)	-- any color is good
 
+	local function resolveIcon(btn)
+		if type(btn) == 'table' and btn.__icon_name then
+			return _G[btn.__icon_name]
+		end
+		return btn
+	end
+
 	-- left frame
 	G.paintSimpleFrame(mtLeftMenu_x, mtMenu_y, mtLeftMenu_w, mtMenu_h, frameColor, 0)
 
@@ -532,6 +539,7 @@ function paintMtLeftMenu()
 	local buttonCol_y = 0
 
 	local function paintLeftItem(txt1, txt2, btn, enabled)
+		local icon = resolveIcon(btn) or btnBlue
 		if (enabled == true) then
 			txtCol = COL.MENUCONTENT_TEXT
 			bgCol  = COL.MENUCONTENT_PLUS_0
@@ -545,7 +553,7 @@ function paintMtLeftMenu()
 
 		buttonCol_x = math.floor(mtLeftMenu_x+subMenuLeft+(subMenuHight-buttonCol_w)/2)
 		buttonCol_y = y+math.floor((subMenuHight-buttonCol_h)/2)
-		N:DisplayImage(btn, buttonCol_x, buttonCol_y, buttonCol_w, buttonCol_h, 1)
+		N:DisplayImage(icon, buttonCol_x, buttonCol_y, buttonCol_w, buttonCol_h, 1)
 
 		y = y + subMenuHight
 		local crCount = 0
@@ -839,6 +847,10 @@ end
 
 function startMediathek()
 	leftMenuEntry = {}
+	local function leftMenuIconRef(name)
+		return { __icon_name = name }
+	end
+
 	local function fillLeftMenuEntry(e1, e2, e3, e4, e5)
 		local i = #leftMenuEntry + 1
 		leftMenuEntry[i]	= {}
@@ -849,14 +861,14 @@ function startMediathek()
 		leftMenuEntry[i][5]	= e5
 	end
 
-	fillLeftMenuEntry(l.menuTitle,		formatTitle(conf.allTitles, conf.title),	btnRed,    true, true)
-	fillLeftMenuEntry(l.menuChannel,	conf.channel,					btnGreen,  true, true)
-	fillLeftMenuEntry(l.menuTheme,		formatTheme(conf.allThemes, conf.theme),	btnYellow, true, true)
-	fillLeftMenuEntry(l.menuSeePeriod,	formatseePeriod(),				btnBlue,   true, true)
-	fillLeftMenuEntry(l.menuMinDuration,	formatMinDuration(conf.seeMinimumDuration),	btn1,      true, true)
-	fillLeftMenuEntry(l.menuSort,		formatSortMode(),				btn2,      true, true)
-	fillLeftMenuEntry(l.menuGeoFilter,	formatGeoMode(),				btn3,      true, true)
-	fillLeftMenuEntry(l.menuQualityFilter,	formatQualityMode(),				btn4,      true, true)
+	fillLeftMenuEntry(l.menuTitle,		formatTitle(conf.allTitles, conf.title),	leftMenuIconRef('btnRed'),    true, true)
+	fillLeftMenuEntry(l.menuChannel,	conf.channel,					leftMenuIconRef('btnGreen'),  true, true)
+	fillLeftMenuEntry(l.menuTheme,		formatTheme(conf.allThemes, conf.theme),	leftMenuIconRef('btnYellow'), true, true)
+	fillLeftMenuEntry(l.menuSeePeriod,	formatseePeriod(),				leftMenuIconRef('btnBlue'),   true, true)
+	fillLeftMenuEntry(l.menuMinDuration,	formatMinDuration(conf.seeMinimumDuration),	leftMenuIconRef('btn1'),      true, true)
+	fillLeftMenuEntry(l.menuSort,		formatSortMode(),				leftMenuIconRef('btn2'),      true, true)
+	fillLeftMenuEntry(l.menuGeoFilter,	formatGeoMode(),				leftMenuIconRef('btn3'),      true, true)
+	fillLeftMenuEntry(l.menuQualityFilter,	formatQualityMode(),				leftMenuIconRef('btn4'),      true, true)
 	selectionChanged = true
 
 	newMtWindow()
