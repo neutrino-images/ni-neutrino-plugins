@@ -31,6 +31,10 @@ function createImages()
 		btnGreen	= decodeImage(btnGreenData,	imgType, pluginTmpPath)
 		btnRed		= decodeImage(btnRedData,	imgType, pluginTmpPath)
 		btnYellow	= decodeImage(btnYellowData,	imgType, pluginTmpPath)
+		iconOk = nil
+		iconMenu = nil
+		iconInfo = nil
+		iconExit = nil
 	else -- neutrino system icons
 		-- TODO: allow user icons from /var/tuxbox/icons/
 		-- TODO: get path to icons from build environment
@@ -48,6 +52,34 @@ function createImages()
 		btnGreen	= '/usr/share/tuxbox/neutrino/icons/btn_green.png'
 		btnRed		= '/usr/share/tuxbox/neutrino/icons/btn_red.png'
 		btnYellow	= '/usr/share/tuxbox/neutrino/icons/btn_yellow.png'
+
+		local function pickIcon(candidates)
+			for _, path in ipairs(candidates) do
+				if H.fileExist(path) == true then
+					return path
+				end
+			end
+			return nil
+		end
+
+		iconOk = pickIcon({
+			'/usr/share/tuxbox/neutrino/icons/ok.png',
+			'/usr/share/tuxbox/neutrino/icons/btn_ok.png'
+		})
+		iconMenu = pickIcon({
+			'/usr/share/tuxbox/neutrino/icons/menu.png',
+			'/usr/share/tuxbox/neutrino/icons/mainmenue.png'
+		})
+		iconInfo = pickIcon({
+			'/usr/share/tuxbox/neutrino/icons/info.png',
+			'/usr/share/tuxbox/neutrino/icons/information.png'
+		})
+		iconExit = pickIcon({
+			'/usr/share/tuxbox/neutrino/icons/exit.png',
+			'/usr/share/tuxbox/neutrino/icons/power.png',
+			'/usr/share/tuxbox/neutrino/icons/shutdown.png',
+			'/usr/share/tuxbox/neutrino/icons/shutdown.jpg'
+		})
 	end -- icon types
 
 	local candidates = {

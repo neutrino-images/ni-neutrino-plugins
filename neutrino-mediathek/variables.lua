@@ -114,20 +114,25 @@ function initVars()
 		end
 	end
 
-	local function fillMainMenuEntry(e1, e2)
+	local function mainMenuIconRef(name)
+		return { __icon_name = name }
+	end
+
+	local function fillMainMenuEntry(e1, e2, icon)
 		local i = #mainMenuEntry+1
 		mainMenuEntry[i]	= {}
 		mainMenuEntry[i][1]	= e1
 		mainMenuEntry[i][2]	= e2
+		mainMenuEntry[i][3]	= icon
 	end
 
 	mainMenuEntry = {}
-	fillMainMenuEntry(l.key.ok,	l.startMediathek)
-	fillMainMenuEntry(l.key.red,	l.startLivestreams)
-	fillMainMenuEntry(l.key.menu,	l.settings)
-	fillMainMenuEntry(l.key.info,	l.versioninfo)
-	fillMainMenuEntry(l.empty,	l.empty)
-	fillMainMenuEntry(l.key.exit,	l.exitProgram)
+	fillMainMenuEntry(l.key.ok,	l.startMediathek,	mainMenuIconRef('iconOk'))
+	fillMainMenuEntry(l.key.red,	l.startLivestreams,	mainMenuIconRef('btnRed'))
+	fillMainMenuEntry(l.key.menu,	l.settings,		mainMenuIconRef('iconMenu'))
+	fillMainMenuEntry(l.key.info,	l.versioninfo,	mainMenuIconRef('iconInfo'))
+	fillMainMenuEntry(l.empty,	l.empty,		nil)
+	fillMainMenuEntry(l.key.exit,	l.exitProgram,	mainMenuIconRef('iconExit'))
 
 	if (H.fileExist(pluginScriptPath .. '/local.lua') == true) then
 		-- locale settings for testing

@@ -51,9 +51,25 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 	local w1 = 0
 	local w2 = 0
 	local w = 0
+	local iconMetrics = {}
+
+	local function resolveIcon(ref)
+		if type(ref) == 'table' and ref.__icon_name then
+			return _G[ref.__icon_name]
+		end
+		return nil
+	end
+
 	for i=1, count do
-		local wText1 = N:getRenderWidth(useDynFont, fontText, info[i][1])
-		if wText1 > w1 then w1 = wText1 end
+		local icon = resolveIcon(info[i][3])
+		if icon ~= nil and icon ~= '' then
+			local iw, ih = N:GetSize(icon)
+			iconMetrics[i] = { icon=icon, w=iw, h=ih }
+			if iw > w1 then w1 = iw end
+		else
+			local wText1 = N:getRenderWidth(useDynFont, fontText, info[i][1])
+			if wText1 > w1 then w1 = wText1 end
+		end
 		local wText2 = N:getRenderWidth(useDynFont, fontText, info[i][2])
 		if wText2 > w2 then w2 = wText2 end
 	end
@@ -77,6 +93,9 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 		local y = y_start + (i-1)*h_tmp
 		local bg = 0
 		txtC=textColor
+		local entryIcon = iconMetrics[i]
+		local hasIcon = entryIcon ~= nil
+
 		if ((i == 2) and (conf.enableLivestreams == 'off')) then
 			txtC = COL.MENUCONTENTINACTIVE_TEXT
 			bg   = COL.MENUCONTENTINACTIVE
@@ -85,7 +104,13 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 		if (info[i][1] ~= '' or info[i][2] ~= '') then
 			G.paintSimpleFrame(x, y, w, h, frameColor, bg)
 			N:paintVLine(x + w1 + 2*OFFSET.INNER_MID, y, h, frameColor)
-			N:RenderString(useDynFont, fontText, info[i][1], x1, y + h, txtC, w1, h, 1)
+			if hasIcon then
+				local iconX = x1 + math.floor((w1 - entryIcon.w) / 2)
+				local iconY = y + math.floor((h - entryIcon.h) / 2)
+				N:DisplayImage(entryIcon.icon, iconX, iconY, entryIcon.w, entryIcon.h, 1)
+			else
+				N:RenderString(useDynFont, fontText, info[i][1], x1, y + h, txtC, w1, h, 1)
+			end
 			N:RenderString(useDynFont, fontText, info[i][2], x2, y + h, txtC, w2, h, 0)
 		end
 	end
