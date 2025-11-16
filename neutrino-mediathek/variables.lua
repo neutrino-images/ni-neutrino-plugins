@@ -91,6 +91,15 @@ function initVars()
 	end
 	pluginVersion = string.format('%d.%d.%d%s%s', pluginVersionMajor, pluginVersionMinor, pluginVersionPatch, displaySuffix, devSuffix)
 
+	local function detectLuaRuntime()
+		local base = _VERSION or 'Lua'
+		if jit and jit.version then
+			return string.format('%s (%s)', base, jit.version)
+		end
+		return base
+	end
+	luaRuntimeInfo = detectLuaRuntime()
+
 	pluginName	= 'Neutrino Mediathek'
 
 

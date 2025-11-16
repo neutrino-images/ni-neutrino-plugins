@@ -112,18 +112,9 @@ function playLivestream2(_id)
 end
 
 function getLivestreams()
-	local s, err = getJsonData2(url_new .. actionCmd_livestream, nil, nil, queryMode_listLivestreams)
-	if not s then
-		messagebox.exec{title=pluginName, text=l.networkError, buttons={'ok'}}
-		return false
-	end
-	local j_table; j_table, err = decodeJson(s)
+	local cacheKey = url_new .. actionCmd_livestream
+	local j_table = loadJsonResponse(cacheKey, cacheKey, queryMode_listLivestreams, nil)
 	if not j_table then
-		messagebox.exec{title=pluginName, text=l.jsonError, buttons={'ok'}}
-		return false
-	end
-
-	if not checkJsonError(j_table) then
 		return false
 	end
 

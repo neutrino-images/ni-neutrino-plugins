@@ -75,6 +75,7 @@ l.btnNo				= "No"
 
 l.versionHeader			= "Version Info"
 l.formatVersion			= "Plugin v%s\n \nDatabase\nVersion: %s (Update %s)\n \nDatabase MediathekView => Neutrino Mediathek\n%s (%s)\n \nServer API\n%s (%s)\n \nDatabase MediathekView:\n%s\n%d Entries (dated as of %s)"
+l.runtimeInfo			= "Lua runtime: %s"
 
 l.formatAllTitles		= "[All titles]"
 l.formatAllThemes		= "[All themes]"

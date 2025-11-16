@@ -24,23 +24,19 @@ function ensurePrivacyConsent()
 end
 
 function getVersionInfo()
-	local s, err = getJsonData2(url_new .. actionCmd_versionInfo, nil, nil, queryMode_Info)
-	if not s then
-		showErrorDialog(l.networkError)
-		return false
-	end
---	H.printf("\nretData:\n%s\n", tostring(s))
-	local j_table; j_table, err = decodeJson(s)
+	local cacheKey = url_new .. actionCmd_versionInfo
+	local j_table = loadJsonResponse(cacheKey, cacheKey, queryMode_Info, nil)
 	if not j_table then
-		showErrorDialog(l.jsonError)
 		return false
 	end
-	if checkJsonError(j_table) == false then return false end
 
 	local vdate  = os.date(l.formatDate .. ' / ' .. l.formatTime, j_table.entry[1].vdate)
 	local mvdate = os.date(l.formatDate .. ' / ' .. l.formatTime, j_table.entry[1].mvdate)
 	local vInfo = string.format(l.formatVersion, pluginVersion, j_table.entry[1].version, vdate, j_table.entry[1].progname, j_table.entry[1].progversion,
 			j_table.entry[1].api, j_table.entry[1].apiversion, j_table.entry[1].mvversion, j_table.entry[1].mventrys, mvdate)
+	if luaRuntimeInfo and luaRuntimeInfo ~= '' then
+		vInfo = vInfo .. '\n \n' .. string.format(l.runtimeInfo or 'Lua runtime: %s', luaRuntimeInfo)
+	end
 
 	messagebox.exec{title=l.versionHeader .. ' ' .. pluginName, text=vInfo, buttons={ 'ok' } }
 end

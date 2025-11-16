@@ -75,6 +75,7 @@ l.btnNo					= "Nein"
 
 l.versionHeader				= "Versioninfo"
 l.formatVersion				= "Plugin v%s\n \nDatenbank\nVersion: %s (Update %s)\n \nDatenbank MediathekView => Neutrino Mediathek\n%s (%s)\n \nServer API\n%s (%s)\n \nDatenbank MediathekView:\n%s\n%d Einträge (Stand vom %s)"
+l.runtimeInfo				= "Lua-Laufzeit: %s"
 
 l.formatAllTitles			= "[Alle Sendungen]"
 l.formatAllThemes			= "[Alle Themen]"
