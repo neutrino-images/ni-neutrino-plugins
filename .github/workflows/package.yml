@@ -76,7 +76,7 @@ jobs:
       - name: Run Tagit
         run: |
           git status --short
-          python /tmp/tagit.py -f neutrino-mediathek/VERSION --tag-format "v{major}.{minor}.{patch}" --version-mode increment
+          python /tmp/tagit.py -f neutrino-mediathek/VERSION --tag-format "v{major}.{minor}.{patch}" --version-mode increment --scheme-file .github/tagit-schemes.json
 
       - name: Commit and push VERSION
         run: |

@@ -1,0 +1,11 @@
+[
+  {
+    "name": "prefixed_version_file",
+    "patterns": {
+      "version": "^v\\d+\\.\\d+\\.\\d+$"
+    },
+    "replacements": {
+      "version": "v{major}.{minor}.{patch}"
+    }
+  }
+]
