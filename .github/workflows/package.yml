@@ -22,7 +22,12 @@ jobs:
           else
             VERSION="$(git rev-parse --short HEAD)"
           fi
-          echo "ARCHIVE_NAME=neutrino-mediathek-${VERSION}.tar.gz" >> "$GITHUB_ENV"
+          REPO_BASENAME="${GITHUB_REPOSITORY##*/}"
+          case "$REPO_BASENAME" in
+            plugin-lua-neutrino-mediathek) BASE_NAME="plugin-lua-neutrino-mediathek" ;;
+            *) BASE_NAME="neutrino-mediathek" ;;
+          esac
+          echo "ARCHIVE_NAME=${BASE_NAME}-${VERSION}.tar.gz" >> "$GITHUB_ENV"
 
       - name: Create tarball
         run: |
