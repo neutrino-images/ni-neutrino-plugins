@@ -36,25 +36,46 @@ function createImages()
 		iconInfo = nil
 		iconExit = nil
 	else -- neutrino system icons
-		-- TODO: allow user icons from /var/tuxbox/icons/
 		-- TODO: get path to icons from build environment
-		btn0		= '/usr/share/tuxbox/neutrino/icons/0.png'
-		btn1		= '/usr/share/tuxbox/neutrino/icons/1.png'
-		btn2		= '/usr/share/tuxbox/neutrino/icons/2.png'
-		btn3		= '/usr/share/tuxbox/neutrino/icons/3.png'
-		btn4		= '/usr/share/tuxbox/neutrino/icons/4.png'
-		btn5		= '/usr/share/tuxbox/neutrino/icons/5.png'
-		btn6		= '/usr/share/tuxbox/neutrino/icons/6.png'
-		btn7		= '/usr/share/tuxbox/neutrino/icons/7.png'
-		btn8		= '/usr/share/tuxbox/neutrino/icons/8.png'
-		btn9		= '/usr/share/tuxbox/neutrino/icons/9.png'
-		btnBlue		= '/usr/share/tuxbox/neutrino/icons/btn_blue.png'
-		btnGreen	= '/usr/share/tuxbox/neutrino/icons/btn_green.png'
-		btnRed		= '/usr/share/tuxbox/neutrino/icons/btn_red.png'
-		btnYellow	= '/usr/share/tuxbox/neutrino/icons/btn_yellow.png'
+		local systemIconDir = '/usr/share/tuxbox/neutrino/icons/'
+		local userIconDir = '/var/tuxbox/icons/'
+
+		local function userIcon(name)
+			local candidate = userIconDir .. name
+			if H.fileExist(candidate) == true then
+				return candidate
+			end
+			return nil
+		end
+
+		local function resolveIcon(name)
+			return userIcon(name) or (systemIconDir .. name)
+		end
+
+		btn0		= resolveIcon('0.png')
+		btn1		= resolveIcon('1.png')
+		btn2		= resolveIcon('2.png')
+		btn3		= resolveIcon('3.png')
+		btn4		= resolveIcon('4.png')
+		btn5		= resolveIcon('5.png')
+		btn6		= resolveIcon('6.png')
+		btn7		= resolveIcon('7.png')
+		btn8		= resolveIcon('8.png')
+		btn9		= resolveIcon('9.png')
+		btnBlue		= resolveIcon('btn_blue.png')
+		btnGreen	= resolveIcon('btn_green.png')
+		btnRed		= resolveIcon('btn_red.png')
+		btnYellow	= resolveIcon('btn_yellow.png')
 
 		local function pickIcon(candidates)
-			for _, path in ipairs(candidates) do
+			for _, name in ipairs(candidates) do
+				local candidate = userIcon(name)
+				if candidate ~= nil then
+					return candidate
+				end
+			end
+			for _, name in ipairs(candidates) do
+				local path = systemIconDir .. name
 				if H.fileExist(path) == true then
 					return path
 				end
@@ -63,24 +84,24 @@ function createImages()
 		end
 
 		iconOk = pickIcon({
-			'/usr/share/tuxbox/neutrino/icons/ok.png',
-			'/usr/share/tuxbox/neutrino/icons/btn_ok.png'
+			'ok.png',
+			'btn_ok.png'
 		})
 		iconMenu = pickIcon({
-			'/usr/share/tuxbox/neutrino/icons/menu.png',
-			'/usr/share/tuxbox/neutrino/icons/mainmenue.png'
+			'menu.png',
+			'mainmenue.png'
 		})
 		iconInfo = pickIcon({
-			'/usr/share/tuxbox/neutrino/icons/info.png',
-			'/usr/share/tuxbox/neutrino/icons/information.png'
+			'info.png',
+			'information.png'
 		})
 		iconExit = pickIcon({
-			'/usr/share/tuxbox/neutrino/icons/home.png',
-			'/usr/share/tuxbox/neutrino/icons/home.jpg',
-			'/usr/share/tuxbox/neutrino/icons/exit.png',
-			'/usr/share/tuxbox/neutrino/icons/power.png',
-			'/usr/share/tuxbox/neutrino/icons/shutdown.png',
-			'/usr/share/tuxbox/neutrino/icons/shutdown.jpg'
+			'home.png',
+			'home.jpg',
+			'exit.png',
+			'power.png',
+			'shutdown.png',
+			'shutdown.jpg'
 		})
 	end -- icon types
 
