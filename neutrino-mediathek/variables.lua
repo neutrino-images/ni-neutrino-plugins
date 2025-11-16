@@ -27,15 +27,20 @@ local function detectDefaultApiBase()
 end
 
 function initVars()
-	pluginVersionMajor	= 0
-	pluginVersionMinor	= 5
+	pluginVersionMajor	= 1
+	pluginVersionMinor	= 0
+	pluginVersionPatch	= 0
 	pluginVersionBeta	= 0
-	if (pluginVersionBeta == 0) then
-		pvbTmp = ''
-	else
-		pvbTmp = ' beta ' .. tostring(pluginVersionBeta)
+
+	local function buildVersionString()
+		local base = string.format('%d.%d.%d', pluginVersionMajor, pluginVersionMinor, pluginVersionPatch)
+		if pluginVersionBeta ~= 0 then
+			return base .. ' beta ' .. tostring(pluginVersionBeta)
+		end
+		return base
 	end
-	pluginVersion	= tostring(pluginVersionMajor) .. '.' .. tostring(pluginVersionMinor) .. pvbTmp
+
+	pluginVersion = buildVersionString()
 
 	pluginName	= 'Neutrino Mediathek'
 

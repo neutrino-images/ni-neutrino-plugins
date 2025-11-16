@@ -602,6 +602,9 @@ function getSendDataHead(mode)
 	ret['vBeta']	= pluginVersionBeta
 	ret['vMajor']	= pluginVersionMajor
 	ret['vMinor']	= pluginVersionMinor
+	if pluginVersionPatch ~= nil then
+		ret['vPatch'] = pluginVersionPatch
+	end
 	ret['mode']	= mode		
 
 	return ret
