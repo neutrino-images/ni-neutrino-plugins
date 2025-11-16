@@ -17,17 +17,18 @@ jobs:
       - name: Determine archive name
         id: vars
         run: |
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            VERSION="${GITHUB_REF_NAME}"
+          if [[ -f neutrino-mediathek/VERSION ]]; then
+            VERSION_STR="$(tr -d '\n' < neutrino-mediathek/VERSION)"
           else
-            VERSION="$(git rev-parse --short HEAD)"
+            VERSION_STR="$(git describe --tags --always --dirty 2>/dev/null || git rev-parse --short HEAD)"
           fi
           REPO_BASENAME="${GITHUB_REPOSITORY##*/}"
           case "$REPO_BASENAME" in
             plugin-lua-neutrino-mediathek) BASE_NAME="plugin-lua-neutrino-mediathek" ;;
             *) BASE_NAME="neutrino-mediathek" ;;
           esac
-          echo "ARCHIVE_NAME=${BASE_NAME}-${VERSION}.tar.gz" >> "$GITHUB_ENV"
+          VERSION_STR="${VERSION_STR// /}"
+          echo "ARCHIVE_NAME=${BASE_NAME}-${VERSION_STR}.tar.gz" >> "$GITHUB_ENV"
 
       - name: Create tarball
         run: |

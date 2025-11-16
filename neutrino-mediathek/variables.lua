@@ -27,20 +27,65 @@ local function detectDefaultApiBase()
 end
 
 function initVars()
-	pluginVersionMajor	= 1
-	pluginVersionMinor	= 0
-	pluginVersionPatch	= 0
-	pluginVersionBeta	= 0
-
-	local function buildVersionString()
-		local base = string.format('%d.%d.%d', pluginVersionMajor, pluginVersionMinor, pluginVersionPatch)
-		if pluginVersionBeta ~= 0 then
-			return base .. ' beta ' .. tostring(pluginVersionBeta)
-		end
-		return base
+	local function trim(str)
+		return (str:gsub('^%s+', ''):gsub('%s+$', ''))
 	end
 
-	pluginVersion = buildVersionString()
+	local function readVersionFile(path)
+		local fh = io.open(path, 'r')
+		if not fh then return nil end
+		local line = fh:read('*l')
+		fh:close()
+		if line and #line > 0 then
+			return trim(line)
+		end
+		return nil
+	end
+
+	local function readVersionFromGit()
+		local cmd = string.format('cd %q && git describe --tags --always --dirty 2>/dev/null', pluginScriptPath)
+		local handle = io.popen(cmd)
+		if not handle then return nil end
+		local line = handle:read('*l')
+		handle:close()
+		if line and #line > 0 then
+			return trim(line)
+		end
+		return nil
+	end
+
+	local rawVersion = readVersionFile(pluginScriptPath .. '/VERSION') or readVersionFromGit() or '1.0.0-dev'
+	local major, minor, patch, suffix = rawVersion:match('^v?(%d+)%.(%d+)%.(%d+)(.*)$')
+	if not major then
+		major, minor, patch, suffix = '1', '0', '0', '-dev'
+	end
+	pluginVersionMajor	= tonumber(major) or 1
+	pluginVersionMinor	= tonumber(minor) or 0
+	pluginVersionPatch	= tonumber(patch) or 0
+
+	suffix = suffix or ''
+	local displaySuffix = ''
+	local devSuffix = ''
+	local patchLabel, rest = suffix:match('^(-?p?%d+)(.*)$')
+	if patchLabel then
+		local tagPatch = tonumber(patchLabel:match('(%d+)'))
+		if tagPatch ~= nil then
+			pluginVersionPatch = tagPatch
+		end
+		displaySuffix = patchLabel
+		if rest ~= nil and rest ~= '' then
+			devSuffix = '-dev'
+		end
+	else
+		displaySuffix = suffix
+	end
+
+	if displaySuffix:lower():find('beta', 1, true) then
+		pluginVersionBeta = 1
+	else
+		pluginVersionBeta = 0
+	end
+	pluginVersion = string.format('%d.%d.%d%s%s', pluginVersionMajor, pluginVersionMinor, pluginVersionPatch, displaySuffix, devSuffix)
 
 	pluginName	= 'Neutrino Mediathek'
 
