@@ -65,13 +65,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install GitPython
-          curl -o tagit.py https://raw.githubusercontent.com/dbt1/tagit/master/tagit.py
-          chmod +x tagit.py
+          curl -o /tmp/tagit.py https://raw.githubusercontent.com/dbt1/tagit/master/tagit.py
+          chmod +x /tmp/tagit.py
 
       - name: Run Tagit
         run: |
           git status --short
-          python tagit.py -f neutrino-mediathek/VERSION --tag-format "v{major}.{minor}.{patch}" --version-mode increment
+          python /tmp/tagit.py -f neutrino-mediathek/VERSION --tag-format "v{major}.{minor}.{patch}" --version-mode increment
 
       - name: Commit and push VERSION
         run: |
