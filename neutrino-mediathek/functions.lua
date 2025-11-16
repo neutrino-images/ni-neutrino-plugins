@@ -24,6 +24,19 @@ function addKillKey(menu)
 	menu:addKey{directkey=RC.standby,	id='standby',	action='killPlugin'}
 end
 
+function resolveIconRef(ref)
+	if type(ref) == 'table' and ref.__icon_name then
+		local icon = _G[ref.__icon_name]
+		if type(icon) == 'string' then
+			if icon == '' or H.fileExist(icon) ~= true then
+				return nil
+			end
+		end
+		return icon
+	end
+	return ref
+end
+
 local function generate_sid(length)
 	math.randomseed(os.time())
 	local chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

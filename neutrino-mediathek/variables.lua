@@ -26,6 +26,10 @@ local function detectDefaultApiBase()
 	return fallback
 end
 
+function iconRef(name)
+	return { __icon_name = name }
+end
+
 function initVars()
 	local function trim(str)
 		return (str:gsub('^%s+', ''):gsub('%s+$', ''))
@@ -164,10 +168,6 @@ function initVars()
 		end
 	end
 
-	local function mainMenuIconRef(name)
-		return { __icon_name = name }
-	end
-
 	local function fillMainMenuEntry(e1, e2, icon)
 		local i = #mainMenuEntry+1
 		mainMenuEntry[i]	= {}
@@ -177,12 +177,12 @@ function initVars()
 	end
 
 	mainMenuEntry = {}
-	fillMainMenuEntry(l.key.ok,	l.startMediathek,	mainMenuIconRef('iconOk'))
-	fillMainMenuEntry(l.key.red,	l.startLivestreams,	mainMenuIconRef('btnRed'))
-	fillMainMenuEntry(l.key.menu,	l.settings,		mainMenuIconRef('iconMenu'))
-	fillMainMenuEntry(l.key.info,	l.versioninfo,	mainMenuIconRef('iconInfo'))
+	fillMainMenuEntry(l.key.ok,	l.startMediathek,	iconRef('iconOk'))
+	fillMainMenuEntry(l.key.red,	l.startLivestreams,	iconRef('btnRed'))
+	fillMainMenuEntry(l.key.menu,	l.settings,		iconRef('iconMenu'))
+	fillMainMenuEntry(l.key.info,	l.versioninfo,	iconRef('iconInfo'))
 	fillMainMenuEntry(l.empty,	l.empty,		nil)
-	fillMainMenuEntry(l.key.exit,	l.exitProgram,	mainMenuIconRef('iconExit'))
+	fillMainMenuEntry(l.key.exit,	l.exitProgram,	iconRef('iconExit'))
 
 	if (H.fileExist(pluginScriptPath .. '/local.lua') == true) then
 		-- locale settings for testing

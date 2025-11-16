@@ -194,11 +194,10 @@ function networkSetup()
 	m_nw_conf:addKey{directkey=RC["setup"], id="setup", action="exitConfigMenu"}
 	addKillKey(m_nw_conf)
 
-	local opt={l.on, l.off}
-	m_nw_conf:addItem{type="chooser", action="setConfigOnOff", hint_icon="hint_service", hint=l.networkUsePIV4H, options=opt, id="networkIPV4Only", value=unTranslateOnOff(conf.networkIPV4Only), name=l.networkUsePIV4}
+	addToggle(m_nw_conf, {confKey="networkIPV4Only", hint=l.networkUsePIV4H, name=l.networkUsePIV4})
 
 	m_nw_conf:addItem{type="separatorline", name=l.networkDebug}
-	m_nw_conf:addItem{type="chooser", action="changeNetworkDLVerbose", hint_icon="hint_service", hint=l.networkFullH, options=opt, id="networkDlVerbose", value=unTranslateOnOff(conf.networkDlVerbose), name=l.networkFull}
+	addToggle(m_nw_conf, {confKey="networkDlVerbose", action="changeNetworkDLVerbose", hint=l.networkFullH, name=l.networkFull})
 
 	if (conf.networkDlVerbose == 'off') then
 		enabled = true
@@ -206,8 +205,7 @@ function networkSetup()
 		enabled = false
 		conf.networkDlSilent = 'on'
 	end
-	local opt={l.on, l.off}
-	m_configSilent = m_nw_conf:addItem{type="chooser", enabled=enabled, action="setConfigOnOff", hint_icon="hint_service", hint=l.networkProgressH, options=opt, id="networkDlSilent", value=unTranslateOnOff(conf.networkDlSilent), name=l.networkProgress}
+	m_configSilent = addToggle(m_nw_conf, {confKey="networkDlSilent", enabled=enabled, hint=l.networkProgressH, name=l.networkProgress})
 
 	m_nw_conf:addItem{
 		type="keyboardinput",
@@ -233,6 +231,22 @@ function changeDLPath(dummy, downloadPath)
 	return MENU_RETURN.REPAINT
 end
 
+local function addToggle(menu, params)
+	local id = params.id or params.confKey
+	local value = params.value or unTranslateOnOff(conf[params.confKey])
+	return menu:addItem{
+		type = "chooser",
+		action = params.action or "setConfigOnOff",
+		hint_icon = params.hint_icon or "hint_service",
+		hint = params.hint,
+		options = params.options or {l.on, l.off},
+		enabled = params.enabled,
+		id = id,
+		value = value,
+		name = params.name
+	}
+end
+
 
 function configMenu()
 	local old_guiUseSystemIcons	= conf.guiUseSystemIcons
@@ -249,14 +263,12 @@ function configMenu()
 	m_conf:addKey{directkey=RC["setup"], id="setup", action="exitConfigMenu"}
 	addKillKey(m_conf)
 
-	local opt={l.on, l.off}
-	m_conf:addItem{type="chooser", action="setConfigOnOff", hint_icon="hint_service", hint=l.settingsSysIconsH, options=opt, id="guiUseSystemIcons", value=unTranslateOnOff(conf.guiUseSystemIcons), name=l.settingsSysIcons}
+	addToggle(m_conf, {confKey="guiUseSystemIcons", hint=l.settingsSysIconsH, name=l.settingsSysIcons})
 	m_conf:addItem{type="numeric", action="setConfigValue", range="24,55", hint_icon="hint_service", hint=l.settingsSizeMenuH, id="guiMainMenuSize", value=conf.guiMainMenuSize, name=l.settingsSizeMenu}
 	m_conf:addItem{type="numeric", action="setConfigValue", range="1,60", hint_icon="hint_service", hint=l.settingsTimeMsgH, id="guiTimeMsg", value=conf.guiTimeMsg, name=l.settingsTimeMsg}
 
 	m_conf:addItem{type="separatorline", name=l.settingsPlayer}
-	local opt={l.on, l.off}
-	m_conf:addItem{type="chooser", action="changeEnableLifestreams", hint_icon="hint_service", hint=l.settingsShowLifeH, options=opt, id="enableLivestreams", value=unTranslateOnOff(conf.enableLivestreams), name=l.settingsShowLife}
+	addToggle(m_conf, {confKey="enableLivestreams", action="changeEnableLifestreams", hint=l.settingsShowLifeH, name=l.settingsShowLife})
 	if (conf.enableLivestreams == "on") then enabled=true else enabled=false end
 	m_conf_item1 = m_conf:addItem{type="forwarder", enabled=enabled, action="enableLivestreams", hint_icon="hint_service", hint=l.settingsLifestreamsH, name=l.settingsLifestreams, icon=1, directkey=RC["1"]}
 	opt={ 'max', 'normal' ,'min' }

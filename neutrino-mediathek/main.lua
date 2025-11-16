@@ -53,24 +53,8 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 	local w = 0
 	local iconMetrics = {}
 
-	local function resolveIcon(ref)
-		if type(ref) == 'table' and ref.__icon_name then
-			local icon = _G[ref.__icon_name]
-			if icon == nil or icon == '' then
-				return nil
-			end
-			if type(icon) == 'string' then
-				if H.fileExist(icon) ~= true then
-					return nil
-				end
-			end
-			return icon
-		end
-		return nil
-	end
-
 	for i=1, count do
-		local icon = resolveIcon(info[i][3])
+		local icon = resolveIconRef(info[i][3])
 		if icon ~= nil and icon ~= '' then
 			local iw, ih = N:GetSize(icon)
 			iconMetrics[i] = { icon=icon, w=iw, h=ih }

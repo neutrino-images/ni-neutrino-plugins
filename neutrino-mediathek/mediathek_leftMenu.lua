@@ -16,6 +16,29 @@ function repaintMediathek()
 	paintMtRightMenu()
 end
 
+local function loadJsonResponse(cacheKey, url, mode, postData)
+	local dataFile = createCacheFileName(cacheKey, 'json')
+	local s = getJsonData2(url, dataFile, postData, mode)
+	if not s then
+		messagebox.exec{title=pluginName, text=l.networkError, buttons={'ok'}}
+		return nil
+	end
+	local j_table, err = decodeJson(s)
+	if not j_table then
+		messagebox.exec{title=pluginName, text=l.jsonError, buttons={'ok'}}
+		os.execute('rm -f ' .. dataFile)
+		return nil
+	end
+	if checkJsonError(j_table) == false then
+		os.execute('rm -f ' .. dataFile)
+		if j_table.err == 2 then
+			return j_table
+		end
+		return nil
+	end
+	return j_table
+end
+
 function changeTitle(k, v)
 	conf.title = v
 	return MENU_RETURN.REPAINT
@@ -67,16 +90,12 @@ function titleMenu()
 	addKillKey(m_title_sel)
 
 	titleList = {}
-	local opt={l.on, l.off}
-	m_title_sel:addItem{type="chooser", action="changeAllTitles", hint_icon="hint_service", hint=l.titleAllTitlesH ,options=opt, id="allTitles", value=unTranslateOnOff(conf.allTitles), name=l.titleAllTitles}
-	local opt={l.on, l.off}
-	local titleItem = m_title_sel:addItem{type="chooser", action="changePartSearch", hint_icon="hint_service", hint=l.titlePartSearchH , options=opt, id="partSearch", value=unTranslateOnOff(conf.partialTitle), name=l.titlePartSearch}
+	addToggle(m_title_sel, {confKey="allTitles", action="changeAllTitles", hint=l.titleAllTitlesH, name=l.titleAllTitles})
+	local titleItem = addToggle(m_title_sel, {confKey="partialTitle", action="changePartSearch", hint=l.titlePartSearchH, id="partSearch", name=l.titlePartSearch})
 	titleList[1] = titleItem
-	local opt={l.on, l.off}
-	local titleItem = m_title_sel:addItem{type="chooser", action="changeInDescr", hint_icon="hint_service", hint=l.titleInDescrH, options=opt, id="inDescr", value=unTranslateOnOff(conf.inDescriptionToo), name=l.titleInDescr}
+	local titleItem = addToggle(m_title_sel, {confKey="inDescriptionToo", action="changeInDescr", hint=l.titleInDescrH, id="inDescr", name=l.titleInDescr})
 	titleList[2] = titleItem
-	local opt={l.on, l.off}
-	local titleItem = m_title_sel:addItem{type="chooser", action="changeIgnoreCase", hint_icon="hint_service", hint=l.titleIgnoreCaseH , options=opt, id="ignoreCase", value=unTranslateOnOff(conf.ignoreCase), name=l.titleIgnoreCase}
+	local titleItem = addToggle(m_title_sel, {confKey="ignoreCase", action="changeIgnoreCase", hint=l.titleIgnoreCaseH, id="ignoreCase", name=l.titleIgnoreCase})
 	titleList[3] = titleItem
 	local titleItem = m_title_sel:addItem{type="keyboardinput", action="changeTitle", hint_icon="hint_service", hint=l.titleTitleH , id="title", value=conf.title, name=l.titleTitle, size=32, icon=l.iconRed, directkey=RC['red']}
 	titleList[4] = titleItem
@@ -113,23 +132,8 @@ function channelMenu()
 	addKillKey(mi)
 
 	local query_url = url_new .. actionCmd_listChannels
-	local dataFile = createCacheFileName(query_url, 'json')
-	local s, err = getJsonData2(query_url, dataFile, nil, queryMode_listChannels)
-	if not s then
-		messagebox.exec{title=pluginName, text=l.networkError, buttons={'ok'}}
-		return false
-	end
---	H.printf("\nretData:\n%s\n", tostring(s))
-
-	local j_table = {}
-	j_table, err = decodeJson(s)
-	if not j_table then
-		messagebox.exec{title=pluginName, text=l.jsonError, buttons={'ok'}}
-		os.execute('rm -f ' .. dataFile)
-		return false
-	end
-	if checkJsonError(j_table) == false then
-		os.execute('rm -f ' .. dataFile)
+	local j_table = loadJsonResponse(query_url, query_url, queryMode_listChannels, nil)
+	if not j_table or not j_table.entry then
 		return false
 	end
 	for i=1, #j_table.entry do
@@ -217,10 +221,8 @@ function themeMenu()
 		sendData['data'] = el
 		local post = J:encode(sendData)
 
-		local dataFile = createCacheFileName(post, 'json')
 		post = C:setUriData('data1', post)
-		local s = getJsonData2(url_new .. actionCmd_sendPostData, dataFile, post, queryMode_listVideos)
---	H.printf("\nretData:\n%s\n", tostring(s))
+		local j_table = loadJsonResponse(post, url_new .. actionCmd_sendPostData, queryMode_listVideos, post)
 
 		local endentries = actentries + limit - 1
 		if (endentries > maxentries) then
@@ -231,22 +233,11 @@ function themeMenu()
 			totalentries = l.searchThemeInfoAll
 		end
 		local box = paintAnInfoBox(string.format(l.searchThemeInfoMsg, actentries, endentries, tostring(totalentries)), WHERE.CENTER)
-		local j_table = {}
-		j_table, err = decodeJson(s)
 		if not j_table then
-			messagebox.exec{title=pluginName, text=l.jsonError, buttons={'ok'}}
-			os.execute('rm -f ' .. dataFile)
 			return MENU_RETURN.EXIT_ALL
 		end
-		if (j_table == nil) then
-			os.execute('rm -f ' .. dataFile)
+		if j_table.err == 2 then
 			return false
-		end
-		if checkJsonError(j_table) == false then
-			os.execute('rm -f ' .. dataFile)
-			if (j_table.err ~= 2) then
-				return false
-			end
 		end
 
 		for i=1, #j_table.entry do
@@ -270,8 +261,7 @@ function themeMenu()
 
 	table.sort(mtList, function(a, b) return string.upper(a.name) < string.upper(b.name) end)
 
-	local opt={l.on, l.off}
-	m_theme_sel:addItem{type="chooser", action="changeAllThemes", hint_icon="hint_service", hint=l.themeAllH, options=opt, id="allThemes", value=unTranslateOnOff(conf.allThemes), name=l.themeAll}
+	addToggle(m_theme_sel, {confKey="allThemes", action="changeAllThemes", hint=l.themeAllH, name=l.themeAll})
 
 	themeList = {}
 	for i=1, j do
@@ -299,8 +289,7 @@ function periodOfTimeMenu()
 	mi:addItem{type="separatorline"}
 	addKillKey(mi)
 
-	local opt={l.on, l.off}
-	mi:addItem{type="chooser", action="setConfigOnOff", hint_icon="hint_service", hint=l.seePeriodFutureH, options=opt, id="seeFuturePrograms", value=unTranslateOnOff(conf.seeFuturePrograms), name=l.seePeriodFuture}
+	addToggle(mi, {confKey="seeFuturePrograms", hint=l.seePeriodFutureH, name=l.seePeriodFuture})
 	opt={ 'all', '1', '3', '7', '14', '28', '60'}
 	mi:addItem{type="chooser", action="setConfigValue", hint_icon="hint_service", hint=l.seePeriodDaysH, options=opt, id="seePeriod", value=conf.seePeriod, name=l.seePeriodDays}
 
