@@ -16,7 +16,7 @@ function _loadConfig()
 	conf.seeFuturePrograms	= config:getString('seeFuturePrograms',	'off')
 	conf.seePeriod		= config:getString('seePeriod',		'7')
 	conf.seeMinimumDuration	= config:getInt32('seeMinimumDuration',	0)
-	conf.guiUseSystemIcons	= config:getString('guiUseSystemIcons',	'off')
+	conf.guiUseSystemIcons	= config:getString('guiUseSystemIcons',	'on')
 	conf.guiMainMenuSize	= config:getInt32('guiMainMenuSize',	30)
 	conf.guiTimeMsg		= config:getInt32('guiTimeMsg',		10)
 
