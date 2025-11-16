@@ -1,0 +1,88 @@
+name: Package Plugin
+
+on:
+  push:
+    branches: [ master ]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine archive name
+        id: vars
+        run: |
+          if [[ -f neutrino-mediathek/VERSION ]]; then
+            VERSION_STR="$(tr -d '\n' < neutrino-mediathek/VERSION)"
+          else
+            VERSION_STR="$(git describe --tags --always --dirty 2>/dev/null || git rev-parse --short HEAD)"
+          fi
+          REPO_BASENAME="${GITHUB_REPOSITORY##*/}"
+          case "$REPO_BASENAME" in
+            plugin-lua-neutrino-mediathek) BASE_NAME="plugin-lua-neutrino-mediathek" ;;
+            *) BASE_NAME="neutrino-mediathek" ;;
+          esac
+          VERSION_STR="${VERSION_STR// /}"
+          echo "ARCHIVE_NAME=${BASE_NAME}-${VERSION_STR}.tar.gz" >> "$GITHUB_ENV"
+
+      - name: Create tarball
+        run: |
+          git archive --format=tar.gz --output="$ARCHIVE_NAME" HEAD
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARCHIVE_NAME }}
+          path: ${{ env.ARCHIVE_NAME }}
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ARCHIVE_NAME }}
+
+  tag:
+    needs: package
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git identity
+        run: |
+          git config --global user.email "dbt@novatux.de"
+          git config --global user.name "Thilo Graf"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Tagit
+        run: |
+          python -m pip install --upgrade pip
+          pip install GitPython
+          curl -o /tmp/tagit.py https://raw.githubusercontent.com/dbt1/tagit/master/tagit.py
+          chmod +x /tmp/tagit.py
+
+      - name: Run Tagit
+        run: |
+          git status --short
+          python /tmp/tagit.py -f neutrino-mediathek/VERSION --tag-format "v{major}.{minor}.{patch}" --version-mode increment --scheme-file .github/tagit-schemes.json
+
+      - name: Commit and push VERSION
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git add neutrino-mediathek/VERSION
+          git commit -m "tagging: update VERSION" || echo "No changes to commit"
+          git push
+          git push --tags
