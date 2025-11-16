@@ -69,6 +69,7 @@ Restart Neutrino after editing.
 
 ### Requirements
 - A Neutrino build created from the DX repo (`make neutrino`, `make runtime-sync`).
+- A Neutrino image that ships LuaJIT (recommended). The plugin also runs with the classic Lua 5.1 interpreter, but rendering/filtering large result lists is noticeably slower there.
 - This repository checked out next to the build tree (e.g. `sources/neutrino-mediathek`) or pointed to via `NEUTRINO_MEDIATHEK_SRC`.
 - A reachable API endpoint speaking the Mediathek contract (self-hosted or public).
 - Optional but handy: `curl` and `jq` for API smoke tests, and the `NEUTRINO_MEDIATHEK_API` environment variable for quick overrides.
