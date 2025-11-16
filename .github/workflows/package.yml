@@ -56,6 +56,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Configure Git identity
+        run: |
+          git config --global user.email "dbt@novatux.de"
+          git config --global user.name "Thilo Graf"
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
