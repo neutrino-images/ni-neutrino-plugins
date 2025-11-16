@@ -37,6 +37,30 @@ function resolveIconRef(ref)
 	return ref
 end
 
+function loadJsonResponse(cacheKey, url, mode, postData)
+	local dataFile = createCacheFileName(cacheKey, 'json')
+	local s, err = getJsonData2(url, dataFile, postData, mode)
+	if not s then
+		messagebox.exec{title=pluginName, text=l.networkError, buttons={'ok'}}
+		return nil, 'network'
+	end
+	local j_table
+	j_table, err = decodeJson(s)
+	if not j_table then
+		messagebox.exec{title=pluginName, text=l.jsonError, buttons={'ok'}}
+		os.execute('rm -f ' .. dataFile)
+		return nil, 'json'
+	end
+	if checkJsonError(j_table) == false then
+		os.execute('rm -f ' .. dataFile)
+		if j_table.err == 2 then
+			return j_table, 'nodata'
+		end
+		return nil, 'api'
+	end
+	return j_table, nil
+end
+
 local function generate_sid(length)
 	math.randomseed(os.time())
 	local chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

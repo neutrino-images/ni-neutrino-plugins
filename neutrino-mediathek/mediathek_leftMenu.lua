@@ -16,29 +16,6 @@ function repaintMediathek()
 	paintMtRightMenu()
 end
 
-local function loadJsonResponse(cacheKey, url, mode, postData)
-	local dataFile = createCacheFileName(cacheKey, 'json')
-	local s = getJsonData2(url, dataFile, postData, mode)
-	if not s then
-		messagebox.exec{title=pluginName, text=l.networkError, buttons={'ok'}}
-		return nil
-	end
-	local j_table, err = decodeJson(s)
-	if not j_table then
-		messagebox.exec{title=pluginName, text=l.jsonError, buttons={'ok'}}
-		os.execute('rm -f ' .. dataFile)
-		return nil
-	end
-	if checkJsonError(j_table) == false then
-		os.execute('rm -f ' .. dataFile)
-		if j_table.err == 2 then
-			return j_table
-		end
-		return nil
-	end
-	return j_table
-end
-
 function changeTitle(k, v)
 	conf.title = v
 	return MENU_RETURN.REPAINT

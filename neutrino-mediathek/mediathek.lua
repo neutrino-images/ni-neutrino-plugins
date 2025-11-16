@@ -369,31 +369,13 @@ function paintMtRightMenu()
 		sendData['data'] = el
 		local post = J:encode(sendData)
 	
-		local dataFile = createCacheFileName(post, 'json')
+		local cacheKey = post
 		post = C:setUriData('data1', post)
-		local s, err = getJsonData2(url_new .. actionCmd_sendPostData, dataFile, post, queryMode_listVideos)
-		if not s then
-			messagebox.exec{title=pluginName, text=l.networkError, buttons={'ok'}}
-			os.execute('rm -f ' .. dataFile)
+		local j_table, respErr = loadJsonResponse(cacheKey, url_new .. actionCmd_sendPostData, queryMode_listVideos, post)
+		if not j_table then
 			return false
 		end
---		H.printf("\nretData:\n%s\n", tostring(s))
-	
-		local j_table = {}
-		j_table, err = decodeJson(s)
-		if (j_table == nil) then
-			messagebox.exec{title=pluginName, text=l.jsonError, buttons={'ok'}}
-			os.execute('rm -f ' .. dataFile)
-			return false
-		end
-		local noData = false
-		if checkJsonError(j_table) == false then
-			os.execute('rm -f ' .. dataFile)
-			if (j_table.err ~= 2) then
-				return false
-			end
-			noData = true
-		end
+		local noData = (respErr == 'nodata') or (j_table.err == 2)
 
 		if (noData == true) then
 			mtRightMenu_list_total = 0
@@ -423,21 +405,7 @@ function paintMtRightMenu()
 				while (#mtList > #j_table.entry) do table.remove(mtList) end
 			end
 			for i=1, #j_table.entry do
-				mtList[i] = {}
-				mtList[i].channel	= j_table.entry[i].channel
-				mtList[i].theme		= j_table.entry[i].theme
-				mtList[i].title		= j_table.entry[i].title
-				mtList[i].date		= os.date(l.formatDate, j_table.entry[i].date_unix)
-				mtList[i].time		= os.date(l.formatTime, j_table.entry[i].date_unix)
-				mtList[i].duration	= formatDuration(j_table.entry[i].duration)
-				mtList[i].durationSec	= j_table.entry[i].duration
-				mtList[i].timestamp	= j_table.entry[i].date_unix or 0
-				mtList[i].geo		= j_table.entry[i].geo
-				mtList[i].description	= j_table.entry[i].description
-				mtList[i].url		= j_table.entry[i].url
-				mtList[i].url_small	= j_table.entry[i].url_small
-				mtList[i].url_hd	= j_table.entry[i].url_hd
-				mtList[i].parse_m3u8	= j_table.entry[i].parse_m3u8
+				mtList[i] = buildEntry(j_table.entry[i])
 			end
 		end
 	else -- Use buffered list (search results or advanced filters)
