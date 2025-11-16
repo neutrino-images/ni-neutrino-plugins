@@ -55,7 +55,16 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 
 	local function resolveIcon(ref)
 		if type(ref) == 'table' and ref.__icon_name then
-			return _G[ref.__icon_name]
+			local icon = _G[ref.__icon_name]
+			if icon == nil or icon == '' then
+				return nil
+			end
+			if type(icon) == 'string' then
+				if H.fileExist(icon) ~= true then
+					return nil
+				end
+			end
+			return icon
 		end
 		return nil
 	end
