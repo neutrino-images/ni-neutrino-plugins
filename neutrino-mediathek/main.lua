@@ -62,14 +62,14 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 
 	for i=1, count do
 		local icon = resolveIcon(info[i][3])
-		local wText1 = N:getRenderWidth(useDynFont, fontText, info[i][1])
-		local entryWidth = wText1
 		if icon ~= nil and icon ~= '' then
 			local iw, ih = N:GetSize(icon)
 			iconMetrics[i] = { icon=icon, w=iw, h=ih }
-			entryWidth = wText1 + OFFSET.INNER_SMALL + iw
+			if iw > w1 then w1 = iw end
+		else
+			local wText1 = N:getRenderWidth(useDynFont, fontText, info[i][1])
+			if wText1 > w1 then w1 = wText1 end
 		end
-		if entryWidth > w1 then w1 = entryWidth end
 		local wText2 = N:getRenderWidth(useDynFont, fontText, info[i][2])
 		if wText2 > w2 then w2 = wText2 end
 	end
@@ -104,14 +104,13 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 		if (info[i][1] ~= '' or info[i][2] ~= '') then
 			G.paintSimpleFrame(x, y, w, h, frameColor, bg)
 			N:paintVLine(x + w1 + 2*OFFSET.INNER_MID, y, h, frameColor)
-			local textStartX = x1
 			if hasIcon then
-				local iconX = x1
+				local iconX = x1 + math.floor((w1 - entryIcon.w) / 2)
 				local iconY = y + math.floor((h - entryIcon.h) / 2)
 				N:DisplayImage(entryIcon.icon, iconX, iconY, entryIcon.w, entryIcon.h, 1)
-				textStartX = iconX + entryIcon.w + OFFSET.INNER_SMALL
+			else
+				N:RenderString(useDynFont, fontText, info[i][1], x1, y + h, txtC, w1, h, 1)
 			end
-			N:RenderString(useDynFont, fontText, info[i][1], textStartX, y + h, txtC, x + w1 - textStartX, h, 1)
 			N:RenderString(useDynFont, fontText, info[i][2], x2, y + h, txtC, w2, h, 0)
 		end
 	end
