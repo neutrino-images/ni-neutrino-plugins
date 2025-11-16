@@ -68,6 +68,7 @@ Nach der Änderung Neutrino neu starten.
 - Mit dem DX-Repo gebautes Neutrino (`make neutrino`, `make runtime-sync`).
 - Empfehlenswert ist ein Neutrino-Image mit LuaJIT. Das Plugin funktioniert zwar mit der klassischen Lua-5.1-Laufzeit, aber das Durchblättern großer Listen reagiert dort spürbar träger.
 - Dieses Repository als Checkout (z. B. `sources/neutrino-mediathek`) oder über `NEUTRINO_MEDIATHEK_SRC`.
+- Optionale Icon-Pfade: standardmäßig werden `/usr/share/tuxbox/neutrino/icons/` (System) und `/var/tuxbox/icons/` (Benutzer) verwendet. Beim Packen lassen sie sich via `ICONSDIR=/pfad/... ICONSDIR_VAR=/pfad/... make install` anpassen (dieselben Namen wie in Neutrinos `./configure`).
 - Ein erreichbares API-Backend (lokal via `make -C services/mediathek-backend smoke` oder öffentlich).
 - Optional: `curl`, `jq` sowie das Environment `NEUTRINO_MEDIATHEK_API`, um die URL bequem zu überschreiben.
 

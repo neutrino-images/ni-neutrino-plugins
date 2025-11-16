@@ -1,6 +1,8 @@
 PREFIX ?= /usr/share/tuxbox/neutrino
 PLUGIN_SUBDIR ?= plugins
 LUAPLUGIN_SUBDIR ?= luaplugins
+ICONSDIR ?= /usr/share/tuxbox/neutrino/icons/
+ICONSDIR_VAR ?= /var/tuxbox/icons/
 
 PROGRAM_PREFIX ?=
 PROGRAM_SUFFIX ?=
@@ -23,6 +25,8 @@ PLUGIN_HINT := neutrino-mediathek_hint.png
 
 INSTALL ?= install
 CP ?= cp
+SED ?= sed
+MV ?= mv
 RM ?= rm -f
 MKDIR ?= install -d
 
@@ -51,6 +55,12 @@ if [ -n "$1" ]; then \
 	$(INSTALL) -m 0644 "$(PLUGIN_CFG)" "$1/$$cfg_dst"; \
 	$(INSTALL) -m 0644 "$(PLUGIN_HINT)" "$1/$$hint_dst"; \
 	$(CP) -a "$(PLUGIN_SRC)"/. "$1/$$dir_dst/"; \
+	for file in images.lua config.lua; do \
+		$(SED) -e 's#@ICONSDIR@#$(ICONSDIR)#g' \
+		-e 's#@ICONSDIR_VAR@#$(ICONSDIR_VAR)#g' \
+		"$1/$$dir_dst/$$file" > "$1/$$dir_dst/$$file.tmp"; \
+		$(MV) "$1/$$dir_dst/$$file.tmp" "$1/$$dir_dst/$$file"; \
+	done; \
 fi
 endef
 

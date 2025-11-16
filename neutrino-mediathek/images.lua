@@ -37,8 +37,8 @@ function createImages()
 		iconExit = nil
 	else -- neutrino system icons
 		-- TODO: get path to icons from build environment
-		local systemIconDir = '/usr/share/tuxbox/neutrino/icons/'
-		local userIconDir = '/var/tuxbox/icons/'
+		local systemIconDir = conf.iconSystemPath or '/usr/share/tuxbox/neutrino/icons/'
+		local userIconDir = conf.iconUserPath or '/var/tuxbox/icons/'
 
 		local function userIcon(name)
 			local candidate = userIconDir .. name

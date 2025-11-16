@@ -38,3 +38,4 @@ make install PROGRAM_TRANSFORM_NAME='s/-mediathek/-alt/' DESTDIR=<pkgdir>
 - A Neutrino image built from the DX repo (or a compatible downstream build).
 - LuaJIT on the target is strongly recommended; the plugin works with stock Lua 5.1 but large list rendering runs noticeably slower.
 - A reachable Mediathek API endpoint (public default or self-hosted). Use the settings menu or the `NEUTRINO_MEDIATHEK_API` environment variable to point the plugin at a custom URL.
+- Optional: suitable icon directories. By default the plugin looks under `/usr/share/tuxbox/neutrino/icons/` (system set) and `/var/tuxbox/icons/` (user overrides). When packaging, override these paths via `ICONSDIR=/path/... ICONSDIR_VAR=/path/... make install` (same variable names as Neutrino's `./configure`).

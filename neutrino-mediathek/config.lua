@@ -16,6 +16,8 @@ function _loadConfig()
 	conf.seeFuturePrograms	= config:getString('seeFuturePrograms',	'off')
 	conf.seePeriod		= config:getString('seePeriod',		'7')
 	conf.seeMinimumDuration	= config:getInt32('seeMinimumDuration',	0)
+	conf.iconSystemPath	= config:getString('iconSystemPath',	'@ICONSDIR@')
+	conf.iconUserPath	= config:getString('iconUserPath',	'@ICONSDIR_VAR@')
 	conf.guiUseSystemIcons	= config:getString('guiUseSystemIcons',	'on')
 	conf.guiMainMenuSize	= config:getInt32('guiMainMenuSize',	30)
 	conf.guiTimeMsg		= config:getInt32('guiTimeMsg',		10)
@@ -28,6 +30,19 @@ function _loadConfig()
 	conf.sortMode		= config:getString('sortMode',		'date_desc')
 	conf.geoMode		= config:getString('geoMode',		'all')
 	conf.qualityFilter	= config:getString('qualityFilter',	'all')
+	local function normalizeIconPath(value, fallback, placeholder)
+		if value == nil or value == '' or value == placeholder then
+			value = fallback
+		end
+		if string.sub(value, -1) ~= '/' then
+			value = value .. '/'
+		end
+		return value
+	end
+	local defaultSystemIconPath = '/usr/share/tuxbox/neutrino/icons/'
+	local defaultUserIconPath = '/var/tuxbox/icons/'
+	conf.iconSystemPath = normalizeIconPath(conf.iconSystemPath, defaultSystemIconPath, '@ICONSDIR@')
+	conf.iconUserPath = normalizeIconPath(conf.iconUserPath, defaultUserIconPath, '@ICONSDIR_VAR@')
 	if conf.apiBaseUrl == nil or conf.apiBaseUrl == '' then
 		conf.apiBaseUrl = url_new_default
 	end
@@ -69,6 +84,8 @@ function _saveConfig()
 	config:setString('seeFuturePrograms',	conf.seeFuturePrograms)
 	config:setString('seePeriod',		conf.seePeriod)
 	config:setInt32('seeMinimumDuration',	conf.seeMinimumDuration)
+	config:setString('iconSystemPath',	conf.iconSystemPath)
+	config:setString('iconUserPath',	conf.iconUserPath)
 	config:setString('guiUseSystemIcons',	conf.guiUseSystemIcons)
 	config:setInt32('guiMainMenuSize',	conf.guiMainMenuSize)
 	config:setInt32('guiTimeMsg',		conf.guiTimeMsg)
