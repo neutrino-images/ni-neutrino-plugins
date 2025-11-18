@@ -248,7 +248,7 @@ function changeDLPath(dummy, downloadPath)
 	return MENU_RETURN.REPAINT
 end
 
-local function addToggle(menu, params)
+function addToggle(menu, params)
 	local id = params.id or params.confKey
 	local value = params.value or unTranslateOnOff(conf[params.confKey])
 	return menu:addItem{
