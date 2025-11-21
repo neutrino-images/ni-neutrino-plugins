@@ -24,9 +24,11 @@ themeList	= {}
 
 local localRecordingsActive = false
 local localRecordingsEntries = {}
+local localRecordingsRawEntries = {}
 local localRecordingsMenuIndex = nil
 local localRecordingsLastPath = nil
 local localRecordingsMode = false
+local localRecordingsCacheFile = pluginTmpPath .. '/local_recordings.json'
 
 function isLocalRecordingsMode()
 	return localRecordingsMode
@@ -34,11 +36,15 @@ end
 
 local entryMatchesFilters
 local buildEntry
+local cloneEntry
 local sortEntries
 local requiresFullBuffer
 local matchesSearchFilters
 local collectTsFilesRecursive
 local createLocalRecordingEntry
+local rebuildLocalRecordingsEntries
+local saveLocalRecordingsCache
+local loadCachedLocalRecordings
 
 local function formatDuration(d)
 	local h = math.floor(d/3600)
@@ -567,7 +573,7 @@ function paintMtRightMenu()
 		mtRightMenu_count = 1
 	end
 
-	if (localRecordingsActive == true) then
+	if (localRecordingsMode == true) then
 		local total = #localRecordingsEntries
 		mtRightMenu_list_total = total
 		if total <= 0 then
@@ -1031,6 +1037,82 @@ cloneEntry = function(src)
 	}
 end
 
+rebuildLocalRecordingsEntries = function()
+	local minDurationSec = (conf.seeMinimumDuration or 0) * 60
+	local filtered = {}
+	for _, entry in ipairs(localRecordingsRawEntries) do
+		local durationOk = (minDurationSec <= 0) or ((entry.durationSec or 0) >= minDurationSec)
+		if durationOk and matchesSearchFilters(entry) then
+			local copy = cloneEntry(entry)
+			if copy then
+				copy.isLocalRecording = true
+				table.insert(filtered, copy)
+			end
+		end
+	end
+	sortEntries(filtered)
+	localRecordingsEntries = filtered
+	localRecordingsActive = (#localRecordingsEntries > 0)
+end
+
+saveLocalRecordingsCache = function(entries)
+	if not entries then return end
+	local payload = {
+		version = 1,
+		path = conf.localRecordingsPath,
+		scanTime = os.time(),
+		entries = entries
+	}
+	local ok, encoded = pcall(J.encode, payload)
+	if not ok or not encoded then
+		return
+	end
+	local fh = io.open(localRecordingsCacheFile, 'w')
+	if fh then
+		fh:write(encoded)
+		fh:close()
+	end
+end
+
+loadCachedLocalRecordings = function()
+	local fh = io.open(localRecordingsCacheFile, 'r')
+	if not fh then
+		return false
+	end
+	local content = fh:read('*a')
+	fh:close()
+	if not content or content == '' then
+		return false
+	end
+	local ok, data = pcall(J.decode, content)
+	if not ok or type(data) ~= 'table' then
+		return false
+	end
+	if data.version ~= 1 or data.path ~= conf.localRecordingsPath then
+		return false
+	end
+	if type(data.entries) ~= 'table' then
+		return false
+	end
+	local entries = {}
+	for _, entry in ipairs(data.entries) do
+		if type(entry) == 'table' and entry.url then
+			entry.isLocalRecording = true
+			table.insert(entries, entry)
+		end
+	end
+	if #entries == 0 then
+		return false
+	end
+	localRecordingsRawEntries = entries
+	localRecordingsLastPath = data.path
+	rebuildLocalRecordingsEntries()
+	mtRightMenu_list_start = 0
+	mtRightMenu_view_page = 1
+	mtRightMenu_select = 1
+	return true
+end
+
 sortEntries = function(list)
 	local mode = conf.sortMode
 	local function compare(a, b)
@@ -1101,7 +1183,7 @@ matchesSearchFilters = function(apiEntry)
 end
 
 function localRecordingsEntryEnabled()
-	if localRecordingsActive then
+	if localRecordingsMode then
 		return true
 	end
 	if conf.localRecordingsEnabled ~= 'on' then
@@ -1111,7 +1193,7 @@ function localRecordingsEntryEnabled()
 end
 
 function formatLocalRecordingsState()
-	if localRecordingsActive then
+	if localRecordingsMode then
 		return l.localRecordingsStateActive
 	end
 	if conf.localRecordingsEnabled ~= 'on' then
@@ -1162,18 +1244,14 @@ function scanLocalRecordings()
 	end
 	collectTsFilesRecursive(path, entries)
 	G.hideInfoBox(infoBox)
-	H.printf("[neutrino-mediathek] local recordings: %d entries under %s", #entries, path)
-	local minDurationSec = (conf.seeMinimumDuration or 0) * 60
-	local filtered = {}
-	for _, entry in ipairs(entries) do
-		local durationOk = (minDurationSec <= 0) or ((entry.durationSec or 0) >= minDurationSec)
-		if durationOk and matchesSearchFilters(entry) then
-			table.insert(filtered, entry)
-		end
+	if #entries == 0 then
+		return false, string.format(l.localRecordingsNoEntries, path)
 	end
-	sortEntries(filtered)
-	localRecordingsEntries = filtered
+	H.printf("[neutrino-mediathek] local recordings: %d entries under %s", #entries, path)
+	localRecordingsRawEntries = entries
 	localRecordingsLastPath = path
+	saveLocalRecordingsCache(entries)
+	rebuildLocalRecordingsEntries()
 	mtRightMenu_list_start = 0
 	mtRightMenu_view_page = 1
 	mtRightMenu_select = 1
@@ -1181,7 +1259,7 @@ function scanLocalRecordings()
 end
 
 function deactivateLocalRecordings(forceReload)
-	if localRecordingsActive then
+	if localRecordingsActive or localRecordingsMode then
 		localRecordingsActive = false
 		localRecordingsEntries = {}
 		localRecordingsLastPath = nil
@@ -1195,26 +1273,35 @@ function deactivateLocalRecordings(forceReload)
 	updateLocalRecordingsMenuEntry()
 end
 
-function refreshLocalRecordingsView(showWarnings)
+function refreshLocalRecordingsView(forceRescan)
 	if not localRecordingsMode then
 		return
 	end
-	local warnUser = (showWarnings ~= false)
-	if not ensureLocalRecordingsReady(warnUser) then
+	local needsRescan = forceRescan ~= false
+	if (not needsRescan) and (#localRecordingsRawEntries == 0) then
+		needsRescan = true
+	end
+	if not needsRescan and #localRecordingsRawEntries > 0 then
+		rebuildLocalRecordingsEntries()
+		updateLocalRecordingsMenuEntry()
+		paintMtLeftMenu()
+		paintMtRightMenu()
+		return
+	end
+	if not ensureLocalRecordingsReady(needsRescan) then
 		updateLocalRecordingsMenuEntry()
 		paintMtLeftMenu()
 		return
 	end
 	local ok, err = scanLocalRecordings()
 	if not ok then
-		if warnUser then
+		if needsRescan then
 			messagebox.exec{title=pluginName, text=err, buttons={'ok'}}
 		end
 		updateLocalRecordingsMenuEntry()
 		paintMtLeftMenu()
 		return
 	end
-	localRecordingsActive = true
 	updateLocalRecordingsMenuEntry()
 	paintMtLeftMenu()
 	paintMtRightMenu()
@@ -1245,17 +1332,19 @@ function startMediathek(useLocalRecordings)
 	leftMenuEntry = {}
 
 	if useLocal then
-		if not ensureLocalRecordingsReady(true) then
-			localRecordingsMode = false
-			return false
+		local usedCache = loadCachedLocalRecordings()
+		if not usedCache then
+			if not ensureLocalRecordingsReady(true) then
+				localRecordingsMode = false
+				return false
+			end
+			local ok, err = scanLocalRecordings()
+			if not ok then
+				messagebox.exec{title=pluginName, text=err, buttons={'ok'}}
+				localRecordingsMode = false
+				return false
+			end
 		end
-		local ok, err = scanLocalRecordings()
-		if not ok then
-			messagebox.exec{title=pluginName, text=err, buttons={'ok'}}
-			localRecordingsMode = false
-			return false
-		end
-		localRecordingsActive = true
 	else
 		deactivateLocalRecordings(false)
 	end
@@ -1424,8 +1513,6 @@ function startMediathek(useLocalRecordings)
 	until msg == RC.home or forcePluginExit == true
 
 	localRecordingsMode = false
-	if localRecordingsActive then
-		deactivateLocalRecordings(false)
-	end
+	deactivateLocalRecordings(false)
 	return true
 end
