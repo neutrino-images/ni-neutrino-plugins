@@ -544,8 +544,9 @@ end
 
 function paintInfoBoxAndWait(txt1, txt2, sec)
 	local box = paintInfoBox(txt1, txt2)
-	local P = require 'posix'
-	P.sleep(sec)
+	if sec and sec > 0 then
+		os.execute(string.format("sleep %d", sec))
+	end
 	G.hideInfoBox(box)
 end
 
@@ -569,8 +570,9 @@ end
 
 function paintAnInfoBoxAndWait(txt, where, sec)
 	local box = paintAnInfoBox(txt, where)
-	local P = require 'posix'
-	P.sleep(sec)
+	if sec and sec > 0 then
+		os.execute(string.format("sleep %d", sec))
+	end
 	G.hideInfoBox(box)
 end
 
@@ -588,8 +590,9 @@ end
 
 function paintTopRightInfoBoxAndWait(txt, sec)
 	local box = paintTopRightInfoBox(txt)
-	local P = require 'posix'
-	P.sleep(sec)
+	if sec and sec > 0 then
+		os.execute(string.format("sleep %d", sec))
+	end
 	G.hideInfoBox(box)
 end
 

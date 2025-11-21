@@ -21,6 +21,8 @@ function _loadConfig()
 	conf.guiUseSystemIcons	= config:getString('guiUseSystemIcons',	'on')
 	conf.guiMainMenuSize	= config:getInt32('guiMainMenuSize',	30)
 	conf.guiTimeMsg		= config:getInt32('guiTimeMsg',		10)
+	conf.localRecordingsEnabled = config:getString('localRecordingsEnabled', 'off')
+	conf.localRecordingsPath = config:getString('localRecordingsPath', '/media/hdd/movie')
 
 	conf.networkIPV4Only	= config:getString('networkIPV4Only',	'off')
 	conf.networkDlSilent	= config:getString('networkDlSilent',	'off')
@@ -98,6 +100,8 @@ function _saveConfig()
 	config:setString('sortMode',		conf.sortMode)
 	config:setString('geoMode',		conf.geoMode)
 	config:setString('qualityFilter',	conf.qualityFilter)
+	config:setString('localRecordingsEnabled', conf.localRecordingsEnabled)
+	config:setString('localRecordingsPath', conf.localRecordingsPath)
 
 	config:saveConfig(confFile)
 end
@@ -151,6 +155,13 @@ end
 
 function setConfigValue(k, v)
 	conf[k] = v
+end
+
+function changeLocalRecordingsPath(dummy, value)
+	if value ~= nil and value ~= '' then
+		conf.localRecordingsPath = value
+	end
+	return MENU_RETURN.REPAINT
 end
 
 function changeEnableLifestreams(k, v)
@@ -248,7 +259,7 @@ function changeDLPath(dummy, downloadPath)
 	return MENU_RETURN.REPAINT
 end
 
-local function addToggle(menu, params)
+function addToggle(menu, params)
 	local id = params.id or params.confKey
 	local value = params.value or unTranslateOnOff(conf[params.confKey])
 	return menu:addItem{
@@ -298,6 +309,10 @@ function configMenu()
 	m_conf:addItem{type="filebrowser", dir_mode="1", action="changeDLPath", hint_icon="hint_service", hint=l.settingsDLPathH, id="downloadPath", value=conf.downloadPath, name=l.settingsDLPath}
 	opt={ 'max', 'normal' ,'min' }
 	m_conf:addItem{type="chooser", action="setConfigValue", hint_icon="hint_service", hint=l.settingsDownloadQualityH, options=opt, id="downloadQuality", value=conf.downloadQuality, name=l.settingsDownloadQuality}
+
+	m_conf:addItem{type="separatorline", name=l.settingsLocalRecordingsHeader}
+	addToggle(m_conf, {confKey="localRecordingsEnabled", hint=l.settingsLocalRecordingsH, name=l.settingsLocalRecordings})
+	m_conf:addItem{type="filebrowser", dir_mode="1", action="changeLocalRecordingsPath", hint_icon="hint_service", hint=l.settingsLocalRecordingsPathH, id="localRecordingsPath", value=conf.localRecordingsPath, name=l.settingsLocalRecordingsPath}
 
 	m_conf:exec()
 	_saveConfig()

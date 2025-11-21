@@ -22,11 +22,23 @@ mtBuffer	= {}
 titleList	= {}
 themeList	= {}
 
+local localRecordingsActive = false
+local localRecordingsEntries = {}
+local localRecordingsMenuIndex = nil
+local localRecordingsLastPath = nil
+local localRecordingsMode = false
+
+function isLocalRecordingsMode()
+	return localRecordingsMode
+end
+
 local entryMatchesFilters
 local buildEntry
 local sortEntries
 local requiresFullBuffer
 local matchesSearchFilters
+local collectTsFilesRecursive
+local createLocalRecordingEntry
 
 local function formatDuration(d)
 	local h = math.floor(d/3600)
@@ -37,16 +49,236 @@ local function formatDuration(d)
 	return string.format('%02d:%02d:%02d', h, m, s)
 end
 
+local function trim(value)
+	if not value then return nil end
+	return (value:gsub('^%s+', ''):gsub('%s+$', ''))
+end
+
+local function fileExists(path)
+	if not path or path == '' then
+		return false
+	end
+	local f = io.open(path, 'r')
+	if f ~= nil then
+		f:close()
+		return true
+	end
+	return false
+end
+
+local function directoryExists(path)
+	if not path or path == '' then
+		return false
+	end
+	local cmd = string.format("test -d %s && echo 1 || echo 0", string.format('%q', path))
+	local pipe = io.popen(cmd)
+	if not pipe then return false end
+	local result = pipe:read('*l')
+	pipe:close()
+	return result == '1'
+end
+
+local function getFileAttributes(path)
+	if not path or path == '' then
+		return nil, nil
+	end
+	local cmd = string.format("stat -c '%%s %%Y' %s 2>/dev/null", string.format('%q', path))
+	local pipe = io.popen(cmd)
+	if not pipe then
+		return nil, nil
+	end
+	local output = pipe:read('*l')
+	pipe:close()
+	if not output then
+		return nil, nil
+	end
+	local size, mtime = output:match('(%d+)%s+(%d+)')
+	return tonumber(size), tonumber(mtime)
+end
+
+local function humanFileSize(bytes)
+	if not bytes or bytes <= 0 then
+		return '0 B'
+	end
+	local units = { 'B', 'KiB', 'MiB', 'GiB', 'TiB' }
+	local idx = 1
+	while bytes >= 1024 and idx < #units do
+		bytes = bytes / 1024
+		idx = idx + 1
+	end
+	return string.format('%.1f %s', bytes, units[idx])
+end
+
+local function parseDurationString(value)
+	if not value then
+		return nil
+	end
+	local hours, minutes, seconds = value:match('^(%d+):(%d+):(%d+)$')
+	if hours and minutes and seconds then
+		return tonumber(hours) * 3600 + tonumber(minutes) * 60 + tonumber(seconds)
+	end
+	local numeric = tonumber(value)
+	if numeric then
+		-- recordings created via download.lua store minutes in <length>
+		if numeric > 1000 then
+			return numeric
+		end
+		return numeric * 60
+	end
+	return nil
+end
+
+local function parseThemeFromInfo(info)
+	if not info then
+		return nil
+	end
+	local theme = info:match('[Tt]hema:%s*(.-)\n')
+	if not theme then
+		theme = info:match('[Tt]heme:%s*(.-)\n')
+	end
+	if theme then
+		return trim(theme)
+	end
+	return nil
+end
+
+local function joinPath(base, leaf)
+	if base == nil or base == '' then
+		return leaf or ''
+	end
+	if leaf == nil or leaf == '' then
+		return base
+	end
+	if string.sub(base, -1) == '/' then
+		return base .. leaf
+	end
+	return base .. '/' .. leaf
+end
+
+local function isTsRecording(path)
+	if not path or path == '' then
+		return false
+	end
+	return string.lower(path):match('%.ts$') ~= nil
+end
+
+collectTsFilesRecursive = function(basePath, out)
+	if not directoryExists(basePath) then
+		return
+	end
+	local cmd = string.format("ls -1A %s 2>/dev/null", string.format('%q', basePath))
+	local pipe = io.popen(cmd)
+	if not pipe then
+		return
+	end
+	for entry in pipe:lines() do
+		if entry ~= '.' and entry ~= '..' then
+			local fullPath = joinPath(basePath, entry)
+			if directoryExists(fullPath) then
+				collectTsFilesRecursive(fullPath, out)
+			elseif isTsRecording(entry) then
+				local recEntry = createLocalRecordingEntry(fullPath)
+				if recEntry then
+					table.insert(out, recEntry)
+				end
+			end
+		end
+	end
+	pipe:close()
+end
+
+local function readLocalRecordingMetadata(tsPath)
+	local metadata = {
+		path = tsPath
+	}
+	metadata.size, metadata.mtime = getFileAttributes(tsPath)
+
+	local xmlPaths = { tsPath .. '.xml' }
+	if tsPath:sub(-3):lower() == '.ts' then
+		table.insert(xmlPaths, tsPath:sub(1, -4) .. '.xml')
+	end
+
+	for _, candidate in ipairs(xmlPaths) do
+		if fileExists(candidate) then
+			local fh = io.open(candidate, 'r')
+			if fh then
+				local content = fh:read('*a')
+				fh:close()
+				if content then
+					metadata.title = trim(content:match('<epgtitle>(.-)</epgtitle>'))
+					metadata.channel = trim(content:match('<channelname>(.-)</channelname>'))
+					metadata.description = trim(content:match('<info1>(.-)</info1>'))
+					local info2 = content:match('<info2>(.-)</info2>')
+					metadata.theme = trim(parseThemeFromInfo(info2))
+					local length = trim(content:match('<length>(.-)</length>'))
+					metadata.durationSec = parseDurationString(length)
+				end
+			end
+			break
+		end
+	end
+
+	return metadata
+end
+
+createLocalRecordingEntry = function(tsPath)
+	local metadata = readLocalRecordingMetadata(tsPath)
+	if not metadata then
+		return nil
+	end
+	local base = tsPath:match('([^/]+)$') or tsPath
+	local title = metadata.title or base:gsub('%.[Tt][Ss]$', '')
+	local timestamp = metadata.mtime or os.time()
+	local durationSec = metadata.durationSec or 0
+	local descParts = {}
+	if metadata.description and metadata.description ~= '' then
+		table.insert(descParts, metadata.description)
+	end
+	table.insert(descParts, string.format(l.localRecordingsDescription, tsPath, humanFileSize(metadata.size)))
+	return {
+		channel = metadata.channel or l.menuLocalRecordings,
+		theme = metadata.theme or l.menuLocalRecordings,
+		title = title,
+		date = os.date(l.formatDate, timestamp),
+		time = os.date(l.formatTime, timestamp),
+		duration = formatDuration(durationSec),
+		durationSec = durationSec,
+		timestamp = timestamp,
+		geo = '',
+		description = table.concat(descParts, '\n\n'),
+		url = tsPath,
+		url_small = tsPath,
+		url_hd = tsPath,
+		parse_m3u8 = '',
+		isLocalRecording = true
+	}
+	end
+
 function playOrDownloadVideo(playOrDownload)
+	if not mtList[mtRightMenu_select] then
+		return
+	end
+	local entry = mtList[mtRightMenu_select]
 	local flag_max = false
 	local flag_normal = false
 	local flag_min = false
-	if (mtList[mtRightMenu_select].url_hd ~= '') then
+	if (entry.url_hd ~= '') then
 		flag_max = true end
-	if (mtList[mtRightMenu_select].url ~= '') then
+	if (entry.url ~= '') then
 		flag_normal = true end
-	if (mtList[mtRightMenu_select].url_small ~= '') then
+	if (entry.url_small ~= '') then
 		flag_min = true end
+
+	if entry.isLocalRecording then
+		if playOrDownload ~= true then
+			messagebox.exec{title=pluginName, text=l.localRecordingsDownloadBlocked, buttons={'ok'}}
+			return
+		end
+		if not fileExists(entry.url) then
+			messagebox.exec{title=pluginName, text=string.format(l.localRecordingsMissingFile, entry.url or ''), buttons={'ok'}}
+			return
+		end
+	end
 
 	local quality = ''
 	if (playOrDownload == true) then
@@ -58,38 +290,38 @@ function playOrDownloadVideo(playOrDownload)
 	-- conf=max: 1. max, 2. normal, 3. min
 	if (quality == 'max') then
 		if (flag_max == true) then
-			url = mtList[mtRightMenu_select].url_hd
+			url = entry.url_hd
 		elseif (flag_normal == true) then
-			url = mtList[mtRightMenu_select].url
+			url = entry.url
 		else
-			url = mtList[mtRightMenu_select].url_small
+			url = entry.url_small
 		end
 	-- conf=min: 1. min, 2. normal, 3. max
 	elseif (quality == 'min') then
 		if (flag_min == true) then
-			url = mtList[mtRightMenu_select].url_small
+			url = entry.url_small
 		elseif (flag_normal == true) then
-			url = mtList[mtRightMenu_select].url
+			url = entry.url
 		else
-			url = mtList[mtRightMenu_select].url_hd
+			url = entry.url_hd
 		end
 	-- conf=normal: 1. normal, 2. max, 3. min
 	else
 		if (flag_normal == true) then
-			url = mtList[mtRightMenu_select].url
+			url = entry.url
 		elseif (flag_max == true) then
-			url = mtList[mtRightMenu_select].url_hd
+			url = entry.url_hd
 		else
-			url = mtList[mtRightMenu_select].url_small
+			url = entry.url_small
 		end
 	end
 
 	local screen = saveFullScreen()
 	hideMtWindow()
 	if (playOrDownload == true) then
-		playMovie(url, mtList[mtRightMenu_select].title, mtList[mtRightMenu_select].theme, url, true)
+		playMovie(url, entry.title, entry.theme, url, true)
 	else
-		downloadMovie(url, mtList[mtRightMenu_select].channel, mtList[mtRightMenu_select].title, mtList[mtRightMenu_select].description, mtList[mtRightMenu_select].theme, mtList[mtRightMenu_select].duration, mtList[mtRightMenu_select].date, mtList[mtRightMenu_select].time)
+		downloadMovie(url, entry.channel, entry.title, entry.description, entry.theme, entry.duration, entry.date, entry.time)
 	end
 	restoreFullScreen(screen, true)
 end
@@ -146,7 +378,9 @@ function paint_mtItemLine(count)
 		paintItem(11,	mtList[count].date,	1)
 		paintItem(6,	mtList[count].time,	1)
 		paintItem(9,	mtList[count].duration,	1)
-		paintGeoIndicator(mtList[count])
+		if not localRecordingsMode then
+			paintGeoIndicator(mtList[count])
+		end
 	end
 end
 
@@ -184,7 +418,9 @@ function paintMtRightMenu()
 		paintHead(11,	l.headerDate)
 		paintHead(6,	l.headerTime)
 		paintHead(9,	l.headerDuration)
-		paintHead(-5,	l.headerGeo)
+		if not localRecordingsMode then
+			paintHead(-5,	l.headerGeo)
+		end
 	end
 
 	local function bufferEntries()
@@ -327,6 +563,71 @@ function paintMtRightMenu()
 		i = i + 1
 	end
 	mtRightMenu_count = i-1
+	if mtRightMenu_count < 1 then
+		mtRightMenu_count = 1
+	end
+
+	if (localRecordingsActive == true) then
+		local total = #localRecordingsEntries
+		mtRightMenu_list_total = total
+		if total <= 0 then
+			mtRightMenu_list_total = 1
+			mtList = {}
+			mtList[1] = {
+				channel = '',
+				theme = '',
+				title = string.format(l.localRecordingsNoEntries, conf.localRecordingsPath or '-'),
+				date = '',
+				time = '',
+				duration = '',
+				durationSec = 0,
+				timestamp = 0,
+				geo = '',
+				description = '',
+				url = '',
+				url_small = '',
+				url_hd = '',
+				parse_m3u8 = ''
+			}
+		else
+			if mtRightMenu_list_start >= total then
+				if total > mtRightMenu_count then
+					mtRightMenu_list_start = total - mtRightMenu_count
+				else
+					mtRightMenu_list_start = 0
+				end
+				mtRightMenu_view_page = math.floor(mtRightMenu_list_start / mtRightMenu_count) + 1
+			end
+			if (#mtList > 0) then
+				while (#mtList > 0) do table.remove(mtList) end
+			end
+			mtList = {}
+			local maxBuffer = total - mtRightMenu_list_start
+			if maxBuffer > mtRightMenu_count then
+				maxBuffer = mtRightMenu_count
+			end
+			if maxBuffer < 1 then
+				maxBuffer = 1
+			end
+			for idx=1, maxBuffer do
+				local sourceIndex = mtRightMenu_list_start + idx
+				if sourceIndex <= total then
+					mtList[idx] = cloneEntry(localRecordingsEntries[sourceIndex])
+				end
+			end
+		end
+
+		for idx=1, mtRightMenu_count do
+			paint_mtItemLine(idx)
+		end
+
+		if mtRightMenu_list_total <= 0 then
+			mtRightMenu_list_total = 1
+		end
+		mtRightMenu_max_page = math.max(1, math.ceil(mtRightMenu_list_total/mtRightMenu_count))
+		paintLeftInfoBox(string.format(l.menuPageOfPage, mtRightMenu_view_page, mtRightMenu_max_page))
+		return
+	end
 
 	local useBuffer = requiresFullBuffer()
 	if useBuffer == false then -- No dedicated theme or title selected and no advanced filter
@@ -442,23 +743,7 @@ function paintMtRightMenu()
 		for i=1, maxBuffer do
 			local sourceIndex = mtRightMenu_list_start + i
 			if sourceIndex <= mtBuffer_list_total then
-				local src = mtBuffer[sourceIndex]
-				mtList[i] = {
-					channel = src.channel,
-					theme = src.theme,
-					title = src.title,
-					date = src.date,
-					time = src.time,
-					duration = src.duration,
-					durationSec = src.durationSec,
-					timestamp = src.timestamp,
-					geo = src.geo,
-					description = src.description,
-					url = src.url,
-					url_small = src.url_small,
-					url_hd = src.url_hd,
-					parse_m3u8 = src.parse_m3u8
-				}
+				mtList[i] = cloneEntry(mtBuffer[sourceIndex])
 			end
 		end
 	end -- Either with theme or title selected or not
@@ -477,6 +762,7 @@ G.paintSimpleFrame(leftInfoBox_x, leftInfoBox_y, leftInfoBox_w, leftInfoBox_h, C
 end
 
 function paintMtLeftMenu()
+	updateLocalRecordingsMenuEntry()
 	local frameColor	= COL.FRAME_PLUS_0
 	local textColor		= COL.MENUCONTENT_TEXT
 
@@ -724,6 +1010,27 @@ buildEntry = function(apiEntry)
 	}
 end
 
+cloneEntry = function(src)
+	if not src then return nil end
+	return {
+		channel = src.channel,
+		theme = src.theme,
+		title = src.title,
+		date = src.date,
+		time = src.time,
+		duration = src.duration,
+		durationSec = src.durationSec,
+		timestamp = src.timestamp,
+		geo = src.geo,
+		description = src.description,
+		url = src.url,
+		url_small = src.url_small,
+		url_hd = src.url_hd,
+		parse_m3u8 = src.parse_m3u8,
+		isLocalRecording = src.isLocalRecording
+	}
+end
+
 sortEntries = function(list)
 	local mode = conf.sortMode
 	local function compare(a, b)
@@ -793,9 +1100,129 @@ matchesSearchFilters = function(apiEntry)
 	return false
 end
 
+function localRecordingsEntryEnabled()
+	if localRecordingsActive then
+		return true
+	end
+	if conf.localRecordingsEnabled ~= 'on' then
+		return false
+	end
+	return directoryExists(conf.localRecordingsPath)
+end
+
+function formatLocalRecordingsState()
+	if localRecordingsActive then
+		return l.localRecordingsStateActive
+	end
+	if conf.localRecordingsEnabled ~= 'on' then
+		return l.localRecordingsDisabled
+	end
+	if not directoryExists(conf.localRecordingsPath) then
+		return string.format(l.localRecordingsPathMissing, conf.localRecordingsPath or '-')
+	end
+	return l.localRecordingsStateIdle
+end
+
+function updateLocalRecordingsMenuEntry()
+	if not leftMenuEntry or not localRecordingsMenuIndex then
+		return
+	end
+	local entry = leftMenuEntry[localRecordingsMenuIndex]
+	if not entry then
+		return
+	end
+	entry[2] = formatLocalRecordingsState()
+	entry[5] = localRecordingsEntryEnabled()
+end
+
+function ensureLocalRecordingsReady(showWarning)
+	if conf.localRecordingsEnabled ~= 'on' then
+		if showWarning then
+			messagebox.exec{title=pluginName, text=l.localRecordingsDisabled, buttons={'ok'}}
+		end
+		return false
+	end
+	local path = conf.localRecordingsPath or ''
+	if not directoryExists(path) then
+		if showWarning then
+			messagebox.exec{title=pluginName, text=string.format(l.localRecordingsPathMissing, path), buttons={'ok'}}
+		end
+		return false
+	end
+	return true
+end
+
+function scanLocalRecordings()
+	local path = conf.localRecordingsPath or ''
+	local entries = {}
+	local infoBox = paintAnInfoBox(l.localRecordingsScanning, WHERE.CENTER)
+	if not directoryExists(path) then
+		G.hideInfoBox(infoBox)
+		return false, string.format(l.localRecordingsPathMissing, path)
+	end
+	collectTsFilesRecursive(path, entries)
+	G.hideInfoBox(infoBox)
+	H.printf("[neutrino-mediathek] local recordings: %d entries under %s", #entries, path)
+	local minDurationSec = (conf.seeMinimumDuration or 0) * 60
+	local filtered = {}
+	for _, entry in ipairs(entries) do
+		local durationOk = (minDurationSec <= 0) or ((entry.durationSec or 0) >= minDurationSec)
+		if durationOk and matchesSearchFilters(entry) then
+			table.insert(filtered, entry)
+		end
+	end
+	sortEntries(filtered)
+	localRecordingsEntries = filtered
+	localRecordingsLastPath = path
+	mtRightMenu_list_start = 0
+	mtRightMenu_view_page = 1
+	mtRightMenu_select = 1
+	return true
+end
+
+function deactivateLocalRecordings(forceReload)
+	if localRecordingsActive then
+		localRecordingsActive = false
+		localRecordingsEntries = {}
+		localRecordingsLastPath = nil
+		mtRightMenu_list_start = 0
+		mtRightMenu_view_page = 1
+		mtRightMenu_select = 1
+		if forceReload == true then
+			selectionChanged = true
+		end
+	end
+	updateLocalRecordingsMenuEntry()
+end
+
+function refreshLocalRecordingsView(showWarnings)
+	if not localRecordingsMode then
+		return
+	end
+	local warnUser = (showWarnings ~= false)
+	if not ensureLocalRecordingsReady(warnUser) then
+		updateLocalRecordingsMenuEntry()
+		paintMtLeftMenu()
+		return
+	end
+	local ok, err = scanLocalRecordings()
+	if not ok then
+		if warnUser then
+			messagebox.exec{title=pluginName, text=err, buttons={'ok'}}
+		end
+		updateLocalRecordingsMenuEntry()
+		paintMtLeftMenu()
+		return
+	end
+	localRecordingsActive = true
+	updateLocalRecordingsMenuEntry()
+	paintMtLeftMenu()
+	paintMtRightMenu()
+end
+
 function count_active_downloads()
 	local count = 0
-	local command = "find /tmp -name '.mediathek_dl_*.sh' -maxdepth 1 | wc -l"
+	local command = "find /tmp -maxdepth 1 -name '.mediathek_dl_*.sh' | wc -l"
 	local handle = io.popen(command)
 
 	if handle then
@@ -806,8 +1233,33 @@ function count_active_downloads()
 	return count
 end
 
-function startMediathek()
+function startMediathek(useLocalRecordings)
+	if useLocalRecordings == nil then
+		useLocalRecordings = false
+	end
+
+	local useLocal = (useLocalRecordings == true)
+	localRecordingsMode = useLocal
+	localRecordingsEntries = {}
+	localRecordingsMenuIndex = nil
 	leftMenuEntry = {}
+
+	if useLocal then
+		if not ensureLocalRecordingsReady(true) then
+			localRecordingsMode = false
+			return false
+		end
+		local ok, err = scanLocalRecordings()
+		if not ok then
+			messagebox.exec{title=pluginName, text=err, buttons={'ok'}}
+			localRecordingsMode = false
+			return false
+		end
+		localRecordingsActive = true
+	else
+		deactivateLocalRecordings(false)
+	end
+
 	local function fillLeftMenuEntry(e1, e2, e3, e4, e5)
 		local i = #leftMenuEntry + 1
 		leftMenuEntry[i]	= {}
@@ -816,6 +1268,7 @@ function startMediathek()
 		leftMenuEntry[i][3]	= e3
 		leftMenuEntry[i][4]	= e4
 		leftMenuEntry[i][5]	= e5
+		return i
 	end
 
 	fillLeftMenuEntry(l.menuTitle,		formatTitle(conf.allTitles, conf.title),	iconRef('btnRed'),    true, true)
@@ -826,7 +1279,25 @@ function startMediathek()
 	fillLeftMenuEntry(l.menuSort,		formatSortMode(),				iconRef('btn2'),      true, true)
 	fillLeftMenuEntry(l.menuGeoFilter,	formatGeoMode(),				iconRef('btn3'),      true, true)
 	fillLeftMenuEntry(l.menuQualityFilter,	formatQualityMode(),				iconRef('btn4'),      true, true)
-	selectionChanged = true
+	localRecordingsMenuIndex = fillLeftMenuEntry(l.menuLocalRecordings, formatLocalRecordingsState(), iconRef('btnGreen'), true, localRecordingsEntryEnabled())
+
+	if useLocal then
+		leftMenuEntry[2][4] = false
+		leftMenuEntry[3][4] = false
+		leftMenuEntry[4][4] = false
+		leftMenuEntry[7][4] = false
+		leftMenuEntry[8][4] = false
+		leftMenuEntry[localRecordingsMenuIndex][4] = true
+	else
+		leftMenuEntry[localRecordingsMenuIndex][4] = false
+	end
+
+	if useLocal then
+		updateLocalRecordingsMenuEntry()
+		selectionChanged = false
+	else
+		selectionChanged = true
+	end
 
 	newMtWindow()
 	local topRightBox = nil
@@ -904,20 +1375,32 @@ function startMediathek()
 			paintMovieInfo()
 		elseif (msg == RC.red) then
 			titleMenu()
-		elseif (msg == RC.green) then
-			channelMenu()
 		elseif (msg == RC.yellow) then
-			themeMenu()
+			if not localRecordingsMode then
+				themeMenu()
+			end
 		elseif (msg == RC.blue) then
-			periodOfTimeMenu()
+			if not localRecordingsMode then
+				periodOfTimeMenu()
+			end
 		elseif (msg == RC['1']) then
 			minDurationMenu()
 		elseif (msg == RC['2']) then
 			sortMenu()
 		elseif (msg == RC['3']) then
-			geoFilterMenu()
+			if not localRecordingsMode then
+				geoFilterMenu()
+			end
 		elseif (msg == RC['4']) then
-			qualityFilterMenu()
+			if not localRecordingsMode then
+				qualityFilterMenu()
+			end
+		elseif (msg == RC.green) then
+			if localRecordingsMode then
+				refreshLocalRecordingsView(true)
+			else
+				channelMenu()
+			end
 		elseif (msg == RC.ok) then
 			playOrDownloadVideo(true)
 		elseif (msg == RC.record) then
@@ -939,4 +1422,10 @@ function startMediathek()
 		end
 
 	until msg == RC.home or forcePluginExit == true
+
+	localRecordingsMode = false
+	if localRecordingsActive then
+		deactivateLocalRecordings(false)
+	end
+	return true
 end
