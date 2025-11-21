@@ -35,11 +35,38 @@ function getVersionInfo()
 	local apiUrl = url_new or url_new_default or ""
 	local vInfo = string.format(l.formatVersion, pluginVersion, j_table.entry[1].version, vdate, j_table.entry[1].progname, j_table.entry[1].progversion,
 			j_table.entry[1].api, j_table.entry[1].apiversion, apiUrl, j_table.entry[1].mvversion, j_table.entry[1].mventrys, mvdate)
+	local recStats = getLocalRecordingsStats and getLocalRecordingsStats()
+	if recStats then
+		vInfo = vInfo .. '\n \n' .. l.localRecordingsInfoHeader .. '\n'
+		if not recStats.enabled then
+			vInfo = vInfo .. l.localRecordingsInfoDisabled
+		else
+			vInfo = vInfo .. string.format(l.localRecordingsInfoPath, recStats.path ~= '' and recStats.path or '-')
+			vInfo = vInfo .. '\n' .. string.format(l.localRecordingsInfoActive, recStats.activeEntries or 0)
+			if recStats.cacheSize and recStats.cacheSize > 0 then
+				vInfo = vInfo .. '\n' .. string.format(l.localRecordingsInfoCacheEntries, recStats.cachedEntries or 0)
+				vInfo = vInfo .. '\n' .. string.format(l.localRecordingsInfoCachePath, recStats.cachePath or '-', recStats.cacheSizeHuman or '0 B')
+				local cacheUpdated = recStats.cacheMtime and os.date(l.formatDate .. ' / ' .. l.formatTime, recStats.cacheMtime) or l.localRecordingsInfoCacheUnknown
+				vInfo = vInfo .. '\n' .. string.format(l.localRecordingsInfoCacheUpdated, cacheUpdated)
+			else
+				vInfo = vInfo .. '\n' .. l.localRecordingsInfoCacheMissing
+			end
+		end
+	end
 	if luaRuntimeInfo and luaRuntimeInfo ~= '' then
 		vInfo = vInfo .. '\n \n' .. string.format(l.runtimeInfo or 'Lua runtime: %s', luaRuntimeInfo)
 	end
 
-	messagebox.exec{title=l.versionHeader .. ' ' .. pluginName, text=vInfo, buttons={ 'ok' } }
+	local screenWidth = SCREEN and (SCREEN.END_X - SCREEN.OFF_X) or 720
+	local infoWidth = math.max(520, math.floor(screenWidth / 2))
+	local infoHeight = math.min(SCREEN and SCREEN.Y_RES - 40 or 2000, math.max(480, math.floor((SCREEN and SCREEN.Y_RES or 576) * 0.75)))
+	messagebox.exec{
+		title = l.versionHeader .. ' ' .. pluginName,
+		text = vInfo,
+		buttons = { 'ok' },
+		width = infoWidth,
+		height = infoHeight
+	}
 end
 
 function paintMainMenu(space, frameColor, textColor, info, count)

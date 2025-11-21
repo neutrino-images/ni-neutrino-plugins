@@ -1113,6 +1113,37 @@ loadCachedLocalRecordings = function()
 	return true
 end
 
+function getLocalRecordingsStats()
+	local stats = {
+		enabled = (conf.localRecordingsEnabled == 'on'),
+		path = conf.localRecordingsPath or '',
+		activeEntries = #localRecordingsEntries,
+		cachedEntries = 0,
+		cachePath = localRecordingsCacheFile,
+		cacheSize = 0,
+		cacheSizeHuman = '0 B',
+		cacheMtime = nil
+	}
+	local size, mtime = getFileAttributes(localRecordingsCacheFile)
+	if size and size > 0 then
+		stats.cacheSize = size
+		stats.cacheSizeHuman = humanFileSize(size)
+		stats.cacheMtime = mtime
+		local fh = io.open(localRecordingsCacheFile, 'r')
+		if fh then
+			local content = fh:read('*a')
+			fh:close()
+			if content and content ~= '' then
+				local ok, data = pcall(J.decode, content)
+				if ok and type(data) == 'table' and type(data.entries) == 'table' then
+					stats.cachedEntries = #data.entries
+				end
+			end
+		end
+	end
+	return stats
+end
+
 sortEntries = function(list)
 	local mode = conf.sortMode
 	local function compare(a, b)
