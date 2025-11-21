@@ -302,7 +302,7 @@ function configMenu()
 	opt={ 'max', 'normal' ,'min' }
 	m_conf:addItem{type="chooser", action="setConfigValue", hint_icon="hint_service", hint=l.settingsStreamQualityH, options=opt, id="streamQuality", value=conf.streamQuality, name=l.settingsStreamQuality}
 
-	m_conf:addItem{type="separatorline", name=l.settingsIP}
+	m_conf:addItem{type="separatorline", name=l.settingsNetworkSection}
 	m_conf:addItem{type="forwarder", action="networkSetup", hint_icon="hint_service", hint=l.settingsNetworkH, name=l.settingsNetwork, icon=2, directkey=RC["2"]}
 
 	m_conf:addItem{type="separatorline", name=l.settingsDownload}
