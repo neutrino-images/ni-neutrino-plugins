@@ -49,8 +49,7 @@ J	= loadLuaLib('json')
 G	= loadLuaLib('n_gui')
 H	= loadLuaLib('n_helpers')
 
--- define global paths
-local CONF_PATH = "/var/tuxbox/config/"
+CONF_PATH = "/var/tuxbox/config/"
 if DIR and DIR.CONFIGDIR then
 	CONF_PATH = DIR.CONFIGDIR .. '/'
 elseif DIR and DIR.NEUTRINO and DIR.NEUTRINO.CONFDIR then
