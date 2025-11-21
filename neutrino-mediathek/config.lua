@@ -222,6 +222,17 @@ function networkSetup()
 	m_nw_conf:addKey{directkey=RC["setup"], id="setup", action="exitConfigMenu"}
 	addKillKey(m_nw_conf)
 
+	m_nw_conf:addItem{
+		type="keyboardinput",
+		action="changeApiBaseUrl",
+		hint_icon="hint_service",
+		hint=l.networkApiBaseUrlH,
+		id="apiBaseUrl",
+		value=conf.apiBaseUrl,
+		name=l.networkApiBaseUrl,
+		size=160
+	}
+
 	addToggle(m_nw_conf, {confKey="networkIPV4Only", hint=l.networkUsePIV4H, name=l.networkUsePIV4})
 
 	m_nw_conf:addItem{type="separatorline", name=l.networkDebug}
@@ -234,17 +245,6 @@ function networkSetup()
 		conf.networkDlSilent = 'on'
 	end
 	m_configSilent = addToggle(m_nw_conf, {confKey="networkDlSilent", enabled=enabled, hint=l.networkProgressH, name=l.networkProgress})
-
-	m_nw_conf:addItem{
-		type="keyboardinput",
-		action="changeApiBaseUrl",
-		hint_icon="hint_service",
-		hint=l.networkApiBaseUrlH,
-		id="apiBaseUrl",
-		value=conf.apiBaseUrl,
-		name=l.networkApiBaseUrl,
-		size=160
-	}
 
 	m_nw_conf:exec()
 	restoreFullScreen(screen, true)
