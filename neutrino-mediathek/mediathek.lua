@@ -28,7 +28,7 @@ local localRecordingsRawEntries = {}
 local localRecordingsMenuIndex = nil
 local localRecordingsLastPath = nil
 local localRecordingsMode = false
-local localRecordingsCacheFile = pluginTmpPath .. '/local_recordings.json'
+local localRecordingsCacheFile = CONF_PATH .. H.scriptBase() .. '_local_recordings.json'
 
 function isLocalRecordingsMode()
 	return localRecordingsMode
