@@ -49,11 +49,17 @@ J	= loadLuaLib('json')
 G	= loadLuaLib('n_gui')
 H	= loadLuaLib('n_helpers')
 
-CONF_PATH = "/var/tuxbox/config/"
+CONF_PATH = '@N_CONFIG_DIR@'
+if not CONF_PATH or CONF_PATH == '' or CONF_PATH:find('@N_CONFIG_DIR@', 1, true) then
+	CONF_PATH = "/var/tuxbox/config/"
+end
 if DIR and DIR.CONFIGDIR then
 	CONF_PATH = DIR.CONFIGDIR .. '/'
 elseif DIR and DIR.NEUTRINO and DIR.NEUTRINO.CONFDIR then
 	CONF_PATH = DIR.NEUTRINO.CONFDIR .. '/'
+end
+if string.sub(CONF_PATH, -1) ~= '/' then
+	CONF_PATH = CONF_PATH .. '/'
 end
 
 pluginScriptPath = H.scriptPath() .. '/' .. H.scriptBase()
