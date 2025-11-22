@@ -188,6 +188,7 @@ function initVars()
 	mainMenuEntry = {}
 	fillMainMenuEntry(l.key.ok,	l.startMediathek,	iconRef('iconOk'))
 	fillMainMenuEntry(l.key.red,	l.startLivestreams,	iconRef('btnRed'))
+	fillMainMenuEntry(l.key.green,	l.menuLocalRecordings,	iconRef('btnGreen'))
 	fillMainMenuEntry(l.key.menu,	l.settings,		iconRef('iconMenu'))
 	fillMainMenuEntry(l.key.info,	l.versioninfo,	iconRef('iconInfo'))
 	fillMainMenuEntry(l.empty,	l.empty,		nil)

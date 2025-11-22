@@ -21,6 +21,9 @@ function _loadConfig()
 	conf.guiUseSystemIcons	= config:getString('guiUseSystemIcons',	'on')
 	conf.guiMainMenuSize	= config:getInt32('guiMainMenuSize',	30)
 	conf.guiTimeMsg		= config:getInt32('guiTimeMsg',		10)
+	conf.localRecordingsEnabled = config:getString('localRecordingsEnabled', 'off')
+	conf.localRecordingsPath = config:getString('localRecordingsPath', '/media/hdd/movie')
+	conf.localRecordingsCachePersistent = config:getString('localRecordingsCachePersistent', 'off')
 
 	conf.networkIPV4Only	= config:getString('networkIPV4Only',	'off')
 	conf.networkDlSilent	= config:getString('networkDlSilent',	'off')
@@ -98,6 +101,9 @@ function _saveConfig()
 	config:setString('sortMode',		conf.sortMode)
 	config:setString('geoMode',		conf.geoMode)
 	config:setString('qualityFilter',	conf.qualityFilter)
+	config:setString('localRecordingsEnabled', conf.localRecordingsEnabled)
+	config:setString('localRecordingsPath', conf.localRecordingsPath)
+	config:setString('localRecordingsCachePersistent', conf.localRecordingsCachePersistent)
 
 	config:saveConfig(confFile)
 end
@@ -151,6 +157,13 @@ end
 
 function setConfigValue(k, v)
 	conf[k] = v
+end
+
+function changeLocalRecordingsPath(dummy, value)
+	if value ~= nil and value ~= '' then
+		conf.localRecordingsPath = value
+	end
+	return MENU_RETURN.REPAINT
 end
 
 function changeEnableLifestreams(k, v)
@@ -211,6 +224,17 @@ function networkSetup()
 	m_nw_conf:addKey{directkey=RC["setup"], id="setup", action="exitConfigMenu"}
 	addKillKey(m_nw_conf)
 
+	m_nw_conf:addItem{
+		type="keyboardinput",
+		action="changeApiBaseUrl",
+		hint_icon="hint_service",
+		hint=l.networkApiBaseUrlH,
+		id="apiBaseUrl",
+		value=conf.apiBaseUrl,
+		name=l.networkApiBaseUrl,
+		size=160
+	}
+
 	addToggle(m_nw_conf, {confKey="networkIPV4Only", hint=l.networkUsePIV4H, name=l.networkUsePIV4})
 
 	m_nw_conf:addItem{type="separatorline", name=l.networkDebug}
@@ -223,17 +247,6 @@ function networkSetup()
 		conf.networkDlSilent = 'on'
 	end
 	m_configSilent = addToggle(m_nw_conf, {confKey="networkDlSilent", enabled=enabled, hint=l.networkProgressH, name=l.networkProgress})
-
-	m_nw_conf:addItem{
-		type="keyboardinput",
-		action="changeApiBaseUrl",
-		hint_icon="hint_service",
-		hint=l.networkApiBaseUrlH,
-		id="apiBaseUrl",
-		value=conf.apiBaseUrl,
-		name=l.networkApiBaseUrl,
-		size=160
-	}
 
 	m_nw_conf:exec()
 	restoreFullScreen(screen, true)
@@ -291,13 +304,18 @@ function configMenu()
 	opt={ 'max', 'normal' ,'min' }
 	m_conf:addItem{type="chooser", action="setConfigValue", hint_icon="hint_service", hint=l.settingsStreamQualityH, options=opt, id="streamQuality", value=conf.streamQuality, name=l.settingsStreamQuality}
 
-	m_conf:addItem{type="separatorline", name=l.settingsIP}
+	m_conf:addItem{type="separatorline", name=l.settingsNetworkSection}
 	m_conf:addItem{type="forwarder", action="networkSetup", hint_icon="hint_service", hint=l.settingsNetworkH, name=l.settingsNetwork, icon=2, directkey=RC["2"]}
 
 	m_conf:addItem{type="separatorline", name=l.settingsDownload}
 	m_conf:addItem{type="filebrowser", dir_mode="1", action="changeDLPath", hint_icon="hint_service", hint=l.settingsDLPathH, id="downloadPath", value=conf.downloadPath, name=l.settingsDLPath}
 	opt={ 'max', 'normal' ,'min' }
 	m_conf:addItem{type="chooser", action="setConfigValue", hint_icon="hint_service", hint=l.settingsDownloadQualityH, options=opt, id="downloadQuality", value=conf.downloadQuality, name=l.settingsDownloadQuality}
+
+	m_conf:addItem{type="separatorline", name=l.settingsLocalRecordingsHeader}
+	addToggle(m_conf, {confKey="localRecordingsEnabled", hint=l.settingsLocalRecordingsH, name=l.settingsLocalRecordings})
+	m_conf:addItem{type="filebrowser", dir_mode="1", action="changeLocalRecordingsPath", hint_icon="hint_service", hint=l.settingsLocalRecordingsPathH, id="localRecordingsPath", value=conf.localRecordingsPath, name=l.settingsLocalRecordingsPath}
+	addToggle(m_conf, {confKey="localRecordingsCachePersistent", hint=l.settingsLocalRecordingsCacheH, name=l.settingsLocalRecordingsCache})
 
 	m_conf:exec()
 	_saveConfig()

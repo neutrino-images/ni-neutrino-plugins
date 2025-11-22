@@ -1,4 +1,9 @@
 function repaintMediathek()
+	if isLocalRecordingsMode and isLocalRecordingsMode() then
+		refreshLocalRecordingsView(false)
+		return
+	end
+	deactivateLocalRecordings(true)
 	selectionChanged = true
 	leftMenuEntry[1][2] = formatTitle(conf.allTitles, conf.title)
 	leftMenuEntry[2][2] = conf.channel
@@ -8,6 +13,9 @@ function repaintMediathek()
 	leftMenuEntry[6][2] = formatSortMode()
 	leftMenuEntry[7][2] = formatGeoMode()
 	leftMenuEntry[8][2] = formatQualityMode()
+	if localRecordingsMenuIndex and leftMenuEntry[localRecordingsMenuIndex] then
+		updateLocalRecordingsMenuEntry()
+	end
 	paintMtLeftMenu()
 
 	mtRightMenu_select	= 1

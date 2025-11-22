@@ -32,13 +32,41 @@ function getVersionInfo()
 
 	local vdate  = os.date(l.formatDate .. ' / ' .. l.formatTime, j_table.entry[1].vdate)
 	local mvdate = os.date(l.formatDate .. ' / ' .. l.formatTime, j_table.entry[1].mvdate)
+	local apiUrl = url_new or url_new_default or ""
 	local vInfo = string.format(l.formatVersion, pluginVersion, j_table.entry[1].version, vdate, j_table.entry[1].progname, j_table.entry[1].progversion,
-			j_table.entry[1].api, j_table.entry[1].apiversion, j_table.entry[1].mvversion, j_table.entry[1].mventrys, mvdate)
+			j_table.entry[1].api, j_table.entry[1].apiversion, apiUrl, j_table.entry[1].mvversion, j_table.entry[1].mventrys, mvdate)
+	local recStats = getLocalRecordingsStats and getLocalRecordingsStats()
+	if recStats then
+		vInfo = vInfo .. '\n \n' .. l.localRecordingsInfoHeader .. '\n'
+		if not recStats.enabled then
+			vInfo = vInfo .. l.localRecordingsInfoDisabled
+		else
+			vInfo = vInfo .. string.format(l.localRecordingsInfoPath, recStats.path ~= '' and recStats.path or '-')
+			vInfo = vInfo .. '\n' .. string.format(l.localRecordingsInfoActive, recStats.activeEntries or 0)
+			if recStats.cacheSize and recStats.cacheSize > 0 then
+				vInfo = vInfo .. '\n' .. string.format(l.localRecordingsInfoCacheEntries, recStats.cachedEntries or 0)
+				vInfo = vInfo .. '\n' .. string.format(l.localRecordingsInfoCachePath, recStats.cachePath or '-', recStats.cacheSizeHuman or '0 B')
+				local cacheUpdated = recStats.cacheMtime and os.date(l.formatDate .. ' / ' .. l.formatTime, recStats.cacheMtime) or l.localRecordingsInfoCacheUnknown
+				vInfo = vInfo .. '\n' .. string.format(l.localRecordingsInfoCacheUpdated, cacheUpdated)
+			else
+				vInfo = vInfo .. '\n' .. l.localRecordingsInfoCacheMissing
+			end
+		end
+	end
 	if luaRuntimeInfo and luaRuntimeInfo ~= '' then
 		vInfo = vInfo .. '\n \n' .. string.format(l.runtimeInfo or 'Lua runtime: %s', luaRuntimeInfo)
 	end
 
-	messagebox.exec{title=l.versionHeader .. ' ' .. pluginName, text=vInfo, buttons={ 'ok' } }
+	local screenWidth = SCREEN and (SCREEN.END_X - SCREEN.OFF_X) or 720
+	local infoWidth = math.max(520, math.floor(screenWidth / 2))
+	local infoHeight = math.min(SCREEN and SCREEN.Y_RES - 40 or 2000, math.max(480, math.floor((SCREEN and SCREEN.Y_RES or 576) * 0.75)))
+	messagebox.exec{
+		title = l.versionHeader .. ' ' .. pluginName,
+		text = vInfo,
+		buttons = { 'ok' },
+		width = infoWidth,
+		height = infoHeight
+	}
 end
 
 function paintMainMenu(space, frameColor, textColor, info, count)
@@ -49,17 +77,25 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 	local w = 0
 	local iconMetrics = {}
 
+	local labelsLeft = {}
+	local labelsRight = {}
+
 	for i=1, count do
-		local icon = resolveIconRef(info[i][3])
+		local entry = info[i] or {}
+		local icon = resolveIconRef(entry[3])
+		local labelLeft = entry[1] or ''
+		local labelRight = entry[2] or ''
+		labelsLeft[i] = labelLeft
+		labelsRight[i] = labelRight
 		if icon ~= nil and icon ~= '' then
 			local iw, ih = N:GetSize(icon)
 			iconMetrics[i] = { icon=icon, w=iw, h=ih }
 			if iw > w1 then w1 = iw end
 		else
-			local wText1 = N:getRenderWidth(useDynFont, fontText, info[i][1])
+			local wText1 = N:getRenderWidth(useDynFont, fontText, labelLeft)
 			if wText1 > w1 then w1 = wText1 end
 		end
-		local wText2 = N:getRenderWidth(useDynFont, fontText, info[i][2])
+		local wText2 = N:getRenderWidth(useDynFont, fontText, labelRight)
 		if wText2 > w2 then w2 = wText2 end
 	end
 	local h = N:FontHeight(useDynFont, fontText) + 2*OFFSET.INNER_SMALL
@@ -79,6 +115,8 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 	y_start = math.floor(y_start)
 
 	for i=1, count do
+		local labelLeft = labelsLeft[i] or ''
+		local labelRight = labelsRight[i] or ''
 		local y = y_start + (i-1)*h_tmp
 		local bg = 0
 		txtC=textColor
@@ -90,7 +128,7 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 			bg   = COL.MENUCONTENTINACTIVE
 		end
 
-		if (info[i][1] ~= '' or info[i][2] ~= '') then
+		if (labelLeft ~= '' or labelRight ~= '') then
 			G.paintSimpleFrame(x, y, w, h, frameColor, bg)
 			N:paintVLine(x + w1 + 2*OFFSET.INNER_MID, y, h, frameColor)
 			if hasIcon then
@@ -98,9 +136,9 @@ function paintMainMenu(space, frameColor, textColor, info, count)
 				local iconY = y + math.floor((h - entryIcon.h) / 2)
 				N:DisplayImage(entryIcon.icon, iconX, iconY, entryIcon.w, entryIcon.h, 1)
 			else
-				N:RenderString(useDynFont, fontText, info[i][1], x1, y + h, txtC, w1, h, 1)
+				N:RenderString(useDynFont, fontText, labelLeft, x1, y + h, txtC, w1, h, 1)
 			end
-			N:RenderString(useDynFont, fontText, info[i][2], x2, y + h, txtC, w2, h, 0)
+			N:RenderString(useDynFont, fontText, labelRight, x2, y + h, txtC, w2, h, 0)
 		end
 	end
 end
@@ -152,8 +190,14 @@ function mainWindow()
 		local msg, data = N:GetInput(500)
 		-- start
 		if (msg == RC.ok) then
-			startMediathek()
-			restoreFullScreen(mainScreen, false)
+			if startMediathek(false) then
+				restoreFullScreen(mainScreen, false)
+			end
+		end
+		if (msg == RC.green) then
+			if startMediathek(true) then
+				restoreFullScreen(mainScreen, false)
+			end
 		end
 		-- livestreams
 		if ((msg == RC.sat) or (msg == RC.red)) then
