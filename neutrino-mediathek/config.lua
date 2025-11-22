@@ -23,6 +23,7 @@ function _loadConfig()
 	conf.guiTimeMsg		= config:getInt32('guiTimeMsg',		10)
 	conf.localRecordingsEnabled = config:getString('localRecordingsEnabled', 'off')
 	conf.localRecordingsPath = config:getString('localRecordingsPath', '/media/hdd/movie')
+	conf.localRecordingsCachePersistent = config:getString('localRecordingsCachePersistent', 'off')
 
 	conf.networkIPV4Only	= config:getString('networkIPV4Only',	'off')
 	conf.networkDlSilent	= config:getString('networkDlSilent',	'off')
@@ -102,6 +103,7 @@ function _saveConfig()
 	config:setString('qualityFilter',	conf.qualityFilter)
 	config:setString('localRecordingsEnabled', conf.localRecordingsEnabled)
 	config:setString('localRecordingsPath', conf.localRecordingsPath)
+	config:setString('localRecordingsCachePersistent', conf.localRecordingsCachePersistent)
 
 	config:saveConfig(confFile)
 end
@@ -313,6 +315,7 @@ function configMenu()
 	m_conf:addItem{type="separatorline", name=l.settingsLocalRecordingsHeader}
 	addToggle(m_conf, {confKey="localRecordingsEnabled", hint=l.settingsLocalRecordingsH, name=l.settingsLocalRecordings})
 	m_conf:addItem{type="filebrowser", dir_mode="1", action="changeLocalRecordingsPath", hint_icon="hint_service", hint=l.settingsLocalRecordingsPathH, id="localRecordingsPath", value=conf.localRecordingsPath, name=l.settingsLocalRecordingsPath}
+	addToggle(m_conf, {confKey="localRecordingsCachePersistent", hint=l.settingsLocalRecordingsCacheH, name=l.settingsLocalRecordingsCache})
 
 	m_conf:exec()
 	_saveConfig()

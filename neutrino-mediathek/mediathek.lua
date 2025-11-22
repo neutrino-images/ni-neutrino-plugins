@@ -28,7 +28,14 @@ local localRecordingsRawEntries = {}
 local localRecordingsMenuIndex = nil
 local localRecordingsLastPath = nil
 local localRecordingsMode = false
-local localRecordingsCacheFile = CONF_PATH .. H.scriptBase() .. '_local_recordings.json'
+local function getCachePaths()
+	local configPath = (CONF_PATH or '/var/tuxbox/config/') .. H.scriptBase() .. '_local_recordings.json'
+	local tmpPath = pluginTmpPath .. '/local_recordings.json'
+	if conf and conf.localRecordingsCachePersistent == 'on' then
+		return configPath, tmpPath
+	end
+	return tmpPath, configPath
+end
 
 function isLocalRecordingsMode()
 	return localRecordingsMode
@@ -1057,60 +1064,78 @@ end
 
 saveLocalRecordingsCache = function(entries)
 	if not entries then return end
+	local primaryCacheFile, fallbackCacheFile = getCachePaths()
 	local payload = {
 		version = 1,
 		path = conf.localRecordingsPath,
 		scanTime = os.time(),
 		entries = entries
 	}
-	local ok, encoded = pcall(J.encode, payload)
+	local ok, encoded = pcall(function() return J:encode(payload) end)
 	if not ok or not encoded then
+		H.printf("[neutrino-mediathek] failed to encode local recordings cache: %s", tostring(encoded))
 		return
 	end
-	local fh = io.open(localRecordingsCacheFile, 'w')
-	if fh then
+
+	local function tryWrite(path)
+		local dir = path:match("(.+)/[^/]+$")
+		if dir and dir ~= '' then
+			os.execute(string.format("mkdir -p %q", dir))
+		end
+		local fh = io.open(path, 'w')
+		if not fh then
+			return false
+		end
 		fh:write(encoded)
 		fh:close()
+		return true
 	end
+
+	if tryWrite(primaryCacheFile) then
+		H.printf("[neutrino-mediathek] wrote local recordings cache to %s (%d entries)", primaryCacheFile, #entries)
+		return
+	end
+	if tryWrite(fallbackCacheFile) then
+		H.printf("[neutrino-mediathek] wrote local recordings cache to %s (%d entries)", fallbackCacheFile, #entries)
+		return
+	end
+	H.printf("[neutrino-mediathek] failed to write local recordings cache to %s and %s", primaryCacheFile, fallbackCacheFile)
 end
 
 loadCachedLocalRecordings = function()
-	local fh = io.open(localRecordingsCacheFile, 'r')
-	if not fh then
-		return false
-	end
-	local content = fh:read('*a')
-	fh:close()
-	if not content or content == '' then
-		return false
-	end
-	local ok, data = pcall(J.decode, content)
-	if not ok or type(data) ~= 'table' then
-		return false
-	end
-	if data.version ~= 1 or data.path ~= conf.localRecordingsPath then
-		return false
-	end
-	if type(data.entries) ~= 'table' then
-		return false
-	end
-	local entries = {}
-	for _, entry in ipairs(data.entries) do
-		if type(entry) == 'table' and entry.url then
-			entry.isLocalRecording = true
-			table.insert(entries, entry)
+	local primaryCacheFile, fallbackCacheFile = getCachePaths()
+	local primaryCacheFile, fallbackCacheFile = getCachePaths()
+	local paths = { primaryCacheFile, fallbackCacheFile }
+	for _, path in ipairs(paths) do
+		local fh = io.open(path, 'r')
+		if fh then
+			local content = fh:read('*a')
+			fh:close()
+			if content and content ~= '' then
+				local ok, data = pcall(function() return J:decode(content) end)
+				if ok and type(data) == 'table' and data.version == 1 and data.path == conf.localRecordingsPath and type(data.entries) == 'table' then
+					local entries = {}
+					for _, entry in ipairs(data.entries) do
+						if type(entry) == 'table' and entry.url then
+							entry.isLocalRecording = true
+							table.insert(entries, entry)
+						end
+					end
+					if #entries > 0 then
+						localRecordingsRawEntries = entries
+						localRecordingsLastPath = data.path
+						rebuildLocalRecordingsEntries()
+						mtRightMenu_list_start = 0
+						mtRightMenu_view_page = 1
+						mtRightMenu_select = 1
+						H.printf("[neutrino-mediathek] loaded local recordings cache from %s (%d entries)", path, #entries)
+						return true
+					end
+				end
+			end
 		end
 	end
-	if #entries == 0 then
-		return false
-	end
-	localRecordingsRawEntries = entries
-	localRecordingsLastPath = data.path
-	rebuildLocalRecordingsEntries()
-	mtRightMenu_list_start = 0
-	mtRightMenu_view_page = 1
-	mtRightMenu_select = 1
-	return true
+	return false
 end
 
 function getLocalRecordingsStats()
@@ -1119,26 +1144,31 @@ function getLocalRecordingsStats()
 		path = conf.localRecordingsPath or '',
 		activeEntries = #localRecordingsEntries,
 		cachedEntries = 0,
-		cachePath = localRecordingsCacheFile,
+		cachePath = nil,
 		cacheSize = 0,
 		cacheSizeHuman = '0 B',
 		cacheMtime = nil
 	}
-	local size, mtime = getFileAttributes(localRecordingsCacheFile)
-	if size and size > 0 then
-		stats.cacheSize = size
-		stats.cacheSizeHuman = humanFileSize(size)
-		stats.cacheMtime = mtime
-		local fh = io.open(localRecordingsCacheFile, 'r')
-		if fh then
-			local content = fh:read('*a')
-			fh:close()
-			if content and content ~= '' then
-				local ok, data = pcall(J.decode, content)
-				if ok and type(data) == 'table' and type(data.entries) == 'table' then
-					stats.cachedEntries = #data.entries
+	local paths = { primaryCacheFile, fallbackCacheFile }
+	for _, path in ipairs(paths) do
+		local size, mtime = getFileAttributes(path)
+		if size and size > 0 then
+			stats.cachePath = path
+			stats.cacheSize = size
+			stats.cacheSizeHuman = humanFileSize(size)
+			stats.cacheMtime = mtime
+			local fh = io.open(path, 'r')
+			if fh then
+				local content = fh:read('*a')
+				fh:close()
+				if content and content ~= '' then
+					local ok, data = pcall(function() return J:decode(content) end)
+					if ok and type(data) == 'table' and type(data.entries) == 'table' then
+						stats.cachedEntries = #data.entries
+					end
 				end
 			end
+			break
 		end
 	end
 	return stats

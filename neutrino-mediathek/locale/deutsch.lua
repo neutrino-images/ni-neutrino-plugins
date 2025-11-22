@@ -49,6 +49,8 @@ l.settingsLocalRecordings		= "Lokale Aufnahmen aktivieren"
 l.settingsLocalRecordingsH		= "Aufnahmeverzeichnis nach TS-Dateien durchsuchen."
 l.settingsLocalRecordingsPath		= "Aufnahmeverzeichnis"
 l.settingsLocalRecordingsPathH	= "Basisverzeichnis mit Aufnahmen (z.B. /media/hdd/movie)."
+l.settingsLocalRecordingsCache	= "Cache dauerhaft speichern"
+l.settingsLocalRecordingsCacheH	= "Cache im Konfigurationsverzeichnis statt in /tmp ablegen."
 
 l.lifeHeader				= "Livestreamauswahl"
 l.lifeSubheader				= "Livestream-Sender auf Auswahl beschränken"
