@@ -148,6 +148,25 @@ dlDebug = true
 	return box, ret, data
 end
 
+function store_hls(videoUrl, audioUrl)
+local m3u = string.format([[#EXTM3U
+#EXT-X-VERSION:7
+
+#EXT-X-MEDIA:TYPE=AUDIO,NAME="Audio",GROUP-ID="audio-group",URI="%s"
+#EXT-X-STREAM-INF:AUDIO="audio-group"
+%s
+]], audioUrl, videoUrl)
+
+	local filename = "/tmp/neutrino_hls.m3u8"
+	local file = io.open(filename, "w")
+	if file then
+		file:write(m3u)
+		file:close()
+		return filename
+	end
+	return nil
+end
+
 function playMovie(url, title, info1, info2, enableMovieInfo, url2)
 	if not url then
 		return nil
@@ -161,8 +180,11 @@ function playMovie(url, title, info1, info2, enableMovieInfo, url2)
 	end
 
 	url2 = url2 or ""
+	if url2 ~= "" then
+		url = store_hls(url, url2)
+	end
 
-	local status = V:PlayFile(title, url, info1, info2, url2)
+	local status = V:PlayFile(title, url, info1, info2)
 	if status == PLAYSTATE.LEAVE_ALL then
 		forcePluginExit = true
 	end
