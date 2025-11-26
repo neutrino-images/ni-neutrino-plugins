@@ -70,9 +70,27 @@ local function trim(value)
 end
 
 local accessibilityHintKeywords = {
+	-- Audiodeskription
 	'audiodeskrip',
+	'hoerfilm',
+	'hörfilm',
+	'hoerfassung',
+	'hörfassung',
+	'barrierefrei',
+	-- Untertitel
 	'untertitel',
-	'originalton'
+	' mit ut',
+	'(ut',
+	' ut)',
+	'engl. ut',
+	'englische ut',
+	'deutsche ut',
+	-- Originalton/OV/OMU
+	'o-ton',
+	'oton',
+	'originalton',
+	'omu',
+	'ov'
 }
 
 local function normalizeAccessibilityText(value)
@@ -81,7 +99,9 @@ local function normalizeAccessibilityText(value)
 	if not trimmed or trimmed == '' then
 		return ''
 	end
-	return trimmed:gsub('%s+', ' '):lower()
+	local normalized = trimmed:gsub('%s+', ' '):lower()
+	normalized = normalized:gsub('ä', 'ae'):gsub('ö', 'oe'):gsub('ü', 'ue'):gsub('ß', 'ss')
+	return normalized
 end
 
 isAccessibilityHintEntry = function(entry)
