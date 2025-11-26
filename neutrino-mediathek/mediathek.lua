@@ -340,7 +340,9 @@ collectRecordingMeta = function(basePath, out)
 		pipe:close()
 		if usedFastPath then
 			H.printf("[neutrino-mediathek] collectRecordingMeta: fast path entries=%d", #out)
-			return (#out > 0)
+			if #out > 0 then
+				return true
+			end
 		end
 	end
 	H.printf("[neutrino-mediathek] collectRecordingMeta: fast path empty, fallback to ls/stat")
