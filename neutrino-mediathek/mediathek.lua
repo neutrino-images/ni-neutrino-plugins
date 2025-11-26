@@ -544,11 +544,18 @@ function paint_mtItemLine(count)
 	end
 
 	if (count <= #mtList) then
-		paintItem(29,	mtList[count].theme,	0)
-		paintItem(40,	mtList[count].title,	0)
-		paintItem(11,	mtList[count].date,	1)
-		paintItem(6,	mtList[count].time,	1)
-		paintItem(9,	mtList[count].duration,	1)
+		if localRecordingsMode then
+			paintItem(34,	mtList[count].theme,	0)
+			paintItem(40,	mtList[count].title,	0)
+			paintItem(12,	mtList[count].date,	1)
+			paintItem(14,	mtList[count].duration,	1)
+		else
+			paintItem(29,	mtList[count].theme,	0)
+			paintItem(40,	mtList[count].title,	0)
+			paintItem(11,	mtList[count].date,	1)
+			paintItem(6,	mtList[count].time,	1)
+			paintItem(9,	mtList[count].duration,	1)
+		end
 		if not localRecordingsMode then
 			paintGeoIndicator(mtList[count])
 		end
@@ -585,15 +592,17 @@ function paintMtRightMenu()
 		
 		G.paintSimpleFrame(x, y, rightItem_w, subMenuHight, frameColor, 0)
 		if localRecordingsMode then
-			paintHead(29,	l.headerTitle)
+			paintHead(34,	l.headerTitle)
 			paintHead(40,	l.localRecordingsHeaderPath)
+			paintHead(12,	l.headerDate)
+			paintHead(14,	l.headerDuration)
 		else
 			paintHead(29,	l.headerTheme)
 			paintHead(40,	l.headerTitle)
+			paintHead(11,	l.headerDate)
+			paintHead(6,	l.headerTime)
+			paintHead(9,	l.headerDuration)
 		end
-		paintHead(11,	l.headerDate)
-		paintHead(6,	l.headerTime)
-		paintHead(9,	l.headerDuration)
 		if not localRecordingsMode then
 			paintHead(-5,	l.headerGeo)
 		end
