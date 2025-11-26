@@ -286,7 +286,9 @@ function configMenu()
 	local old_networkIPV4Only	= conf.networkIPV4Only
 	local old_guiMainMenuSize	= conf.guiMainMenuSize
 
-	m_conf = menu.new{name=l.settingsHeader, icon=pluginIcon}
+	-- Slightly wider settings menu for better readability (uses mwidth from Lua menu API)
+	local settingsWidth = math.floor(N:scale2Res(720))
+	m_conf = menu.new{name=l.settingsHeader, icon=pluginIcon, mwidth=settingsWidth}
 	m_conf:addItem{type="subhead", name=l.settingsSubheader}
 	m_conf:addItem{type="separator"}
 	m_conf:addItem{type="back", hint_icon="hint_back", hint=l.backH}
