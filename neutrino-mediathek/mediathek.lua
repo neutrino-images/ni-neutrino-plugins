@@ -318,6 +318,7 @@ end
 
 collectRecordingMeta = function(basePath, out)
 	if not directoryExists(basePath) then
+		H.printf("[neutrino-mediathek] collectRecordingMeta: basePath missing %s", tostring(basePath))
 		return false
 	end
 
@@ -338,14 +339,17 @@ collectRecordingMeta = function(basePath, out)
 		end
 		pipe:close()
 		if usedFastPath then
+			H.printf("[neutrino-mediathek] collectRecordingMeta: fast path entries=%d", #out)
 			return (#out > 0)
 		end
 	end
+	H.printf("[neutrino-mediathek] collectRecordingMeta: fast path empty, fallback to ls/stat")
 
 	-- Fallback: recursive ls/stat (slower)
 	local cmd = string.format("ls -1A %s 2>/dev/null", string.format('%q', basePath))
 	local pipe2 = io.popen(cmd)
 	if not pipe2 then
+		H.printf("[neutrino-mediathek] collectRecordingMeta: ls failed for %s", tostring(basePath))
 		return false
 	end
 	for entry in pipe2:lines() do
@@ -362,6 +366,7 @@ collectRecordingMeta = function(basePath, out)
 		end
 	end
 	pipe2:close()
+	H.printf("[neutrino-mediathek] collectRecordingMeta: fallback entries=%d", #out)
 	return (#out > 0)
 end
 
