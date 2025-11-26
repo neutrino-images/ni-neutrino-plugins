@@ -42,12 +42,14 @@ function isLocalRecordingsMode()
 end
 
 local entryMatchesFilters
+local isAccessibilityHintEntry
 local buildEntry
 local cloneEntry
 local sortEntries
 local requiresFullBuffer
 local matchesSearchFilters
 local collectTsFilesRecursive
+local collectRecordingMeta
 local createLocalRecordingEntry
 local rebuildLocalRecordingsEntries
 local saveLocalRecordingsCache
@@ -65,6 +67,58 @@ end
 local function trim(value)
 	if not value then return nil end
 	return (value:gsub('^%s+', ''):gsub('%s+$', ''))
+end
+
+local accessibilityHintKeywords = {
+	'audiodeskrip',
+	'untertitel',
+	'originalton'
+}
+
+local function normalizeAccessibilityText(value)
+	if not value then return '' end
+	local trimmed = trim(value)
+	if not trimmed or trimmed == '' then
+		return ''
+	end
+	return trimmed:gsub('%s+', ' '):lower()
+end
+
+isAccessibilityHintEntry = function(entry)
+	if not entry then return false end
+	local title = normalizeAccessibilityText(entry.title)
+	local theme = normalizeAccessibilityText(entry.theme)
+	local description = normalizeAccessibilityText(entry.description)
+	local function matchesKeyword(field)
+		if field == '' then return false end
+		for _, keyword in ipairs(accessibilityHintKeywords) do
+			if field:find(keyword, 1, true) then
+				return true
+			end
+		end
+		return false
+	end
+	if matchesKeyword(title) or matchesKeyword(theme) then
+		local duration = entry.durationSec
+		if duration == nil then
+			local rawDuration = entry.duration
+			if type(rawDuration) == 'string' then
+				local h, m, s = rawDuration:match('^(%d+):(%d+):(%d+)$')
+				if h and m and s then
+					duration = tonumber(h) * 3600 + tonumber(m) * 60 + tonumber(s)
+				else
+					duration = tonumber(rawDuration)
+				end
+			else
+				duration = tonumber(rawDuration)
+			end
+		end
+		duration = duration or 0
+		if duration <= 0 or description == '' then
+			return true
+		end
+	end
+	return false
 end
 
 local function fileExists(path)
@@ -168,43 +222,23 @@ local function joinPath(base, leaf)
 	return base .. '/' .. leaf
 end
 
-local function isTsRecording(path)
+local function isRecordingPath(path)
 	if not path or path == '' then
 		return false
 	end
-	return string.lower(path):match('%.ts$') ~= nil
+	local lower = string.lower(path)
+	return lower:match('%.ts$') ~= nil or lower:match('%.mp4$') ~= nil or lower:match('%.mkv$') ~= nil
 end
 
-collectTsFilesRecursive = function(basePath, out)
-	if not directoryExists(basePath) then
-		return
-	end
-	local cmd = string.format("ls -1A %s 2>/dev/null", string.format('%q', basePath))
-	local pipe = io.popen(cmd)
-	if not pipe then
-		return
-	end
-	for entry in pipe:lines() do
-		if entry ~= '.' and entry ~= '..' then
-			local fullPath = joinPath(basePath, entry)
-			if directoryExists(fullPath) then
-				collectTsFilesRecursive(fullPath, out)
-			elseif isTsRecording(entry) then
-				local recEntry = createLocalRecordingEntry(fullPath)
-				if recEntry then
-					table.insert(out, recEntry)
-				end
-			end
-		end
-	end
-	pipe:close()
-end
-
-local function readLocalRecordingMetadata(tsPath)
+local function readLocalRecordingMetadata(tsPath, pre)
 	local metadata = {
 		path = tsPath
 	}
-	metadata.size, metadata.mtime = getFileAttributes(tsPath)
+	metadata.size = pre and pre.size or nil
+	metadata.mtime = pre and pre.mtime or nil
+	if not metadata.size or not metadata.mtime then
+		metadata.size, metadata.mtime = getFileAttributes(tsPath)
+	end
 
 	local xmlPaths = { tsPath .. '.xml' }
 	if tsPath:sub(-3):lower() == '.ts' then
@@ -234,8 +268,8 @@ local function readLocalRecordingMetadata(tsPath)
 	return metadata
 end
 
-createLocalRecordingEntry = function(tsPath)
-	local metadata = readLocalRecordingMetadata(tsPath)
+createLocalRecordingEntry = function(tsPath, pre)
+	local metadata = readLocalRecordingMetadata(tsPath, pre)
 	if not metadata then
 		return nil
 	end
@@ -263,9 +297,125 @@ createLocalRecordingEntry = function(tsPath)
 		url_small = tsPath,
 		url_hd = tsPath,
 		parse_m3u8 = '',
-		isLocalRecording = true
+		isLocalRecording = true,
+		fileSize = metadata.size,
+		fileMtime = metadata.mtime
 	}
 	end
+
+local function parseFindLine(line)
+	-- format: /path/file|12345|1700000000.123
+	local p, s, t = line:match("^(.-)|(%d+)|([%d%.]+)$")
+	if not p or not s or not t then
+		return nil
+	end
+	return {
+		path = p,
+		size = tonumber(s),
+		mtime = math.floor(tonumber(t) or 0)
+	}
+end
+
+collectRecordingMeta = function(basePath, out)
+	if not directoryExists(basePath) then
+		return false
+	end
+
+	local findCmd = string.format([[
+		find %s -path '*/lost+found' -prune -o -type f \
+			\( -iname '*.ts' -o -iname '*.mp4' -o -iname '*.mkv' \) \
+			-printf '%%p|%%s|%%T@\\n' 2>/dev/null
+	]], string.format('%q', basePath))
+	local pipe = io.popen(findCmd)
+	local usedFastPath = false
+	if pipe then
+		for line in pipe:lines() do
+			local meta = parseFindLine(line)
+			if meta and meta.path then
+				table.insert(out, meta)
+			end
+			usedFastPath = true
+		end
+		pipe:close()
+		if usedFastPath then
+			return (#out > 0)
+		end
+	end
+
+	-- Fallback: recursive ls/stat (slower)
+	local cmd = string.format("ls -1A %s 2>/dev/null", string.format('%q', basePath))
+	local pipe2 = io.popen(cmd)
+	if not pipe2 then
+		return false
+	end
+	for entry in pipe2:lines() do
+		if entry ~= '.' and entry ~= '..' and entry ~= 'lost+found' then
+			local fullPath = joinPath(basePath, entry)
+			if directoryExists(fullPath) then
+				collectRecordingMeta(fullPath, out)
+			elseif isRecordingPath(entry) then
+				local size, mtime = getFileAttributes(fullPath)
+				if size and mtime then
+					table.insert(out, {path=fullPath, size=size, mtime=mtime})
+				end
+			end
+		end
+	end
+	pipe2:close()
+	return (#out > 0)
+end
+
+collectTsFilesRecursive = function(basePath, out)
+	if not directoryExists(basePath) then
+		return
+	end
+
+	-- Fast path: one find call with stat output
+	local findCmd = string.format([[
+		find %s -path '*/lost+found' -prune -o -type f \
+			\( -iname '*.ts' -o -iname '*.mp4' -o -iname '*.mkv' \) \
+			-printf '%%p|%%s|%%T@\\n' 2>/dev/null
+	]], string.format('%q', basePath))
+	local pipe = io.popen(findCmd)
+	local usedFastPath = false
+	if pipe then
+		for line in pipe:lines() do
+			usedFastPath = true
+			local meta = parseFindLine(line)
+			if meta and meta.path then
+				local recEntry = createLocalRecordingEntry(meta.path, meta)
+				if recEntry then
+					table.insert(out, recEntry)
+				end
+			end
+		end
+		pipe:close()
+		if usedFastPath then
+			return
+		end
+	end
+
+	-- Fallback: recursive ls (slower, but works without find -printf)
+	local cmd = string.format("ls -1A %s 2>/dev/null", string.format('%q', basePath))
+	local pipe2 = io.popen(cmd)
+	if not pipe2 then
+		return
+	end
+	for entry in pipe2:lines() do
+		if entry ~= '.' and entry ~= '..' and entry ~= 'lost+found' then
+			local fullPath = joinPath(basePath, entry)
+			if directoryExists(fullPath) then
+				collectTsFilesRecursive(fullPath, out)
+			elseif isRecordingPath(entry) then
+				local recEntry = createLocalRecordingEntry(fullPath)
+				if recEntry then
+					table.insert(out, recEntry)
+				end
+			end
+		end
+	end
+	pipe2:close()
+end
 
 function playOrDownloadVideo(playOrDownload)
 	if not mtList[mtRightMenu_select] then
@@ -988,6 +1138,9 @@ function formatQualityMode()
 end
 
 entryMatchesFilters = function(entry)
+	if conf.hideAccessibilityHints == 'on' and isAccessibilityHintEntry(entry) then
+		return false
+	end
 	local geo = entry.geo or ''
 	if conf.geoMode == 'no_geo' and geo ~= '' then
 		return false
@@ -1040,7 +1193,9 @@ cloneEntry = function(src)
 		url_small = src.url_small,
 		url_hd = src.url_hd,
 		parse_m3u8 = src.parse_m3u8,
-		isLocalRecording = src.isLocalRecording
+		isLocalRecording = src.isLocalRecording,
+		fileSize = src.fileSize,
+		fileMtime = src.fileMtime
 	}
 end
 
@@ -1149,6 +1304,7 @@ function getLocalRecordingsStats()
 		cacheSizeHuman = '0 B',
 		cacheMtime = nil
 	}
+	local primaryCacheFile, fallbackCacheFile = getCachePaths()
 	local paths = { primaryCacheFile, fallbackCacheFile }
 	for _, path in ipairs(paths) do
 		local size, mtime = getFileAttributes(path)
@@ -1297,18 +1453,51 @@ end
 
 function scanLocalRecordings()
 	local path = conf.localRecordingsPath or ''
-	local entries = {}
 	local infoBox = paintAnInfoBox(l.localRecordingsScanning, WHERE.CENTER)
 	if not directoryExists(path) then
 		G.hideInfoBox(infoBox)
 		return false, string.format(l.localRecordingsPathMissing, path)
 	end
-	collectTsFilesRecursive(path, entries)
+
+	local metas = {}
+	collectRecordingMeta(path, metas)
 	G.hideInfoBox(infoBox)
+	if #metas == 0 then
+		return false, string.format(l.localRecordingsNoEntries, path)
+	end
+
+	local previous = {}
+	if localRecordingsLastPath == path then
+		for _, entry in ipairs(localRecordingsRawEntries) do
+			if entry.url then
+				previous[entry.url] = entry
+			end
+		end
+	end
+
+	local entries = {}
+	local reused = 0
+	for _, meta in ipairs(metas) do
+		local cached = previous[meta.path]
+		if cached and cached.fileSize == meta.size and cached.fileMtime == meta.mtime then
+			local copy = cloneEntry(cached)
+			if copy then
+				table.insert(entries, copy)
+				reused = reused + 1
+			end
+		else
+			local recEntry = createLocalRecordingEntry(meta.path, meta)
+			if recEntry then
+				table.insert(entries, recEntry)
+			end
+		end
+	end
+
 	if #entries == 0 then
 		return false, string.format(l.localRecordingsNoEntries, path)
 	end
-	H.printf("[neutrino-mediathek] local recordings: %d entries under %s", #entries, path)
+
+	H.printf("[neutrino-mediathek] local recordings: %d entries under %s (reused %d, scanned %d)", #entries, path, reused, #metas)
 	localRecordingsRawEntries = entries
 	localRecordingsLastPath = path
 	saveLocalRecordingsCache(entries)
