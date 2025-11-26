@@ -284,8 +284,9 @@ createLocalRecordingEntry = function(tsPath, pre)
 	table.insert(descParts, string.format(l.localRecordingsDescription, tsPath, humanFileSize(metadata.size)))
 	return {
 		channel = metadata.channel or l.menuLocalRecordings,
-		theme = metadata.theme or l.menuLocalRecordings,
-		title = title,
+		-- In Lokalmode: erste Spalte = Titel, zweite Spalte = Pfad
+		theme = title,
+		title = tsPath,
 		date = os.date(l.formatDate, timestamp),
 		time = os.date(l.formatTime, timestamp),
 		duration = formatDuration(durationSec),
@@ -583,8 +584,13 @@ function paintMtRightMenu()
 		end
 		
 		G.paintSimpleFrame(x, y, rightItem_w, subMenuHight, frameColor, 0)
-		paintHead(29,	l.headerTheme)
-		paintHead(40,	l.headerTitle)
+		if localRecordingsMode then
+			paintHead(29,	l.headerTitle)
+			paintHead(40,	l.localRecordingsHeaderPath)
+		else
+			paintHead(29,	l.headerTheme)
+			paintHead(40,	l.headerTitle)
+		end
 		paintHead(11,	l.headerDate)
 		paintHead(6,	l.headerTime)
 		paintHead(9,	l.headerDuration)
