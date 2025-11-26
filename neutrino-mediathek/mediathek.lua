@@ -92,13 +92,6 @@ local accessibilityHintKeywords = {
 	'omu',
 	'ov'
 }
-local accessibilityHintPatterns = {
-	'%f[%w]ad%f[%W]', -- standalone AD
-	'%f[%w]ut%f[%W]', -- standalone UT
-	'%f[%w]ov%f[%W]', -- standalone OV
-	'%f[%w]omu%f[%W]', -- standalone OMU
-	'%b()' -- anything in parentheses will be inspected separately
-}
 
 local function normalizeAccessibilityText(value)
 	if not value then return '' end
@@ -117,16 +110,6 @@ isAccessibilityHintEntry = function(entry)
 	local theme = normalizeAccessibilityText(entry.theme)
 	local description = normalizeAccessibilityText(entry.description)
 
-	local function matchesPatterns(field)
-		if field == '' then return false end
-		for _, pat in ipairs(accessibilityHintPatterns) do
-			if field:find(pat) then
-				return true
-			end
-		end
-		return false
-	end
-
 	local function matchesKeyword(field)
 		if field == '' then return false end
 		for _, keyword in ipairs(accessibilityHintKeywords) do
@@ -137,7 +120,7 @@ isAccessibilityHintEntry = function(entry)
 		return false
 	end
 	-- Check base fields
-	if matchesKeyword(title) or matchesKeyword(theme) or matchesPatterns(title) or matchesPatterns(theme) then
+	if matchesKeyword(title) or matchesKeyword(theme) then
 		local duration = entry.durationSec
 		if duration == nil then
 			local rawDuration = entry.duration
@@ -158,7 +141,7 @@ isAccessibilityHintEntry = function(entry)
 		end
 	end
 	-- Check description as fallback
-	if matchesKeyword(description) or matchesPatterns(description) then
+	if matchesKeyword(description) then
 		return true
 	end
 	return false
