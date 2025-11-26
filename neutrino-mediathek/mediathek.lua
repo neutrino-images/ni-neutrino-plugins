@@ -745,8 +745,10 @@ function paintMtRightMenu()
 			G.hideInfoBox(box)
 		end -- while
 		j = j - 1
-		mtBuffer = filterAccessibilityVariants(mtBuffer)
-		mtBuffer_list_total = #mtBuffer
+			if conf.hideAccessibilityHints == 'on' then
+				mtBuffer = filterAccessibilityVariants(mtBuffer)
+			end
+			mtBuffer_list_total = #mtBuffer
 
 		if (noDataOverall == true) or (mtBuffer_list_total <= 0) then
 			mtBuffer_list_total = 1
@@ -930,7 +932,9 @@ function paintMtRightMenu()
 				mtList[i] = buildEntry(j_table.entry[i])
 			end
 			-- Remove accessibility-marked duplicates when a normal variant exists
-			mtList = filterAccessibilityVariants(mtList)
+				if conf.hideAccessibilityHints == 'on' then
+					mtList = filterAccessibilityVariants(mtList)
+				end
 			mtRightMenu_list_total = #mtList
 		end
 	else -- Use buffered list (search results or advanced filters)
