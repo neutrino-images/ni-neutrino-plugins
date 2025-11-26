@@ -1,0 +1,155 @@
+-- Common helper functions shared across the plugin
+
+-- Accessibility markers (AD/UT/Originalton)
+accessibilityHintKeywords = {
+	-- Audiodeskription
+	'audiodeskrip',
+	'hoerfilm',
+	'hörfilm',
+	'hoerfassung',
+	'hörfassung',
+	'barrierefrei',
+	-- Untertitel
+	'untertitel',
+	-- Originalton
+	'o-ton',
+	'oton',
+	'originalton'
+}
+
+function trim(value)
+	if not value then return nil end
+	return (value:gsub('^%s+', ''):gsub('%s+$', ''))
+end
+
+function humanFileSize(bytes)
+	if not bytes or bytes <= 0 then
+		return '0 B'
+	end
+	local units = { 'B', 'KiB', 'MiB', 'GiB', 'TiB' }
+	local idx = 1
+	while bytes >= 1024 and idx < #units do
+		bytes = bytes / 1024
+		idx = idx + 1
+	end
+	return string.format('%.1f %s', bytes, units[idx])
+end
+
+function formatDuration(d)
+	if not d then return '' end
+	local h = math.floor(d/3600)
+	d = d - h*3600
+	local m = math.floor(d/60)
+	d = d - m*60
+	local s = d
+	return string.format('%02d:%02d:%02d', h, m, s)
+end
+
+function parseDurationString(value)
+	if not value then
+		return nil
+	end
+	local hours, minutes, seconds = value:match('^(%d+):(%d+):(%d+)$')
+	if hours and minutes and seconds then
+		return tonumber(hours) * 3600 + tonumber(minutes) * 60 + tonumber(seconds)
+	end
+	local numeric = tonumber(value)
+	if numeric then
+		-- recordings created via download.lua store minutes in <length>
+		if numeric > 1000 then
+			return numeric
+		end
+		return numeric * 60
+	end
+	return nil
+end
+
+function parseThemeFromInfo(info)
+	if not info then
+		return nil
+	end
+	local theme = info:match('[Tt]hema:%s*(.-)\n')
+	if not theme then
+		theme = info:match('[Tt]heme:%s*(.-)\n')
+	end
+	if theme then
+		return trim(theme)
+	end
+	return nil
+end
+
+function fileExists(path)
+	if not path or path == '' then
+		return false
+	end
+	local f = io.open(path, 'r')
+	if f ~= nil then
+		f:close()
+		return true
+	end
+	return false
+end
+
+function directoryExists(path)
+	if not path or path == '' then
+		return false
+	end
+	local cmd = string.format("test -d %s && echo 1 || echo 0", string.format('%q', path))
+	local pipe = io.popen(cmd)
+	if not pipe then return false end
+	local result = pipe:read('*l')
+	pipe:close()
+	return result == '1'
+end
+
+function getFileAttributes(path)
+	if not path or path == '' then
+		return nil, nil
+	end
+	local cmd = string.format("stat -c '%%s %%Y' %s 2>/dev/null", string.format('%q', path))
+	local pipe = io.popen(cmd)
+	if not pipe then
+		return nil, nil
+	end
+	local output = pipe:read('*l')
+	pipe:close()
+	if not output then
+		return nil, nil
+	end
+	local size, mtime = output:match('(%d+)%s+(%d+)')
+	return tonumber(size), tonumber(mtime)
+end
+
+function normalizeAccessibilityText(value)
+	if not value then return '' end
+	local trimmed = trim(value)
+	if not trimmed or trimmed == '' then
+		return ''
+	end
+	local normalized = trimmed:gsub('%s+', ' '):lower()
+	normalized = normalized:gsub('ä', 'ae'):gsub('ö', 'oe'):gsub('ü', 'ue'):gsub('ß', 'ss')
+	return normalized
+end
+
+function containsAccessibilityMarker(field)
+	if not field or field == '' then
+		return false
+	end
+	local lower = normalizeAccessibilityText(field)
+	for _, keyword in ipairs(accessibilityHintKeywords) do
+		if lower:find(keyword, 1, true) then
+			return true
+		end
+	end
+	for paren in lower:gmatch("%b()") do
+		for _, keyword in ipairs(accessibilityHintKeywords) do
+			if paren:find(keyword, 1, true) then
+				return true
+			end
+		end
+		if paren:find("%f[%w]ad%f[%W]") or paren:find("%f[%w]ut%f[%W]") then
+			return true
+		end
+	end
+	return false
+end

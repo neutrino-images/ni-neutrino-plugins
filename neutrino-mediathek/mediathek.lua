@@ -22,12 +22,17 @@ mtBuffer	= {}
 titleList	= {}
 themeList	= {}
 
+-- local recordings state
 local localRecordingsActive = false
 local localRecordingsEntries = {}
 local localRecordingsRawEntries = {}
 local localRecordingsMenuIndex = nil
 local localRecordingsLastPath = nil
 local localRecordingsMode = false
+
+-- load shared helpers
+dofile(pluginScriptPath .. '/util.lua')
+
 local function getCachePaths()
 	local configPath = (CONF_PATH or '/var/tuxbox/config/') .. H.scriptBase() .. '_local_recordings.json'
 	local tmpPath = pluginTmpPath .. '/local_recordings.json'
@@ -42,72 +47,6 @@ function isLocalRecordingsMode()
 end
 
 local entryMatchesFilters
-
-local function formatDuration(d)
-	if not d then return '' end
-	local h = math.floor(d/3600)
-	d = d - h*3600
-	local m = math.floor(d/60)
-	d = d - m*60
-	local s = d
-	return string.format('%02d:%02d:%02d', h, m, s)
-end
-
--- Helpers for trimming and accessibility markers
-local function trim(value)
-	if not value then return nil end
-	return (value:gsub('^%s+', ''):gsub('%s+$', ''))
-end
-
-local accessibilityHintKeywords = {
-	-- Audiodeskription
-	'audiodeskrip',
-	'hoerfilm',
-	'hörfilm',
-	'hoerfassung',
-	'hörfassung',
-	'barrierefrei',
-	-- Untertitel
-	'untertitel',
-	-- Originalton
-	'o-ton',
-	'oton',
-	'originalton'
-}
-
-local function normalizeAccessibilityText(value)
-	if not value then return '' end
-	local trimmed = trim(value)
-	if not trimmed or trimmed == '' then
-		return ''
-	end
-	local normalized = trimmed:gsub('%s+', ' '):lower()
-	normalized = normalized:gsub('ä', 'ae'):gsub('ö', 'oe'):gsub('ü', 'ue'):gsub('ß', 'ss')
-	return normalized
-end
-
-local function containsAccessibilityMarker(field)
-	if not field or field == '' then
-		return false
-	end
-	local lower = normalizeAccessibilityText(field)
-	for _, keyword in ipairs(accessibilityHintKeywords) do
-		if lower:find(keyword, 1, true) then
-			return true
-		end
-	end
-	for paren in lower:gmatch("%b()") do
-		for _, keyword in ipairs(accessibilityHintKeywords) do
-			if paren:find(keyword, 1, true) then
-				return true
-			end
-		end
-		if paren:find("%f[%w]ad%f[%W]") or paren:find("%f[%w]ut%f[%W]") then
-			return true
-		end
-	end
-	return false
-end
 
 local isAccessibilityHintEntry = function(entry)
 	if not entry then return false end
