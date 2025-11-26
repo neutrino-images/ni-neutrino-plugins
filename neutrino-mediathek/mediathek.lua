@@ -1454,6 +1454,7 @@ end
 function scanLocalRecordings()
 	local path = conf.localRecordingsPath or ''
 	local infoBox = paintAnInfoBox(l.localRecordingsScanning, WHERE.CENTER)
+	H.printf("[neutrino-mediathek] scanLocalRecordings: path=%s", tostring(path))
 	if not directoryExists(path) then
 		G.hideInfoBox(infoBox)
 		return false, string.format(l.localRecordingsPathMissing, path)
@@ -1461,8 +1462,10 @@ function scanLocalRecordings()
 
 	local metas = {}
 	collectRecordingMeta(path, metas)
+	H.printf("[neutrino-mediathek] scanLocalRecordings: collected %d candidates", #metas)
 	G.hideInfoBox(infoBox)
 	if #metas == 0 then
+		H.printf("[neutrino-mediathek] scanLocalRecordings: no files found under %s", tostring(path))
 		return false, string.format(l.localRecordingsNoEntries, path)
 	end
 
