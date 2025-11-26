@@ -42,28 +42,8 @@ function isLocalRecordingsMode()
 end
 
 local entryMatchesFilters
-local isAccessibilityHintEntry
-local buildEntry
-local cloneEntry
-local sortEntries
-local requiresFullBuffer
-local matchesSearchFilters
-local collectTsFilesRecursive
-local collectRecordingMeta
-local createLocalRecordingEntry
-local rebuildLocalRecordingsEntries
-local saveLocalRecordingsCache
-local loadCachedLocalRecordings
 
-local function formatDuration(d)
-	local h = math.floor(d/3600)
-	d = d - h*3600
-	local m = math.floor(d/60)
-	d = d - m*60
-	local s = d
-	return string.format('%02d:%02d:%02d', h, m, s)
-end
-
+-- Helpers for trimming and accessibility markers
 local function trim(value)
 	if not value then return nil end
 	return (value:gsub('^%s+', ''):gsub('%s+$', ''))
@@ -79,18 +59,10 @@ local accessibilityHintKeywords = {
 	'barrierefrei',
 	-- Untertitel
 	'untertitel',
-	' mit ut',
-	'(ut',
-	' ut)',
-	'engl. ut',
-	'englische ut',
-	'deutsche ut',
-	-- Originalton/OV/OMU
+	-- Originalton
 	'o-ton',
 	'oton',
-	'originalton',
-	'omu',
-	'ov'
+	'originalton'
 }
 
 local function normalizeAccessibilityText(value)
@@ -104,71 +76,74 @@ local function normalizeAccessibilityText(value)
 	return normalized
 end
 
-isAccessibilityHintEntry = function(entry)
-	if not entry then return false end
-	local title = normalizeAccessibilityText(entry.title)
-	local theme = normalizeAccessibilityText(entry.theme)
-	local description = normalizeAccessibilityText(entry.description)
-
-	local function matchesKeyword(field)
-		if field == '' then return false end
-		for _, keyword in ipairs(accessibilityHintKeywords) do
-			if field:find(keyword, 1, true) then
-				return true
-			end
-		end
+local function containsAccessibilityMarker(field)
+	if not field or field == '' then
 		return false
 	end
-	local function matchesParen(field)
-		if field == '' then return false end
-		for paren in field:gmatch("%b()") do
-			for _, keyword in ipairs(accessibilityHintKeywords) do
-				if paren:find(keyword, 1, true) then
-					return true
-				end
-			end
-			if paren:find("%f[%w]ad%f[%W]") or paren:find("%f[%w]ut%f[%W]") then
-				return true
-			end
-		end
-		return false
-	end
-
-	local function matchesSeparated(field)
-		if field == '' then return false end
-		for _, keyword in ipairs(accessibilityHintKeywords) do
-			if field:find('%s' .. keyword, 1, true) or field:find('%-' .. keyword, 1, true) then
-				return true
-			end
-		end
-		return false
-	end
-
-	if matchesKeyword(title) or matchesParen(title) or matchesSeparated(title)
-		or matchesKeyword(theme) or matchesParen(theme) or matchesSeparated(theme) then
-		local duration = entry.durationSec
-		if duration == nil then
-			local rawDuration = entry.duration
-			if type(rawDuration) == 'string' then
-				local h, m, s = rawDuration:match('^(%d+):(%d+):(%d+)$')
-				if h and m and s then
-					duration = tonumber(h) * 3600 + tonumber(m) * 60 + tonumber(s)
-				else
-					duration = tonumber(rawDuration)
-				end
-			else
-				duration = tonumber(rawDuration)
-			end
-		end
-		duration = duration or 0
-		if duration <= 0 or description == '' then
+	local lower = normalizeAccessibilityText(field)
+	for _, keyword in ipairs(accessibilityHintKeywords) do
+		if lower:find(keyword, 1, true) then
 			return true
 		end
 	end
-	if matchesKeyword(description) or matchesParen(description) or matchesSeparated(description) then
+	for paren in lower:gmatch("%b()") do
+		for _, keyword in ipairs(accessibilityHintKeywords) do
+			if paren:find(keyword, 1, true) then
+				return true
+			end
+		end
+		if paren:find("%f[%w]ad%f[%W]") or paren:find("%f[%w]ut%f[%W]") then
+			return true
+		end
+	end
+	return false
+end
+
+local isAccessibilityHintEntry = function(entry)
+	if not entry then return false end
+	if containsAccessibilityMarker(entry.title) or containsAccessibilityMarker(entry.theme) then
+		return true
+	end
+	if containsAccessibilityMarker(entry.description) then
 		return true
 	end
 	return false
+end
+
+local function deriveAccessibilityBase(entry)
+	local baseTitle = entry.title or ''
+	-- remove parenthesized parts to align variants
+	baseTitle = baseTitle:gsub("%b()", " ")
+	baseTitle = normalizeAccessibilityText(baseTitle)
+	baseTitle = baseTitle:gsub('%s+', ' '):gsub(' %- ', ' '):gsub(' %-', ' ')
+	return string.format("%s|%s", normalizeAccessibilityText(entry.channel or ''), trim(baseTitle) or '')
+end
+
+local function filterAccessibilityVariants(list)
+	if not list or #list == 0 then
+		return list
+	end
+	local groups = {}
+	for _, entry in ipairs(list) do
+		local key = deriveAccessibilityBase(entry)
+		if not groups[key] then
+			groups[key] = {normal = {}, marked = {}}
+		end
+		if isAccessibilityHintEntry(entry) then
+			table.insert(groups[key].marked, entry)
+		else
+			table.insert(groups[key].normal, entry)
+		end
+	end
+	local filtered = {}
+	for _, g in pairs(groups) do
+		if #g.normal > 0 then
+			for _, e in ipairs(g.normal) do table.insert(filtered, e) end
+		else
+			for _, e in ipairs(g.marked) do table.insert(filtered, e) end
+		end
+	end
+	return filtered
 end
 
 local function fileExists(path)
@@ -760,7 +735,8 @@ function paintMtRightMenu()
 			G.hideInfoBox(box)
 		end -- while
 		j = j - 1
-		mtBuffer_list_total = j
+		mtBuffer = filterAccessibilityVariants(mtBuffer)
+		mtBuffer_list_total = #mtBuffer
 
 		if (noDataOverall == true) or (mtBuffer_list_total <= 0) then
 			mtBuffer_list_total = 1
@@ -943,6 +919,9 @@ function paintMtRightMenu()
 			for i=1, #j_table.entry do
 				mtList[i] = buildEntry(j_table.entry[i])
 			end
+			-- Remove accessibility-marked duplicates when a normal variant exists
+			mtList = filterAccessibilityVariants(mtList)
+			mtRightMenu_list_total = #mtList
 		end
 	else -- Use buffered list (search results or advanced filters)
 		if (selectionChanged == true) then
