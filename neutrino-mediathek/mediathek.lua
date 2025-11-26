@@ -119,8 +119,33 @@ isAccessibilityHintEntry = function(entry)
 		end
 		return false
 	end
-	-- Check base fields
-	if matchesKeyword(title) or matchesKeyword(theme) then
+	local function matchesParen(field)
+		if field == '' then return false end
+		for paren in field:gmatch("%b()") do
+			for _, keyword in ipairs(accessibilityHintKeywords) do
+				if paren:find(keyword, 1, true) then
+					return true
+				end
+			end
+			if paren:find("%f[%w]ad%f[%W]") or paren:find("%f[%w]ut%f[%W]") then
+				return true
+			end
+		end
+		return false
+	end
+
+	local function matchesSeparated(field)
+		if field == '' then return false end
+		for _, keyword in ipairs(accessibilityHintKeywords) do
+			if field:find('%s' .. keyword, 1, true) or field:find('%-' .. keyword, 1, true) then
+				return true
+			end
+		end
+		return false
+	end
+
+	if matchesKeyword(title) or matchesParen(title) or matchesSeparated(title)
+		or matchesKeyword(theme) or matchesParen(theme) or matchesSeparated(theme) then
 		local duration = entry.durationSec
 		if duration == nil then
 			local rawDuration = entry.duration
@@ -140,8 +165,7 @@ isAccessibilityHintEntry = function(entry)
 			return true
 		end
 	end
-	-- Check description as fallback
-	if matchesKeyword(description) then
+	if matchesKeyword(description) or matchesParen(description) or matchesSeparated(description) then
 		return true
 	end
 	return false
