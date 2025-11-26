@@ -43,6 +43,16 @@ end
 
 local entryMatchesFilters
 
+local function formatDuration(d)
+	if not d then return '' end
+	local h = math.floor(d/3600)
+	d = d - h*3600
+	local m = math.floor(d/60)
+	d = d - m*60
+	local s = d
+	return string.format('%02d:%02d:%02d', h, m, s)
+end
+
 -- Helpers for trimming and accessibility markers
 local function trim(value)
 	if not value then return nil end
