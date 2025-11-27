@@ -31,8 +31,8 @@ local localRecordingsLastPath = nil
 local localRecordingsMode = false
 
 -- load shared helpers
-local Filters = dofile(pluginScriptPath .. '/filters.lua')
-dofile(pluginScriptPath .. '/util.lua')
+local Filters = dofile(pluginScriptPath .. '/mt_filters.lua')
+dofile(pluginScriptPath .. '/mt_util.lua')
 
 local sortEntries = Filters.sortEntries
 local requiresFullBuffer = Filters.requiresFullBuffer

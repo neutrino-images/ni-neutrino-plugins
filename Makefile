@@ -55,7 +55,7 @@ if [ -n "$1" ]; then \
 	$(INSTALL) -m 0644 "$(PLUGIN_CFG)" "$1/$$cfg_dst"; \
 	$(INSTALL) -m 0644 "$(PLUGIN_HINT)" "$1/$$hint_dst"; \
 	$(CP) -a "$(PLUGIN_SRC)"/. "$1/$$dir_dst/"; \
-	for file in images.lua config.lua; do \
+	for file in mt_images.lua mt_config.lua; do \
 		$(SED) -e 's#@ICONSDIR@#$(ICONSDIR)#g' \
 		-e 's#@ICONSDIR_VAR@#$(ICONSDIR_VAR)#g' \
 		"$1/$$dir_dst/$$file" > "$1/$$dir_dst/$$file.tmp"; \
