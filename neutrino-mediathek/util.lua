@@ -153,3 +153,50 @@ function containsAccessibilityMarker(field)
 	end
 	return false
 end
+
+function isAccessibilityHintEntry(entry)
+	if not entry then return false end
+	if containsAccessibilityMarker(entry.title) or containsAccessibilityMarker(entry.theme) then
+		return true
+	end
+	if containsAccessibilityMarker(entry.description) then
+		return true
+	end
+	return false
+end
+
+local function deriveAccessibilityBase(entry)
+	local baseTitle = entry.title or ''
+	-- remove parenthesized parts to align variants
+	baseTitle = baseTitle:gsub("%b()", " ")
+	baseTitle = normalizeAccessibilityText(baseTitle)
+	baseTitle = baseTitle:gsub('%s+', ' '):gsub(' %- ', ' '):gsub(' %-', ' ')
+	return string.format("%s|%s", normalizeAccessibilityText(entry.channel or ''), trim(baseTitle) or '')
+end
+
+function filterAccessibilityVariants(list)
+	if not list or #list == 0 then
+		return list
+	end
+	local groups = {}
+	for _, entry in ipairs(list) do
+		local key = deriveAccessibilityBase(entry)
+		if not groups[key] then
+			groups[key] = {normal = {}, marked = {}}
+		end
+		if isAccessibilityHintEntry(entry) then
+			table.insert(groups[key].marked, entry)
+		else
+			table.insert(groups[key].normal, entry)
+		end
+	end
+	local filtered = {}
+	for _, g in pairs(groups) do
+		if #g.normal > 0 then
+			for _, e in ipairs(g.normal) do table.insert(filtered, e) end
+		else
+			for _, e in ipairs(g.marked) do table.insert(filtered, e) end
+		end
+	end
+	return filtered
+end

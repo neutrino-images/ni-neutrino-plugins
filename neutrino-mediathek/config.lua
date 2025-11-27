@@ -287,7 +287,7 @@ function configMenu()
 	local old_guiMainMenuSize	= conf.guiMainMenuSize
 
 	-- Slightly wider settings menu for better readability (uses mwidth from Lua menu API)
-	local settingsWidth = math.floor(N:scale2Res(720))
+	local settingsWidth = math.floor(N:scale2Res(400))
 	m_conf = menu.new{name=l.settingsHeader, icon=pluginIcon, mwidth=settingsWidth}
 	m_conf:addItem{type="subhead", name=l.settingsSubheader}
 	m_conf:addItem{type="separator"}
