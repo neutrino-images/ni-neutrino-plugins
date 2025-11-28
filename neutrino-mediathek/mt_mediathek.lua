@@ -747,7 +747,6 @@ function paintMtRightMenu()
 				if conf.hideAccessibilityHints == 'on' then
 					mtList = filterAccessibilityVariants(mtList)
 				end
-			mtRightMenu_list_total = #mtList
 		end
 	else -- Use buffered list (search results or advanced filters)
 		if (selectionChanged == true) then
