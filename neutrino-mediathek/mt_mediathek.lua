@@ -499,7 +499,11 @@ function paintMtRightMenu()
 
 			local dataFile = createCacheFileName(post, 'json')
 			post = C:setUriData('data1', post)
-			local s, err = getJsonData2(url_new .. actionCmd_sendPostData, dataFile, post, queryMode_listVideos)
+			local s, err
+			for _, apiUrl in ipairs(buildApiUrls(actionCmd_sendPostData)) do
+				s, err = getJsonData2(apiUrl, dataFile, post, queryMode_listVideos)
+				if s then break end
+			end
 			if not s then
 				G.hideInfoBox(box)
 				messagebox.exec{title=pluginName, text=l.networkError, buttons={'ok'}}
@@ -703,7 +707,7 @@ function paintMtRightMenu()
 	
 		local cacheKey = post
 		post = C:setUriData('data1', post)
-		local j_table, respErr = loadJsonResponse(cacheKey, url_new .. actionCmd_sendPostData, queryMode_listVideos, post)
+		local j_table, respErr = loadJsonResponse(cacheKey, buildApiUrls(actionCmd_sendPostData), queryMode_listVideos, post)
 		if not j_table then
 			return false
 		end

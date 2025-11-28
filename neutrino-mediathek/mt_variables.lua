@@ -114,6 +114,7 @@ function initVars()
 	url_base	= url_base_b
 	url_new_default	= detectDefaultApiBase()
 	url_new		= url_new_default
+	apiCandidates	= {url_new_default}
 
 	conf		= {}
 	conf.livestream	= {}
