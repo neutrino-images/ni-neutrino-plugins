@@ -109,9 +109,6 @@ function initVars()
 	forcePluginExit	= false
 --	Curl		= nil
 
-	url_base_b	= 'http://mediathek.slknet.de'
-	url_base_4	= 'http://mediathek4.slknet.de'
-	url_base	= url_base_b
 	url_new_default	= detectDefaultApiBase()
 	url_new		= url_new_default
 	apiCandidates	= {url_new_default}

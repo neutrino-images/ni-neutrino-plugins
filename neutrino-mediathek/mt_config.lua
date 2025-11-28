@@ -63,12 +63,7 @@ conf.apiFallback2	= config:getString('apiFallback2',	'')
 		conf.apiBaseUrl = NEUTRINO_MEDIATHEK_API_OVERRIDE
 	end
 
-	if (conf.networkIPV4Only == 'on') then
-		url_base = url_base_4
-	else
-		url_base = url_base_b
-	end
-	rebuildApiCandidates()
+rebuildApiCandidates()
 end
 
 function _saveConfig()
@@ -393,11 +388,4 @@ function configMenu()
 		createImages()
 	end
 
-	if (old_networkIPV4Only ~= conf.networkIPV4Only) then
-		if (conf.networkIPV4Only == 'on') then
-			url_base = url_base_4
-		else
-			url_base = url_base_b
-		end
-	end
 end
