@@ -113,7 +113,7 @@ end
 
 function getLivestreams()
 	local cacheKey = url_new .. actionCmd_livestream
-	local j_table = loadJsonResponse(cacheKey, cacheKey, queryMode_listLivestreams, nil)
+	local j_table = loadJsonResponse(cacheKey, buildApiUrls(actionCmd_livestream), queryMode_listLivestreams, nil)
 	if not j_table then
 		return false
 	end

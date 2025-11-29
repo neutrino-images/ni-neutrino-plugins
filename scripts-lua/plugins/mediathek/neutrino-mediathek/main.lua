@@ -25,7 +25,7 @@ end
 
 function getVersionInfo()
 	local cacheKey = url_new .. actionCmd_versionInfo
-	local j_table = loadJsonResponse(cacheKey, cacheKey, queryMode_Info, nil)
+	local j_table = loadJsonResponse(cacheKey, buildApiUrls(actionCmd_versionInfo), queryMode_Info, nil)
 	if not j_table then
 		return false
 	end

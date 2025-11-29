@@ -1,10 +1,6 @@
 name: Package Plugin
 
 on:
-  push:
-    branches: [ master ]
-    tags:
-      - 'v*'
   workflow_dispatch:
 
 jobs:
@@ -77,6 +73,7 @@ jobs:
         run: |
           git status --short
           python /tmp/tagit.py -f neutrino-mediathek/VERSION --tag-format "v{major}.{minor}.{patch}" --version-mode increment --scheme-file .github/tagit-schemes.json
+          echo "Version updated to $(tr -d '\n' < neutrino-mediathek/VERSION)"
 
       - name: Commit and push VERSION
         run: |

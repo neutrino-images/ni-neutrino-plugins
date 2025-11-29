@@ -30,6 +30,8 @@ function _loadConfig()
 	conf.networkDlSilent	= config:getString('networkDlSilent',	'off')
 	conf.networkDlVerbose	= config:getString('networkDlVerbose',	'off')
 	conf.apiBaseUrl		= config:getString('apiBaseUrl',	url_new_default)
+	conf.apiFallback1	= config:getString('apiFallback1',	'')
+	conf.apiFallback2	= config:getString('apiFallback2',	'')
 	conf.privacyAccepted	= config:getString('privacyAccepted',	'off')
 	conf.sortMode		= config:getString('sortMode',		'date_desc')
 	conf.geoMode		= config:getString('geoMode',		'all')
@@ -61,12 +63,7 @@ function _loadConfig()
 		conf.apiBaseUrl = NEUTRINO_MEDIATHEK_API_OVERRIDE
 	end
 
-	if (conf.networkIPV4Only == 'on') then
-		url_base = url_base_4
-	else
-		url_base = url_base_b
-	end
-	url_new = conf.apiBaseUrl
+rebuildApiCandidates()
 end
 
 function _saveConfig()
@@ -98,6 +95,8 @@ function _saveConfig()
 	config:setString('networkDlSilent',	conf.networkDlSilent)
 	config:setString('networkDlVerbose',	conf.networkDlVerbose)
 	config:setString('apiBaseUrl',		conf.apiBaseUrl)
+	config:setString('apiFallback1',	conf.apiFallback1)
+	config:setString('apiFallback2',	conf.apiFallback2)
 	config:setString('privacyAccepted',	conf.privacyAccepted)
 	config:setString('sortMode',		conf.sortMode)
 	config:setString('geoMode',		conf.geoMode)
@@ -206,12 +205,34 @@ function changeNetworkDLVerbose(k, v)
 	setConfigOnOff(k, v)
 end
 
+function rebuildApiCandidates()
+	local seen = {}
+	local function addUrl(u)
+		if u and u ~= '' and not seen[u] then
+			table.insert(apiCandidates, u)
+			seen[u] = true
+		end
+	end
+	apiCandidates = {}
+	addUrl(conf.apiBaseUrl ~= '' and conf.apiBaseUrl or url_new_default)
+	addUrl(url_new_default)
+	addUrl(conf.apiFallback1)
+	addUrl(conf.apiFallback2)
+	url_new = apiCandidates[1] or url_new_default
+end
+
 function changeApiBaseUrl(dummy, value)
 	if value == nil or value == '' then
-		value = url_new_default
+		value = ''
 	end
-	conf.apiBaseUrl = value
-	url_new = conf.apiBaseUrl
+	-- id of the menu item is passed as dummy; default to primary if missing
+	local key = dummy or "apiBaseUrl"
+	if key == '' then key = "apiBaseUrl" end
+	conf[key] = value
+	if key == "apiBaseUrl" and value == '' then
+		conf.apiBaseUrl = url_new_default
+	end
+	rebuildApiCandidates()
 	return MENU_RETURN.REPAINT
 end
 
@@ -234,6 +255,28 @@ function networkSetup()
 		id="apiBaseUrl",
 		value=conf.apiBaseUrl,
 		name=l.networkApiBaseUrl,
+		size=160
+	}
+
+	m_nw_conf:addItem{
+		type="keyboardinput",
+		action="changeApiBaseUrl",
+		hint_icon="hint_service",
+		hint=l.networkApiFallback1H,
+		id="apiFallback1",
+		value=conf.apiFallback1,
+		name=l.networkApiFallback1,
+		size=160
+	}
+
+	m_nw_conf:addItem{
+		type="keyboardinput",
+		action="changeApiBaseUrl",
+		hint_icon="hint_service",
+		hint=l.networkApiFallback2H,
+		id="apiFallback2",
+		value=conf.apiFallback2,
+		name=l.networkApiFallback2,
 		size=160
 	}
 
@@ -345,11 +388,4 @@ function configMenu()
 		createImages()
 	end
 
-	if (old_networkIPV4Only ~= conf.networkIPV4Only) then
-		if (conf.networkIPV4Only == 'on') then
-			url_base = url_base_4
-		else
-			url_base = url_base_b
-		end
-	end
 end

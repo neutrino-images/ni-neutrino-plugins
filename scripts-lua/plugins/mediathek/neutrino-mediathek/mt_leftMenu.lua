@@ -116,8 +116,8 @@ function channelMenu()
 --	mi:addKey{directkey=RC["setup"], id="setup", action="key_setup"}
 	addKillKey(mi)
 
-	local query_url = url_new .. actionCmd_listChannels
-	local j_table = loadJsonResponse(query_url, query_url, queryMode_listChannels, nil)
+	local query_url = buildApiUrls(actionCmd_listChannels)
+	local j_table = loadJsonResponse(query_url[1], query_url, queryMode_listChannels, nil)
 	if not j_table or not j_table.entry then
 		return false
 	end
@@ -207,7 +207,7 @@ function themeMenu()
 		local post = J:encode(sendData)
 
 		post = C:setUriData('data1', post)
-		local j_table = loadJsonResponse(post, url_new .. actionCmd_sendPostData, queryMode_listVideos, post)
+		local j_table = loadJsonResponse(post, buildApiUrls(actionCmd_sendPostData), queryMode_listVideos, post)
 
 		local endentries = actentries + limit - 1
 		if (endentries > maxentries) then

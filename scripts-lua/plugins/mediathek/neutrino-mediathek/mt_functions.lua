@@ -39,26 +39,35 @@ end
 
 function loadJsonResponse(cacheKey, url, mode, postData)
 	local dataFile = createCacheFileName(cacheKey, 'json')
-	local s, err = getJsonData2(url, dataFile, postData, mode)
-	if not s then
-		messagebox.exec{title=pluginName, text=l.networkError, buttons={'ok'}}
-		return nil, 'network'
+	local urlList = {}
+	if type(url) == 'table' then
+		urlList = url
+	else
+		urlList = { url }
 	end
-	local j_table
-	j_table, err = decodeJson(s)
-	if not j_table then
-		messagebox.exec{title=pluginName, text=l.jsonError, buttons={'ok'}}
-		os.execute('rm -f ' .. dataFile)
-		return nil, 'json'
-	end
-	if checkJsonError(j_table) == false then
-		os.execute('rm -f ' .. dataFile)
-		if j_table.err == 2 then
-			return j_table, 'nodata'
+	local lastErr = nil
+	for _, u in ipairs(urlList) do
+		local s, err = getJsonData2(u, dataFile, postData, mode)
+		if s then
+			local j_table, decodeErr = decodeJson(s)
+			if not j_table then
+				lastErr = 'json'
+				os.execute('rm -f ' .. dataFile)
+			elseif checkJsonError(j_table) == false then
+				os.execute('rm -f ' .. dataFile)
+				if j_table.err == 2 then
+					return j_table, 'nodata'
+				end
+				lastErr = 'api'
+			else
+				return j_table, nil
+			end
+		else
+			lastErr = 'network'
 		end
-		return nil, 'api'
 	end
-	return j_table, nil
+	messagebox.exec{title=pluginName, text=l.networkError, buttons={'ok'}}
+	return nil, lastErr or 'network'
 end
 
 local function generate_sid(length)
@@ -428,6 +437,21 @@ function createCacheFileName(url, ext)
 	local d = V:createChannelIDfromUrl(url)
 	d = string.gsub(d, 'ffffffff', '')
 	return pluginTmpPath .. '/data_' .. d .. '.' .. ext
+end
+
+function getApiUrlList()
+	if apiCandidates and #apiCandidates > 0 then
+		return apiCandidates
+	end
+	return { url_new }
+end
+
+function buildApiUrls(action)
+	local list = {}
+	for _, base in ipairs(getApiUrlList()) do
+		table.insert(list, base .. action)
+	end
+	return list
 end
 
 -- url_decode/url_encode code from: http://lua-users.org/wiki/StringRecipes
