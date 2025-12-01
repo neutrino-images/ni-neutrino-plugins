@@ -181,6 +181,24 @@ local function deriveAccessibilityBase(entry)
 	return string.format("%s|%s", normalizeAccessibilityText(entry.channel or ''), trim(baseTitle) or '')
 end
 
+local function parseDate(dateStr, timeStr)
+	if not dateStr or dateStr == '' then
+		return 0
+	end
+	local d, m, y = dateStr:match("^(%d%d)%.(%d%d)%.(%d%d%d%d)$")
+	d, m, y = tonumber(d), tonumber(m), tonumber(y)
+	if not (d and m and y) then
+		return 0
+	end
+	local h, min = 0, 0
+	if timeStr and timeStr:match("^(%d%d):(%d%d)$") then
+		h, min = timeStr:match("^(%d%d):(%d%d)$")
+		h, min = tonumber(h), tonumber(min)
+	end
+	local t = os.time({year = y, month = m, day = d, hour = h or 0, min = min or 0, sec = 0})
+	return t or 0
+end
+
 function filterAccessibilityVariants(list)
 	if not list or #list == 0 then
 		return list
@@ -205,5 +223,9 @@ function filterAccessibilityVariants(list)
 			for _, e in ipairs(g.marked) do table.insert(filtered, e) end
 		end
 	end
+	-- Keep filtered list ordered by date/time (newest first)
+	table.sort(filtered, function(a, b)
+		return parseDate(a.date, a.time) > parseDate(b.date, b.time)
+	end)
 	return filtered
 end
