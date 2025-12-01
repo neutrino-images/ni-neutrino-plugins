@@ -695,6 +695,10 @@ function paintMtRightMenu()
 		el['start'] = start
 
 		local limit = mtRightMenu_count
+		-- when filtering (z. B. Accessibility-Hints), more items help to fill the page
+		if conf.hideAccessibilityHints == 'on' then
+			limit = mtRightMenu_count * 2
+		end
 		el['limit'] = limit
 
 		local refTime = 0
