@@ -19,6 +19,7 @@ function Filters.sortEntries(list)
 			return (a.timestamp or 0) > (b.timestamp or 0)
 		end
 	end
+	-- TODO: Handling duplicate timestamps/titles could be stabilized if needed
 	table.sort(list, compare)
 end
 

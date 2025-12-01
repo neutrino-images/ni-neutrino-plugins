@@ -39,6 +39,9 @@ local requiresFullBuffer = Filters.requiresFullBuffer
 local matchesSearchFilters = Filters.matchesSearchFilters
 local entryMatchesFilters = Filters.entryMatchesFilters
 
+-- TODO: Accessibility filter is applied both when buffering (mtBuffer) and when paging (mtList);
+-- consider consolidating to a single pass to reduce work and keep totals consistent.
+
 local function getCachePaths()
 	local configPath = (CONF_PATH or '/var/tuxbox/config/') .. H.scriptBase() .. '_local_recordings.json'
 	local tmpPath = pluginTmpPath .. '/local_recordings.json'
@@ -808,6 +811,7 @@ function paintMtRightMenu()
 	for i=1, mtRightMenu_count do
 		paint_mtItemLine(i)
 	end
+	-- TODO: parse_m3u8 is propagated but currently unused; if no longer needed, clean up.
 
 	mtRightMenu_max_page = math.ceil(mtRightMenu_list_total/mtRightMenu_count)
 	paintLeftInfoBox(string.format(l.menuPageOfPage, mtRightMenu_view_page, mtRightMenu_max_page))
