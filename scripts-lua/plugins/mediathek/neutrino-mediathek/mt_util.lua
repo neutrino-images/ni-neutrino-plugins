@@ -14,7 +14,14 @@ accessibilityHintKeywords = {
 	-- Originalton
 	'o-ton',
 	'oton',
-	'originalton'
+	'originalton',
+	-- Gebärdensprache
+	'gebaerd',
+	'gebard',
+	'geb%C3%A4rd',
+	'gebaerdensprache',
+	'gebardensprache',
+	'gebaerdensprach'
 }
 
 function trim(value)
