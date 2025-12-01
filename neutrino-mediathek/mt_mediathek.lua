@@ -744,9 +744,23 @@ function paintMtRightMenu()
 				mtList[i] = buildEntry(j_table.entry[i])
 			end
 			-- Remove accessibility-marked duplicates when a normal variant exists
-				if conf.hideAccessibilityHints == 'on' then
-					mtList = filterAccessibilityVariants(mtList)
+			if conf.hideAccessibilityHints == 'on' then
+				local before = #mtList
+				mtList = filterAccessibilityVariants(mtList)
+				local removed = before - #mtList
+				if removed > 0 then
+					-- Adjust total/maximum page if we dropped entries on this page
+					local remaining_estimate = 0
+					if j_table.head and j_table.head.total then
+						local served = mtRightMenu_list_start + before
+						local total = j_table.head.total
+						if served < total then
+							remaining_estimate = total - served
+						end
+					end
+					mtRightMenu_list_total = mtRightMenu_list_start + #mtList + remaining_estimate
 				end
+			end
 		end
 	else -- Use buffered list (search results or advanced filters)
 		if (selectionChanged == true) then
