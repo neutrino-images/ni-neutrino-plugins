@@ -4,22 +4,32 @@ local Filters = {}
 
 function Filters.sortEntries(list)
 	local mode = conf.sortMode
-	local function compare(a, b)
-		if mode == 'date_asc' then
-			return (a.timestamp or 0) < (b.timestamp or 0)
-		elseif mode == 'title_asc' then
-			return (a.title or ''):lower() < (b.title or ''):lower()
-		elseif mode == 'title_desc' then
-			return (a.title or ''):lower() > (b.title or ''):lower()
-		elseif mode == 'duration_desc' then
-			return (a.durationSec or 0) > (b.durationSec or 0)
-		elseif mode == 'duration_asc' then
-			return (a.durationSec or 0) < (b.durationSec or 0)
-		else -- date_desc default
-			return (a.timestamp or 0) > (b.timestamp or 0)
-		end
+	-- remember original order for stable sorting on equal keys
+	local origIndex = {}
+	for i, entry in ipairs(list) do
+		origIndex[entry] = i
 	end
-	-- TODO: Handling duplicate timestamps/titles could be stabilized if needed
+
+	local function cmpKey(aVal, bVal, a, b, asc)
+		if aVal == bVal then
+			return (origIndex[a] or 0) < (origIndex[b] or 0)
+		end
+		if asc then
+			return aVal < bVal
+		end
+		return aVal > bVal
+	end
+
+	local modes = {
+		date_asc      = function(a, b) return cmpKey(a.timestamp or 0, b.timestamp or 0, a, b, true) end,
+		date_desc     = function(a, b) return cmpKey(a.timestamp or 0, b.timestamp or 0, a, b, false) end,
+		title_asc     = function(a, b) return cmpKey((a.title or ''):lower(), (b.title or ''):lower(), a, b, true) end,
+		title_desc    = function(a, b) return cmpKey((a.title or ''):lower(), (b.title or ''):lower(), a, b, false) end,
+		duration_asc  = function(a, b) return cmpKey(a.durationSec or 0, b.durationSec or 0, a, b, true) end,
+		duration_desc = function(a, b) return cmpKey(a.durationSec or 0, b.durationSec or 0, a, b, false) end,
+	}
+
+	local compare = modes[mode] or modes.date_desc
 	table.sort(list, compare)
 end
 

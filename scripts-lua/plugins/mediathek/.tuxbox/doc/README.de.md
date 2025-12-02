@@ -71,7 +71,7 @@ Nach der Änderung Neutrino neu starten.
 - Optionale Icon-Pfade: standardmäßig werden `/usr/share/tuxbox/neutrino/icons/` (System) und `/var/tuxbox/icons/` (Benutzer) verwendet. Beim Packen lassen sie sich via `ICONSDIR=/pfad/... ICONSDIR_VAR=/pfad/... make install` anpassen (dieselben Namen wie in Neutrinos `./configure`).
 - Ein erreichbares API-Backend (lokal via `make -C services/mediathek-backend smoke` oder öffentlich).
 - Optional: `curl`, `jq` sowie das Environment `NEUTRINO_MEDIATHEK_API`, um die URL bequem zu überschreiben.
-- Für lokale Aufnahmen: das System muss ein `find` mit `-printf` unterstützen (GNU findutils). Auf manchen BusyBox-Images fehlt `-printf`; dann bitte `findutils` nachinstallieren oder sicherstellen, dass ein kompatibles `find` im PATH liegt.
+- Für lokale Aufnahmen: ein `find` mit `-printf` (GNU findutils) wird empfohlen – schneller und kompatibler. Auf BusyBox-Systemen ohne `-printf` fällt das Plugin zwar auf `-print`+`stat` zurück, kann aber je nach Datenmenge deutlich langsamer sein; daher nach Möglichkeit `findutils` installieren.
 
 ### Installation & Update (PC-Umgebung)
 1. Repository klonen:

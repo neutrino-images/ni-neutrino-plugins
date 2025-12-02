@@ -163,25 +163,57 @@ local function parseFindLine(line)
 	}
 end
 
+local findSupportsPrintfFlag = nil
+local function findSupportsPrintf()
+	if findSupportsPrintfFlag ~= nil then
+		return findSupportsPrintfFlag
+	end
+	-- Try a minimal find command; success means printf is supported
+	local ok = os.execute("find /dev/null -maxdepth 0 -printf '' >/dev/null 2>&1")
+	findSupportsPrintfFlag = (ok == true or ok == 0)
+	return findSupportsPrintfFlag
+end
+
 collectRecordingMeta = function(basePath, out)
 	if not directoryExists(basePath) then
 		H.printf("[neutrino-mediathek] collectRecordingMeta: basePath missing %s", tostring(basePath))
 		return false
 	end
 
-	local findCmd = string.format([[
-		find %s -path '*/lost+found' -prune -o -type f \
-			\( -iname '*.ts' -o -iname '*.mp4' -o -iname '*.mkv' \) \
-			-printf '%%p|%%s|%%T@\\n' 2>/dev/null
-	]], string.format('%q', basePath))
+	local usePrintf = findSupportsPrintf()
+	local findCmd
+	if usePrintf then
+		findCmd = string.format([[
+			find %s -path '*/lost+found' -prune -o -type f \
+				\( -iname '*.ts' -o -iname '*.mp4' -o -iname '*.mkv' \) \
+				-printf '%%p|%%s|%%T@\\n' 2>/dev/null
+		]], string.format('%q', basePath))
+	else
+		-- BusyBox find fallback without -printf
+		findCmd = string.format([[
+			find %s -path '*/lost+found' -prune -o -type f \
+				\( -iname '*.ts' -o -iname '*.mp4' -o -iname '*.mkv' \) \
+				-print 2>/dev/null
+		]], string.format('%q', basePath))
+	end
+
 	local pipe = io.popen(findCmd)
 	local usedFastPath = false
 	if pipe then
 		for line in pipe:lines() do
-			local meta = parseFindLine(line)
-			if meta and meta.path then
-				table.insert(out, meta)
+			local meta = nil
+			if usePrintf then
+				meta = parseFindLine(line)
+			else
+				-- only path available, stat in Lua
+				if line and line ~= '' then
+					local size, mtime = getFileAttributes(line)
+					if size and mtime then
+						meta = {path=line, size=size, mtime=mtime}
+					end
+				end
 			end
+			if meta and meta.path then table.insert(out, meta) end
 			usedFastPath = true
 		end
 		pipe:close()

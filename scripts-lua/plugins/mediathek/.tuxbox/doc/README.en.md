@@ -74,7 +74,7 @@ Restart Neutrino after editing.
 - Optional icon directories: by default the plugin uses `/usr/share/tuxbox/neutrino/icons/` (system) and `/var/tuxbox/icons/` (user). When packaging you can override them via `ICONSDIR=/path/... ICONSDIR_VAR=/path/... make install` (matching Neutrino's configure variables).
 - A reachable API endpoint speaking the Mediathek contract (self-hosted or public).
 - Optional but handy: `curl` and `jq` for API smoke tests, and the `NEUTRINO_MEDIATHEK_API` environment variable for quick overrides.
-- For local recordings: a `find` that supports `-printf` (GNU findutils). BusyBox `find` often lacks this flag; install `findutils` or ensure a compatible `find` is in `PATH`.
+- For local recordings: GNU `findutils` (`find` with `-printf`) is recommended for speed/compatibility. On BusyBox systems without `-printf`, the plugin falls back to `-print`+`stat`, but can be significantly slower depending on the amount of data; therefore, install `findutils` if possible.
 
 ### Local Build & Update
 1. Clone this repo next to your DX sources (if not already present):
