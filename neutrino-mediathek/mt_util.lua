@@ -113,18 +113,103 @@ function getFileAttributes(path)
 	if not path or path == '' then
 		return nil, nil
 	end
-	local cmd = string.format("stat -c '%%s %%Y' %s 2>/dev/null", string.format('%q', path))
-	local pipe = io.popen(cmd)
-	if not pipe then
-		return nil, nil
+	local quoted = string.format('%q', path)
+
+	local function try(cmd, parser)
+		local pipe = io.popen(cmd)
+		if not pipe then
+			return nil, nil
+		end
+		local line = pipe:read('*l')
+		pipe:close()
+		if not line or line == '' then
+			return nil, nil
+		end
+		return parser(line)
 	end
-	local output = pipe:read('*l')
-	pipe:close()
-	if not output then
-		return nil, nil
+
+	-- Try multiple stat/ls variants to support GNU, BSD, and BusyBox.
+	local attempts = {
+		{
+			cmd = string.format("stat -c '%%s %%Y' %s 2>/dev/null", quoted),
+			parse = function(line)
+				local size, mtime = line:match('^(%d+)%s+(%d+)$')
+				if size and mtime then
+					return tonumber(size), tonumber(mtime)
+				end
+				return nil, nil
+			end
+		},
+		{
+			cmd = string.format("stat -f '%%z %%m' %s 2>/dev/null", quoted),
+			parse = function(line)
+				local size, mtime = line:match('^(%d+)%s+(%d+)$')
+				if size and mtime then
+					return tonumber(size), tonumber(mtime)
+				end
+				return nil, nil
+			end
+		},
+		{
+			cmd = string.format("ls -ln --time-style=+%%s %s 2>/dev/null", quoted),
+			parse = function(line)
+				local fields = {}
+				for field in line:gmatch('%S+') do
+					fields[#fields+1] = field
+				end
+				local size = tonumber(fields[5])
+				local mtime = tonumber(fields[6])
+				if size and mtime then
+					return size, mtime
+				end
+				return nil, nil
+			end
+		},
+		{
+			cmd = string.format("ls -ln --full-time %s 2>/dev/null", quoted),
+			parse = function(line)
+				local fields = {}
+				for field in line:gmatch('%S+') do
+					fields[#fields+1] = field
+				end
+				local size = tonumber(fields[5])
+				local date = fields[6]
+				local timeStr = fields[7]
+				if not (size and date and timeStr) then
+					return nil, nil
+				end
+				local y, m, d = date:match('^(%d+)%-(%d+)%-(%d+)$')
+				local hh, mi, ss = timeStr:match('^(%d+):(%d+):(%d+)')
+				if not (hh and mi and ss) then
+					hh, mi, ss = timeStr:match('^(%d+):(%d+):(%d+)%.')
+				end
+				if not (y and m and d and hh and mi and ss) then
+					return nil, nil
+				end
+				local mtime = os.time{
+					year = tonumber(y),
+					month = tonumber(m),
+					day = tonumber(d),
+					hour = tonumber(hh),
+					min = tonumber(mi),
+					sec = tonumber(ss)
+				}
+				if size and mtime then
+					return size, mtime
+				end
+				return nil, nil
+			end
+		}
+	}
+
+	for _, attempt in ipairs(attempts) do
+		local size, mtime = try(attempt.cmd, attempt.parse)
+		if size and mtime then
+			return size, mtime
+		end
 	end
-	local size, mtime = output:match('(%d+)%s+(%d+)')
-	return tonumber(size), tonumber(mtime)
+
+	return nil, nil
 end
 
 function normalizeAccessibilityText(value)
