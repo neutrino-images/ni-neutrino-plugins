@@ -523,8 +523,10 @@ function paintMtRightMenu()
 		local actentries = 0
 		local maxentries = 999999
 		local noDataOverall = false
+		local progress = createProgressWindow(l.searchTitleInfoMsg)
 
 		while (actentries < maxentries) do
+			local displayStart = start
 			local sendData = getSendDataHead(queryMode_listVideos)
 			el['limit'] = limit
 			el['start'] = start
@@ -540,58 +542,64 @@ function paintMtRightMenu()
 				if s then break end
 			end
 			if not s then
-				G.hideInfoBox(box)
+				if progress then progress:close() end
 				messagebox.exec{title=pluginName, text=l.networkError, buttons={'ok'}}
 				return false
 			end
 --	H.printf("\nretData:\n%s\n", tostring(s))
 
-			local endentries = actentries+limit-1
-			if (endentries > maxentries) then
-				endentries = maxentries
-			end
-			local totalentries = maxentries
-			if (totalentries == 999999) then
-				totalentries = l.searchTitleInfoAll
-			end
-			local box = paintAnInfoBox(string.format(l.searchTitleInfoMsg, actentries, endentries, tostring(totalentries)), WHERE.CENTER)
 				local j_table = {}
-			j_table, err = decodeJson(s)
-			if (j_table == nil) then
-				G.hideInfoBox(box)
-				messagebox.exec{title=pluginName, text=l.jsonError, buttons={'ok'}}
-				os.execute('rm -f ' .. dataFile)
-				return false
-			end
-			local noData = false
-			if checkJsonError(j_table) == false then
-				os.execute('rm -f ' .. dataFile)
-				if (j_table.err ~= 2) then
+				j_table, err = decodeJson(s)
+				if (j_table == nil) then
+					if progress then progress:close() end
+					messagebox.exec{title=pluginName, text=l.jsonError, buttons={'ok'}}
+					os.execute('rm -f ' .. dataFile)
 					return false
 				end
-				noData = true
-			end
+				local noData = false
+				if checkJsonError(j_table) == false then
+					os.execute('rm -f ' .. dataFile)
+					if (j_table.err ~= 2) then
+						if progress then progress:close() end
+						return false
+					end
+					noData = true
+				end
 
-			if (noData == true) then
-				noDataOverall = true
-				maxentries = 0
-			else
-				for i=1, #j_table.entry do
-					if matchesSearchFilters(j_table.entry[i]) then
-						local entry = buildEntry(j_table.entry[i])
-						if entryMatchesFilters(entry) then
-							mtBuffer[j] = entry
-							j = j + 1
+				if (noData == true) then
+					noDataOverall = true
+					maxentries = 0
+				else
+					for i=1, #j_table.entry do
+						if matchesSearchFilters(j_table.entry[i]) then
+							local entry = buildEntry(j_table.entry[i])
+							if entryMatchesFilters(entry) then
+								mtBuffer[j] = entry
+								j = j + 1
+							end
 						end
 					end
+					start = start + limit
+					maxentries = j_table.head.total
+					actentries = actentries + limit
 				end
-				start = start + limit
-				maxentries = j_table.head.total
-				actentries = actentries + limit
-			end
-			G.hideInfoBox(box)
-		end -- while
-		j = j - 1
+
+				local totalentries = maxentries
+				if (totalentries == 999999) then
+					totalentries = l.searchTitleInfoAll
+				end
+				local endentries = displayStart+limit-1
+				if (endentries > maxentries) then
+					endentries = maxentries
+				end
+				if progress then
+					local current = (maxentries > 0) and math.min(actentries, maxentries) or actentries
+					local maxForBar = (maxentries > 0) and maxentries or math.max(current, 1)
+					progress:update(current, maxForBar, string.format(l.searchTitleInfoMsg, displayStart, endentries, tostring(totalentries)))
+				end
+			end -- while
+			if progress then progress:close() end
+			j = j - 1
 			if conf.hideAccessibilityHints == 'on' then
 				mtBuffer = filterAccessibilityVariants(mtBuffer)
 			end
@@ -1294,18 +1302,19 @@ end
 
 function scanLocalRecordings()
 	local path = conf.localRecordingsPath or ''
-	local infoBox = paintAnInfoBox(l.localRecordingsScanning, WHERE.CENTER)
+	local progress = createProgressWindow(l.localRecordingsScanning)
+	if progress then progress:update(0, 1, l.localRecordingsScanning) end
 	H.printf("[neutrino-mediathek] scanLocalRecordings: path=%s", tostring(path))
 	if not directoryExists(path) then
-		G.hideInfoBox(infoBox)
+		if progress then progress:close() end
 		return false, string.format(l.localRecordingsPathMissing, path)
 	end
 
 	local metas = {}
 	collectRecordingMeta(path, metas)
 	H.printf("[neutrino-mediathek] scanLocalRecordings: collected %d candidates", #metas)
-	G.hideInfoBox(infoBox)
 	if #metas == 0 then
+		if progress then progress:close() end
 		H.printf("[neutrino-mediathek] scanLocalRecordings: no files found under %s", tostring(path))
 		return false, string.format(l.localRecordingsNoEntries, path)
 	end
@@ -1321,7 +1330,7 @@ function scanLocalRecordings()
 
 	local entries = {}
 	local reused = 0
-	for _, meta in ipairs(metas) do
+	for idx, meta in ipairs(metas) do
 		local cached = previous[meta.path]
 		if cached and cached.fileSize == meta.size and cached.fileMtime == meta.mtime then
 			local copy = cloneEntry(cached)
@@ -1335,9 +1344,13 @@ function scanLocalRecordings()
 				table.insert(entries, recEntry)
 			end
 		end
+		if progress then
+			progress:update(idx, #metas, string.format("%s (%d/%d)", l.localRecordingsScanning, idx, #metas))
+		end
 	end
 
 	if #entries == 0 then
+		if progress then progress:close() end
 		return false, string.format(l.localRecordingsNoEntries, path)
 	end
 
@@ -1349,6 +1362,7 @@ function scanLocalRecordings()
 	mtRightMenu_list_start = 0
 	mtRightMenu_view_page = 1
 	mtRightMenu_select = 1
+	if progress then progress:close() end
 	return true
 end
 

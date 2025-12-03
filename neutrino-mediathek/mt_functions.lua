@@ -596,6 +596,44 @@ function paintInfoBoxAndWait(txt1, txt2, sec)
 	G.hideInfoBox(box)
 end
 
+-- Progress helper: prefers cprogresswindow, falls back to simple info box
+function createProgressWindow(title)
+	if cprogresswindow and cprogresswindow.new then
+		local pw = cprogresswindow.new{title=title or ''}
+		if pw and pw.paint then
+			pw:paint()
+		end
+		return {
+			update = function(_, current, total, statusText)
+				if pw and pw.showStatus then
+					local max = (total and total > 0) and total or 1
+					local prog = current or 0
+					pw:showStatus{prog=prog, max=max, statusText=statusText or ''}
+				end
+			end,
+			close = function()
+				if pw and pw.hide then
+					pw:hide()
+				end
+			end
+		}
+	end
+	local box = paintAnInfoBox(title or '', WHERE.CENTER)
+	return {
+		update = function(_, _, _, statusText)
+			if box then
+				G.hideInfoBox(box)
+			end
+			box = paintAnInfoBox(statusText or title or '', WHERE.CENTER)
+		end,
+		close = function()
+			if box then
+				G.hideInfoBox(box)
+			end
+		end
+	}
+end
+
 function paintAnInfoBox(txt, where)
 	local _w = N:getRenderWidth(useDynFont, fontMiniInfo, txt)
 	local _h = N:FontHeight(useDynFont, fontMiniInfo)
