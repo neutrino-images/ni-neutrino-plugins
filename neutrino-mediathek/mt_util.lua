@@ -29,6 +29,20 @@ function trim(value)
 	return (value:gsub('^%s+', ''):gsub('%s+$', ''))
 end
 
+function decodeHtmlEntities(value)
+	if not value or value == '' then
+		return value
+	end
+	-- Basic entity decoding for local metadata (EPG/XML)
+	local decoded = value
+	decoded = decoded:gsub('&amp;', '&')
+	decoded = decoded:gsub('&lt;', '<')
+	decoded = decoded:gsub('&gt;', '>')
+	decoded = decoded:gsub('&quot;', '"')
+	decoded = decoded:gsub('&apos;', "'")
+	return decoded
+end
+
 function humanFileSize(bytes)
 	if not bytes or bytes <= 0 then
 		return '0 B'
