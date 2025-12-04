@@ -63,7 +63,7 @@ function getVersionInfo()
 	messagebox.exec{
 		title = l.versionHeader .. ' ' .. pluginName,
 		text = vInfo,
-		buttons = { 'ok' },
+		buttons = { 'back' },
 		width = infoWidth,
 		height = infoHeight
 	}
