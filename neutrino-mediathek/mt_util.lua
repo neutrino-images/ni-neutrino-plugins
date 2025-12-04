@@ -123,6 +123,9 @@ function directoryExists(path)
 	return result == '1'
 end
 
+-- Cache the working stat/ls command to avoid repeated detection
+local _cachedStatMethod = nil
+
 function getFileAttributes(path)
 	if not path or path == '' then
 		return nil, nil
@@ -142,10 +145,19 @@ function getFileAttributes(path)
 		return parser(line)
 	end
 
+	-- If a method worked before, try it first
+	if _cachedStatMethod then
+		local size, mtime = try(_cachedStatMethod.cmd(quoted), _cachedStatMethod.parse)
+		if size and mtime then
+			return size, mtime
+		end
+		_cachedStatMethod = nil
+	end
+
 	-- Try multiple stat/ls variants to support GNU, BSD, and BusyBox.
 	local attempts = {
 		{
-			cmd = string.format("stat -c '%%s %%Y' %s 2>/dev/null", quoted),
+			cmd = function(q) return string.format("stat -c '%%s %%Y' %s 2>/dev/null", q) end,
 			parse = function(line)
 				local size, mtime = line:match('^(%d+)%s+(%d+)$')
 				if size and mtime then
@@ -155,7 +167,7 @@ function getFileAttributes(path)
 			end
 		},
 		{
-			cmd = string.format("stat -f '%%z %%m' %s 2>/dev/null", quoted),
+			cmd = function(q) return string.format("stat -f '%%z %%m' %s 2>/dev/null", q) end,
 			parse = function(line)
 				local size, mtime = line:match('^(%d+)%s+(%d+)$')
 				if size and mtime then
@@ -165,7 +177,7 @@ function getFileAttributes(path)
 			end
 		},
 		{
-			cmd = string.format("ls -ln --time-style=+%%s %s 2>/dev/null", quoted),
+			cmd = function(q) return string.format("ls -ln --time-style=+%%s %s 2>/dev/null", q) end,
 			parse = function(line)
 				local fields = {}
 				for field in line:gmatch('%S+') do
@@ -180,7 +192,7 @@ function getFileAttributes(path)
 			end
 		},
 		{
-			cmd = string.format("ls -ln --full-time %s 2>/dev/null", quoted),
+			cmd = function(q) return string.format("ls -ln --full-time %s 2>/dev/null", q) end,
 			parse = function(line)
 				local fields = {}
 				for field in line:gmatch('%S+') do
@@ -217,8 +229,9 @@ function getFileAttributes(path)
 	}
 
 	for _, attempt in ipairs(attempts) do
-		local size, mtime = try(attempt.cmd, attempt.parse)
+		local size, mtime = try(attempt.cmd(quoted), attempt.parse)
 		if size and mtime then
+			_cachedStatMethod = attempt
 			return size, mtime
 		end
 	end
