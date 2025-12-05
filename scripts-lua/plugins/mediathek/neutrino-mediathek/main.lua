@@ -63,7 +63,7 @@ function getVersionInfo()
 	messagebox.exec{
 		title = l.versionHeader .. ' ' .. pluginName,
 		text = vInfo,
-		buttons = { 'ok' },
+		buttons = { 'back' },
 		width = infoWidth,
 		height = infoHeight
 	}
@@ -176,7 +176,10 @@ function newMainWindow()
 	end
 
 	local ret = cwindow.new{x=x, y=y, dx=w, dy=h, color_body=bgCol, show_header=showHeader, show_footer=false, name=pluginName .. ' - v' .. pluginVersion, icon=pluginIcon}
-	G.hideInfoBox(startBox)
+	if startProgress then
+		startProgress:close()
+		startProgress = nil
+	end
 	paintMainWindow(false, ret)
 	mainScreen = saveFullScreen()
 	return ret
@@ -221,6 +224,7 @@ end
 muteStatusNeutrino	= false
 muteStatusPlugin	= false
 volumeNeutrino		= 0
+local startProgress	= nil
 
 function beforeStart()
 	V:zapitStopPlayBack()
@@ -274,8 +278,16 @@ function main()
 		return
 	end
 	setFonts()
-	startBox = paintAnInfoBox(l.startPluginInfoMsg, WHERE.CENTER)
+	startProgress = createProgressWindow(l.startPluginInfoMsg)
+	if startProgress then
+		startProgress:update(0, 3, l.startPluginInfoMsg)
+	end
 	createImages()
+	if startProgress then
+		startProgress:update(1, 3, l.readDataInfoMsg)
+		startProgress:close()
+		startProgress = nil
+	end
 	mainWindow()
 	_saveConfig()
 	afterStop()
