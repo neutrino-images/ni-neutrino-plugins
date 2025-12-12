@@ -76,6 +76,60 @@ local function isRecordingPath(path)
 	return lower:match('%.ts$') ~= nil or lower:match('%.mp4$') ~= nil or lower:match('%.mkv$') ~= nil
 end
 
+-- Directories to skip during scans (case-insensitive, exact folder name)
+-- Default blacklist for directory scanning; can be overridden via conf.localRecordingsDirBlacklist (comma/semicolon separated)
+local defaultScanDirBlacklist = { 'archive', 'archives', '.git', 'git2' }
+local scanDirBlacklist = nil
+local scanDirBlacklistRaw = nil
+
+function resetScanDirBlacklistCache()
+	scanDirBlacklist = nil
+	scanDirBlacklistRaw = nil
+end
+
+local function buildScanDirBlacklist(raw)
+	local set = {}
+	local function addEntry(name)
+		name = trim(name or '')
+		if name == '' then
+			return
+		end
+		if string.find(name, '/') then
+			H.printf("[neutrino-mediathek] ignore invalid blacklist entry (contains /): %s", tostring(name))
+			return
+		end
+		set[string.lower(name)] = true
+	end
+
+	if raw and raw ~= '' then
+		for part in string.gmatch(raw, '([^,;]+)') do
+			addEntry(part)
+		end
+	else
+		for _, name in ipairs(defaultScanDirBlacklist) do
+			addEntry(name)
+		end
+	end
+	return set
+end
+
+local function getScanDirBlacklist()
+	local raw = conf and conf.localRecordingsDirBlacklist
+	if scanDirBlacklist == nil or scanDirBlacklistRaw ~= raw then
+		scanDirBlacklist = buildScanDirBlacklist(raw)
+		scanDirBlacklistRaw = raw
+	end
+	return scanDirBlacklist
+end
+
+local function isBlacklistedDir(path)
+	if not path or path == '' then
+		return false
+	end
+	local name = path:match("([^/]+)$") or path
+	return getScanDirBlacklist()[string.lower(name)] == true
+end
+
 local function readLocalRecordingMetadata(tsPath, pre)
 	local metadata = {
 		path = tsPath
@@ -249,6 +303,90 @@ collectRecordingMeta = function(basePath, out)
 	pipe2:close()
 	H.printf("[neutrino-mediathek] collectRecordingMeta: fallback entries=%d", #out)
 	return (#out > 0)
+end
+
+collectRecordingMetaIterative = function(basePath, out, progress)
+	if not directoryExists(basePath) then
+		H.printf("[neutrino-mediathek] collectRecordingMetaIterative: basePath missing %s", tostring(basePath))
+		return 0
+	end
+
+	local usePrintf = findSupportsPrintf()
+	local dirs = { basePath }
+	local dirIndex = 1
+	local processedDirs = 0
+	local totalDirs = 1
+
+	local function updateProgress(currentDir)
+		if progress then
+			local max = (totalDirs > 0) and totalDirs or 1
+			progress:update(processedDirs, max, string.format(l.localRecordingsScanningDir or l.localRecordingsScanning, currentDir or '', processedDirs, max))
+		end
+	end
+
+	while dirIndex <= #dirs do
+		local currentDir = dirs[dirIndex]
+		dirIndex = dirIndex + 1
+		processedDirs = processedDirs + 1
+
+		local quotedDir = string.format('%q', currentDir)
+		local fileCmd
+		if usePrintf then
+			fileCmd = string.format([[
+				find %s -maxdepth 1 -type f \
+					\( -iname '*.ts' -o -iname '*.mp4' -o -iname '*.mkv' \) \
+					-printf '%%p|%%s|%%T@\\n' 2>/dev/null
+			]], quotedDir)
+		else
+			fileCmd = string.format([[
+				find %s -maxdepth 1 -type f \
+					\( -iname '*.ts' -o -iname '*.mp4' -o -iname '*.mkv' \) \
+					-print 2>/dev/null
+			]], quotedDir)
+		end
+
+		local pipe = io.popen(fileCmd)
+		if pipe then
+			for line in pipe:lines() do
+				local meta = nil
+				if usePrintf then
+					meta = parseFindLine(line)
+				else
+					if line and line ~= '' then
+						local size, mtime = getFileAttributes(line)
+						if size and mtime then
+							meta = {path=line, size=size, mtime=mtime}
+						end
+					end
+				end
+				if meta and meta.path then
+					table.insert(out, meta)
+				end
+			end
+			pipe:close()
+		end
+
+		local subdirCmd = string.format([[
+			find %s -maxdepth 1 -mindepth 1 -type d ! -name 'lost+found' -print 2>/dev/null
+		]], quotedDir)
+		local subdirPipe = io.popen(subdirCmd)
+		if subdirPipe then
+			for subdir in subdirPipe:lines() do
+				if not isBlacklistedDir(subdir) then
+					totalDirs = totalDirs + 1
+					table.insert(dirs, subdir)
+				else
+					H.printf("[neutrino-mediathek] collectRecordingMetaIterative: skip blacklisted dir %s", tostring(subdir))
+				end
+			end
+			subdirPipe:close()
+		end
+
+		updateProgress(currentDir)
+	end
+
+	H.printf("[neutrino-mediathek] collectRecordingMetaIterative: scanned %d directories, entries=%d", processedDirs, #out)
+	return processedDirs
 end
 
 collectTsFilesRecursive = function(basePath, out)
@@ -1311,8 +1449,8 @@ function scanLocalRecordings()
 	end
 
 	local metas = {}
-	collectRecordingMeta(path, metas)
-	H.printf("[neutrino-mediathek] scanLocalRecordings: collected %d candidates", #metas)
+	local scannedDirs = collectRecordingMetaIterative(path, metas, progress) or 0
+	H.printf("[neutrino-mediathek] scanLocalRecordings: scanned %d dirs, collected %d candidates", scannedDirs, #metas)
 	if #metas == 0 then
 		if progress then progress:close() end
 		H.printf("[neutrino-mediathek] scanLocalRecordings: no files found under %s", tostring(path))
@@ -1330,6 +1468,10 @@ function scanLocalRecordings()
 
 	local entries = {}
 	local reused = 0
+	local totalWork = math.max(scannedDirs, 1) + #metas
+	if progress then
+		progress:update(scannedDirs, totalWork, string.format(l.localRecordingsProcessingFiles or l.localRecordingsScanning, 0, #metas))
+	end
 	for idx, meta in ipairs(metas) do
 		local cached = previous[meta.path]
 		if cached and cached.fileSize == meta.size and cached.fileMtime == meta.mtime then
@@ -1345,7 +1487,8 @@ function scanLocalRecordings()
 			end
 		end
 		if progress then
-			progress:update(idx, #metas, string.format("%s (%d/%d)", l.localRecordingsScanning, idx, #metas))
+			local currentWork = scannedDirs + idx
+			progress:update(currentWork, totalWork, string.format(l.localRecordingsProcessingFiles or l.localRecordingsScanning, idx, #metas))
 		end
 	end
 

@@ -66,6 +66,7 @@ Nach Änderungen Neutrino neu starten.
 ## Tipps für flüssige Wiedergabe
 - Bevorzuge Images mit LuaJIT: Listen und Filter reagieren deutlich schneller. Lua 5.1 funktioniert, ist aber bei großen Listen träger.
 - Für lokale Aufnahmen GNU `findutils` installieren; der BusyBox-Fallback funktioniert, kann aber länger brauchen.
+- Lokale Aufnahmen: Aufnahmeverzeichnis und optionale Verzeichnis-Blacklist in den Einstellungen setzen (`Menü → Einstellungen → Lokale Aufnahmen`). Die Blacklist (Komma/Strichpunkt getrennt) überspringt Ordner wie `archive`, `.git`, `tmp` beim Scan.
 - Netzwerk zur gewählten API stabil halten.
 
 ## Für Entwickler

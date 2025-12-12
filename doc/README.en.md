@@ -66,6 +66,7 @@ Restart Neutrino after editing.
 ## Tips for Smooth Playback
 - Prefer images with LuaJIT: list rendering and filters stay snappy. Classic Lua 5.1 works but is slower on large lists.
 - For local recordings, install GNU `findutils`; the BusyBox fallback works but scans can take longer.
+- Local recordings: set the recording directory and optional directory blacklist in Settings (`Menu → Settings → Local recordings`). The blacklist (comma/semicolon separated) skips folders like `archive`, `.git`, `tmp` during scans.
 - Make sure your box has a stable network connection to the configured API endpoint.
 
 ## Developer Corner
