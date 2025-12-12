@@ -7,6 +7,8 @@ Choose your preferred language:
 
 Lokale Aufnahmen: Das Aufnahmeverzeichnis und eine optionale Verzeichnis-Blacklist (z. B. `archive,.git,tmp`) können in den Plugin-Einstellungen gesetzt werden (`Menü → Einstellungen → Lokale Aufnahmen`). Default-Werte greifen, wenn nichts hinterlegt ist.
 
+Falls Neutrino noch eine alte Plugin-Kopie lädt: `make -C sources/neutrino-mediathek runtime-clean RUNTIME_HOST=user@box` entfernt verwaiste `/var/.../(lua)plugins`-Pfadreste, bevor du neu synchronisierst.
+
 ## Installation
 
 For packaging systems (e.g. Yocto/OE) or any build environment that

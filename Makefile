@@ -28,7 +28,11 @@ CP ?= cp
 SED ?= sed
 MV ?= mv
 RM ?= rm -f
+RMR ?= rm -rf
 MKDIR ?= install -d
+RUNTIME_ROOT ?= $(CURDIR)/../../root
+RUNTIME_HOST ?=
+RUNTIME_SSH ?= ssh
 
 all:
 	@echo "Nothing to build - Lua plugin"
@@ -99,7 +103,22 @@ ifneq ($(strip $(LUAPLUGIN_DIR)),$(strip $(PLUGIN_DIR)))
 endif
 endif
 
+runtime-clean:
+	@set -e; \
+	$(call compute_names); \
+	roots="$(RUNTIME_ROOT)"; \
+	if [ -n "$$roots" ]; then \
+		for r in $$roots; do \
+			for base in /usr/var/tuxbox/plugins /usr/var/tuxbox/luaplugins /usr/share/tuxbox/neutrino/plugins /usr/share/tuxbox/neutrino/luaplugins; do \
+				$(RMR) "$$r$$base/$$lua_dst" "$$r$$base/$$cfg_dst" "$$r$$base/$$hint_dst" "$$r$$base/$$dir_dst"; \
+			done; \
+		done; \
+	fi; \
+	if [ -n "$(RUNTIME_HOST)" ]; then \
+		$(RUNTIME_SSH) $(RUNTIME_HOST) "for base in /var/tuxbox/plugins /var/tuxbox/luaplugins /usr/share/tuxbox/neutrino/plugins /usr/share/tuxbox/neutrino/luaplugins; do rm -rf \"\$${base}/$$lua_dst\" \"\$${base}/$$cfg_dst\" \"\$${base}/$$hint_dst\" \"\$${base}/$$dir_dst\"; done"; \
+	fi
+
 clean:
 	@echo "Nothing to clean"
 
-.PHONY: all install uninstall clean
+.PHONY: all install uninstall clean runtime-clean

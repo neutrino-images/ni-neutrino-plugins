@@ -118,6 +118,7 @@ If these succeed, the plugin will work with the same URL.
 - **`Error connecting to database server`** – Wrong or unreachable API URL. Check the setting and retry with `curl`.
 - **`curl: download ... size: 0`** – Backend returned an empty body. Inspect backend logs (`services/mediathek-backend/logs/`) or call `/api/listChannels` manually.
 - **No changes after `git pull`** – Run `make plugins && make runtime-sync` to refresh the staged files.
+- **UI shows old plugin** – Clean leftover copies on the target: `make -C sources/neutrino-mediathek runtime-clean RUNTIME_HOST=user@box` (removes stale `/var/.../plugins|luaplugins` copies so Neutrino loads the updated Lua).
 
 ## Backend References
 - `services/mediathek-backend/docker` – importer/API Dockerfiles and Quickstart for local stacks.
