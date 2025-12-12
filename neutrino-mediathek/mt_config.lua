@@ -23,7 +23,12 @@ function _loadConfig()
 	conf.guiTimeMsg		= config:getInt32('guiTimeMsg',		10)
 	conf.localRecordingsEnabled = config:getString('localRecordingsEnabled', 'off')
 	conf.localRecordingsPath = config:getString('localRecordingsPath', '/media/hdd/movie')
+	-- Default must stay in sync with mt_mediathek.lua: defaultScanDirBlacklist
+	local defaultDirBlacklist = 'archive,archives,.git,git2'
 	conf.localRecordingsDirBlacklist = config:getString('localRecordingsDirBlacklist', '')
+	if conf.localRecordingsDirBlacklist == '' then
+		conf.localRecordingsDirBlacklist = defaultDirBlacklist
+	end
 	conf.localRecordingsCachePersistent = config:getString('localRecordingsCachePersistent', 'off')
 	conf.hideAccessibilityHints = config:getString('hideAccessibilityHints', 'on')
 
