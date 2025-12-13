@@ -99,14 +99,25 @@ define link_target
 $(call compute_names); \
 src="$(abspath $(DESTDIR)$1)"; \
 dst="$2"; \
+rel_prefix=""; \
+if [ "$(dir $(PRIMARY_DIR))" = "$(dir $(SECONDARY_DIR))" ]; then \
+	rel_prefix="../$(notdir $(PRIMARY_DIR))"; \
+fi; \
 if [ -n "$$dst" ]; then \
 	$(MKDIR) "$$dst"; \
 	$(RMR) "$$dst/$$lua_dst" "$$dst/$$cfg_dst" "$$dst/$$hint_dst" "$$dst/$$dir_dst"; \
 	$(MKDIR) "$$dst/$$dir_dst"; \
-	$(LN) "$$src/$$lua_dst" "$$dst/$$lua_dst"; \
-	$(LN) "$$src/$$cfg_dst" "$$dst/$$cfg_dst"; \
-	$(LN) "$$src/$$hint_dst" "$$dst/$$hint_dst"; \
-	$(LN) "$$src/$$dir_dst" "$$dst/$$dir_dst"; \
+	if [ -n "$$rel_prefix" ]; then \
+		$(LN) "$$rel_prefix/$$lua_dst" "$$dst/$$lua_dst"; \
+		$(LN) "$$rel_prefix/$$cfg_dst" "$$dst/$$cfg_dst"; \
+		$(LN) "$$rel_prefix/$$hint_dst" "$$dst/$$hint_dst"; \
+		$(LN) "$$rel_prefix/$$dir_dst" "$$dst/$$dir_dst"; \
+	else \
+		$(LN) "$$src/$$lua_dst" "$$dst/$$lua_dst"; \
+		$(LN) "$$src/$$cfg_dst" "$$dst/$$cfg_dst"; \
+		$(LN) "$$src/$$hint_dst" "$$dst/$$hint_dst"; \
+		$(LN) "$$src/$$dir_dst" "$$dst/$$dir_dst"; \
+	fi; \
 fi
 endef
 
