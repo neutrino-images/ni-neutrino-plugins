@@ -331,6 +331,7 @@ collectRecordingMetaIterative = function(basePath, out, progress)
 
 		local quotedDir = string.format('%q', currentDir)
 		local fileCmd
+		local entriesAdded = 0
 		if usePrintf then
 			fileCmd = string.format([[
 				find %s -maxdepth 1 -type f \
@@ -361,9 +362,32 @@ collectRecordingMetaIterative = function(basePath, out, progress)
 				end
 				if meta and meta.path then
 					table.insert(out, meta)
+					entriesAdded = entriesAdded + 1
 				end
 			end
 			pipe:close()
+		end
+
+		-- Fallback: if -printf produced nothing, retry with plain -print + stat
+		if usePrintf and entriesAdded == 0 then
+			fileCmd = string.format([[
+				find %s -maxdepth 1 -type f \
+					\( -iname '*.ts' -o -iname '*.mp4' -o -iname '*.mkv' \) \
+					-print 2>/dev/null
+			]], quotedDir)
+			local pipeFallback = io.popen(fileCmd)
+			if pipeFallback then
+				for line in pipeFallback:lines() do
+					if line and line ~= '' then
+						local size, mtime = getFileAttributes(line)
+						if size and mtime then
+							table.insert(out, {path=line, size=size, mtime=mtime})
+							entriesAdded = entriesAdded + 1
+						end
+					end
+				end
+				pipeFallback:close()
+			end
 		end
 
 		local subdirCmd = string.format([[
