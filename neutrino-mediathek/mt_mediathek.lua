@@ -685,7 +685,7 @@ function paintMtRightMenu()
 		local actentries = 0
 		local maxentries = 999999
 		local noDataOverall = false
-		local progress = createProgressWindow(l.searchTitleInfoMsg)
+		local progress = createProgressWindow(l.searchTitleInfoMsg, { textOnly = true })
 
 		while (actentries < maxentries) do
 			local displayStart = start

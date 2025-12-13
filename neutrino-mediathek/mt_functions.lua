@@ -596,9 +596,12 @@ function paintInfoBoxAndWait(txt1, txt2, sec)
 	G.hideInfoBox(box)
 end
 
--- Progress helper: prefers cprogresswindow, falls back to simple info box
-function createProgressWindow(title)
-	if cprogresswindow and cprogresswindow.new then
+-- Progress helper: prefers cprogresswindow, falls back to simple info box.
+-- Pass {textOnly=true} to force the lightweight text overlay even if cprogresswindow exists.
+function createProgressWindow(title, opts)
+	opts = opts or {}
+	local textOnly = opts.textOnly == true
+	if (not textOnly) and cprogresswindow and cprogresswindow.new then
 		local pw = cprogresswindow.new{title=title or ''}
 		if pw and pw.paint then
 			pw:paint()
