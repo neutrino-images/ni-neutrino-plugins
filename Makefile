@@ -11,11 +11,16 @@ PROGRAM_TRANSFORM_NAME ?=
 PLUGIN_NAME := neutrino-mediathek
 PLUGIN_DIR  :=
 LUAPLUGIN_DIR :=
-ifneq ($(PLUGIN_SUBDIR),)
-PLUGIN_DIR := $(PREFIX)/$(PLUGIN_SUBDIR)
+# Allow absolute PLUGIN_DIR/LUAPLUGIN_DIR (e.g. passed from Neutrino configure via N_PLUGINDIR/N_LUAPLUGINDIR)
+ifeq ($(PLUGIN_DIR),)
+  ifneq ($(PLUGIN_SUBDIR),)
+    PLUGIN_DIR := $(PREFIX)/$(PLUGIN_SUBDIR)
+  endif
 endif
-ifneq ($(LUAPLUGIN_SUBDIR),)
-LUAPLUGIN_DIR := $(PREFIX)/$(LUAPLUGIN_SUBDIR)
+ifeq ($(LUAPLUGIN_DIR),)
+  ifneq ($(LUAPLUGIN_SUBDIR),)
+    LUAPLUGIN_DIR := $(PREFIX)/$(LUAPLUGIN_SUBDIR)
+  endif
 endif
 
 PLUGIN_SRC := neutrino-mediathek
@@ -29,6 +34,7 @@ SED ?= sed
 MV ?= mv
 RM ?= rm -f
 RMR ?= rm -rf
+LN ?= ln -sf
 MKDIR ?= install -d
 RUNTIME_ROOT ?= $(CURDIR)/../../root
 RUNTIME_HOST ?=
@@ -48,6 +54,15 @@ cfg_dst="$$name.cfg"; \
 hint_dst="$${name}_hint.png"; \
 dir_dst="$$name"
 endef
+
+PRIMARY_DIR := $(LUAPLUGIN_DIR)
+ifeq ($(strip $(PRIMARY_DIR)),)
+PRIMARY_DIR := $(PLUGIN_DIR)
+endif
+SECONDARY_DIR :=
+ifneq ($(strip $(PRIMARY_DIR)),$(strip $(PLUGIN_DIR)))
+SECONDARY_DIR := $(PLUGIN_DIR)
+endif
 
 define install_target
 @set -e; \
@@ -79,28 +94,40 @@ if [ -n "$1" ]; then \
 fi
 endef
 
+define link_target
+@set -e; \
+$(call compute_names); \
+src="$(abspath $(DESTDIR)$1)"; \
+dst="$2"; \
+if [ -n "$$dst" ]; then \
+	$(MKDIR) "$$dst"; \
+	$(RMR) "$$dst/$$lua_dst" "$$dst/$$cfg_dst" "$$dst/$$hint_dst" "$$dst/$$dir_dst"; \
+	$(MKDIR) "$$dst/$$dir_dst"; \
+	$(LN) "$$src/$$lua_dst" "$$dst/$$lua_dst"; \
+	$(LN) "$$src/$$cfg_dst" "$$dst/$$cfg_dst"; \
+	$(LN) "$$src/$$hint_dst" "$$dst/$$hint_dst"; \
+	$(LN) "$$src/$$dir_dst" "$$dst/$$dir_dst"; \
+fi
+endef
+
 install:
-ifeq ($(strip $(PLUGIN_DIR)),)
+ifeq ($(strip $(PRIMARY_DIR)),)
 	@true
 else
-	$(call install_target,$(DESTDIR)$(PLUGIN_DIR))
+	$(call install_target,$(DESTDIR)$(PRIMARY_DIR))
 endif
-ifneq ($(strip $(LUAPLUGIN_DIR)),)
-ifneq ($(strip $(LUAPLUGIN_DIR)),$(strip $(PLUGIN_DIR)))
-	$(call install_target,$(DESTDIR)$(LUAPLUGIN_DIR))
-endif
+ifneq ($(strip $(SECONDARY_DIR)),)
+	$(call link_target,$(PRIMARY_DIR),$(DESTDIR)$(SECONDARY_DIR))
 endif
 
 uninstall:
-ifeq ($(strip $(PLUGIN_DIR)),)
+ifeq ($(strip $(PRIMARY_DIR)),)
 	@true
 else
-	$(call uninstall_target,$(DESTDIR)$(PLUGIN_DIR))
+	$(call uninstall_target,$(DESTDIR)$(PRIMARY_DIR))
 endif
-ifneq ($(strip $(LUAPLUGIN_DIR)),)
-ifneq ($(strip $(LUAPLUGIN_DIR)),$(strip $(PLUGIN_DIR)))
-	$(call uninstall_target,$(DESTDIR)$(LUAPLUGIN_DIR))
-endif
+ifneq ($(strip $(SECONDARY_DIR)),)
+	$(call uninstall_target,$(DESTDIR)$(SECONDARY_DIR))
 endif
 
 runtime-clean:
