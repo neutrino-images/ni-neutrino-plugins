@@ -345,7 +345,7 @@ collectAllDirectories = function(basePath, progress)
 		if progress then
 			local globalPercent = math.floor((dirIndex - 1) / math.max(#dirs, 1) * 25)
 			progress:updateGlobal(globalPercent, 100,
-				string.format("Step 1/4: Collecting directories (%d%%)", globalPercent))
+				string.format(l.localRecordingsScanningStep1 or "Step 1/4: Collecting directories (%d%%)", globalPercent))
 
 			local shortPath = currentDir or ''
 			if #shortPath > 40 then shortPath = "..." .. shortPath:sub(-37) end
@@ -359,7 +359,7 @@ collectAllDirectories = function(basePath, progress)
 			-- Artificial max value: current/max = currentPercent → max = current/currentPercent
 			local artificialMax = (currentPercent > 0) and math.ceil(localCurrent / currentPercent) or 1
 			progress:updateLocal(localCurrent, artificialMax,
-				string.format("Directory: %s (%d/%d)", shortPath, localCurrent, artificialMax))
+				string.format(l.localRecordingsScanningDir or "Directory: %s (%d/%d)", shortPath, localCurrent, artificialMax))
 		end
 	end
 
@@ -405,7 +405,7 @@ collectAllFiles = function(dirs, progress)
 		if progress then
 			local globalPercent = 25 + math.floor((idx / #dirs) * 25)
 			progress:updateGlobal(globalPercent, 100,
-				string.format("Step 2/4: Finding files (%d found)", #files))
+				string.format(l.localRecordingsScanningStep2 or "Step 2/4: Finding files (%d found)", #files))
 
 			local shortPath = currentDir or ''
 			if #shortPath > 40 then shortPath = "..." .. shortPath:sub(-37) end
@@ -414,7 +414,7 @@ collectAllFiles = function(dirs, progress)
 			local localMax = math.max(#dirs, lastLocalMax)
 			lastLocalMax = localMax
 			progress:updateLocal(idx, localMax,
-				string.format("Searching: %s (%d/%d)", shortPath, idx, localMax))
+				string.format(l.localRecordingsSearching or "Searching: %s (%d/%d)", shortPath, idx, localMax))
 		end
 	end
 
