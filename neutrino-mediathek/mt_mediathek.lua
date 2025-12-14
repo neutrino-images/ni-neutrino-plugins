@@ -319,8 +319,21 @@ collectRecordingMetaIterative = function(basePath, out, progress)
 
 	local function updateProgress(currentDir)
 		if progress then
-			local max = (totalDirs > 0) and totalDirs or 1
-			progress:update(processedDirs, max, string.format(l.localRecordingsScanningDir or l.localRecordingsScanning, currentDir or '', processedDirs, max))
+			local max = (totalDirs and totalDirs > 0) and totalDirs or 1
+
+			-- Globaler Balken: 0-30% basierend auf Verzeichnis-Fortschritt
+			local globalPercent = math.floor((processedDirs / max) * 30)
+			progress:updateGlobal(globalPercent, 100,
+				string.format("Verzeichnis-Scan: %d%%", globalPercent))
+
+			-- Lokaler Balken: Details zum aktuellen Verzeichnis
+			local shortPath = currentDir or ''
+			if #shortPath > 40 then
+				shortPath = "..." .. shortPath:sub(-37)
+			end
+			progress:updateLocal(processedDirs, max,
+				string.format(l.localRecordingsScanningDir or "Verzeichnis %s (%d/%d)",
+					shortPath, processedDirs, max))
 		end
 	end
 
@@ -1464,16 +1477,24 @@ end
 
 function scanLocalRecordings()
 	local path = conf.localRecordingsPath or ''
-	local progress = createProgressWindow(l.localRecordingsScanning)
-	if progress then progress:update(0, 1, l.localRecordingsScanning) end
+	local progress = createProgressWindow(l.localRecordingsScanning, {dual=true})  -- Dual-Mode aktivieren
+
+	-- PHASE 1: Initialisierung
+	if progress then
+		progress:updateGlobal(0, 100, l.localRecordingsScanning)
+		progress:updateLocal(0, 1, l.localRecordingsScanning)
+	end
+
 	H.printf("[neutrino-mediathek] scanLocalRecordings: path=%s", tostring(path))
 	if not directoryExists(path) then
 		if progress then progress:close() end
 		return false, string.format(l.localRecordingsPathMissing, path)
 	end
 
+	-- PHASE 2: Verzeichnisse durchsuchen (0-30% global)
 	local metas = {}
 	local scannedDirs = collectRecordingMetaIterative(path, metas, progress) or 0
+
 	H.printf("[neutrino-mediathek] scanLocalRecordings: scanned %d dirs, collected %d candidates", scannedDirs, #metas)
 	if #metas == 0 then
 		if progress then progress:close() end
@@ -1481,6 +1502,14 @@ function scanLocalRecordings()
 		return false, string.format(l.localRecordingsNoEntries, path)
 	end
 
+	-- ÜBERGANG: Phase 2 → Phase 3 (Global bei 30%)
+	if progress then
+		progress:updateGlobal(30, 100, "Verzeichnisse durchsucht")
+		progress:updateLocal(0, #metas,
+			string.format(l.localRecordingsProcessingFiles or "Verarbeite Dateien: 0/%d", #metas))
+	end
+
+	-- PHASE 3: Metadaten verarbeiten (30-100% global)
 	local previous = {}
 	if localRecordingsLastPath == path then
 		for _, entry in ipairs(localRecordingsRawEntries) do
@@ -1492,10 +1521,7 @@ function scanLocalRecordings()
 
 	local entries = {}
 	local reused = 0
-	local totalWork = math.max(scannedDirs, 1) + #metas
-	if progress then
-		progress:update(scannedDirs, totalWork, string.format(l.localRecordingsProcessingFiles or l.localRecordingsScanning, 0, #metas))
-	end
+
 	for idx, meta in ipairs(metas) do
 		local cached = previous[meta.path]
 		if cached and cached.fileSize == meta.size and cached.fileMtime == meta.mtime then
@@ -1510,9 +1536,16 @@ function scanLocalRecordings()
 				table.insert(entries, recEntry)
 			end
 		end
+
 		if progress then
-			local currentWork = scannedDirs + idx
-			progress:update(currentWork, totalWork, string.format(l.localRecordingsProcessingFiles or l.localRecordingsScanning, idx, #metas))
+			-- Globaler Balken: 30% + (idx / #metas) * 70%
+			local globalPercent = 30 + math.floor((idx / #metas) * 70)
+			progress:updateGlobal(globalPercent, 100,
+				string.format("Gesamt-Fortschritt: %d%%", globalPercent))
+
+			-- Lokaler Balken: Datei-Fortschritt
+			progress:updateLocal(idx, #metas,
+				string.format(l.localRecordingsProcessingFiles or "Verarbeite Datei %d/%d", idx, #metas))
 		end
 	end
 
@@ -1529,6 +1562,13 @@ function scanLocalRecordings()
 	mtRightMenu_list_start = 0
 	mtRightMenu_view_page = 1
 	mtRightMenu_select = 1
+
+	-- ENDE: Beide Balken auf 100%
+	if progress then
+		progress:updateGlobal(100, 100, "Scan abgeschlossen")
+		progress:updateLocal(#metas, #metas, string.format("Fertig: %d Dateien", #metas))
+	end
+
 	if progress then progress:close() end
 	return true
 end
