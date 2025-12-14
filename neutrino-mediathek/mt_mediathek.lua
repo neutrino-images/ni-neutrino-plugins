@@ -1576,7 +1576,7 @@ function scanLocalRecordings()
 		end
 
 		-- Progress: Step 4/4 (75-100%)
-		if progress and idx % 10 == 0 then  -- Update every 10 entries (performance)
+		if progress then
 			local globalPercent = 75 + math.floor((idx / #metas) * 25)
 			progress:updateGlobal(globalPercent, 100,
 				string.format("Step 4/4: Creating entries"))
