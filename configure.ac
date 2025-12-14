@@ -393,6 +393,12 @@ AC_ARG_ENABLE(rakutentv,
 	[enable_rakutentv="yes"])
 AM_CONDITIONAL(ENABLE_RAKUTENTV, test "$enable_rakutentv" = "yes")
 
+AC_ARG_ENABLE(samsungtv,
+	AS_HELP_STRING([--enable-samsungtv], [enable webtv samsungtv @<:@default=yes@:>@]),
+	[enable_samsungtv="$enableval"],
+	[enable_samsungtv="yes"])
+AM_CONDITIONAL(ENABLE_SAMSUNGTV, test "$enable_samsungtv" = "yes")
+
 AC_ARG_ENABLE(yt_live,
 	AS_HELP_STRING([--enable-yt_live], [enable webtv yt_live @<:@default=yes@:>@]),
 	[enable_yt_live="$enableval"],

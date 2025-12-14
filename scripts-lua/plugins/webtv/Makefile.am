@@ -1,7 +1,8 @@
 webtvdir = $(WEBTVDIR)
 
 webtv_DATA = \
-	best_bitrate_m3u8.lua
+	best_bitrate_m3u8.lua \
+	streamlink.lua
 
 if ENABLE_FILMON
 webtv_DATA += \
@@ -18,6 +19,10 @@ endif
 if ENABLE_RAKUTENTV
 webtv_DATA += \
 	rakutentv.xml
+endif
+if ENABLE_SAMSUNGTV
+webtv_DATA += \
+	samsungtv.xml
 endif
 if ENABLE_YT_LIVE
 webtv_DATA += \
