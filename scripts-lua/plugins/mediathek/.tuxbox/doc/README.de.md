@@ -66,6 +66,7 @@ Nach Änderungen Neutrino neu starten.
 ## Tipps für flüssige Wiedergabe
 - Bevorzuge Images mit LuaJIT: Listen und Filter reagieren deutlich schneller. Lua 5.1 funktioniert, ist aber bei großen Listen träger.
 - Für lokale Aufnahmen GNU `findutils` installieren; der BusyBox-Fallback funktioniert, kann aber länger brauchen.
+- Lokale Aufnahmen: Aufnahmeverzeichnis und optionale Verzeichnis-Blacklist in den Einstellungen setzen (`Menü → Einstellungen → Lokale Aufnahmen`). Die Blacklist (Komma/Strichpunkt getrennt) überspringt Ordner wie `archive`, `.git`, `tmp` beim Scan.
 - Netzwerk zur gewählten API stabil halten.
 
 ## Für Entwickler
@@ -117,6 +118,7 @@ Wenn das klappt, läuft das Plugin mit derselben URL.
 - **`Error connecting to database server`** – URL falsch oder Backend nicht erreichbar. Einstellung prüfen, per `curl` testen.
 - **`curl: download ... size: 0`** – Backend liefert nichts. Logs unter `services/mediathek-backend/logs/` prüfen oder `/api/listChannels` manuell aufrufen.
 - **Keine Änderung nach `git pull`** – `make plugins && make runtime-sync` ausführen, damit die gestagten Dateien aktualisiert werden.
+- **Alte Plugin-Version im UI** – Verwaiste Kopien entfernen: `make -C sources/neutrino-mediathek runtime-clean RUNTIME_HOST=user@box` (löscht alte `/var/.../plugins|luaplugins`-Kopien, damit Neutrino das aktualisierte Lua lädt).
 
 ## Backend-Referenzen
 - `services/mediathek-backend/docker`: Dockerfiles + Quickstart für Importer/API.

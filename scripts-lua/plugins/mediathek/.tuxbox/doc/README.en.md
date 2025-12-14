@@ -66,6 +66,7 @@ Restart Neutrino after editing.
 ## Tips for Smooth Playback
 - Prefer images with LuaJIT: list rendering and filters stay snappy. Classic Lua 5.1 works but is slower on large lists.
 - For local recordings, install GNU `findutils`; the BusyBox fallback works but scans can take longer.
+- Local recordings: set the recording directory and optional directory blacklist in Settings (`Menu → Settings → Local recordings`). The blacklist (comma/semicolon separated) skips folders like `archive`, `.git`, `tmp` during scans.
 - Make sure your box has a stable network connection to the configured API endpoint.
 
 ## Developer Corner
@@ -117,6 +118,7 @@ If these succeed, the plugin will work with the same URL.
 - **`Error connecting to database server`** – Wrong or unreachable API URL. Check the setting and retry with `curl`.
 - **`curl: download ... size: 0`** – Backend returned an empty body. Inspect backend logs (`services/mediathek-backend/logs/`) or call `/api/listChannels` manually.
 - **No changes after `git pull`** – Run `make plugins && make runtime-sync` to refresh the staged files.
+- **UI shows old plugin** – Clean leftover copies on the target: `make -C sources/neutrino-mediathek runtime-clean RUNTIME_HOST=user@box` (removes stale `/var/.../plugins|luaplugins` copies so Neutrino loads the updated Lua).
 
 ## Backend References
 - `services/mediathek-backend/docker` – importer/API Dockerfiles and Quickstart for local stacks.

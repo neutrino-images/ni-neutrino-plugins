@@ -596,28 +596,80 @@ function paintInfoBoxAndWait(txt1, txt2, sec)
 	G.hideInfoBox(box)
 end
 
--- Progress helper: prefers cprogresswindow, falls back to simple info box
-function createProgressWindow(title)
-	if cprogresswindow and cprogresswindow.new then
+-- Progress helper: prefers cprogresswindow, falls back to simple info box.
+-- Pass {textOnly=true} to force the lightweight text overlay even if cprogresswindow exists.
+function createProgressWindow(title, opts)
+	opts = opts or {}
+	local textOnly = opts.textOnly == true
+	local dual = opts.dual == true  -- NEW: Activate dual mode
+
+	if (not textOnly) and cprogresswindow and cprogresswindow.new then
 		local pw = cprogresswindow.new{title=title or ''}
+
+		-- Initialize both bars with dummy values BEFORE first paint()
+		if dual and pw then
+			if pw.showGlobalStatus then
+				pw:showGlobalStatus{prog=0, max=100, statusText=title or ''}
+			end
+			if pw.showLocalStatus then
+				pw:showLocalStatus{prog=0, max=1, statusText=''}
+			end
+		end
+
 		if pw and pw.paint then
 			pw:paint()
 		end
-		return {
-			update = function(_, current, total, statusText)
-				if pw and pw.showStatus then
-					local max = (total and total > 0) and total or 1
-					local prog = current or 0
-					pw:showStatus{prog=prog, max=max, statusText=statusText or ''}
+
+		if dual then
+			-- DUAL-MODE: Two independent bars
+			return {
+				paint = function()
+					if pw and pw.paint then
+						pw:paint()
+					end
+				end,
+				updateGlobal = function(_, current, total, statusText)
+					if pw and pw.showGlobalStatus then
+						local max = (total and total > 0) and total or 100
+						local prog = current or 0
+						pw:showGlobalStatus{prog=prog, max=max, statusText=statusText or ''}
+						-- paint() removed: showGlobalStatus already does intelligent partial redraw
+					end
+				end,
+				updateLocal = function(_, current, total, statusText)
+					if pw and pw.showLocalStatus then
+						local max = (total and total > 0) and total or 1
+						local prog = current or 0
+						pw:showLocalStatus{prog=prog, max=max, statusText=statusText or ''}
+						-- paint() removed: showLocalStatus already does intelligent partial redraw
+					end
+				end,
+				close = function()
+					if pw and pw.hide then
+						pw:hide()
+					end
 				end
-			end,
-			close = function()
-				if pw and pw.hide then
-					pw:hide()
+			}
+		else
+			-- SINGLE-MODE: As before (fallback for compatibility)
+			return {
+				update = function(_, current, total, statusText)
+					if pw and pw.showStatus then
+						local max = (total and total > 0) and total or 1
+						local prog = current or 0
+						pw:showStatus{prog=prog, max=max, statusText=statusText or ''}
+					end
+				end,
+				close = function()
+					if pw and pw.hide then
+						pw:hide()
+					end
 				end
-			end
-		}
+			}
+		end
 	end
+
+	-- Fallback: Text-Only Mode
 	local box = paintAnInfoBox(title or '', WHERE.CENTER)
 	return {
 		update = function(_, _, _, statusText)
@@ -625,6 +677,15 @@ function createProgressWindow(title)
 				G.hideInfoBox(box)
 			end
 			box = paintAnInfoBox(statusText or title or '', WHERE.CENTER)
+		end,
+		updateGlobal = function(_, _, _, statusText)
+			if box then
+				G.hideInfoBox(box)
+			end
+			box = paintAnInfoBox(statusText or title or '', WHERE.CENTER)
+		end,
+		updateLocal = function(_, _, _, statusText)
+			-- Ignored in text mode (only global is displayed)
 		end,
 		close = function()
 			if box then

@@ -23,6 +23,12 @@ function _loadConfig()
 	conf.guiTimeMsg		= config:getInt32('guiTimeMsg',		10)
 	conf.localRecordingsEnabled = config:getString('localRecordingsEnabled', 'off')
 	conf.localRecordingsPath = config:getString('localRecordingsPath', '/media/hdd/movie')
+	-- Default must stay in sync with mt_mediathek.lua: defaultScanDirBlacklist
+	local defaultDirBlacklist = 'archive,archives,.git,git2'
+	conf.localRecordingsDirBlacklist = config:getString('localRecordingsDirBlacklist', '')
+	if conf.localRecordingsDirBlacklist == '' then
+		conf.localRecordingsDirBlacklist = defaultDirBlacklist
+	end
 	conf.localRecordingsCachePersistent = config:getString('localRecordingsCachePersistent', 'off')
 	conf.hideAccessibilityHints = config:getString('hideAccessibilityHints', 'on')
 
@@ -103,6 +109,7 @@ function _saveConfig()
 	config:setString('qualityFilter',	conf.qualityFilter)
 	config:setString('localRecordingsEnabled', conf.localRecordingsEnabled)
 	config:setString('localRecordingsPath', conf.localRecordingsPath)
+	config:setString('localRecordingsDirBlacklist', conf.localRecordingsDirBlacklist or '')
 	config:setString('localRecordingsCachePersistent', conf.localRecordingsCachePersistent)
 	config:setString('hideAccessibilityHints', conf.hideAccessibilityHints)
 
@@ -163,6 +170,14 @@ end
 function changeLocalRecordingsPath(dummy, value)
 	if value ~= nil and value ~= '' then
 		conf.localRecordingsPath = value
+	end
+	return MENU_RETURN.REPAINT
+end
+
+function changeLocalRecordingsBlacklist(dummy, value)
+	conf.localRecordingsDirBlacklist = value or ''
+	if resetScanDirBlacklistCache then
+		resetScanDirBlacklistCache()
 	end
 	return MENU_RETURN.REPAINT
 end
@@ -362,6 +377,7 @@ function configMenu()
 	m_conf:addItem{type="separatorline", name=l.settingsLocalRecordingsHeader}
 	addToggle(m_conf, {confKey="localRecordingsEnabled", hint=l.settingsLocalRecordingsH, name=l.settingsLocalRecordings})
 	m_conf:addItem{type="filebrowser", dir_mode="1", action="changeLocalRecordingsPath", hint_icon="hint_service", hint=l.settingsLocalRecordingsPathH, id="localRecordingsPath", value=conf.localRecordingsPath, name=l.settingsLocalRecordingsPath}
+	m_conf:addItem{type="keyboardinput", action="changeLocalRecordingsBlacklist", hint_icon="hint_service", hint=l.settingsLocalRecordingsBlacklistH, id="localRecordingsDirBlacklist", value=conf.localRecordingsDirBlacklist or '', name=l.settingsLocalRecordingsBlacklist, size=160}
 	addToggle(m_conf, {confKey="localRecordingsCachePersistent", hint=l.settingsLocalRecordingsCacheH, name=l.settingsLocalRecordingsCache})
 
 	m_conf:addItem{type="separatorline", name=l.settingsFilterSection}
