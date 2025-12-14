@@ -305,51 +305,83 @@ collectRecordingMeta = function(basePath, out)
 	return (#out > 0)
 end
 
-collectRecordingMetaIterative = function(basePath, out, progress)
+-- Shell-safe quoting helper (used by multiple functions)
+local function shellQuote(str)
+	if not str then return "''" end
+	-- Replace ' with '\'' (end quote, escaped quote, start quote)
+	return "'" .. str:gsub("'", "'\\''") .. "'"
+end
+
+-- STEP 1: Collect all directories (0-25%)
+collectAllDirectories = function(basePath, progress)
 	if not directoryExists(basePath) then
-		H.printf("[neutrino-mediathek] collectRecordingMetaIterative: basePath missing %s", tostring(basePath))
-		return 0
+		H.printf("[neutrino-mediathek] collectAllDirectories: basePath missing %s", tostring(basePath))
+		return {}
 	end
 
-	local usePrintf = findSupportsPrintf()
 	local dirs = { basePath }
 	local dirIndex = 1
-	local processedDirs = 0
-	local totalDirs = 1
-
-	local function updateProgress(currentDir)
-		if progress then
-			local max = (totalDirs and totalDirs > 0) and totalDirs or 1
-
-			-- Globaler Balken: 0-30% basierend auf Verzeichnis-Fortschritt
-			local globalPercent = math.floor((processedDirs / max) * 30)
-			progress:updateGlobal(globalPercent, 100,
-				string.format("Verzeichnis-Scan: %d%%", globalPercent))
-
-			-- Lokaler Balken: Details zum aktuellen Verzeichnis
-			local shortPath = currentDir or ''
-			if #shortPath > 40 then
-				shortPath = "..." .. shortPath:sub(-37)
-			end
-			progress:updateLocal(processedDirs, max,
-				string.format(l.localRecordingsScanningDir or "Verzeichnis %s (%d/%d)",
-					shortPath, processedDirs, max))
-		end
-	end
+	local lastLocalPercent = 0  -- Prevents rollbacks through percentage monotonicity
 
 	while dirIndex <= #dirs do
 		local currentDir = dirs[dirIndex]
 		dirIndex = dirIndex + 1
-		processedDirs = processedDirs + 1
 
-		local quotedDir = string.format('%q', currentDir)
+		local quotedDir = shellQuote(currentDir)
+		local subdirCmd = string.format("find %s -maxdepth 1 -mindepth 1 -type d ! -name 'lost+found' -print 2>/dev/null", quotedDir)
+		local subdirPipe = io.popen(subdirCmd)
+		if subdirPipe then
+			for subdir in subdirPipe:lines() do
+				if not isBlacklistedDir(subdir) then
+					table.insert(dirs, subdir)
+				else
+					H.printf("[neutrino-mediathek] collectAllDirectories: skip blacklisted dir %s", tostring(subdir))
+				end
+			end
+			subdirPipe:close()
+		end
+
+		-- Progress: Step 1/4 (0-25%)
+		if progress then
+			local globalPercent = math.floor((dirIndex - 1) / math.max(#dirs, 1) * 25)
+			progress:updateGlobal(globalPercent, 100,
+				string.format("Step 1/4: Collecting directories (%d%%)", globalPercent))
+
+			local shortPath = currentDir or ''
+			if #shortPath > 40 then shortPath = "..." .. shortPath:sub(-37) end
+
+			-- Local bar: Percentage monotonically increasing (prevents rollbacks)
+			local localCurrent = dirIndex - 1
+			local rawPercent = localCurrent / math.max(#dirs, 1)
+			local currentPercent = math.max(rawPercent, lastLocalPercent)
+			lastLocalPercent = currentPercent
+
+			-- Artificial max value: current/max = currentPercent → max = current/currentPercent
+			local artificialMax = (currentPercent > 0) and math.ceil(localCurrent / currentPercent) or 1
+			progress:updateLocal(localCurrent, artificialMax,
+				string.format("Directory: %s (%d/%d)", shortPath, localCurrent, artificialMax))
+		end
+	end
+
+	H.printf("[neutrino-mediathek] collectAllDirectories: collected %d directories", #dirs)
+	return dirs
+end
+
+-- STEP 2: Find all files (25-50%)
+collectAllFiles = function(dirs, progress)
+	local files = {}
+	local usePrintf = findSupportsPrintf()
+	local lastLocalMax = #dirs  -- Prevents rollbacks (should be constant)
+
+	for idx, currentDir in ipairs(dirs) do
+		local quotedDir = shellQuote(currentDir)
 		local fileCmd
-		local entriesAdded = 0
+
 		if usePrintf then
 			fileCmd = string.format([[
 				find %s -maxdepth 1 -type f \
 					\( -iname '*.ts' -o -iname '*.mp4' -o -iname '*.mkv' \) \
-					-printf '%%p|%%s|%%T@\\n' 2>/dev/null
+					-printf '%%p\n' 2>/dev/null
 			]], quotedDir)
 		else
 			fileCmd = string.format([[
@@ -361,69 +393,69 @@ collectRecordingMetaIterative = function(basePath, out, progress)
 
 		local pipe = io.popen(fileCmd)
 		if pipe then
-			for line in pipe:lines() do
-				local meta = nil
-				if usePrintf then
-					meta = parseFindLine(line)
-				else
-					if line and line ~= '' then
-						local size, mtime = getFileAttributes(line)
-						if size and mtime then
-							meta = {path=line, size=size, mtime=mtime}
-						end
-					end
-				end
-				if meta and meta.path then
-					table.insert(out, meta)
-					entriesAdded = entriesAdded + 1
+			for filePath in pipe:lines() do
+				if filePath and filePath ~= '' then
+					table.insert(files, filePath)
 				end
 			end
 			pipe:close()
 		end
 
-		-- Fallback: if -printf produced nothing, retry with plain -print + stat
-		if usePrintf and entriesAdded == 0 then
-			fileCmd = string.format([[
-				find %s -maxdepth 1 -type f \
-					\( -iname '*.ts' -o -iname '*.mp4' -o -iname '*.mkv' \) \
-					-print 2>/dev/null
-			]], quotedDir)
-			local pipeFallback = io.popen(fileCmd)
-			if pipeFallback then
-				for line in pipeFallback:lines() do
-					if line and line ~= '' then
-						local size, mtime = getFileAttributes(line)
-						if size and mtime then
-							table.insert(out, {path=line, size=size, mtime=mtime})
-							entriesAdded = entriesAdded + 1
-						end
-					end
-				end
-				pipeFallback:close()
-			end
-		end
+		-- Progress: Step 2/4 (25-50%)
+		if progress then
+			local globalPercent = 25 + math.floor((idx / #dirs) * 25)
+			progress:updateGlobal(globalPercent, 100,
+				string.format("Step 2/4: Finding files (%d found)", #files))
 
-		local subdirCmd = string.format([[
-			find %s -maxdepth 1 -mindepth 1 -type d ! -name 'lost+found' -print 2>/dev/null
-		]], quotedDir)
-		local subdirPipe = io.popen(subdirCmd)
-		if subdirPipe then
-			for subdir in subdirPipe:lines() do
-				if not isBlacklistedDir(subdir) then
-					totalDirs = totalDirs + 1
-					table.insert(dirs, subdir)
-				else
-					H.printf("[neutrino-mediathek] collectRecordingMetaIterative: skip blacklisted dir %s", tostring(subdir))
-				end
-			end
-			subdirPipe:close()
-		end
+			local shortPath = currentDir or ''
+			if #shortPath > 40 then shortPath = "..." .. shortPath:sub(-37) end
 
-		updateProgress(currentDir)
+			-- Local bar: Protection against rollbacks
+			local localMax = math.max(#dirs, lastLocalMax)
+			lastLocalMax = localMax
+			progress:updateLocal(idx, localMax,
+				string.format("Searching: %s (%d/%d)", shortPath, idx, localMax))
+		end
 	end
 
-	H.printf("[neutrino-mediathek] collectRecordingMetaIterative: scanned %d directories, entries=%d", processedDirs, #out)
-	return processedDirs
+	H.printf("[neutrino-mediathek] collectAllFiles: found %d files in %d directories", #files, #dirs)
+	return files
+end
+
+-- STEP 3: Collect metadata (50-75%)
+collectFileMetadata = function(files, progress)
+	local metas = {}
+	local lastLocalMax = #files  -- Prevents rollbacks (should be constant)
+
+	for idx, filePath in ipairs(files) do
+		local size, mtime = getFileAttributes(filePath)
+		if size and mtime then
+			table.insert(metas, {path = filePath, size = size, mtime = mtime})
+		end
+
+		-- Progress: Step 3/4 (50-75%)
+		if progress and idx % 10 == 0 then  -- Update every 10 files (performance)
+			local globalPercent = 50 + math.floor((idx / #files) * 25)
+			progress:updateGlobal(globalPercent, 100,
+				string.format("Step 3/4: Collecting metadata"))
+
+			-- Local bar: Protection against rollbacks
+			local localMax = math.max(#files, lastLocalMax)
+			lastLocalMax = localMax
+			progress:updateLocal(idx, localMax,
+				string.format("File %d/%d", idx, localMax))
+		end
+	end
+
+	-- Final update
+	if progress then
+		progress:updateGlobal(75, 100, "Step 3/4: Metadata collected")
+		local localMax = math.max(#files, lastLocalMax)
+		progress:updateLocal(#files, localMax, string.format("File %d/%d", #files, localMax))
+	end
+
+	H.printf("[neutrino-mediathek] collectFileMetadata: collected metadata for %d files", #metas)
+	return metas
 end
 
 collectTsFilesRecursive = function(basePath, out)
@@ -1477,9 +1509,9 @@ end
 
 function scanLocalRecordings()
 	local path = conf.localRecordingsPath or ''
-	local progress = createProgressWindow(l.localRecordingsScanning, {dual=true})  -- Dual-Mode aktivieren
+	local progress = createProgressWindow(l.localRecordingsScanning, {dual=true})  -- Activate dual mode
 
-	-- PHASE 1: Initialisierung
+	-- PHASE 1: Initialization
 	if progress then
 		progress:updateGlobal(0, 100, l.localRecordingsScanning)
 		progress:updateLocal(0, 1, l.localRecordingsScanning)
@@ -1491,25 +1523,30 @@ function scanLocalRecordings()
 		return false, string.format(l.localRecordingsPathMissing, path)
 	end
 
-	-- PHASE 2: Verzeichnisse durchsuchen (0-30% global)
-	local metas = {}
-	local scannedDirs = collectRecordingMetaIterative(path, metas, progress) or 0
+	-- STEP 1/4: Collect all directories (0-25%)
+	local dirs = collectAllDirectories(path, progress)
+	if #dirs == 0 then
+		if progress then progress:close() end
+		return false, string.format(l.localRecordingsPathMissing, path)
+	end
 
-	H.printf("[neutrino-mediathek] scanLocalRecordings: scanned %d dirs, collected %d candidates", scannedDirs, #metas)
-	if #metas == 0 then
+	-- STEP 2/4: Find all files (25-50%)
+	local files = collectAllFiles(dirs, progress)
+	if #files == 0 then
 		if progress then progress:close() end
 		H.printf("[neutrino-mediathek] scanLocalRecordings: no files found under %s", tostring(path))
 		return false, string.format(l.localRecordingsNoEntries, path)
 	end
 
-	-- ÜBERGANG: Phase 2 → Phase 3 (Global bei 30%)
-	if progress then
-		progress:updateGlobal(30, 100, "Verzeichnisse durchsucht")
-		progress:updateLocal(0, #metas,
-			string.format(l.localRecordingsProcessingFiles or "Verarbeite Dateien: 0/%d", #metas))
+	-- STEP 3/4: Collect metadata (50-75%)
+	local metas = collectFileMetadata(files, progress)
+	if #metas == 0 then
+		if progress then progress:close() end
+		return false, string.format(l.localRecordingsNoEntries, path)
 	end
 
-	-- PHASE 3: Metadaten verarbeiten (30-100% global)
+	-- STEP 4/4: Create entries (75-100%)
+	-- Load cache for reuse
 	local previous = {}
 	if localRecordingsLastPath == path then
 		for _, entry in ipairs(localRecordingsRawEntries) do
@@ -1521,6 +1558,7 @@ function scanLocalRecordings()
 
 	local entries = {}
 	local reused = 0
+	local lastLocalMax = #metas  -- Prevents rollbacks (should be constant)
 
 	for idx, meta in ipairs(metas) do
 		local cached = previous[meta.path]
@@ -1537,16 +1575,25 @@ function scanLocalRecordings()
 			end
 		end
 
-		if progress then
-			-- Globaler Balken: 30% + (idx / #metas) * 70%
-			local globalPercent = 30 + math.floor((idx / #metas) * 70)
+		-- Progress: Step 4/4 (75-100%)
+		if progress and idx % 10 == 0 then  -- Update every 10 entries (performance)
+			local globalPercent = 75 + math.floor((idx / #metas) * 25)
 			progress:updateGlobal(globalPercent, 100,
-				string.format("Gesamt-Fortschritt: %d%%", globalPercent))
+				string.format("Step 4/4: Creating entries"))
 
-			-- Lokaler Balken: Datei-Fortschritt
-			progress:updateLocal(idx, #metas,
-				string.format(l.localRecordingsProcessingFiles or "Verarbeite Datei %d/%d", idx, #metas))
+			-- Local bar: Protection against rollbacks
+			local localMax = math.max(#metas, lastLocalMax)
+			lastLocalMax = localMax
+			progress:updateLocal(idx, localMax,
+				string.format("Entry %d/%d", idx, localMax))
 		end
+	end
+
+	-- Final update
+	if progress then
+		progress:updateGlobal(100, 100, "Scan completed")
+		local localMax = math.max(#metas, lastLocalMax)
+		progress:updateLocal(#metas, localMax, string.format("Done: %d entries", #metas))
 	end
 
 	if #entries == 0 then
@@ -1554,7 +1601,7 @@ function scanLocalRecordings()
 		return false, string.format(l.localRecordingsNoEntries, path)
 	end
 
-	H.printf("[neutrino-mediathek] local recordings: %d entries under %s (reused %d, scanned %d)", #entries, path, reused, #metas)
+	H.printf("[neutrino-mediathek] scanLocalRecordings: complete - %d dirs, %d files, %d entries (reused %d)", #dirs, #files, #entries, reused)
 	localRecordingsRawEntries = entries
 	localRecordingsLastPath = path
 	saveLocalRecordingsCache(entries)
@@ -1562,12 +1609,6 @@ function scanLocalRecordings()
 	mtRightMenu_list_start = 0
 	mtRightMenu_view_page = 1
 	mtRightMenu_select = 1
-
-	-- ENDE: Beide Balken auf 100%
-	if progress then
-		progress:updateGlobal(100, 100, "Scan abgeschlossen")
-		progress:updateLocal(#metas, #metas, string.format("Fertig: %d Dateien", #metas))
-	end
 
 	if progress then progress:close() end
 	return true
