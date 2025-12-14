@@ -323,6 +323,28 @@ collectAllDirectories = function(basePath, progress)
 	local dirIndex = 1
 	local lastLocalPercent = 0  -- Prevents rollbacks through percentage monotonicity
 
+	local lastYield = os.clock()
+	local function maybeYield()
+		local now = os.clock()
+		if now - lastYield < 0.05 then
+			return false
+		end
+		lastYield = now
+		if N and N.GetInput then
+			local msg = N:GetInput(0)
+			if msg then
+				checkKillKey(msg)
+				if msg == RC.home or msg == RC.exit or msg == RC.back or msg == RC.stop or msg == RC.setup then
+					return true
+				end
+			end
+		end
+		if N and N.usleep then
+			N:usleep(1000)
+		end
+		return false
+	end
+
 	while dirIndex <= #dirs do
 		local currentDir = dirs[dirIndex]
 		dirIndex = dirIndex + 1
@@ -361,6 +383,11 @@ collectAllDirectories = function(basePath, progress)
 			progress:updateLocal(localCurrent, artificialMax,
 				string.format(l.localRecordingsScanningDir or "Directory: %s (%d/%d)", shortPath, localCurrent, artificialMax))
 		end
+
+		if maybeYield() then
+			H.printf("[neutrino-mediathek] collectAllDirectories: aborted by user")
+			break
+		end
 	end
 
 	H.printf("[neutrino-mediathek] collectAllDirectories: collected %d directories", #dirs)
@@ -372,6 +399,28 @@ collectAllFiles = function(dirs, progress)
 	local files = {}
 	local usePrintf = findSupportsPrintf()
 	local lastLocalMax = #dirs  -- Prevents rollbacks (should be constant)
+	local lastYield = os.clock()
+
+	local function maybeYield()
+		local now = os.clock()
+		if now - lastYield < 0.05 then
+			return false
+		end
+		lastYield = now
+		if N and N.GetInput then
+			local msg = N:GetInput(0)
+			if msg then
+				checkKillKey(msg)
+				if msg == RC.home or msg == RC.exit or msg == RC.back or msg == RC.stop or msg == RC.setup then
+					return true
+				end
+			end
+		end
+		if N and N.usleep then
+			N:usleep(1000)
+		end
+		return false
+	end
 
 	for idx, currentDir in ipairs(dirs) do
 		local quotedDir = shellQuote(currentDir)
@@ -415,6 +464,11 @@ collectAllFiles = function(dirs, progress)
 			lastLocalMax = localMax
 			progress:updateLocal(idx, localMax,
 				string.format(l.localRecordingsSearching or "Searching: %s (%d/%d)", shortPath, idx, localMax))
+		end
+
+		if maybeYield() then
+			H.printf("[neutrino-mediathek] collectAllFiles: aborted by user")
+			break
 		end
 	end
 
