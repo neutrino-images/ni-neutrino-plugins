@@ -1,4 +1,4 @@
-#EXTM3U url-tvg="https://github.com/matthuisman/i.mjh.nz/raw/master/SamsungTVPlus/de.xml"
+#EXTM3U url-tvg="https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/SamsungTVPlus/de.xml.gz"
 #EXTINF:-1 group-prefix="Samsung" tvg-script="streamlink.lua" channel-id="DE26000085Y" tvg-id="DE26000085Y" tvg-chno="4852" tvg-name="100% Weihnachten"  group-title="Filme",100% Weihnachten
 https://jmp2.uk/stvp-DE26000085Y
 #EXTINF:-1 group-prefix="Samsung" tvg-script="streamlink.lua" channel-id="DE3400005QJ" tvg-id="DE3400005QJ" tvg-chno="4296" tvg-name="Abschnitt 40 / GSG9"  group-title="Crime",Abschnitt 40 / GSG9
