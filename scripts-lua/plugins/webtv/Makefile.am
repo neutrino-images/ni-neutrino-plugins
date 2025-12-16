@@ -20,7 +20,7 @@ if ENABLE_RAKUTENTV
 webtv_DATA += \
 	rakutentv.xml
 endif
-if ENABLE_SAMSUNGTV
+if ENABLE_SAMSUNGTVPLUS
 webtv_DATA += \
 	samsungtvplus.xml
 endif
