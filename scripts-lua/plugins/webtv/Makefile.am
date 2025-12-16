@@ -22,7 +22,7 @@ webtv_DATA += \
 endif
 if ENABLE_SAMSUNGTV
 webtv_DATA += \
-	samsungtv.m3u
+	samsungtvplus.xml
 endif
 if ENABLE_YT_LIVE
 webtv_DATA += \
