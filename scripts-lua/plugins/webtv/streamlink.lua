@@ -45,9 +45,9 @@ local watcher = string.format([[
 local url = %q
 
 local cmd = string.format(
-	'streamlink --hls-live-edge 6 "hls://%%s" --default-stream 720p,2300k,3300k,best -O | \
-	ffmpeg -loglevel quiet -nostats -i pipe:0 -vcodec copy -acodec copy -f mpegts tcp://127.0.0.1:4444?listen > /dev/null 2>&1 &',
-	url
+    'streamlink --config "/root/.config/streamlink/config" "%%s" -O | \
+    ffmpeg -loglevel quiet -nostats -i pipe:0 -vcodec copy -acodec copy -f mpegts -flush_packets 0 -max_delay 5000000 -muxdelay 0.5 -muxpreload 0.5 tcp://127.0.0.1:4444?listen > /dev/null 2>&1 &',
+    url
 )
 
 local handle = io.popen(cmd)
