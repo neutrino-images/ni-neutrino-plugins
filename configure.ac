@@ -47,6 +47,16 @@ AC_ARG_WITH(neutrino-build,
 	[NEUTRINO_BUILD=""])
 AC_SUBST(NEUTRINO_BUILD)
 
+# BOXTYPEs that have python
+case "$BOXTYPE" in
+	coolstream)
+		have_python=no
+	;;
+	*)
+		have_python=yes
+	;;
+esac
+
 AC_ARG_ENABLE(asc2uni,
 	AS_HELP_STRING([--enable-asc2uni], [enable asc2uni @<:@default=yes@:>@]),
 	[enable_asc2uni="$enableval"],
@@ -397,7 +407,7 @@ AC_ARG_ENABLE(samsungtvplus,
 	AS_HELP_STRING([--enable-samsungtvplus], [enable webtv samsungtvplus @<:@default=yes@:>@]),
 	[enable_samsungtvplus="$enableval"],
 	[enable_samsungtvplus="yes"])
-AM_CONDITIONAL(ENABLE_SAMSUNGTVPLUS, test "$enable_samsungtvplus" = "yes")
+AM_CONDITIONAL(ENABLE_SAMSUNGTVPLUS, test "$enable_samsungtvplus" = "yes" -a "$have_python" = "yes")
 
 AC_ARG_ENABLE(yt_live,
 	AS_HELP_STRING([--enable-yt_live], [enable webtv yt_live @<:@default=yes@:>@]),
