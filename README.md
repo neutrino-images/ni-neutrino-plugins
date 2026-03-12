@@ -4,10 +4,10 @@ Standalone Neutrino Lua plugin for multiboot startup switching (`stb-startup`).
 
 ## Contents
 
-- `stb_startup/stb-startup.lua`
-- `stb_startup/stb-startup.cfg`
-- `stb_startup/stb-startup.conf`
-- `stb_startup/stb-startup_hint.png`
+- `plugin/stb-startup.lua`
+- `plugin/stb-startup.cfg`
+- `plugin/stb-startup.conf`
+- `plugin/stb-startup_hint.png`
 - `LICENSE`
 
 ## Version
