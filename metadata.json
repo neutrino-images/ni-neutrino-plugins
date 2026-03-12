@@ -1,0 +1,14 @@
+{
+  "name": "lua-stb-startup",
+  "version": "2.0.0",
+  "description": "Neutrino Lua plugin for multiboot startup switching",
+  "license": "BSD-2-Clause",
+  "runtime-deps": [
+    "neutrino-core",
+    "lua >= 5.2"
+  ],
+  "source": "https://github.com/tuxbox-neutrino/plugin-lua-stb-startup",
+  "maintainers": [
+    "Tuxbox/Neutrino contributors"
+  ]
+}
