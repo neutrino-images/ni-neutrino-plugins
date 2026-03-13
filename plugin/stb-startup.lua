@@ -26,9 +26,9 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
-version = "v2.1"
+local version = "v2.2"
 
-on = "ein"; off = "aus"
+local on = "ein"; local off = "aus"
 
 function exists(file)
 	return fh:exist(file, "f")
@@ -50,6 +50,37 @@ function rmdir(path)
 	fh:rmdir(path)
 end
 
+local function read_file_lines(path)
+	local lines = {}
+	local f = io.open(path, "r")
+	if f == nil then
+		return lines
+	end
+	for line in f:lines() do
+		table.insert(lines, line)
+	end
+	f:close()
+	return lines
+end
+
+local function write_lines(path, lines)
+	local f = io.open(path, "w")
+	if f == nil then
+		return false
+	end
+	local ok = true
+	for _, line in ipairs(lines) do
+		if not f:write(line, "\n") then
+			ok = false
+			break
+		end
+	end
+	if not f:close() then
+		ok = false
+	end
+	return ok
+end
+
 function has_partition_label(label)
 	if partitions_by_name == nil then
 		return false
@@ -59,7 +90,7 @@ end
 
 function build_partition_device_map()
 	local map = {}
-	for line in io.lines("/proc/cmdline") do
+	for _, line in ipairs(read_file_lines("/proc/cmdline")) do
 		local spec = line:match("blkdevparts=([^%s]+)")
 		if spec ~= nil then
 			for devspec in spec:gmatch("[^;]+") do
@@ -118,7 +149,7 @@ function link(source,destination)
 end
 
 function is_mounted(path)
-	for line in io.lines("/proc/self/mountinfo") do
+	for _, line in ipairs(read_file_lines("/proc/self/mountinfo")) do
 		local mount_point = line:match("^%d+ %d+ %S+ %S+ (%S+)")
 		if mount_point == path then
 			return true
@@ -169,8 +200,8 @@ function umount_filesystems()
 end
 
 function sleep(n)
-	local seconds = tonumber(n) or 0
-	os.execute("sleep " .. seconds)
+	local seconds = math.floor(tonumber(n) or 0)
+	os.execute(string.format("sleep %d", seconds))
 end
 
 function reboot()
@@ -203,26 +234,28 @@ function get_value(str,root,etcdir)
 
 	-- image-version file
 	if exists(testmount .. etcdir .. "/image-version") then
-		for line in io.lines(testmount .. etcdir .. "/image-version") do
-			if line:match(str .. "=") then
-				local i,j = string.find(line, str .. "=")
+		local marker = str .. "="
+		for _, line in ipairs(read_file_lines(testmount .. etcdir .. "/image-version")) do
+			local _, j = string.find(line, marker, 1, true)
+			if j ~= nil then
 				value = string.sub(line, j+1, #line)
 			end
 		end
 	end
 	-- default neutrino .version file
 	if value == "" and exists(testmount .. "/.version") then
-		for line in io.lines(testmount .. "/.version") do
-			if line:match(str .. "=") then
-				local i,j = string.find(line, str .. "=")
+		local marker = str .. "="
+		for _, line in ipairs(read_file_lines(testmount .. "/.version")) do
+			local _, j = string.find(line, marker, 1, true)
+			if j ~= nil then
 				value = string.sub(line, j+1, #line)
 			end
 		end
 	end
 	-- BlackHole image
 	if value == "" and exists(testmount .. etcdir .. "/bhversion") then
-		for line in io.lines(testmount .. etcdir .. "/bhversion") do
-			if line:match(str) then
+		for _, line in ipairs(read_file_lines(testmount .. etcdir .. "/bhversion")) do
+			if string.find(line, str, 1, true) ~= nil then
 				value = line
 			end
 		end
@@ -286,9 +319,9 @@ function get_imagename(root)
 	if imagename == " " then
 		local glob = require "posix".glob
 		imagename = "NOT FOUND"
-		for _, j in pairs(glob(boot .. '/*', 0)) do
+		for _, j in pairs(glob(boot .. '/*', 0) or {}) do
 			if not isdir(j) and not islink(j) then
-				for line in io.lines(j) do
+				for _, line in ipairs(read_file_lines(j)) do
 					if (j ~= boot .. "/STARTUP") and (j ~= nil) and not line:match("boxmode=12") and not line:match("android") then
 						if line:match(devbase .. image_to_devnum(root)) then
 							imagename = basename(j)
@@ -401,10 +434,7 @@ function detect_startup_capabilities()
 	table.sort(files)
 	for _, path in ipairs(files) do
 		if not isdir(path) and not islink(path) then
-			local lines = {}
-			for line in io.lines(path) do
-				table.insert(lines, line)
-			end
+			local lines = read_file_lines(path)
 			if #lines > 0 then
 				local content = table.concat(lines, " ")
 				local entry = {
@@ -453,7 +483,7 @@ function detect_startup_capabilities()
 end
 
 function detect_current_mode()
-	for line in io.lines("/proc/cmdline") do
+	for _, line in ipairs(read_file_lines("/proc/cmdline")) do
 		local mode = parse_mode(line)
 		if mode ~= nil then
 			return mode
@@ -463,7 +493,7 @@ function detect_current_mode()
 end
 
 function detect_current_slot(caps)
-	for line in io.lines("/proc/cmdline") do
+	for _, line in ipairs(read_file_lines("/proc/cmdline")) do
 		local slot = line:match("rootsubdir=linuxrootfs(%d+)")
 		if slot ~= nil then
 			return tonumber(slot)
@@ -616,7 +646,7 @@ function get_cfg_value(str)
 		return nil
 	end
 	local r = nil
-	for line in io.lines(cfg_path) do
+	for _, line in ipairs(read_file_lines(cfg_path)) do
 		local value = line:match("^" .. str .. "=(%d+)$")
 		if value ~= nil then
 			r = tonumber(value)
@@ -626,13 +656,7 @@ function get_cfg_value(str)
 end
 
 function create_cfg()
-	local file = io.open(get_cfg_path(), "w")
-	if file == nil then
-		return false
-	end
-	file:write("boxmode_12=1", "\n")
-	file:close()
-	return true
+	return write_lines(get_cfg_path(), {"boxmode_12=1"})
 end
 
 function write_cfg(_, v, str)
@@ -644,7 +668,7 @@ function write_cfg(_, v, str)
 	end
 	local cfg_content = {}
 	local found = false
-	for line in io.lines(cfg_path) do
+	for _, line in ipairs(read_file_lines(cfg_path)) do
 		if line:match("^" .. str .. "=") then
 			table.insert(cfg_content, str .. "=" .. a)
 			found = true
@@ -655,15 +679,7 @@ function write_cfg(_, v, str)
 	if not found then
 		table.insert(cfg_content, str .. "=" .. a)
 	end
-	local file = io.open(cfg_path, "w")
-	if file == nil then
-		return false
-	end
-	for _, line in ipairs(cfg_content) do
-		file:write(line, "\n")
-	end
-	file:close()
-	return true
+	return write_lines(cfg_path, cfg_content)
 end
 
 function set(k, v, str)
@@ -689,7 +705,7 @@ function get_devbase()
 		partitions_by_name = "/dev/block/by-name"
 	end
 	if get_partition_device("rootfs1") ~= nil then
-		for line in io.lines("/proc/cmdline") do
+		for _, line in ipairs(read_file_lines("/proc/cmdline")) do
 			local rootdev = line:match("root=([^%s]+)")
 			if rootdev ~= nil then
 				local rootbase = rootdev:match("(.+p)%d+$")
@@ -706,7 +722,7 @@ end
 function main()
 	caption = "STB-Startup" .. " " .. version
 	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4","boot","bootoptions"}
-	n = neutrino()
+	neutrino()
 	fh = filehelpers.new()
 	partition_device_map = build_partition_device_map()
 
@@ -764,8 +780,9 @@ function main()
 	if not isdir(boot) then
 		local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].boot_unavailable };
 		ret:paint();
-		umount_filesystems()
 		sleep(3)
+		ret:hide()
+		umount_filesystems()
 		return
 	end
 	startup_caps = detect_startup_capabilities()
@@ -784,9 +801,9 @@ function main()
 
 	local imagename = {}
 	local imagename_full = {}
-	for n=1, 4 do
-		imagename_full[n] = get_imagename(n)
-		imagename[n] = truncate_text(imagename_full[n], 44) .. is_active(n)
+	for slot=1, 4 do
+		imagename_full[slot] = get_imagename(slot)
+		imagename[slot] = truncate_text(imagename_full[slot], 44) .. is_active(slot)
 	end
 
 	local current_mode = off
@@ -810,21 +827,22 @@ function main()
 
 	colorkey = nil
 	root = nil
+	local res = nil
 
-	menu = menu.new{name=caption, icon="settings"}
+	local menu = menu.new{name=caption, icon="settings"}
 	menu:addItem{type="back"}
 	menu:addItem{type="separatorline", name=locale[lang].current_boot_partition .. imagename_full[current_root]}
 	menu:addItem{type="separatorline", name=locale[lang].select_slot}
-	for n=1,4 do
-		local mode_text = get_slot_modes_text(startup_caps, n)
-		local entry_name = "Slot " .. tostring(n) .. " [" .. mode_text .. "] " .. imagename[n]
+	for slot=1,4 do
+		local mode_text = get_slot_modes_text(startup_caps, slot)
+		local entry_name = "Slot " .. tostring(slot) .. " [" .. mode_text .. "] " .. imagename[slot]
 		menu:addItem{
 			type="forwarder",
 			name=entry_name,
 			action="select_slot",
-			id=tostring(n),
-			directkey=RC[tostring(n)],
-			hint=imagename_full[n]
+			id=tostring(slot),
+			directkey=RC[tostring(slot)],
+			hint=imagename_full[slot]
 		}
 	end
 	menu:addItem{type="separatorline", name=locale[lang].options}
@@ -850,8 +868,9 @@ function main()
 		else
 			local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].empty_partition };
 			ret:paint();
-			umount_filesystems()
 			sleep(3)
+			ret:hide()
+			umount_filesystems()
 			return
 		end
 		res = messagebox.exec {
@@ -880,29 +899,27 @@ function main()
 		if startup_entry == nil then
 			local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].empty_partition };
 			ret:paint();
-			umount_filesystems()
 			sleep(3)
+			ret:hide()
+			umount_filesystems()
 			return
 		end
 
 		for _, line in ipairs(startup_entry.lines) do
 			table.insert(startup_lines, line)
 		end
-		mode = startup_entry.mode or preferred_mode or current_mode_num
+		local mode = startup_entry.mode or preferred_mode or current_mode_num
 
-		file = io.open(boot .. "/STARTUP", "w")
-		if file == nil then
+		if not write_lines(boot .. "/STARTUP", startup_lines) then
 			local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].startup_write_failed };
 			ret:paint();
-			umount_filesystems()
 			sleep(3)
+			ret:hide()
+			umount_filesystems()
 			return
 		end
-		for _, v in ipairs(startup_lines) do
-			file:write(v, "\n")
-		end
-		file:close()
 
+		local txt
 		if (current_root ~= root and tostring(current_mode_num) ~= tostring(mode)) then
 			txt = locale[lang].image_and_boxmode
 		elseif (current_root ~= root) then
@@ -911,7 +928,7 @@ function main()
 			txt = locale[lang].boxmode
 		end
 		local stime = 5
-		hbtext = string.format(locale[lang].hinttext, txt, imagename[root], mode, tostring(stime))
+		local hbtext = string.format(locale[lang].hinttext, txt, imagename[root], mode, tostring(stime))
 		local hb = hintbox.new{ title="Info", text=hbtext, icon="info", has_shadow=true, show_footer=false}
 		hb:paint()
 		sleep(stime)
