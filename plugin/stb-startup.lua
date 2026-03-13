@@ -26,7 +26,7 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
-version = "v2.0"
+version = "v2.1"
 
 on = "ein"; off = "aus"
 
@@ -55,6 +55,44 @@ function has_partition_label(label)
 		return false
 	end
 	return islink(partitions_by_name .. "/" .. label)
+end
+
+function build_partition_device_map()
+	local map = {}
+	for line in io.lines("/proc/cmdline") do
+		local spec = line:match("blkdevparts=([^%s]+)")
+		if spec ~= nil then
+			for devspec in spec:gmatch("[^;]+") do
+				local dev, parts = devspec:match("([^:]+):(.+)")
+				if dev ~= nil and parts ~= nil then
+					local prefix = "/dev/" .. dev
+					if dev:match("^mmcblk") or dev:match("^nvme") or dev:match("^loop") then
+						prefix = prefix .. "p"
+					end
+					local idx = 0
+					for entry in parts:gmatch("[^,]+") do
+						idx = idx + 1
+						local name = entry:match("%(([^)]+)%)")
+						if name ~= nil and name ~= "" then
+							map[name] = prefix .. tostring(idx)
+						end
+					end
+				end
+			end
+			break
+		end
+	end
+	return map
+end
+
+function get_partition_device(label)
+	if has_partition_label(label) then
+		return partitions_by_name .. "/" .. label
+	end
+	if partition_device_map ~= nil then
+		return partition_device_map[label]
+	end
+	return nil
 end
 
 function mount(dev,destination)
@@ -94,11 +132,12 @@ function mount_filesystems()
 		mkdir("/tmp/testmount")
 	end
 	for _,v in ipairs(partlabels) do
-		if has_partition_label(v) then
+		local dev = get_partition_device(v)
+		if dev ~= nil then
 			if not isdir("/tmp/testmount/" .. v) then
 				mkdir("/tmp/testmount/" .. v)
 			end
-			mount(partitions_by_name .. "/" .. v,"/tmp/testmount/" .. v)
+			mount(dev, "/tmp/testmount/" .. v)
 		end
 	end
 	if not has_gpt_layout() then
@@ -115,7 +154,7 @@ end
 
 function umount_filesystems()
 	for _,v in ipairs(partlabels) do
-		if has_partition_label(v) then
+		if get_partition_device(v) ~= nil then
 			umount("/tmp/testmount/" .. v)
 		end
 		if is_mounted("/tmp/testmount/" .. v) then
@@ -635,7 +674,7 @@ function get_boot_path()
 	local path_boot = "/tmp/testmount/boot"
 	local path_boot_options = "/tmp/testmount/bootoptions"
 	local ret = path_boot_options
-	if has_partition_label("boot") then
+	if get_partition_device("boot") ~= nil then
 		ret = path_boot
 	end
 	return ret
@@ -649,7 +688,7 @@ function get_devbase()
 	elseif isdir("/dev/block/by-name") then
 		partitions_by_name = "/dev/block/by-name"
 	end
-	if has_partition_label("rootfs1") then
+	if get_partition_device("rootfs1") ~= nil then
 		for line in io.lines("/proc/cmdline") do
 			local rootdev = line:match("root=([^%s]+)")
 			if rootdev ~= nil then
@@ -669,6 +708,7 @@ function main()
 	partlabels = {"linuxrootfs","userdata","rootfs1","rootfs2","rootfs3","rootfs4","boot","bootoptions"}
 	n = neutrino()
 	fh = filehelpers.new()
+	partition_device_map = build_partition_device_map()
 
 	locale = {}
 		locale["deutsch"] = {
@@ -704,6 +744,11 @@ function main()
 		}
 
 	tuxbox_config = "/var/tuxbox/config"
+	if type(DIR) == "table" and type(DIR.CONFIGDIR) == "string" and DIR.CONFIGDIR ~= "" then
+		tuxbox_config = DIR.CONFIGDIR
+	elseif not isdir(tuxbox_config) and isdir("/etc/neutrino/config") then
+		tuxbox_config = "/etc/neutrino/config"
+	end
 	neutrino_conf = configfile.new()
 	neutrino_conf:loadConfig(tuxbox_config .. "/neutrino.conf")
 	lang = neutrino_conf:getString("language", "english")
