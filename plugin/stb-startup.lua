@@ -646,10 +646,13 @@ function get_cfg_value(str)
 		return nil
 	end
 	local r = nil
+	local key_prefix = str .. "="
 	for _, line in ipairs(read_file_lines(cfg_path)) do
-		local value = line:match("^" .. str .. "=(%d+)$")
-		if value ~= nil then
-			r = tonumber(value)
+		if string.sub(line, 1, #key_prefix) == key_prefix then
+			local value = string.sub(line, #key_prefix + 1)
+			if string.match(value, "^%d+$") then
+				r = tonumber(value)
+			end
 		end
 	end
 	return r
@@ -668,8 +671,9 @@ function write_cfg(_, v, str)
 	end
 	local cfg_content = {}
 	local found = false
+	local key_prefix = str .. "="
 	for _, line in ipairs(read_file_lines(cfg_path)) do
-		if line:match("^" .. str .. "=") then
+		if string.sub(line, 1, #key_prefix) == key_prefix then
 			table.insert(cfg_content, str .. "=" .. a)
 			found = true
 		else
