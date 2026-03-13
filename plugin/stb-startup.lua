@@ -50,21 +50,28 @@ function rmdir(path)
 	fh:rmdir(path)
 end
 
+function has_partition_label(label)
+	if partitions_by_name == nil then
+		return false
+	end
+	return islink(partitions_by_name .. "/" .. label)
+end
+
 function mount(dev,destination)
 	local provider = fh:readlink("/bin/mount")
 	if (provider == nil) or not string.match(provider, "busybox") then
-		os.execute("mount -l " .. dev .. " " .. destination)
+		os.execute(string.format("mount -l %q %q", dev, destination))
 	else
-		os.execute("mount " .. dev .. " " .. destination)
+		os.execute(string.format("mount %q %q", dev, destination))
 	end
 end
 
 function umount(path)
 	local provider = fh:readlink("/bin/umount")
 	if (provider == nil) or not string.match(provider, "busybox") then
-		os.execute("umount -l " .. path)
+		os.execute(string.format("umount -l %q", path))
 	else
-		os.execute("umount " .. path)
+		os.execute(string.format("umount %q", path))
 	end
 end
 
@@ -74,16 +81,23 @@ end
 
 function is_mounted(path)
 	for line in io.lines("/proc/self/mountinfo") do
-		if line:match(path) then
+		local mount_point = line:match("^%d+ %d+ %S+ %S+ (%S+)")
+		if mount_point == path then
 			return true
 		end
 	end
+	return false
 end
 
 function mount_filesystems()
+	if not isdir("/tmp/testmount") then
+		mkdir("/tmp/testmount")
+	end
 	for _,v in ipairs(partlabels) do
-		if islink(partitions_by_name .. "/" .. v) then
-			mkdir("/tmp/testmount/" .. v)
+		if has_partition_label(v) then
+			if not isdir("/tmp/testmount/" .. v) then
+				mkdir("/tmp/testmount/" .. v)
+			end
 			mount(partitions_by_name .. "/" .. v,"/tmp/testmount/" .. v)
 		end
 	end
@@ -101,30 +115,34 @@ end
 
 function umount_filesystems()
 	for _,v in ipairs(partlabels) do
-		if islink(partitions_by_name .. "/" .. v) then
+		if has_partition_label(v) then
 			umount("/tmp/testmount/" .. v)
 		end
 		if is_mounted("/tmp/testmount/" .. v) then
-			print("umount failed")
+			print("umount failed: " .. v)
 			return false
 		end
 	end
-	rmdir("/tmp/testmount")
+	if isdir("/tmp/testmount") then
+		rmdir("/tmp/testmount")
+	end
+	return true
 end
 
 function sleep(n)
-	os.execute("sleep " .. tonumber(n))
+	local seconds = tonumber(n) or 0
+	os.execute("sleep " .. seconds)
 end
 
 function reboot()
 	umount_filesystems()
 	if exists("/bin/systemctl") then
-		local file = assert(io.popen("systemctl reboot"))
+		os.execute("systemctl reboot")
 	elseif exists("/sbin/init") then
-		local file = assert(io.popen("sync && init 6"))
+		os.execute("sync && init 6")
 	else
 		os.execute("umount -f -a -r")
-		local file = assert(io.popen("reboot"))
+		os.execute("reboot")
 	end
 end
 
@@ -245,21 +263,15 @@ function get_imagename(root)
 end
 
 function is_active(root)
+	local active = ""
 	if (current_root == root) then
 		active = " *"
-	else
-		active = ""
 	end
 	return active
 end
 
 function has_gpt_layout()
-	io.write(string.format("devbase = [ %s ]\n", devbase))
-	if (devbase ~= "linuxrootfs") then
-		return true
-	else
-		return false
-	end
+	return devbase ~= "linuxrootfs"
 end
 
 function table_count(t)
@@ -560,11 +572,15 @@ function get_cfg_path()
 end
 
 function get_cfg_value(str)
+	local cfg_path = get_cfg_path()
+	if not exists(cfg_path) then
+		return nil
+	end
 	local r = nil
-	for line in io.lines(get_cfg_path()) do
-		if line:match(str .. "=") then
-			local i,j = string.find(line, str .. "=")
-			r = tonumber(string.sub(line, j+1, #line))
+	for line in io.lines(cfg_path) do
+		local value = line:match("^" .. str .. "=(%d+)$")
+		if value ~= nil then
+			r = tonumber(value)
 		end
 	end
 	return r
@@ -572,26 +588,43 @@ end
 
 function create_cfg()
 	local file = io.open(get_cfg_path(), "w")
-	file:write("boxmode_12=0", "\n")
+	if file == nil then
+		return false
+	end
+	file:write("boxmode_12=1", "\n")
 	file:close()
+	return true
 end
 
 function write_cfg(_, v, str)
-	local a
-	if (v == on) then a = 1 else a = 0 end
+	local a = "0"
+	if (v == on) then a = "1" end
+	local cfg_path = get_cfg_path()
+	if not exists(cfg_path) and not create_cfg() then
+		return false
+	end
 	local cfg_content = {}
-	for line in io.lines(get_cfg_path()) do
-		if line:match(str .. "=") then
-			table.insert (cfg_content, (string.reverse(string.gsub(string.reverse(line), string.sub(string.reverse(line), 1, 1), a, 1))))
+	local found = false
+	for line in io.lines(cfg_path) do
+		if line:match("^" .. str .. "=") then
+			table.insert(cfg_content, str .. "=" .. a)
+			found = true
 		else
-			table.insert (cfg_content, line)
+			table.insert(cfg_content, line)
 		end
 	end
-	local file = io.open(get_cfg_path(), 'w')
-	for i, v in ipairs(cfg_content) do
-		file:write(v, "\n")
+	if not found then
+		table.insert(cfg_content, str .. "=" .. a)
 	end
-	io.close(file)
+	local file = io.open(cfg_path, "w")
+	if file == nil then
+		return false
+	end
+	for _, line in ipairs(cfg_content) do
+		file:write(line, "\n")
+	end
+	file:close()
+	return true
 end
 
 function set(k, v, str)
@@ -602,29 +635,31 @@ function get_boot_path()
 	local path_boot = "/tmp/testmount/boot"
 	local path_boot_options = "/tmp/testmount/bootoptions"
 	local ret = path_boot_options
-	if islink(partitions_by_name .. "/boot") then
+	if has_partition_label("boot") then
 		ret = path_boot
 	end
 	return ret
 end
 
 function get_devbase()
-	local devbase
+	local devbase = "linuxrootfs"
+	partitions_by_name = nil
 	if isdir("/dev/disk/by-partlabel") then
 		partitions_by_name = "/dev/disk/by-partlabel"
 	elseif isdir("/dev/block/by-name") then
 		partitions_by_name = "/dev/block/by-name"
 	end
-	io.write(string.format("partitions_by_name = [ %s ]\n", partitions_by_name))
-	if islink(partitions_by_name .. "/rootfs1") then
+	if has_partition_label("rootfs1") then
 		for line in io.lines("/proc/cmdline") do
-			if line:match("root=") then
-				local _,j = string.find(line, "root=")
-				devbase = string.sub(line, j+1, j+13)
+			local rootdev = line:match("root=([^%s]+)")
+			if rootdev ~= nil then
+				local rootbase = rootdev:match("(.+p)%d+$")
+				if rootbase ~= nil then
+					devbase = rootbase
+					break
+				end
 			end
 		end
-	else
-		devbase = "linuxrootfs"
 	end
 	return devbase
 end
@@ -641,6 +676,8 @@ function main()
 			choose_partition = "\n\nBitte wählen Sie die neue Startpartition aus",
 			start_partition = "Rebooten und die gewählte Partition starten?",
 			empty_partition = "Das gewählte Image ist nicht vorhanden",
+			boot_unavailable = "Boot-Partition konnte nicht gemountet werden",
+			startup_write_failed = "STARTUP konnte nicht geschrieben werden",
 			options = "Einstellungen",
 			select_slot = "Startpartition wählen",
 			boxmode12 = "Boxmode 12",
@@ -655,6 +692,8 @@ function main()
 			choose_partition = "\n\nPlease choose the new boot partition",
 			start_partition = "Reboot and start the chosen partition?",
 			empty_partition = "No image available",
+			boot_unavailable = "Unable to mount boot partition",
+			startup_write_failed = "Unable to write STARTUP",
 			options = "Options",
 			select_slot = "Select boot slot",
 			boxmode12 = "Boxmode 12",
@@ -677,6 +716,13 @@ function main()
 	boot = get_boot_path()
 
 	mount_filesystems()
+	if not isdir(boot) then
+		local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].boot_unavailable };
+		ret:paint();
+		umount_filesystems()
+		sleep(3)
+		return
+	end
 	startup_caps = detect_startup_capabilities()
 	startup_caps.current_mode = detect_current_mode()
 	current_root = detect_current_slot(startup_caps)
@@ -799,7 +845,14 @@ function main()
 		end
 		mode = startup_entry.mode or preferred_mode or current_mode_num
 
-		file = io.open(boot .. "/STARTUP", 'w')
+		file = io.open(boot .. "/STARTUP", "w")
+		if file == nil then
+			local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].startup_write_failed };
+			ret:paint();
+			umount_filesystems()
+			sleep(3)
+			return
+		end
 		for _, v in ipairs(startup_lines) do
 			file:write(v, "\n")
 		end
