@@ -645,6 +645,39 @@ function get_slot_modes_text(caps, slot)
 	return table.concat(modes, "/")
 end
 
+function get_slot_detail_text(caps, slot, lang_table)
+	if caps == nil then
+		return "-"
+	end
+
+	local mode_text = get_slot_modes_text(caps, slot)
+	local candidates = caps.slot_files[slot]
+	local selected = nil
+	if candidates ~= nil then
+		for _, entry in ipairs(candidates) do
+			if entry.name == "STARTUP" and not entry.android then
+				selected = entry
+				break
+			end
+		end
+		if selected == nil then
+			for _, entry in ipairs(candidates) do
+				if not entry.android then
+					selected = entry
+					break
+				end
+			end
+		end
+	end
+
+	local startup_name = (lang_table and lang_table.slot_detail_unknown) or "-"
+	if selected ~= nil and selected.name ~= nil and selected.name ~= "" then
+		startup_name = selected.name
+	end
+
+	return string.format((lang_table and lang_table.slot_detail_fmt) or "Mode %s | %s", mode_text, startup_name)
+end
+
 function select_slot(id, value)
 	local selected = tonumber(id) or tonumber(value)
 	if selected ~= nil then
@@ -785,7 +818,9 @@ function main()
 			image = "Imagewechsel",
 			boxmode = "Boxmodewechsel",
 			image_and_boxmode = "Image- und Boxmodewechsel",
-			hinttext = " %s in STARTUP geschrieben!!\n\nReboot des Images >> %s <<\n\nmit Boxmode %s in %s Sek."
+			hinttext = " %s in STARTUP geschrieben!!\n\nReboot des Images >> %s <<\n\nmit Boxmode %s in %s Sek.",
+			slot_detail_fmt = "Modus %s | %s",
+			slot_detail_unknown = "kein STARTUP"
 	}
 
 		locale["english"] = {
@@ -801,7 +836,9 @@ function main()
 			image = "Image switch",
 			boxmode = "Boxmode switch",
 			image_and_boxmode = "Wrote Image- and Boxmode changing",
-			hinttext = " %s to STARTUP!!\n\nReboot of Image >> %s <<\n\nwith Boxmode %s in %s sec."
+			hinttext = " %s to STARTUP!!\n\nReboot of Image >> %s <<\n\nwith Boxmode %s in %s sec.",
+			slot_detail_fmt = "Mode %s | %s",
+			slot_detail_unknown = "no STARTUP"
 		}
 
 	tuxbox_config = "/var/tuxbox/config"
@@ -875,15 +912,16 @@ function main()
 	local res = nil
 
 	local menu = menu.new{name=caption, icon="settings", mwidth=70}
-	menu:addItem{type="back"}
 	menu:addItem{type="separatorline", name=locale[lang].current_boot_partition .. imagename_full[current_root]}
+	menu:addItem{type="back"}
 	menu:addItem{type="separatorline", name=locale[lang].select_slot}
 	for slot=1,4 do
-		local mode_text = get_slot_modes_text(startup_caps, slot)
-		local entry_name = "Slot " .. tostring(slot) .. " [" .. mode_text .. "] " .. imagename[slot]
+		local entry_name = "Slot " .. tostring(slot) .. " " .. imagename[slot]
+		local entry_value = get_slot_detail_text(startup_caps, slot, locale[lang])
 		menu:addItem{
 			type="forwarder",
 			name=entry_name,
+			value=entry_value,
 			action="select_slot",
 			id=tostring(slot),
 			directkey=RC[tostring(slot)],
