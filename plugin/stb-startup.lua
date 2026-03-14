@@ -925,7 +925,7 @@ function main()
 			action="select_slot",
 			id=tostring(slot),
 			directkey=RC[tostring(slot)],
-			right_icon=(slot == current_root) and "marker_dialog_ok" or nil,
+			right_icon=(slot == current_root) and "marker_dialog_ok_apply" or "marker_dialog_off",
 			hint=imagename_full[slot]
 		}
 	end
