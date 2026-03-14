@@ -334,14 +334,6 @@ function get_imagename(root)
 	return imagename
 end
 
-function is_active(root)
-	local active = ""
-	if (current_root == root) then
-		active = " *"
-	end
-	return active
-end
-
 function has_gpt_layout()
 	return devbase ~= "linuxrootfs"
 end
@@ -856,7 +848,7 @@ function main()
 	local imagename_full = {}
 	for slot=1, 4 do
 		imagename_full[slot] = get_imagename(slot)
-		imagename[slot] = truncate_text(imagename_full[slot], 44) .. is_active(slot)
+		imagename[slot] = truncate_text(imagename_full[slot], 44)
 	end
 
 	local current_mode = off
@@ -895,6 +887,7 @@ function main()
 			action="select_slot",
 			id=tostring(slot),
 			directkey=RC[tostring(slot)],
+			right_icon=(slot == current_root) and "marker_dialog_ok" or nil,
 			hint=imagename_full[slot]
 		}
 	end
