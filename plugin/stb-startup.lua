@@ -417,6 +417,13 @@ function parse_mode(content)
 	return nil
 end
 
+function entry_supports_mode_injection(entry)
+	if entry == nil or entry.android then
+		return false
+	end
+	return string.find(entry.content or "", "bootargs=", 1, true) ~= nil
+end
+
 function detect_startup_capabilities()
 	local glob = require "posix".glob
 	local caps = {
@@ -424,6 +431,7 @@ function detect_startup_capabilities()
 		slots = {},
 		slot_files = {},
 		slot_modes = {},
+		slot_synthetic_modes = {},
 		rootpart_to_slot = {},
 		boxmode_present = false,
 		boxmode_switchable = false,
@@ -467,6 +475,25 @@ function detect_startup_capabilities()
 			entry.slot = devnum_to_image(entry.rootpart)
 		end
 		register_startup_slot(caps, entry)
+	end
+
+	-- Some images only ship one STARTUP entry per slot without explicit boxmode
+	-- markers. In that case we can still switch by injecting boxmode into bootargs.
+	for slot, entries in pairs(caps.slot_files) do
+		if caps.slot_modes[slot] == nil then
+			local injectable = false
+			for _, entry in ipairs(entries) do
+				if entry_supports_mode_injection(entry) then
+					injectable = true
+					break
+				end
+			end
+			if injectable then
+				caps.slot_modes[slot] = { ["1"] = true, ["12"] = true }
+				caps.slot_synthetic_modes[slot] = true
+				caps.boxmode_present = true
+			end
+		end
 	end
 
 	for _, mode_set in pairs(caps.slot_modes) do
@@ -572,6 +599,28 @@ function select_startup_entry(caps, slot, preferred_mode)
 		end
 	end
 	return pick(nil, true) or pick(nil, false)
+end
+
+function apply_mode_to_startup_lines(lines, mode)
+	local target_mode = tostring(mode or "")
+	if target_mode ~= "1" and target_mode ~= "12" then
+		return lines
+	end
+
+	local adjusted = {}
+	for _, line in ipairs(lines) do
+		local updated = line
+		if string.find(updated, "bootargs=", 1, true) ~= nil then
+			updated = string.gsub(updated, "%s+boxmode=%d+", "")
+			if string.match(updated, "'$") ~= nil then
+				updated = string.sub(updated, 1, -2) .. " boxmode=" .. target_mode .. "'"
+			else
+				updated = updated .. " boxmode=" .. target_mode
+			end
+		end
+		table.insert(adjusted, updated)
+	end
+	return adjusted
 end
 
 function has_boxmode()
@@ -913,6 +962,9 @@ function main()
 			table.insert(startup_lines, line)
 		end
 		local mode = startup_entry.mode or preferred_mode or current_mode_num
+		if startup_caps.slot_synthetic_modes[root] then
+			startup_lines = apply_mode_to_startup_lines(startup_lines, mode)
+		end
 
 		if not write_lines(boot .. "/STARTUP", startup_lines) then
 			local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].startup_write_failed };
