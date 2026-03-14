@@ -882,7 +882,7 @@ function main()
 	root = nil
 	local res = nil
 
-	local menu = menu.new{name=caption, icon="settings"}
+	local menu = menu.new{name=caption, icon="settings", mwidth=70}
 	menu:addItem{type="back"}
 	menu:addItem{type="separatorline", name=locale[lang].current_boot_partition .. imagename_full[current_root]}
 	menu:addItem{type="separatorline", name=locale[lang].select_slot}
