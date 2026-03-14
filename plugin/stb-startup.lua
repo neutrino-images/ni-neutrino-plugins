@@ -678,6 +678,94 @@ function get_slot_detail_text(caps, slot, lang_table)
 	return string.format((lang_table and lang_table.slot_detail_fmt) or "Mode %s | %s", mode_text, startup_name)
 end
 
+function get_slot_etc_dir(root)
+	local etc = "/etc"
+	if isdir("/tmp/testmount/linuxrootfs" .. root .. etc) or isdir("/tmp/testmount/rootfs" .. root .. etc) then
+		return etc
+	end
+	return "/var/etc"
+end
+
+function get_slot_image_info(root)
+	local etc = get_slot_etc_dir(root)
+	local info = {}
+	info.distro = get_value("distro", root, etc)
+	if info.distro == "" then
+		info.distro = get_value("creator", root, etc)
+	end
+	info.version = get_value("imageversion", root, etc)
+	if info.version == "" then
+		info.version = get_value("version", root, etc)
+	end
+	info.imagetype = get_value("imagetype", root, etc)
+	if info.imagetype == "" then
+		info.imagetype = get_value("type", root, etc)
+	end
+	info.build = get_value("imagebuild", root, etc)
+	if info.build == "" then
+		info.build = get_value("build", root, etc)
+	end
+	info.date = get_value("imagedate", root, etc)
+	if info.date == "" then
+		info.date = get_value("date", root, etc)
+	end
+	return info
+end
+
+function build_slot_hint(caps, slot, image_name, lang_table)
+	local info = get_slot_image_info(slot)
+	local lines = {}
+	table.insert(lines, string.format((lang_table and lang_table.slot_hint_image) or "Image: %s", image_name))
+
+	if info.distro ~= "" then
+		table.insert(lines, string.format((lang_table and lang_table.slot_hint_distro) or "Distribution: %s", info.distro))
+	end
+	if info.version ~= "" then
+		table.insert(lines, string.format((lang_table and lang_table.slot_hint_version) or "Version: %s", info.version))
+	end
+	if info.imagetype ~= "" then
+		table.insert(lines, string.format((lang_table and lang_table.slot_hint_type) or "Type: %s", info.imagetype))
+	end
+	if info.build ~= "" then
+		table.insert(lines, string.format((lang_table and lang_table.slot_hint_build) or "Build: %s", info.build))
+	end
+	if info.date ~= "" then
+		table.insert(lines, string.format((lang_table and lang_table.slot_hint_date) or "Date: %s", info.date))
+	end
+
+	local mode_text = get_slot_modes_text(caps, slot)
+	if mode_text ~= "-" then
+		table.insert(lines, string.format((lang_table and lang_table.slot_hint_modes) or "Modes: %s", mode_text))
+	end
+
+	local startup_entry = select_startup_entry(caps, slot, nil)
+	if startup_entry ~= nil then
+		local startup_name = startup_entry.name or "-"
+		table.insert(lines, string.format((lang_table and lang_table.slot_hint_startup) or "STARTUP: %s", startup_name))
+		if startup_entry.rootpart ~= nil then
+			table.insert(lines, string.format((lang_table and lang_table.slot_hint_rootpart) or "Root partition: p%s", tostring(startup_entry.rootpart)))
+		end
+	elseif mode_text == "-" then
+		table.insert(lines, (lang_table and lang_table.slot_hint_no_startup) or "No STARTUP entry found")
+	end
+
+	return table.concat(lines, "\n")
+end
+
+function build_boxmode_hint(current_mode_num, saved_mode_num, can_switch, lang_table)
+	local lines = {}
+	if can_switch then
+		table.insert(lines, (lang_table and lang_table.boxmode_hint_switch) or "Selects the Boxmode written into STARTUP for the next reboot.")
+		table.insert(lines, (lang_table and lang_table.boxmode_hint_map) or "'off' = Boxmode 1, 'on' = Boxmode 12.")
+		table.insert(lines, string.format((lang_table and lang_table.boxmode_hint_current) or "Current Boxmode: %s", tostring(current_mode_num or "-")))
+		table.insert(lines, string.format((lang_table and lang_table.boxmode_hint_saved) or "Saved selection for next reboot: %s", tostring(saved_mode_num or "-")))
+	else
+		table.insert(lines, (lang_table and lang_table.boxmode_hint_static) or "The active STARTUP set does not allow switching between Boxmode 1 and 12.")
+		table.insert(lines, string.format((lang_table and lang_table.boxmode_hint_current) or "Current Boxmode: %s", tostring(current_mode_num or "-")))
+	end
+	return table.concat(lines, "\n")
+end
+
 function select_slot(id, value)
 	local selected = tonumber(id) or tonumber(value)
 	if selected ~= nil then
@@ -820,8 +908,23 @@ function main()
 			image_and_boxmode = "Image- und Boxmodewechsel",
 			hinttext = " %s in STARTUP geschrieben!!\n\nReboot des Images >> %s <<\n\nmit Boxmode %s in %s Sek.",
 			slot_detail_fmt = "Modus %s | %s",
-			slot_detail_unknown = "kein STARTUP"
-	}
+			slot_detail_unknown = "kein STARTUP",
+			slot_hint_image = "Image: %s",
+			slot_hint_distro = "Distribution: %s",
+			slot_hint_version = "Version: %s",
+			slot_hint_type = "Typ: %s",
+			slot_hint_build = "Build: %s",
+			slot_hint_date = "Datum: %s",
+			slot_hint_modes = "Modi: %s",
+			slot_hint_startup = "STARTUP: %s",
+			slot_hint_rootpart = "Root-Partition: p%s",
+			slot_hint_no_startup = "Kein STARTUP-Eintrag gefunden",
+			boxmode_hint_switch = "Legt fest, welcher Boxmode beim nächsten Reboot in STARTUP geschrieben wird.",
+			boxmode_hint_map = "'aus' = Boxmode 1, 'ein' = Boxmode 12.",
+			boxmode_hint_static = "Die aktuelle STARTUP-Konfiguration erlaubt keinen Wechsel zwischen Boxmode 1 und 12.",
+			boxmode_hint_current = "Aktiver Boxmode: %s",
+			boxmode_hint_saved = "Gespeicherte Auswahl für den nächsten Reboot: %s"
+		}
 
 		locale["english"] = {
 			current_boot_partition = "The current boot partition is: ",
@@ -838,7 +941,22 @@ function main()
 			image_and_boxmode = "Wrote Image- and Boxmode changing",
 			hinttext = " %s to STARTUP!!\n\nReboot of Image >> %s <<\n\nwith Boxmode %s in %s sec.",
 			slot_detail_fmt = "Mode %s | %s",
-			slot_detail_unknown = "no STARTUP"
+			slot_detail_unknown = "no STARTUP",
+			slot_hint_image = "Image: %s",
+			slot_hint_distro = "Distribution: %s",
+			slot_hint_version = "Version: %s",
+			slot_hint_type = "Type: %s",
+			slot_hint_build = "Build: %s",
+			slot_hint_date = "Date: %s",
+			slot_hint_modes = "Modes: %s",
+			slot_hint_startup = "STARTUP: %s",
+			slot_hint_rootpart = "Root partition: p%s",
+			slot_hint_no_startup = "No STARTUP entry found",
+			boxmode_hint_switch = "Defines which Boxmode is written into STARTUP for the next reboot.",
+			boxmode_hint_map = "'off' = Boxmode 1, 'on' = Boxmode 12.",
+			boxmode_hint_static = "The current STARTUP set does not allow switching between Boxmode 1 and 12.",
+			boxmode_hint_current = "Active Boxmode: %s",
+			boxmode_hint_saved = "Saved selection for next reboot: %s"
 		}
 
 	tuxbox_config = "/var/tuxbox/config"
@@ -883,9 +1001,11 @@ function main()
 
 	local imagename = {}
 	local imagename_full = {}
+	local slot_hints = {}
 	for slot=1, 4 do
 		imagename_full[slot] = get_imagename(slot)
 		imagename[slot] = truncate_text(imagename_full[slot], 44)
+		slot_hints[slot] = build_slot_hint(startup_caps, slot, imagename_full[slot], locale[lang])
 	end
 
 	local current_mode = off
@@ -906,6 +1026,11 @@ function main()
 			cfg_mode = current_mode
 		end
 	end
+	local saved_mode_num = "1"
+	if cfg_mode == on then
+		saved_mode_num = "12"
+	end
+	local boxmode_hint = build_boxmode_hint(current_mode_num, saved_mode_num, can_switch_boxmode_12(), locale[lang])
 
 	colorkey = nil
 	root = nil
@@ -926,20 +1051,20 @@ function main()
 			id=tostring(slot),
 			directkey=RC[tostring(slot)],
 			right_icon=(slot == current_root) and "marker_dialog_ok_apply" or "marker_dialog_off",
-			hint=imagename_full[slot]
+			hint=slot_hints[slot]
 		}
 	end
 	menu:addItem{type="separatorline", name=locale[lang].options}
 	if has_boxmode() then
 		if can_switch_boxmode_12() then
 			if (get_cfg_value("boxmode_12") == 1) then
-				menu:addItem{type="chooser", action="set", options={on, off}, directkey=RC["setup"], name=locale[lang].boxmode12}
+				menu:addItem{type="chooser", action="set", options={on, off}, directkey=RC["setup"], name=locale[lang].boxmode12, hint=boxmode_hint}
 			else
-				menu:addItem{type="chooser", action="set", options={off, on}, directkey=RC["setup"], name=locale[lang].boxmode12}
+				menu:addItem{type="chooser", action="set", options={off, on}, directkey=RC["setup"], name=locale[lang].boxmode12, hint=boxmode_hint}
 			end
 		else
 			local static_mode = startup_caps.current_mode or "-"
-			menu:addItem{type="forwarder", enabled=false, name=locale[lang].boxmode12 .. ": " .. static_mode}
+			menu:addItem{type="forwarder", enabled=false, name=locale[lang].boxmode12 .. ": " .. static_mode, hint=boxmode_hint}
 		end
 	end
 	menu:exec()
