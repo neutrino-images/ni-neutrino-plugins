@@ -17,8 +17,14 @@ Current plugin baseline: `v2.0`
 ## Install (local)
 
 ```bash
-make install DESTDIR=$PWD/dist PREFIX=/usr
+make install DESTDIR=/tmp/pkgroot PREFIX=/usr/share/tuxbox/neutrino PLUGIN_SUBDIR=plugins
 ```
 
 This installs files to:
-`dist/usr/share/neutrino/plugins/lua/stb_startup`
+`/tmp/pkgroot/usr/share/tuxbox/neutrino/plugins`
+
+For a quick local test tree:
+
+```bash
+make install-local
+```
