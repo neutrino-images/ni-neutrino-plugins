@@ -1,7 +1,8 @@
 --[[
-	plutotv-vod.lua v1.24
+	plutotv-vod.lua v2.03
 
 	Copyright (C) 2021 TangoCash
+	Copyright (C) 2026 GetAway
 	License: WTFPLv2
 ]]
 
@@ -10,13 +11,61 @@ plutotv_vod_png = arg[0]:match('.*/') .. "/plutotv-vod_hint.png"
 
 hotkeys = true
 
-json = require "json"
+-- Prefer Lua CJSON if available, otherwise fall back to a pure-Lua json module.
+do
+	local ok, cjson_mod = pcall(require, "cjson")
+	if ok and cjson_mod then
+		json = {
+			decode = cjson_mod.decode,
+			encode = cjson_mod.encode,
+		}
+	else
+		-- fallback to whatever json module is available (e.g. dkjson or JSON.lua)
+		json = require("json")
+		-- normalize API: ensure json.decode/encode are plain functions and
+		-- adapt modules that require method format (JSON:decode / JSON:encode).
+		local function normalize_json(j)
+			if type(j) ~= "table" then return end
+			-- normalize decode
+			if type(j.decode) == "function" then
+				local ok = pcall(j.decode, "{}")
+				if not ok then
+					local orig = j.decode
+					j.decode = function(s)
+						return orig(j, s)
+					end
+				end
+			elseif type(j.decode) == "table" and type(j.decode.decode) == "function" then
+				local obj = j.decode
+				j.decode = function(s)
+					return obj.decode(obj, s)
+				end
+			end
+			-- normalize encode
+			if type(j.encode) == "function" then
+				local ok = pcall(j.encode, {})
+				if not ok then
+					local orig = j.encode
+					j.encode = function(t)
+						return orig(j, t)
+					end
+				end
+			elseif type(j.encode) == "table" and type(j.encode.encode) == "function" then
+				local obj = j.encode
+				j.encode = function(t)
+					return obj.encode(obj, t)
+				end
+			end
+		end
+		normalize_json(json)
+	end
+end
 n = neutrino()
 
 catlist = {}
 
 itemlist = {}
-itemlist_details = {}
+--itemlist_details = {}
 
 episodelist = {}
 episodelist_details = {}
@@ -38,12 +87,30 @@ end
 
 dlPath = '/'
 
+function getWebIfParams()
+	local ret = '127.0.0.1'
+	local Nconfig = configfile.new()
+	if Nconfig then
+		Nconfig:loadConfig(CONF_PATH .. "nhttpd.conf")
+		local port = Nconfig:getString("WebsiteMain.port","80")
+		local up_on = Nconfig:getBool("mod_auth.authenticate", false)
+		local user = Nconfig:getString("mod_auth.username","")
+		local pass = Nconfig:getString("mod_auth.password","")
+		if up_on then
+			ret = user .. ":" .. pass .. "@" .. ret .. ":" .. port
+		else
+			ret = ret .. ":" .. port
+		end
+	end
+	return 'http://' .. ret
+end
+
 function isCST()
-	local rev, hw = nMisc:GetRevision()
-	if hw == "Coolstream" then
-		return true
-	else
+	local rev, box = nMisc:GetRevision()
+	if box ~= "Coolstream" then
 		return false
+	else
+		return true
 	end
 end
 
@@ -52,7 +119,7 @@ function getdata(Url, File)
 	if Curl == nil then
 		Curl = curl.new()
 	end
-	local ret, data = Curl:download{ url=Url, ipv4=true, A="Mozilla/5.0", o=File}
+	local ret, data = Curl:download{ url=Url, ipv4=true, A="Mozilla/5.0", o=File, v=false}
 	if ret == CURL.OK then
 		if File then
 			return 1
@@ -123,28 +190,161 @@ function conv_utf8(_string)
 	return _string
 end
 
-function gen_ids() -- Generation of a random sid 
-	local a = string.format("%x", math.random(1000000000,9999999999)) 
-	local b = string.format("%x", math.random(1000,9999)) 
-	local c = string.format("%x", math.random(1000,9999)) 
-	local d = string.format("%x", math.random(10000000000000,99999999999999))
-	local id = tostring(a) .. '-' .. tostring(b) .. '-' .. tostring(c) .. '-' .. tostring(d)
-	return id
+-- Minimale uuid4(short)-Implementierung (RFC4122) für PlutoTV
+-- Liefert eine UUID v4 als String: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+
+math.randomseed(os.time())
+
+local function uuid4(short)
+  local bytes = short and 10 or 16  -- 10 Bytes = 8-4-4-4, 16 Bytes = 8-4-4-4-12
+  local rnd = {}
+
+  for i = 1, bytes do
+    rnd[i] = math.random(0, 255)
+  end
+
+  -- Version (nur wenn genug Bytes vorhanden)
+  if bytes >= 7 then
+    rnd[7] = (rnd[7] % 16) + 0x40
+  end
+
+  -- Variant (nur wenn genug Bytes vorhanden)
+  if bytes >= 9 then
+    rnd[9] = (rnd[9] % 64) + 0x80
+  end
+
+  local hex = {}
+  for i = 1, bytes do
+    hex[i] = string.format("%02x", rnd[i])
+  end
+
+  local parts = {
+    table.concat(hex, "", 1, 4),   -- 8 hex
+    table.concat(hex, "", 5, 6),   -- 4 hex
+    table.concat(hex, "", 7, 8),   -- 4 hex
+    table.concat(hex, "", 9, 10),  -- 4 hex
+  }
+
+  if not short then
+    table.insert(parts, table.concat(hex, "", 11, 16)) -- 12 hex
+  end
+
+  return table.concat(parts, "-")
 end
 
-function getVideoData(url) -- Generate stream address and evaluate it according to the best resolution
-	http = "http://service-stitcher-ipv4.clusters.pluto.tv/stitch/hls/episode/"
-	token = "?terminate=false&embedPartner=&serverSideAds=&paln=&includeExtendedEvents=false&architecture=&deviceId=" .. gen_ids() .. "&deviceVersion=unknown&appVersion=unknown&deviceType=web&deviceMake=Chrome&sid=" .. gen_ids() .. "&advertisingId=&deviceDNT=0&deviceModel=Chrome&userId=&appName="
-	local data = getdata(http .. url .."/master.m3u8" ..token) -- Calling the generated master.m3u8
+-- PlutoAuth-Portierung (Basis: gin.py)
+local PlutoAuth = {}
+PlutoAuth.__index = PlutoAuth
+
+PlutoAuth.BOOT_URL = "https://boot.pluto.tv/v4/start"
+PlutoAuth.STITCHER_BASE = "https://cfd-v4-service-channel-stitcher-use1-1.prd.pluto.tv"
+
+function PlutoAuth:new()
+	local self = setmetatable({}, PlutoAuth)
+	self.client_id = uuid4(true)
+	self.session_token = nil
+	self.token_exp = 0
+	return self
+end
+
+function PlutoAuth:_tokenExpiry(token)
+	local payload = token:match("^%w+%.([%w_-]+)%.")
+	if not payload then return 0 end
+	payload = payload .. string.rep("=", (4 - #payload % 4) % 4)
+	local decoded = ''
+	if mime and mime.unb64 then
+		decoded = mime.unb64(payload)
+	elseif require then
+		local b64 = require("mime")
+		decoded = b64.unb64(payload)
+	end
+	local obj = json.decode(decoded)
+	return obj and obj.exp or 0
+end
+
+function PlutoAuth:boot(ipAddress)
+	if self.session_token and os.time() < (self.token_exp or 0) - 60 then
+		return self.session_token
+	end
+	local headers = {
+		["accept"] = "*/*",
+		["origin"] = "https://pluto.tv",
+		["referer"] = "https://pluto.tv/",
+		["user-agent"] = "Mozilla/5.0",
+	}
+	if ipAddress then
+		headers["X-Forwarded-For"] = ipAddress
+	end
+	local params = {
+		appName = "web",
+		appVersion = "8.0.0-111b2b9dc00bd0bea9030b30662159ed9e7c8bc6",
+		deviceVersion = "122.0.0",
+		deviceModel = "web",
+		deviceMake = "chrome",
+		deviceType = "web",
+		clientID = self.client_id,
+		clientModelNumber = "1.0.0",
+		serverSideAds = "false",
+		drmCapabilities = "widevine:L3",
+		blockingMode = "",
+	}
+	local query = ""
+	for k, v in pairs(params) do
+		query = query .. "&" .. k .. "=" .. v
+	end
+	query = query:gsub("^&", "?")
+	local url = self.BOOT_URL .. query
+	local data = getdata(url)
+	if data then
+		local obj = json.decode(data)
+		if obj and obj.sessionToken then
+			self.session_token = obj.sessionToken
+			self.token_exp = self:_tokenExpiry(obj.sessionToken)
+			return self.session_token
+		end
+	end
+	return nil
+end
+
+function PlutoAuth:buildVodStreamURL(vod_url, ipAddress)
+	local token = self:boot(ipAddress) or ""
+	-- strip query string
+	local path = tostring(vod_url):match("^[^?]*") or tostring(vod_url)
+	-- remove host if present
+	path = path:gsub("^https?://[^/]+", "")
+	-- if path does not start with '/', treat it as an id and construct stitcher path
+	if path:sub(1,1) ~= "/" then
+		path = "/stitch/" .. path .. "/master.m3u8"
+	end
+	if path:sub(1,8) == "/stitch/" then
+		path = "/v2" .. path
+	end
+	return string.format("%s%s?jwt=%s&masterJWTPassthrough=true", self.STITCHER_BASE, path, token)
+end
+
+plutoAuth = PlutoAuth:new()
+
+-- Neue PlutoTV VOD-URL-Generierung mit Auth
+function getVideoData(vod_url)
+	-- If vod_url is just an id (no scheme and no leading slash), build full stitcher path
+	local input = tostring(vod_url)
+	if not input:match("^https?://") and input:sub(1,1) ~= "/" then
+		input = "/stitch/hls/episode/" .. input .. "/master.m3u8"
+	end
+	local base_url = plutoAuth:buildVodStreamURL(input)
+
+	-- Call the generated master.m3u8
+	local data = getdata(base_url)
 	local count = 0
 	if data then
 		local res = 0
-		for band, url2 in data:gmatch(',BANDWIDTH=(%d+).-\n(%d+.-m3u8)') do
+		for band, url2 in data:gmatch(',BANDWIDTH=(%d+).-(%d+.-m3u8)') do
 			if band and url2 then
 				local nr = tonumber(band)
 				if nr > res then
 					res=nr
-					re_url = http .. url .. "/" .. url2 .. token 
+					local _url = base_url:gsub("master.m3u8.*$", url2)
+					re_url = plutoAuth:buildVodStreamURL(_url)
 				end
 			end
 		end
@@ -336,7 +536,10 @@ function showBGPicture()
 		if not have_cst then
 			vPlay:ShowPicture(bigPicBG)
 		elseif have_jpegtran then
-			os.execute("jpegtran -copy none -optimize " .. bigPicBG .. " > " .. bigPicBGconv)
+			--os.execute("jpegtran -copy none -optimize " .. bigPicBG .. " > " .. bigPicBGconv)
+			-- blockierend: warte bis jpegtran fertig ist
+			local cmd = string.format("jpegtran -copy none -optimize %q > %q 2>/dev/null", bigPicBG, bigPicBGconv)
+			os.execute(cmd)
 			if fh:exist(bigPicBGconv, 'f') then
 				vPlay:ShowPicture(bigPicBGconv)
 			end
@@ -366,7 +569,10 @@ function playback_stream(uuid)
 		current_uuid = uuid
 		local data = getdata(re_url)
 		local dlm3 = "/tmp/.plutotv_vod_play.m3u8"
-		local http_dlm3 = "http://127.0.0.1/tmp/.plutotv_vod_play.m3u8"
+		local http_dlm3 = dlm3
+		if have_cst then
+			http_dlm3 = local_loopback .. "/tmp/.plutotv_vod_play.m3u8"
+		end
 		local m3uw = io.open(dlm3,"w")
 		local nomarkerfound = true
 		local marker = ""
@@ -400,7 +606,7 @@ function playback_stream(uuid)
 		vPlay:setSinglePlay(true)
 		vPlay:setInfoFunc("epgInfo")
 		vPlay:PlayFile(playback_details[uuid].title or playback_details[uuid].name, http_dlm3, info1, info2 or "");
-		os.execute('rm '.. dlm3)
+		os.execute('rm ' .. dlm3)
 	end
 	current_uuid = ""
 	showBGPicture()
@@ -423,19 +629,25 @@ function dl_check(streamUrl)
 end
 
 function start_bg_download(streamUrl,filename,title)
-	local format_ext = 'mp4'
-	local whitelist = "-protocol_whitelist 'http,https,file,crypto,tls,tcp'"
+	local format_ext = 'ts'
+	local whitelist = '-protocol_whitelist http,https,file,crypto,tls,tcp '
+	local cp_param = ''
+	local monotonicity = ''
 	if have_cst then
-		--format_ext = 'ts'
-		whitelist = ''
+		format_ext = 'mp4'
+		cp_param = '-bsf:a aac_adtstoasc -movflags +faststart '
+	end
+	if ff_major_ver < 60 then
+		monotonicity = '-force_dts_monotonicity '
 	end
 	if streamUrl then
-		local file_id = gen_ids()
+		local file_id = uuid4(true)
 		local data = getdata(streamUrl)
 		local dlm3 = "/tmp/.plutotv_vod_dl_" .. file_id .. ".m3u8"
 		local m3uw = io.open(dlm3,"w")
 		local nomarkerfound = true
 		local marker = ""
+		local skipline = false
 		local count = 1
 		for line in data:gmatch("([^\n]*)\n?") do
 			if nomarkerfound and count > 12 then
@@ -463,27 +675,29 @@ function start_bg_download(streamUrl,filename,title)
 		end
 		m3uw:close()
 		if filename and format_ext then
-			local dls  = "/tmp/.plutotv_vod_dl_" .. file_id .. ".sh"
+			local dls = "/tmp/.plutotv_vod_dl_" .. file_id .. ".sh"
 			dlname = filename
-			local script=io.open(dls,"w")
-			script:write('echo "download start" ;\n')
-			script:write("ffmpeg -y -nostdin -loglevel 30 -force_dts_monotonicity " .. whitelist .. " -i '" .. dlm3 .. "' -c copy " .. dlname   .. "." .. format_ext .. "\n")
+			local script = io.open(dls, "w")
+			script:write('echo "download start";\n')
+			script:write("ffmpeg -y -nostdin -loglevel 30 " .. monotonicity .. whitelist .. "-i '" .. dlm3 .. "' -c copy " .. cp_param .. dlname .. "." .. format_ext .. ";\n")
 			script:write('if [ $? -eq 0 ]; then \n')
-			script:write('wget -q http://127.0.0.1/control/message?popup="Video ' .. title .. ' wurde heruntergeladen." -O /dev/null ; \n')
+			script:write('wget -q ' .. local_loopback .. '/control/message?popup="Video ' .. title .. ' wurde heruntergeladen." -O /dev/null;\n')
 			if format_ext == 'mp4' then
-				script:write('mv ' .. dlname .. '.' .. format_ext .. ' ' .. dlname .. '.ts\n')
+				script:write('mv ' .. dlname .. '.' .. format_ext .. ' ' .. dlname .. '.ts;\n')
 			end
-			script:write('rm ' .. dlm3 .. '; \n')
-			script:write('echo "download success" ;\n')
+			script:write('rm ' .. dlm3 .. ';\n')
+			script:write('echo "download success";\n')
 			script:write('else \n')
-			script:write('wget -q http://127.0.0.1/control/message?popup="Download ' .. title .. ' FEHLGESCHLAGEN" -O /dev/null ; \n')
-			script:write('rm ' .. dlname .. '.*; \n')
-			script:write('rm ' .. dlm3 .. '; \n')
-			script:write('echo "download failed" ;\n')
-			script:write('fi \n')
-			script:write('rm ' .. dls .. '; \n')
+			script:write('wget -q ' .. local_loopback .. '/control/message?popup="Download ' .. title .. ' FEHLGESCHLAGEN" -O /dev/null;\n')
+			script:write('rm ' .. dlname .. '.*;\n')
+			script:write('rm ' .. dlm3 .. ';\n')
+			script:write('echo "download failed";\n')
+			script:write('fi\n')
+			script:write('rm ' .. dls .. ';\n')
 			script:close()
-			os.execute('sh  ' .. dls .. ' &')
+			sleep(1)
+			local f = io.popen("nohup /bin/sh " .. dls .. " &")
+			f:close()
 			return true
 		end
 	end
@@ -684,7 +898,7 @@ function show_playback_info(uuid)
 		btn_text = "Episode"
 	end
 	w = n:scale2Res(1000)
-	h = n:scale2Res(600) 
+	h = n:scale2Res(600)
 	local wow = cwindow.new{x=x, y=y, dx=w, dy=h, title=playback_details[uuid].title or playback_details[uuid].name, btnOk=btn_text .." abspielen", btnRed=btn_text.." downloaden", icon=plutotv_vod_png }
 	local tf = wow:headerHeight() + wow:footerHeight()
 	h = h + tf
@@ -743,40 +957,50 @@ function show_playback_info(uuid)
 end
 
 function get_cat()
-	local r = false
-	local c = curl.new()
-	local c_data = getdata("http://api.pluto.tv/v3/vod/categories?includeItems=true&deviceType=web")
-	if c_data then
-		local jd = json:decode(c_data)
-		if jd then
-			for i = 1, jd.totalCategories do
-				if jd.categories[i] then
-					table.insert(catlist, i, jd.categories[i].name)
-					itemlist_details = {}
-					for k = 1, #jd.categories[i].items do
-						local _duration = 0
-						if jd.categories[i].items[k].originalContentDuration then
-							_duration = math.floor(tonumber(jd.categories[i].items[k].originalContentDuration) / 1000 / 60 + 0.5)
-						end
-						itemlist_details[k] =
-						{
-							cat  = i;
-							item = k;
-							name = jd.categories[i].items[k].name;
-							desc = jd.categories[i].items[k].description;
-							uuid = jd.categories[i].items[k]._id;
-							type = jd.categories[i].items[k].type;
-							duration = _duration;
-							cover = jd.categories[i].items[k].covers[1].url;
-							rating = jd.categories[i].items[k].rating;
-							genre = jd.categories[i].items[k].genre;
-						}
-					end
-					table.insert(itemlist, i , itemlist_details)
-				end
-			end
-		end
-	end
+    local c_data = getdata("http://api.pluto.tv/v3/vod/categories?includeItems=true&deviceType=web")
+    if not c_data then return end
+
+		local jd = json.decode(c_data)
+    if not jd then return end
+
+    local categories = jd.categories
+
+    for i = 1, jd.totalCategories do
+        local cat = categories[i]
+        if cat then
+            catlist[i] = cat.name
+
+            local items = cat.items
+            local item_count = #items
+            local itemlist_details = {}
+
+            for k = 1, item_count do
+                local item = items[k]
+
+                local duration = 0
+                local d = item.originalContentDuration
+                if d then
+                    d = d * 0.0000166667
+                    duration = d + 0.5 - (d + 0.5) % 1
+                end
+
+                itemlist_details[k] = {
+                    cat  = i;
+                    item = k;
+                    name = item.name;
+                    desc = item.description;
+                    uuid = item._id;
+                    type = item.type;
+                    duration = duration;
+                    cover = item.covers and item.covers[1] and item.covers[1].url;
+                    rating = item.rating;
+                    genre = item.genre;
+                }
+            end
+
+            itemlist[i] = itemlist_details
+        end
+    end
 end
 
 function cat_menu(_id)
@@ -788,7 +1012,7 @@ function cat_menu(_id)
 			for item, item_detail in pairs(itemlist_detail) do
 				if item_detail.type == "movie" then
 					cm:addItem{type="forwarder", name=conv_utf8(item_detail.name), action="show_playback_info_m", id=item_detail.uuid, icon=godirect("icon", count), hint=hint_value("hinttext",item_detail.duration), hint_icon=hint_value("hinticon",item_detail.duration), value=hint_value("value",item_detail.duration), enabled=true, directkey=godirect("directkey", count)}
-					playback_details[item_detail.uuid] = 
+					playback_details[item_detail.uuid] =
 					{
 						uuid = item_detail.uuid;
 						name = item_detail.name;
@@ -805,7 +1029,7 @@ function cat_menu(_id)
 				end
 				if count == 0 then
 					count = 11
-				elseif count == 9 then 
+				elseif count == 9 then
 					count = 0
 				else
 					count = count + 1
@@ -823,9 +1047,8 @@ function season_menu(_id)
 	local seasons = 1
 	local c = curl.new()
 	local c_data = getdata("http://api.pluto.tv/v3/vod/series/".. _id .."/seasons?includeItems=true&deviceType=web")
-	local num = 1
 	if c_data then
-		local jd = json:decode(c_data)
+		local jd = json.decode(c_data)
 		if jd then
 			sm = menu.new{name=jd.name, has_shadow=true, icon=plutotv_vod_png}
 			if jd.featuredImage.path then
@@ -858,7 +1081,7 @@ function season_menu(_id)
 				table.insert(episodelist, i, episodelist_details)
 				if count == 0 then
 					count = 11
-				elseif count == 9 then 
+				elseif count == 9 then
 					count = 0
 				else
 					count = count + 1
@@ -875,7 +1098,7 @@ function season_menu(_id)
 		sm:exec()
 	end
 	hideBGPicture(true)
-	os.execute("rm "..bigPicBG);
+	os.execute("rm ".. bigPicBG)
 end
 
 function episode_menu(s, n)
@@ -889,7 +1112,7 @@ function episode_menu(s, n)
 			local count = 1
 			for episode, episode_detail in pairs(episodelist_detail) do
 				em:addItem{type="forwarder", name=episode_detail.name, action="show_playback_info_e", id=episode_detail.uuid, icon=godirect("icon", count), hint=hint_value("hinttext",episode_detail.duration), hint_icon=hint_value("hinticon",episode_detail.duration), value=hint_value("value",episode_detail.duration), enabled=true, directkey=godirect("directkey", count)}
-				playback_details[episode_detail.uuid] = 
+				playback_details[episode_detail.uuid] =
 				{
 					uuid = episode_detail.uuid;
 					name = episode_detail.name;
@@ -904,7 +1127,7 @@ function episode_menu(s, n)
 				}
 				if count == 0 then
 					count = 11
-				elseif count == 9 then 
+				elseif count == 9 then
 					count = 0
 				else
 					count = count + 1
@@ -913,6 +1136,28 @@ function episode_menu(s, n)
 		end
 	end
 	em:exec()
+end
+
+function get_libavcodec_version()
+    local paths = {'/usr/lib', '/lib'}
+
+    for _, dir in ipairs(paths) do
+		local cmd = "find " .. dir .. " -maxdepth 1 -name 'libavcodec.so.*' 2>/dev/null"
+        local pipe = io.popen(cmd)
+        if pipe then
+			for file in pipe:lines() do
+				local base = file:match("([^/]+)$") or file
+				base = base:gsub("%s+$", ""):gsub("\r", "")
+				local major = base:match("libavcodec%.so%.(%d+)") or base:match("%.so%.(%d+)") or base:match("(%d+)")
+				if major then
+					pipe:close()
+					return tonumber(major)
+				end
+			end
+            pipe:close()
+        end
+    end
+    return 0
 end
 
 --Menü anzeigen
@@ -930,7 +1175,7 @@ function MainMenue()
 		m:addItem{type="forwarder", name=conv_utf8(_name), action="cat_menu", hint=htext, id=_id, icon=godirect("icon", count), enabled=true, directkey=godirect("directkey", count)}
 		if count == 0 then
 			count = 11
-		elseif count == 9 then 
+		elseif count == 9 then
 			count = 0
 		else
 			count = count + 1
@@ -938,16 +1183,18 @@ function MainMenue()
 	end
 	h:hide()
 	m:exec()
-	hideBGPicture(true)
-	os.execute("rm /tmp/plutotv-vod_*.*");
+	--hideBGPicture(true)
+	os.execute("rm /tmp/plutotv-vod_*.*")
 	collectgarbage()
 end
 
+ff_major_ver = get_libavcodec_version()
 nMisc = misc.new()
 vPlay = video.new()
 have_ffmpeg = which("ffmpeg")
 have_jpegtran = which("jpegtran")
 have_cst = isCST()
+local_loopback = getWebIfParams()
 coverPic = "/tmp/plutotv-vod_cover.jpg"
 bigPicBG = "/tmp/plutotv-vod_bg.jpg"
 bigPicBGconv = "/tmp/plutotv-vod_bgconv.jpg"
