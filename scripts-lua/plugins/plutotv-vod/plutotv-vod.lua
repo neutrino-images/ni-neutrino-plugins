@@ -247,7 +247,6 @@ function PlutoAuth:new()
 	return self
 end
 
-
 -- ####################################################################
 -- convert a image: http://websemantics.co.uk/online_tools/image_to_data_uri_convertor/
 -- function from http://lua-users.org/wiki/BaseSixtyFour
@@ -272,21 +271,19 @@ function base64dec(data)
 end
 -- ####################################################################
 
-
-
 function PlutoAuth:_tokenExpiry(token)
 	local payload = token:match("^%w+%.([%w_-]+)%.")
 	if not payload then return 0 end
 	payload = payload .. string.rep("=", (4 - #payload % 4) % 4)
 	local decoded = ''
---[[	if mime and mime.unb64 then
+--[[
+	if mime and mime.unb64 then
 		decoded = mime.unb64(payload)
 	elseif require then
 		local b64 = require("mime")
 		decoded = b64.unb64(payload)
 	end
-	]]--
-	
+]]--
 	decoded = base64dec(payload)
 		
 	local obj = json.decode(decoded)
