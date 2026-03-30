@@ -247,17 +247,48 @@ function PlutoAuth:new()
 	return self
 end
 
+
+-- ####################################################################
+-- convert a image: http://websemantics.co.uk/online_tools/image_to_data_uri_convertor/
+-- function from http://lua-users.org/wiki/BaseSixtyFour
+
+-- character table string
+local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+
+-- decode
+function base64dec(data)
+	data = string.gsub(data, '[^'..b..'=]', '')
+	return (data:gsub('.', function(x)
+	if (x == '=') then return '' end
+	local r,f='',(b:find(x)-1)
+	for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+	return r;
+	end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+	if (#x ~= 8) then return '' end
+	local c=0
+	for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+	return string.char(c)
+	end))
+end
+-- ####################################################################
+
+
+
 function PlutoAuth:_tokenExpiry(token)
 	local payload = token:match("^%w+%.([%w_-]+)%.")
 	if not payload then return 0 end
 	payload = payload .. string.rep("=", (4 - #payload % 4) % 4)
 	local decoded = ''
-	if mime and mime.unb64 then
+--[[	if mime and mime.unb64 then
 		decoded = mime.unb64(payload)
 	elseif require then
 		local b64 = require("mime")
 		decoded = b64.unb64(payload)
 	end
+	]]--
+	
+	decoded = base64dec(payload)
+		
 	local obj = json.decode(decoded)
 	return obj and obj.exp or 0
 end
