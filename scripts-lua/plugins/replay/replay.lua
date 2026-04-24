@@ -4,7 +4,7 @@
 	Version 0.99 beta
 
 	Changed by BPanther - 30/Apr/2024
-	Changed by jokel - 2/5/2025
+	Changed by jokel - 16/Apr/2026
 ]]
 
 local sender_mpd = {
@@ -27,6 +27,7 @@ local sender_mpd = {
 	["NDR FS SH"] = "https://mcdn.ndr.de/ndr/dash/ndr_hbbtv/ndr_hbbtv_sh/ndr_hbbtv_sh.mpd",
 	["ONE"] = "https://mcdn-one.ard.de/ardone/dash/manifest.mpd",
 	["PHOENIX"] = "https://zdf-dash-19.akamaized.net/dash/live/2016512/de/manifest.mpd",
+	["phoenix"] = "https://zdf-dash-19.akamaized.net/dash/live/2016512/de/manifest.mpd",
 	["Radio Bremen"] = "https://rbdashlive.akamaized.net/dash/live/2020436/rbfs/dash.mpd",
 	["rbb Berlin"] = "https://rbb-dash-berlin.akamaized.net/dash/live/2017826/rbb_berlin/manifest.mpd",
 	["rbb Brandenburg"] = "https://rbb-dash-brandenburg.akamaized.net/dash/live/2017827/rbb_brandenburg/manifest.mpd",
