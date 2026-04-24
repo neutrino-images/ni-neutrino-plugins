@@ -15,14 +15,20 @@ webtv_DATA += \
 	plutotv.xml \
 	plutotv_us.lua \
 	plutotv_us.xml
+if HAVE_PYTHON
+webtv_DATA += \
+	plutotv_de.xml
+endif
 endif
 if ENABLE_RAKUTENTV
 webtv_DATA += \
 	rakutentv.xml
 endif
 if ENABLE_SAMSUNGTVPLUS
+if HAVE_PYTHON
 webtv_DATA += \
-	samsungtvplus.xml
+	samsungtvplus_de.xml
+endif
 endif
 if ENABLE_YT_LIVE
 webtv_DATA += \
