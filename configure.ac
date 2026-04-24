@@ -56,6 +56,7 @@ case "$BOXTYPE" in
 		have_python=yes
 	;;
 esac
+AM_CONDITIONAL(HAVE_PYTHON, test "$have_python" = "yes")
 
 AC_ARG_ENABLE(asc2uni,
 	AS_HELP_STRING([--enable-asc2uni], [enable asc2uni @<:@default=yes@:>@]),
@@ -407,7 +408,7 @@ AC_ARG_ENABLE(samsungtvplus,
 	AS_HELP_STRING([--enable-samsungtvplus], [enable webtv samsungtvplus @<:@default=yes@:>@]),
 	[enable_samsungtvplus="$enableval"],
 	[enable_samsungtvplus="yes"])
-AM_CONDITIONAL(ENABLE_SAMSUNGTVPLUS, test "$enable_samsungtvplus" = "yes" -a "$have_python" = "yes")
+AM_CONDITIONAL(ENABLE_SAMSUNGTVPLUS, test "$enable_samsungtvplus" = "yes")
 
 AC_ARG_ENABLE(yt_live,
 	AS_HELP_STRING([--enable-yt_live], [enable webtv yt_live @<:@default=yes@:>@]),
