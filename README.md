@@ -8,6 +8,36 @@ Standalone Neutrino Lua plugin for multiboot startup switching.
 - Lets users select the startup slot for the next reboot.
 - Supports boxmode switching (1/12) where supported by the platform layout.
 - Shows slot details (for example startup entry and root partition).
+- Self-heals stale udev coldplug state and falls back to `blkid` when
+  `/dev/disk/by-partlabel/` is empty (see "Robustness — v2.4" below).
+- Auto-backs up `/boot/STARTUP` to `/boot/STARTUP.bak` before every switch.
+
+## Robustness — v2.4
+
+Layout detection works in three layers; the plugin walks down the list
+until one yields a working PARTLABEL → device map:
+
+1. `/dev/disk/by-partlabel/` (populated by `udev` after the coldplug
+   `IMPORT{builtin}="blkid"` pass).
+2. **Self-repair**: if the directory is empty, the plugin runs
+   `udevadm trigger --subsystem-match=block --action=change` followed by
+   `udevadm settle --timeout=3`. This works around images where
+   `systemd-udev-trigger.service` is not wired into `sysinit.target.wants/`.
+3. **`blkid -o export` fallback**: if even the trigger does not populate
+   `by-partlabel`, the plugin parses `blkid -o export` to build a
+   `PARTLABEL → DEVNAME` map directly from probe results. Busybox `blkid`
+   is sufficient — no additional package dependency.
+
+The slot-list UI shows a small `udev:` status indicator if the coldplug
+was repaired or missing, so the layer that fixed the lookup is visible
+without journal access. If the boot partition cannot be mounted because
+labels are completely missing, the user sees a precise diagnostic message
+("Partition labels not detected — udev coldplug missing in image, image
+update needed") instead of a generic mount-failure error.
+
+`/boot/STARTUP` is automatically copied to `/boot/STARTUP.bak` before any
+slot switch. If a switch causes a bad reboot, recovery is a single
+`cp /boot/STARTUP.bak /boot/STARTUP`.
 
 ## Repository Layout
 

@@ -26,9 +26,16 @@
 -- authors and should not be interpreted as representing official policies, either expressed
 -- or implied, of the Tuxbox Project.
 
-local version = "v2.2"
+local version = "v2.4"
 
 local on = "ein"; local off = "aus"
+local bcm_boxmode_quirk = nil
+-- udev coldplug result for the boot-partition lookup: "ok" (by-partlabel
+-- already populated), "repaired" (was empty, udevadm trigger fixed it),
+-- "missing" (still empty after trigger, fell through to blkid fallback)
+-- or "unknown" (not yet probed). Drives the differentiated boot_unavailable
+-- hintbox and the slot-list health indicator.
+local udev_coldplug_state = "unknown"
 
 function exists(file)
 	return fh:exist(file, "f")
@@ -124,6 +131,77 @@ function get_partition_device(label)
 		return partition_device_map[label]
 	end
 	return nil
+end
+
+-- Returns the discovered by-partlabel directory if populated, otherwise nil.
+-- Also caches the result in the global partitions_by_name for callers.
+local function probe_partlabel_dir()
+	local glob = require "posix".glob
+	for _, dir in ipairs({"/dev/disk/by-partlabel", "/dev/block/by-name"}) do
+		if isdir(dir) then
+			local entries = glob(dir .. "/*", 0)
+			if entries ~= nil and #entries > 0 then
+				partitions_by_name = dir
+				return dir
+			end
+		end
+	end
+	return nil
+end
+
+-- Ensure /dev/disk/by-partlabel/ is populated. Returns one of the
+-- udev_coldplug_state values described at the top of the file.
+function ensure_partition_labels()
+	if probe_partlabel_dir() ~= nil then
+		return "ok"
+	end
+
+	-- Self-repair: in some images systemd-udev-trigger is not wired into
+	-- sysinit.target.wants/, so the coldplug pass never runs and udev's
+	-- blkid built-in never emits ID_PART_ENTRY_NAME. Replay the trigger
+	-- so blkid runs and the by-partlabel symlinks appear.
+	os.execute("udevadm trigger --subsystem-match=block --action=change >/dev/null 2>&1")
+	os.execute("udevadm settle --timeout=3 >/dev/null 2>&1")
+
+	if probe_partlabel_dir() ~= nil then
+		return "repaired"
+	end
+
+	return "missing"
+end
+
+-- Fallback when /dev/disk/by-partlabel/ stays empty and the kernel cmdline
+-- has no blkdevparts= either: parse `blkid -o export` to build a
+-- PARTLABEL -> /dev/... map. Busybox blkid is enough; no extra RDEPENDS.
+function build_partition_device_map_blkid_fallback()
+	local map = {}
+	local pipe = io.popen("blkid -o export 2>/dev/null")
+	if pipe == nil then
+		return map
+	end
+	local devname = nil
+	local partname = nil
+	for line in pipe:lines() do
+		if line == "" then
+			if devname ~= nil and partname ~= nil then
+				map[partname] = devname
+			end
+			devname = nil
+			partname = nil
+		else
+			local key, value = line:match("^([^=]+)=(.*)$")
+			if key == "DEVNAME" then
+				devname = value
+			elseif key == "PART_ENTRY_NAME" then
+				partname = value
+			end
+		end
+	end
+	if devname ~= nil and partname ~= nil then
+		map[partname] = devname
+	end
+	pipe:close()
+	return map
 end
 
 function mount(dev,destination)
@@ -409,11 +487,34 @@ function parse_mode(content)
 	return nil
 end
 
+function has_bcm_boxmode_quirk()
+	if bcm_boxmode_quirk ~= nil then
+		return bcm_boxmode_quirk
+	end
+
+	bcm_boxmode_quirk = false
+	for _, path in ipairs({"/proc/stb/info/model"}) do
+		for _, line in ipairs(read_file_lines(path)) do
+			local model = string.lower(line or "")
+			model = string.gsub(model, "^%s*(.-)%s*$", "%1")
+			if model == "hd51" or model == "h7" or model == "bre2ze4k" then
+				bcm_boxmode_quirk = true
+				return bcm_boxmode_quirk
+			end
+		end
+	end
+	return bcm_boxmode_quirk
+end
+
 function entry_supports_mode_injection(entry)
 	if entry == nil or entry.android then
 		return false
 	end
-	return string.find(entry.content or "", "bootargs=", 1, true) ~= nil
+	local content = entry.content or ""
+	if string.find(content, "bootargs=", 1, true) ~= nil then
+		return true
+	end
+	return has_bcm_boxmode_quirk() and content:match("[%w_%-]+_4%.boxmode=%d+") ~= nil
 end
 
 function detect_startup_capabilities()
@@ -470,21 +571,24 @@ function detect_startup_capabilities()
 	end
 
 	-- Some images only ship one STARTUP entry per slot without explicit boxmode
-	-- markers. In that case we can still switch by injecting boxmode into bootargs.
+	-- variants. In that case we can still switch by rewriting the active line.
 	for slot, entries in pairs(caps.slot_files) do
-		if caps.slot_modes[slot] == nil then
-			local injectable = false
-			for _, entry in ipairs(entries) do
-				if entry_supports_mode_injection(entry) then
-					injectable = true
-					break
-				end
+		local injectable = false
+		for _, entry in ipairs(entries) do
+			if entry_supports_mode_injection(entry) then
+				injectable = true
+				break
 			end
-			if injectable then
+		end
+		if injectable then
+			if caps.slot_modes[slot] == nil then
 				caps.slot_modes[slot] = { ["1"] = true, ["12"] = true }
-				caps.slot_synthetic_modes[slot] = true
-				caps.boxmode_present = true
+			else
+				caps.slot_modes[slot]["1"] = true
+				caps.slot_modes[slot]["12"] = true
 			end
+			caps.slot_synthetic_modes[slot] = true
+			caps.boxmode_present = true
 		end
 	end
 
@@ -608,6 +712,13 @@ function apply_mode_to_startup_lines(lines, mode)
 				updated = string.sub(updated, 1, -2) .. " boxmode=" .. target_mode .. "'"
 			else
 				updated = updated .. " boxmode=" .. target_mode
+			end
+		elseif has_bcm_boxmode_quirk() and updated:match("[%w_%-]+_4%.boxmode=%d+") ~= nil then
+			updated = string.gsub(updated, "%s*brcm_cma=[^%s']+", "")
+			updated = string.gsub(updated, "'%s+root=", "'root=", 1)
+			updated = string.gsub(updated, "([%w_%-]+_4%.boxmode=)%d+", "%1" .. target_mode)
+			if target_mode == "12" then
+				updated = string.gsub(updated, "'%s*root=", "'brcm_cma=520M@248M brcm_cma=192M@768M root=", 1)
 			end
 		end
 		table.insert(adjusted, updated)
@@ -892,6 +1003,16 @@ function main()
 	fh = filehelpers.new()
 	partition_device_map = build_partition_device_map()
 
+	-- Probe (and if needed re-trigger) udev so /dev/disk/by-partlabel/ is
+	-- populated before we try to mount the boot partition. If even that
+	-- fails (e.g. udev/blkid unhealthy), fall back to a blkid-based
+	-- PARTLABEL -> DEVNAME map so the rest of the plugin can still work.
+	udev_coldplug_state = ensure_partition_labels()
+	if udev_coldplug_state == "missing"
+		and (partition_device_map == nil or next(partition_device_map) == nil) then
+		partition_device_map = build_partition_device_map_blkid_fallback()
+	end
+
 	locale = {}
 		locale["deutsch"] = {
 			current_boot_partition = "Die aktuelle Startpartition ist: ",
@@ -899,7 +1020,12 @@ function main()
 			start_partition = "Rebooten und die gewählte Partition starten?",
 			empty_partition = "Das gewählte Image ist nicht vorhanden",
 			boot_unavailable = "Boot-Partition konnte nicht gemountet werden",
+			boot_partlabel_missing = "Partition-Labels nicht erkannt (udev-Coldplug fehlt im Image).\n\nBitte Image-Update einspielen oder einmal rebooten und erneut versuchen.",
 			startup_write_failed = "STARTUP konnte nicht geschrieben werden",
+			health_label = "udev:",
+			health_ok = "ok",
+			health_repaired = "nachgetriggert",
+			health_missing = "nicht erkannt",
 			options = "Einstellungen",
 			select_slot = "Startpartition wählen",
 			boxmode12 = "Boxmode 12",
@@ -932,7 +1058,12 @@ function main()
 			start_partition = "Reboot and start the chosen partition?",
 			empty_partition = "No image available",
 			boot_unavailable = "Unable to mount boot partition",
+			boot_partlabel_missing = "Partition labels not detected (udev coldplug missing in image).\n\nPlease update the image or reboot and try again.",
 			startup_write_failed = "Unable to write STARTUP",
+			health_label = "udev:",
+			health_ok = "ok",
+			health_repaired = "re-triggered",
+			health_missing = "missing",
 			options = "Options",
 			select_slot = "Select boot slot",
 			boxmode12 = "Boxmode 12",
@@ -978,7 +1109,15 @@ function main()
 
 	mount_filesystems()
 	if not isdir(boot) then
-		local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].boot_unavailable };
+		-- Differentiated error path: when by-partlabel was still empty
+		-- after self-repair, the root cause is an image-level coldplug
+		-- gap (see WORK-126). Show a precise hint instead of the
+		-- generic mount-failure message.
+		local err_text = locale[lang].boot_unavailable
+		if udev_coldplug_state == "missing" then
+			err_text = locale[lang].boot_partlabel_missing
+		end
+		local ret = hintbox.new { title = caption, icon = "settings", text = err_text };
 		ret:paint();
 		sleep(3)
 		ret:hide()
@@ -1038,6 +1177,16 @@ function main()
 
 	local menu = menu.new{name=caption, icon="settings", mwidth=70}
 	menu:addItem{type="separatorline", name=locale[lang].current_boot_partition .. imagename_full[current_root]}
+	-- Health indicator: makes the udev coldplug state visible to testers
+	-- without digging through journal logs. Only shown when non-ok so the
+	-- usual case stays uncluttered.
+	if udev_coldplug_state == "repaired" or udev_coldplug_state == "missing" then
+		local health_text = locale[lang].health_missing
+		if udev_coldplug_state == "repaired" then
+			health_text = locale[lang].health_repaired
+		end
+		menu:addItem{type="separatorline", name=locale[lang].health_label .. " " .. health_text}
+	end
 	menu:addItem{type="back"}
 	menu:addItem{type="separatorline", name=locale[lang].select_slot}
 	for slot=1,4 do
@@ -1119,10 +1268,18 @@ function main()
 		end
 		local mode = startup_entry.mode or preferred_mode or current_mode_num
 		if startup_caps.slot_synthetic_modes[root] then
+			mode = preferred_mode or current_mode_num or startup_entry.mode
 			startup_lines = apply_mode_to_startup_lines(startup_lines, mode)
 		end
 
-		if not write_lines(boot .. "/STARTUP", startup_lines) then
+		-- Auto-backup the current STARTUP before we overwrite it. Makes
+		-- recovery from an unintended switch a single `cp STARTUP.bak STARTUP`.
+		local startup_path = boot .. "/STARTUP"
+		if exists(startup_path) then
+			os.execute(string.format("cp -p %q %q 2>/dev/null", startup_path, startup_path .. ".bak"))
+		end
+
+		if not write_lines(startup_path, startup_lines) then
 			local ret = hintbox.new { title = caption, icon = "settings", text = locale[lang].startup_write_failed };
 			ret:paint();
 			sleep(3)
