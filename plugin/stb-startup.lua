@@ -192,7 +192,7 @@ function build_partition_device_map_blkid_fallback()
 			local key, value = line:match("^([^=]+)=(.*)$")
 			if key == "DEVNAME" then
 				devname = value
-			elseif key == "PART_ENTRY_NAME" then
+			elseif key == "PARTLABEL" or key == "PART_ENTRY_NAME" then
 				partname = value
 			end
 		end
