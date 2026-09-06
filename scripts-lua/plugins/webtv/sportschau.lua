@@ -1,4 +1,4 @@
--- parse sportschau 0.4 Satbaby
+-- parse sportschau 0.5 Satbaby
 
 local n = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES)
 
@@ -151,10 +151,12 @@ function playmenu(data)
 			local r = dofile(scpath .. scriptfile)
 			if r then
 				local js = json:decode(r)
-				for k, v in ipairs(js) do
-					js[k].name = urls[nr].title
+				if js and next(js) ~= nil then
+					for k, v in ipairs(js) do
+						js[k].name = urls[nr].title
+					end
+					return json:encode(js)
 				end
-				return json:encode(js)
 			end
 		end
 	end
