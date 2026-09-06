@@ -1,5 +1,5 @@
 --[[
-	ZDF sport live 0.7
+	ZDF sport live 0.8
 	satbaby
 ]]
 
@@ -162,7 +162,7 @@ function playmenu(data)
 				end
 			end
 		end
-		for page in data:gmatch('<div class=".-="livestream%-upcoming"(.-)</picture></div>') do
+		for page in data:gmatch('(livestream%-upcoming">.-)</picture>') do
 			local date,title = page:match('livestream%-upcoming">(.-)<.-([^<>]+)</div></h3>')
 -- 			local id = page:match('aria%-controls="(.-)"')
 			local time = page:match('>(ab%s+%d%d:%d%d%s+Uhr)<')
@@ -228,10 +228,12 @@ function playmenu(data)
 				local r = dofile(scpath .. scriptfile)
 				if r then
 					local js = json:decode(r)
-					for k, v in ipairs(js) do
-						js[k].name = urls[nr].title
+					if js and next(js) ~= nil then
+						for k, v in ipairs(js) do
+							js[k].name = urls[nr].title
+						end
+						return json:encode(js)
 					end
-					return json:encode(js)
 				end
 			end
 		end
