@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <webtvs name="YouTube Livestreams">
 	<webtv title="Bloomberg" url="https://www.youtube.com/watch?v=dp8PhLsUcFE"			script="yt_live.lua" description="YouTube Livestream"/>
-	<webtv title="Chillout Lounge" url="https://www.youtube.com/watch?v=9UMxZofMNbA"	script="yt_live.lua" description="Chillout Lounge - Calm & Relaxing Background Music | Study, Work, Sleep, Meditation, Chill"/>
+	<webtv title="Chillout Lounge" url="https://www.youtube.com/watch?v=9UMxZofMNbA"	script="yt_live.lua" description="Chillout Lounge - Calm &amp; Relaxing Background Music | Study, Work, Sleep, Meditation, Chill"/>
 	<webtv title="ChillYourMind Radio" url="https://www.youtube.com/watch?v=NJyCwdWT80c"	script="yt_live.lua" description="YouTube Livestream"/>
-	<webtv title="Deephouse Chillout" url="https://www.youtube.com/watch?v=4s6MpCdhovo&list"	script="yt_live.lua" description="Ed Sheeran, Martin Garrix, Avicii, Kygo, Dua Lipa, The Chainsmokers Style - Feeling Me"/>
+	<webtv title="Deephouse Chillout" url="https://www.youtube.com/watch?v=4s6MpCdhovo&amp;list"	script="yt_live.lua" description="Ed Sheeran, Martin Garrix, Avicii, Kygo, Dua Lipa, The Chainsmokers Style - Feeling Me"/>
 	<webtv title="Deutsche Welle TV" url="https://www.youtube.com/watch?v=ldF_RlOhRf4"	script="yt_live.lua" description="DW - Deutsche Welle Live TV (Deutsch)"/>
 	<webtv title="FOX 5" url="https://www.youtube.com/watch?v=fj4Wy7cu_QU"			script="yt_live.lua" description="YouTube Livestream"/>
 	<webtv title="NASA TV" url="https://www.youtube.com/watch?v=nA9UZF-SZoQ"		script="yt_live.lua" description="NASA Live: Official Stream of NASA TV's Media Channel"/>
