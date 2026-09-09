@@ -8,7 +8,7 @@
 	HTTP 500 for every content id; all data now comes from
 	hbbtv.zdf.de/legacy-al/ - the token-free backend of the official
 	ZDFmediathek HbbTV app (1.41.5), which delivers the same elems
-	document format.
+	document format. Adds a search entry (keyboardinput).
 ]]
 
 -- legacy-al base and the start page id of the official HbbTV app;
@@ -744,6 +744,50 @@ function selectStreamUrl(streams)
 	return nil, nil
 end
 
+function doSearch(id, value)
+	if value == nil then
+		return
+	end
+	value = value:gsub("^%s+",""):gsub("%s+$","")
+	if #value == 0 then
+		return
+	end
+	local h = hintbox.new{text="Suche..."}
+	if h then
+		h:paint()
+	end
+	if Curl == nil then
+		Curl = curl.new()
+	end
+	local data = getdata(AL_BASE .. "search?t=" .. Curl:encodeUri(value))
+	local hits = nil
+	if data then
+		local ok, js = pcall(function() return json:decode(data) end)
+		if ok and type(js) == "table" and type(js.result) == "table" and #js.result > 0 then
+			hits = js.result
+		end
+	end
+	if h then
+		h:hide()
+	end
+	if hits == nil then
+		info("Keine Treffer für '" .. value .. "'.", "ZDF HbbTV Suche")
+		return
+	end
+	-- keep the hits below one stable node in aktivelist so that
+	-- selList/selPlay can find them; a new search replaces the old one
+	if searchTab == nil then
+		lastmid = lastmid + 1
+		searchTab = {title='Suche', myid=lastmid, elems={}}
+		table.insert(aktivelist.elems, searchTab)
+	end
+	searchTab.elems = hits
+	lastmid = setmid(searchTab.elems, lastmid + 1)
+	searchTab.title = 'Suche: ' .. value
+	hideMenu(last_menu[hid])
+	main_menu(searchTab)
+end
+
 function getZDFstream(tab)
 	if tab == nil or tab.link == nil or tab.link.id == nil then
 		return
@@ -951,6 +995,9 @@ function main_menu(liste)
 	menu:addItem{type='separatorline'}
 	menu:addKey{directkey=RC.setup, id="_", action="backToMenu1"}
 	menu:addKey{directkey=RC.info, id="_", action="version"}
+	if hid == 1 then
+		menu:addItem{type="keyboardinput", name="Suche", action="doSearch", id="search", value="", size=30, help="Suchbegriff eingeben"}
+	end
 	local d =  0
 	for i, v in ipairs(liste.elems) do
 		local skip = false
