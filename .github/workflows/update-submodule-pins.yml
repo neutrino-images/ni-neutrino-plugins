@@ -34,8 +34,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name  "tuxbox-ci"
-          git config user.email "ci@tuxbox-neutrino.org"
+          git config user.name  "GitHub Actions"
+          git config user.email "actions@github.com"
           # --remote: the branch from .gitmodules, else the remote HEAD.
           # Shallow, because only the gitlink is needed.
           git submodule update --init --remote --depth 1 --jobs 4
