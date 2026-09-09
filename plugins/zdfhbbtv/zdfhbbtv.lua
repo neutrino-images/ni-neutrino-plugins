@@ -3,10 +3,30 @@
 	Copyright (C) 2021 Jacek Jendrzej 'satbaby'
 	Copyright (C) 2022 'bazi98' for Vers. 0.24  - add. UHD and FullHD
 	License: WTFPLv2
+
+	0.26: the old JSON proxy hbbtv.zdf.de/zdfm3/dyn/get.php answers
+	HTTP 500 for every content id; all data now comes from
+	hbbtv.zdf.de/legacy-al/ - the token-free backend of the official
+	ZDFmediathek HbbTV app (1.41.5), which delivers the same elems
+	document format.
 ]]
 
+-- legacy-al base and the start page id of the official HbbTV app;
+-- the app maps "zdf-hbbtv-startseite-100" to this uuid in its xo-*.js
+-- (the readable id itself is not resolvable, the API answers 404)
+local AL_BASE = "https://hbbtv.zdf.de/legacy-al/"
+local START_ID = "8c3f3656-ceff-48ed-a199-9e23c5a3d135"
+
+-- page documents: special:* ids have their own endpoint
+function al_page_url(id)
+	if id ~= nil and id:sub(1, 8) == "special:" then
+		return AL_BASE .. "special-page?id=" .. id
+	end
+	return AL_BASE .. "dispatcher?id=" .. (id or "")
+end
+
 function init()
-	Version = 0.25
+	Version = "0.26"
 	CONF_PATH = "/var/tuxbox/config/"
 	if DIR and DIR.CONFIGDIR then
 		CONF_PATH = DIR.CONFIGDIR .. '/'
@@ -16,7 +36,6 @@ function init()
 	lastmid = 1000
 	json = require "json"
 	fh = filehelpers.new()
-	inittab()
 	n = neutrino()
 	vPlay = video.new()
 	nMisc = misc.new()
@@ -34,6 +53,8 @@ function init()
 	if not fh:exist(zdfhbbtv_icon , "f") then
 		zdfhbbtv_icon='streaming'
 	end
+	-- last: needs json/fh/lastmid and, for error hints, a working info()
+	inittab()
 end
 
 function inittab()
@@ -41,29 +62,45 @@ function inittab()
 	if h then
 		h:paint()
 	end
-	local url = 'http://hbbtv.zdf.de/zdfm3/dyn/get.php'
-	aktivelist = {}
-	aktivelist = get_zdf_data(url)
-	local jnTab = get_zdf_data(url .. '?id=special:time')
+	aktivelist = get_zdf_data(al_page_url(START_ID))
+	if aktivelist == nil or aktivelist.elems == nil then
+		-- no start page, no plugin: main() shows the hint and exits
+		aktivelist = nil
+		if h then
+			h:hide()
+		end
+		return
+	end
+	-- the api names neither the page nor its stage cluster
+	aktivelist.title = aktivelist.title or 'ZDF Mediathek'
+	local stage = aktivelist.elems[1]
+	if type(stage) == "table" then
+		local st = stage.title or stage.titletxt
+		if st == nil or (type(st) == "string" and st:gsub('%s','') == '') then
+			stage.title = 'Empfehlungen'
+		end
+	end
+	-- optional sources may fail without blocking the start
+	local jnTab = get_zdf_data(al_page_url('special:time'))
 	if jnTab and jnTab.elems and jnTab.elems[1] and jnTab.elems[1].elems then
 		lastmid = lastmid + 1
 		table.insert(aktivelist.elems,{title='Sendung verpasst',myid=lastmid,elems=jnTab.elems[1].elems})
 	end
-	local data = getdata(url .. '?id=special:atoz:')
-	if data then
-		local jnTab = json:decode(data)
-		if jnTab and jnTab.elems and jnTab.elems[1] and jnTab.elems[1].options then
-			a={}
-			for k,v in pairs(jnTab.elems[1].options) do
-				a.link = {}
-				local link = {}
+	-- the a-z page carries the letter ranges as dropdown options
+	-- (special:atoz: with a trailing colon is rejected nowadays)
+	jnTab = get_zdf_data(al_page_url('special:atoz'))
+	if jnTab and jnTab.elems and jnTab.elems[1] and jnTab.elems[1].options then
+		local a = {}
+		-- setmid() has tagged the options array with a myid field,
+		-- so plain pairs() also yields that number - skip non-tables
+		for _,v in pairs(jnTab.elems[1].options) do
+			if type(v) == "table" and v.id and v.name then
 				lastmid = lastmid + 1
-				link.id = 'special:atoz:' .. v.id
-				table.insert(a,{title=v.name,myid=lastmid,link=link})
+				table.insert(a,{title=v.name,myid=lastmid,link={id='special:atoz:' .. v.id}})
 			end
-			lastmid = lastmid + 1
-			table.insert(aktivelist.elems,{title='A to Z',myid=lastmid,elems=a})
 		end
+		lastmid = lastmid + 1
+		table.insert(aktivelist.elems,{title='A to Z',myid=lastmid,elems=a})
 	end
 	if h then
 		h:hide()
@@ -577,7 +614,7 @@ function getVideoUrlM3U8(m3u8_url)
 				local lang = adata:match('LANGUAGE="(.-)"')
 				local aurl = adata:match('URI="(.-)"')
 				if aurl then
-					local low_lang = lang:lower()
+					local low_lang = lang and lang:lower() or ""
 					if l1 == nil and lname and lang1 and low_lang == lang1 then
 						l1 = aurl
 					elseif l2 == nil and lname and lang2 and low_lang == lang2 then
@@ -631,89 +668,137 @@ function getVideoUrlM3U8(m3u8_url)
 	return videoUrl, audioUrl
 end
 
-function getZDFstream(tab)
-	local url = 'https://hbbtv.zdf.de/zdfm3/dyn/get.php?id=' .. tab.link.id
-	local jdata = getdata(url)
-	if jdata then
-		local jnTab = json:decode(jdata)
-		if jnTab and jnTab.streams then
-			local maxRes = getMaxRes()
-			tab.audiostream = nil
-			tab.stream = nil
-			for i=1,2,1 do
-				for _, streams in pairs(jnTab.streams) do
-					if streams and tab.stream == nil then
-						local h265 = streams.h265_aac_mp4_http_na_na
-						local h264 = streams.h264_aac_mp4_http_na_na
-						if h265 == nil then
-							mp4 = h264
-							else
-							mp4 = h265
-						end
-						local m3u8 = streams.h264_aac_ts_http_m3u8_http
-						local mpd = streams.h264_aac_mp4_http_mpd_http
-						if maxRes > 1921 and streams.h265_aac_mp4_http_na_na and mp4.main.deu.q5 then
-							tab.stream = mp4.main.deu.q5.url
-							break
-						elseif maxRes > 1281 and streams.h265_aac_mp4_http_na_na and mp4.main.deu.q4 then
-							tab.stream = mp4.main.deu.q4.url
-						elseif maxRes > 1281 and streams.h265_aac_mp4_http_na_na and mp4.main.deu.q3 then
-							tab.stream = mp4.main.deu.q3.url
-						elseif maxRes > 1281 and streams.h264_aac_mp4_http_na_na and mp4.main.deu.q4 then
-							tab.stream = mp4.main.deu.q4.url
-							break
-						elseif maxRes > 1281 and streams.h264_aac_mp4_http_na_na and mp4.main.deu.q3 then
-							tab.stream = mp4.main.deu.q3.url
-							break
-						elseif maxRes < 1281 and mp4 and mp4.main and mp4.main.deu and mp4.main.deu.q1 then
-							tab.stream = mp4.main.deu.q1.url
-						elseif m3u8 and m3u8.main and m3u8.main.deu and m3u8.main.deu.q3 then
-							tab.stream , tab.audiostream = getVideoUrlM3U8(m3u8.main.deu.q3.url)
-						elseif mpd and mpd.main and mpd.main.deu then
-							tab.stream = mpd.main.deu.url
-						end
-						if tab.stream then break end
-						if h265 and tab.stream == nil then
-							streams.h265_aac_mp4_http_na_na = nil
-						end
-					end
-				end
-			end
-			Epg,Title,Info1,Info2,UrlPic = nil,nil,nil,nil,nil
-			videostream, audiostream = nil,nil
-			if jnTab.text then Epg = xml_entities(jnTab.text) end
-			if jnTab.title then Title = xml_entities(jnTab.title) end
-			if jnTab.cpix and jnTab.cpix.nielsen and jnTab.cpix.nielsen.program then
-				Info1 = jnTab.cpix.nielsen.program
-				if jnTab.cpix.nielsen.nol_c5 then
-					Info2 = jnTab.cpix.nielsen.nol_c5:match(',(.*)')
-				end
-			end
-			local str = nil
-			if jnTab.displayAvailability then
-				str = getitkey(jnTab.displayAvailability.lineOne,'title',str)
-				str = getitkey(jnTab.displayAvailability.lineTwo,'title',str)
-			end
-			if str then
-				if Info2 then
-					Info2 = Info2 .. ': ' .. str
-				else
-					Info2 = str
-				end
-			end
-			tab.Epg = Epg
-			tab.Title = Title
-			tab.Info1 = Info1
-			tab.Info2 = Info2
+-- returns the first url below <codec>.main.deu following the given
+-- quality order; the "ad" audio group (audio description) is not used
+function urlFromCodec(codecTab, qorder)
+	if type(codecTab) ~= "table" then
+		return nil
+	end
+	local m = codecTab.main
+	if type(m) ~= "table" or type(m.deu) ~= "table" then
+		return nil
+	end
+	for _, q in ipairs(qorder) do
+		local e = m.deu[q]
+		if type(e) == "table" and e.url then
+			return e.url
 		end
 	end
+	return nil
+end
+
+-- streams[] selection: "default" streams first (sign language "dgs"
+-- only as a last resort), per stream mp4 -> hls -> plain ts (live)
+-- -> dash; every level is checked, a nil just moves on
+function selectStreamUrl(streams)
+	if type(streams) ~= "table" then
+		return nil, nil
+	end
+	local maxRes = getMaxRes()
+	local qorder
+	if maxRes > 1921 then
+		qorder = {"q5","q4","q3","q1"}
+	elseif maxRes > 1281 then
+		qorder = {"q4","q3","q1"}
+	else
+		qorder = {"q1","q3"}
+	end
+	local cands = {}
+	for _, v in ipairs(streams) do
+		if type(v) == "table" and v.kind ~= "dgs" then
+			table.insert(cands, v)
+		end
+	end
+	for _, v in ipairs(streams) do
+		if type(v) == "table" and v.kind == "dgs" then
+			table.insert(cands, v)
+		end
+	end
+	for _, v in ipairs(cands) do
+		local url = nil
+		if maxRes > 1281 then
+			url = urlFromCodec(v.h265_aac_mp4_http_na_na, qorder)
+		end
+		url = url or urlFromCodec(v.h264_aac_mp4_http_na_na, qorder)
+		if url then
+			return url, nil
+		end
+		local m3u8 = urlFromCodec(v.h264_aac_ts_http_m3u8_http, {"q3","q1","q4","q5"})
+		if m3u8 then
+			local vurl, aurl = getVideoUrlM3U8(m3u8)
+			if vurl then
+				return vurl, aurl
+			end
+			return m3u8, nil
+		end
+		-- live events carry a plain transport stream (and dash below)
+		url = urlFromCodec(v.h264_aac_ts_http_na_na, {"q1","q3","q4"})
+		if url then
+			return url, nil
+		end
+		url = urlFromCodec(v.h264_aac_mp4_http_mpd_http, {"q1","q3","q4"})
+		if url then
+			return url, nil
+		end
+	end
+	return nil, nil
+end
+
+function getZDFstream(tab)
+	if tab == nil or tab.link == nil or tab.link.id == nil then
+		return
+	end
+	local jdata = getdata(AL_BASE .. 'video?id=' .. tab.link.id)
+	if jdata == nil then
+		return
+	end
+	local ok, jnTab = pcall(function() return json:decode(jdata) end)
+	if not ok or type(jnTab) ~= "table" then
+		return
+	end
+	tab.audiostream = nil
+	tab.stream = nil
+	if jnTab.streams then
+		tab.stream, tab.audiostream = selectStreamUrl(jnTab.streams)
+	end
+	Epg,Title,Info1,Info2,UrlPic = nil,nil,nil,nil,nil
+	videostream, audiostream = nil,nil
+	if jnTab.text then Epg = xml_entities(jnTab.text) end
+	if jnTab.title then Title = xml_entities(jnTab.title) end
+	if jnTab.cpix and jnTab.cpix.nielsen and jnTab.cpix.nielsen.program then
+		Info1 = jnTab.cpix.nielsen.program
+		if jnTab.cpix.nielsen.nol_c5 then
+			-- nowadays nol_c5 often carries a media url - not a name
+			local c5 = jnTab.cpix.nielsen.nol_c5:match(',(.*)')
+			if c5 and not c5:match('^https?://') then
+				Info2 = c5
+			end
+		end
+	end
+	local str = nil
+	if jnTab.displayAvailability then
+		str = getitkey(jnTab.displayAvailability.lineOne,'title',str)
+		str = getitkey(jnTab.displayAvailability.lineTwo,'title',str)
+	end
+	if str then
+		if Info2 then
+			Info2 = Info2 .. ': ' .. str
+		else
+			Info2 = str
+		end
+	end
+	tab.img = tab.img or jnTab.img
+	tab.Epg = Epg
+	tab.Title = Title
+	tab.Info1 = Info1
+	tab.Info2 = Info2
 end
 
 function play_video(tab)
 	if tab.stream then
 		hideMenu(last_menu[hid])
-		if tab.Epg and tab.Title then
-			Epg = tab.Epg
+		if tab.Title then
+			Epg = tab.Epg or ""
 			Title = tab.Title
 			videostream, audiostream = tab.stream,tab.audiostream
 			UrlPic = tab.img
@@ -732,19 +817,20 @@ function get_zdf_data(link,data)
 	if data == nil then
 		data = getdata(link)
 	end
+	local jnTab = nil
 	if data then
-		local jnTab = json:decode(data)
-		if jnTab then
+		-- some json libs throw on invalid input, and the API answers
+		-- errors as documents without elems - both count as "no data"
+		local ok, js = pcall(function() return json:decode(data) end)
+		if ok and type(js) == "table" and (js.elems or js.recoElems) then
+			jnTab = js
 			lastmid = setmid(jnTab,lastmid)
 		end
-		if h then
-			h:hide()
-		end
-		return jnTab
 	end
 	if h then
 		h:hide()
 	end
+	return jnTab
 end
 
 function selPlay(id)
@@ -763,8 +849,10 @@ function selPlay(id)
 	if h then
 		h:hide()
 	end
-	if vTab.stream  then
+	if vTab and vTab.stream then
 		play_video(vTab)
+	elseif vTab then
+		info("Kein abspielbarer Stream gefunden.", "ZDF HbbTV")
 	end
 end
 
@@ -777,8 +865,24 @@ function selList(id)
 
 	id = tonumber(id)
 	local myTab = getmid(aktivelist,id)
+	if myTab == nil then
+		if h then
+			h:hide()
+		end
+		return
+	end
 	if myTab.elems == nil then
-		local newTab = get_zdf_data('https://hbbtv.zdf.de/zdfm3/dyn/get.php?id=' .. myTab.link.id)
+		local newTab = nil
+		if myTab.link and myTab.link.id then
+			newTab = get_zdf_data(al_page_url(myTab.link.id))
+		end
+		if newTab == nil then
+			if h then
+				h:hide()
+			end
+			info("Keine Daten vom ZDF-Dienst erhalten.", "ZDF HbbTV")
+			return
+		end
 		myTab.elems = {}
 		if newTab.elems == nil and newTab.recoElems then
 			myTab.elems = newTab.recoElems
@@ -789,6 +893,22 @@ function selList(id)
 			table.insert(myTab.elems,{title=newTab.title,img=newTab.img,hasVideo=true,myid=lastmid,link=link})
 		else
 			myTab.elems = newTab.elems
+		end
+	end
+	-- live stream teasers come without any text (the official app
+	-- shows channel logos instead); fetch their titles from the video
+	-- document once - this also caches the stream for selPlay
+	for _, v in ipairs(myTab.elems or {}) do
+		if type(v) == "table" and v.hasVideo and v.myid and v.link then
+			local t = v.titletxt or v.title
+			if t == nil or (type(t) == 'string' and t:gsub('%s','') == '') then
+				getZDFstream(v)
+				if v.Title then
+					-- titletxt (whitespace) would win over title
+					v.titletxt = nil
+					v.title = v.Title
+				end
+			end
 		end
 	end
 	if h then
@@ -806,7 +926,7 @@ function backToMenu1(id)
 end
 
 function main_menu(liste)
-	if liste == nil then print('liste error') return end
+	if liste == nil or liste.elems == nil then print('liste error') return end
 	hid = hid + 1
 
 	local ptype = {}
@@ -842,7 +962,7 @@ function main_menu(liste)
 			local hico = 'hint_next'
 			local mname =  v.titletxt or v.title or v.myid or '## error ##'
 			tname = xml_entities(tname)
-			if mname and type(mname) == 'string' and #mname == 0 then mname = 'Untermenü' end
+			if mname and type(mname) == 'string' and mname:gsub('%s','') == '' then mname = 'Untermenü' end
 			local vhint = nil
 			if v.headtxt then
 				vhint = v.headtxt
@@ -906,7 +1026,7 @@ function main_menu(liste)
 			end
 			mname = xml_entities(mname)
 			vhint = xml_entities(vhint)
-			if mname and type(mname) == 'string' and #mname == 0 then mname = 'Video' end
+			if mname and type(mname) == 'string' and mname:gsub('%s','') == '' then mname = 'Video' end
 			menu:addItem{type="forwarder" ,icon="streaming", name=mname, action=mact,hint=vhint,hint_icon=hico ,id=v.myid ,directkey=godirectkey(d)}
 		end
 	end
@@ -917,7 +1037,11 @@ end
 
 function main()
 	init()
-	main_menu(aktivelist)
+	if aktivelist and aktivelist.elems then
+		main_menu(aktivelist)
+	else
+		info("Der ZDF-Dienst ist zur Zeit nicht erreichbar.", "ZDF HbbTV")
+	end
 	os.remove(picfile)
 	collectgarbage()
 end
