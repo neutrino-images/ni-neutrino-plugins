@@ -72,9 +72,9 @@ SUBDIRS += spiegel-tv-doc
 endif
 if ENABLE_STB_STARTUP
 if BOXMODEL_VUPLUS_ALL
-SUBDIRS += stb_startup-ddt
+SUBDIRS += stb-startup-ddt
 else
-SUBDIRS += stb_startup
+SUBDIRS += stb-startup
 endif
 endif
 if ENABLE_TIERWELT_TV
