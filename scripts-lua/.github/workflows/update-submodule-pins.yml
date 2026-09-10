@@ -1,0 +1,99 @@
+name: Update submodule pins
+
+on:
+  schedule:
+    # Offset from the full hour. The superproject that carries this
+    # repository runs the same workflow at :47, so a plugin fix reaches
+    # it without waiting for a second full cycle.
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# A second run waits instead of cutting off a push in flight. GitHub
+# keeps only ONE pending run per group, which is all this needs.
+concurrency:
+  group: update-submodule-pins
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    # Cron only ever runs from the default branch anyway; this gate keeps
+    # a manual start from another branch or a tag out, where the checkout
+    # would be detached and the push would go nowhere.
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Move every submodule to the tip of its branch
+        # bash explicitly: the default shell has no pipefail, and without
+        # it the awk pipeline below swallows every git error (exit 0
+        # instead of 128).
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name  "GitHub Actions"
+          git config user.email "actions@github.com"
+          # --remote: the branch from .gitmodules, else the remote HEAD.
+          # Shallow, because only the gitlink is needed.
+          git submodule update --init --remote --depth 1 --jobs 4
+          # exit 0 = nothing moved, 1 = moved, anything else = failure
+          rc=0
+          git diff --quiet --ignore-submodules=dirty || rc=$?
+          case "$rc" in
+            0) echo "all pins current"; exit 0 ;;
+            1) ;;
+            *) echo "git diff failed with $rc"; exit "$rc" ;;
+          esac
+          git add -u
+          # Build the message from what is really committed: the raw diff
+          # of the index, one gitlink per line, full SHAs
+          # (:160000 160000 <old> <new> M <path>).
+          git diff --cached --raw --abbrev=40 --ignore-submodules=dirty > /tmp/raw
+          awk '$1 == ":160000" { print $6, $3, $4 }' /tmp/raw > /tmp/moved
+          # Only gitlinks may end up in the commit, and at least one.
+          if [ ! -s /tmp/moved ] || grep -qv '^:160000' /tmp/raw; then
+            echo "unexpected staged content:"
+            cat /tmp/raw
+            exit 1
+          fi
+          # A log made of bare "follow the submodule branches" lines tells
+          # nobody what changed in which plugin; that takes a walk into
+          # every submodule. So say it here: per moved gitlink the subjects
+          # of the commits it moved over, and the newest of them in the
+          # commit subject. The update above was shallow, so deepen the
+          # moved checkouts first; where the old pin is still out of reach
+          # (a very long jump), the range alone is printed.
+          : > /tmp/body
+          : > /tmp/titles
+          while read -r path old new; do
+            git -C "$path" fetch -q --deepen=200 origin 2>/dev/null || true
+            printf '  %s %s..%s\n' "$path" "${old:0:7}" "${new:0:7}" >> /tmp/body
+            if git -C "$path" cat-file -e "$old^{commit}" 2>/dev/null; then
+              git -C "$path" log --format='    %h %s' "$old..$new" >> /tmp/body
+              git -C "$path" log -1 --format='%s' "$new" > /tmp/newest
+            else
+              echo '    (older history not fetched; see the plugin repository)' >> /tmp/body
+              git -C "$path" log -1 --format='%s' "$new" > /tmp/newest
+            fi
+            printf '%s: %s\n' "$path" "$(cat /tmp/newest)" >> /tmp/titles
+          done < /tmp/moved
+          if [ "$(wc -l < /tmp/moved)" = 1 ]; then
+            subject="chore (plugins): $(cat /tmp/titles)"
+          else
+            subject="chore (plugins): $(awk '{print $1}' /tmp/moved | tr '\n' ',' | sed 's/,$//; s/,/, /g')"
+          fi
+          # Keep the subject on one line of sane length, cut at a word
+          # boundary; the body has it all.
+          subject="$(printf '%s\n' "$subject" | awk '{
+            if (length($0) > 72) { s = substr($0, 1, 69); sub(/ [^ ]*$/, "", s); print s "..." }
+            else print }')"
+          {
+            echo "$subject"
+            echo
+            cat /tmp/body
+          } > /tmp/msg
+          git commit -F /tmp/msg
+          git push origin HEAD:master

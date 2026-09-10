@@ -1,4 +1,4 @@
--- parse sportschau 0.5 Satbaby
+-- parse sportschau 0.6 Satbaby
 
 local n = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES)
 
@@ -65,7 +65,11 @@ function getid(id)
 end
 
 function getNeutrinoConf(Pattern)
-	local neutrino_conf = "/var/tuxbox/config/neutrino.conf"
+	local conf_dir = "/var/tuxbox/config"
+	if DIR and DIR.CONFIGDIR then
+		conf_dir = DIR.CONFIGDIR
+	end
+	local neutrino_conf = conf_dir .. "/neutrino.conf"
 	local liveScrPath = nil
 	local fh = filehelpers.new()
 	if fh:exist(neutrino_conf, "f") == true then

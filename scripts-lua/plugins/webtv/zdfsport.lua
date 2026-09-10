@@ -1,6 +1,9 @@
 --[[
-	ZDF sport live 0.8
+	ZDF sport live 0.9
 	satbaby
+
+	The live stream list comes from the ZDF GraphQL API; zdf.de no longer
+	embeds it in the page HTML. The page is fetched only for the API token.
 ]]
 
 local n = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES)
@@ -100,7 +103,11 @@ function getid(id)
 end
 
 function getNeutrinoConf(Pattern)
-	local neutrino_conf = "/var/tuxbox/config/neutrino.conf"
+	local conf_dir = "/var/tuxbox/config"
+	if DIR and DIR.CONFIGDIR then
+		conf_dir = DIR.CONFIGDIR
+	end
+	local neutrino_conf = conf_dir .. "/neutrino.conf"
 	local liveScrPath = nil
 	local fh = filehelpers.new()
 	if fh:exist(neutrino_conf, "f") == true then
@@ -111,25 +118,110 @@ function getNeutrinoConf(Pattern)
 	return liveScrPath
 end
 
+local GRAPHQL_URL = "https://api.zdf.de/graphql"
+local PTMD_PLAYER = "ngplayer_2_5"
+local SPORT_GENRE = "genre-10290" -- genreMetaCollection id of "Sport"
+
+local function trim(s)
+	return (s:gsub("^%s*(.-)%s*$", "%1"))
+end
+
+-- the API delivers UTC timestamps; os.time() reads a table as local
+-- time, so shift the result by the UTC offset valid at that moment
+local function utcToLocal(utcTable)
+	local t0 = os.time(utcTable)
+	local u = os.date("!*t", t0)
+	u.isdst = os.date("*t", t0).isdst
+	return t0 + (t0 - os.time(u))
+end
+
 local function convertToLocalTime(isoStr)
+	if isoStr == nil then
+		return nil
+	end
 	local year, month, day, hour, min, sec = isoStr:match("(%d%d%d%d)-(%d%d)-(%d%d)T(%d%d):(%d%d):(%d%d)")
 	if not year then
 		return nil
 	end
 
-	local utcTable = {
+	local timestamp = utcToLocal({
 		year  = tonumber(year),
 		month = tonumber(month),
 		day   = tonumber(day),
 		hour  = tonumber(hour),
 		min   = tonumber(min),
-		sec   = tonumber(sec),
-		isdst = false
-	}
-	local timestamp = os.time(utcTable)
+		sec   = tonumber(sec)
+	})
 	local localTime = os.date("*t", timestamp)
+	local today = os.date("*t")
 
-	return string.format("%02d:%02d", localTime.hour, localTime.min)
+	local hm = string.format("%02d:%02d", localTime.hour, localTime.min)
+	if localTime.year == today.year and localTime.yday == today.yday then
+		return hm
+	end
+	return string.format("%02d.%02d. %s", localTime.day, localTime.month, hm)
+end
+
+local function postdata(Url, body, headers)
+	if Url == nil then return nil end
+	if Curl == nil then
+		Curl = curl.new()
+	end
+	local ret, data = Curl:download{ url=Url, A="Mozilla/5.0", postfields=body, httpheader=headers, connectTimeout=5, maxRedirs=5, followRedir=true}
+	if ret == CURL.OK then
+		return data
+	else
+		return nil
+	end
+end
+
+-- running (LIVE) and announced (SCHEDULED_LIVE) streams of all ZDF
+-- channels; the sport filter is applied by the caller
+local function getLiveStreams(token)
+	-- no double quotes inside the query, so the JSON body can be built by hand
+	local query = "{ videos(filterBy: {availableStreamTypeIn: [LIVE, SCHEDULED_LIVE]},"
+		.. " sortBy: [{field: EDITORIAL_DATE, direction: ASC}]) {"
+		.. " nodes { canonical currentMediaType excludeFromIndex"
+		.. " teaser { title }"
+		.. " scheduledMedia { availableFrom availableTo }"
+		.. " currentMedia { nodes { ptmdTemplate ... on LiveMedia { plannedStart } } }"
+		.. " smartCollection { title structuralMetadata { genreMetaCollection { id title } } }"
+		.. " } } }"
+	local body = '{"query":"' .. query .. '"}'
+	local headers = {"Api-Auth: Bearer " .. token, "Content-Type: application/json"}
+	local data = postdata(GRAPHQL_URL, body, headers)
+	if data == nil then
+		return {}
+	end
+	local js = json:decode(data)
+	if not js or not js.data or not js.data.videos or not js.data.videos.nodes then
+		return {}
+	end
+	return js.data.videos.nodes
+end
+
+local function isSportStream(node)
+	if node.excludeFromIndex == true then
+		return false
+	end
+	local sc = node.smartCollection
+	local genre = sc and sc.structuralMetadata and sc.structuralMetadata.genreMetaCollection
+	if genre == nil then
+		return false
+	end
+	return genre.title == "Sport" or genre.id == SPORT_GENRE
+end
+
+local function streamTitle(node)
+	local title = trim(node.teaser and node.teaser.title or "")
+	local sc = node.smartCollection
+	if sc and sc.title then
+		local prefix = trim(sc.title)
+		if prefix ~= "" and prefix ~= title then
+			title = prefix .. ": " .. title
+		end
+	end
+	return conv_str(title)
 end
 
 function playmenu(data)
@@ -138,47 +230,46 @@ function playmenu(data)
 	local key = nil
 
 	if data then
-		local videotoken=data:match('videoToken\\":{\\"apiToken\\":\\"(.-)\\",')
+		local videotoken = data:match('videoToken\\":{\\"apiToken\\":\\"(.-)\\"')
 		local Hurls = {}
-		for page in data:gmatch('ptmdTemplate(.-ptmd.-)description') do
-			local Url = page:match('(/tmd/%d/{playerId}/live/ptmd/%d+%-%d+)\\')
-			local title = page:match('"title\\":\\"(.-)\\",')
-			if title and Url then
-				Url = Url:gsub('/{playerId}/','/ngplayer_2_5/')
-				if Hurls[Url] ~= true then
-					Hurls[Url] = true
-					d = d + 1
-					key = godirectkey(d)
-					local time = page:match('plannedStart\\":\\"(.-)\\",')
-					if time then time = convertToLocalTime(time) end
-					if time then title = time .. " " .. title end
-					table.insert(urls, {
-						title = title,
-						url = Url,
-						videotoken = videotoken,
-						enabled = true,
-						dkey = key
-					})
-				end
-			end
-		end
-		for page in data:gmatch('(livestream%-upcoming">.-)</picture>') do
-			local date,title = page:match('livestream%-upcoming">(.-)<.-([^<>]+)</div></h3>')
--- 			local id = page:match('aria%-controls="(.-)"')
-			local time = page:match('>(ab%s+%d%d:%d%d%s+Uhr)<')
-			if title and title then
-				if Hurls[title] ~= true then
-					Hurls[title] = true
-					d = d + 1
-					key = godirectkey(d)
-					if time then date = time .. " " .. date end
-					table.insert(urls, {
-						title =date .. " " .. conv_str(title),
-						enabled = false,
-						videotoken = nil,
-						url = nil,
-						dkey = key
-					})
+		if videotoken then
+			for _, node in ipairs(getLiveStreams(videotoken)) do
+				if isSportStream(node) then
+					local title = streamTitle(node)
+					local media = node.currentMedia and node.currentMedia.nodes and node.currentMedia.nodes[1]
+					if node.currentMediaType == "LIVE" and media and media.ptmdTemplate then
+						local Url = (media.ptmdTemplate:gsub("{playerId}", PTMD_PLAYER))
+						if Hurls[Url] ~= true then
+							Hurls[Url] = true
+							d = d + 1
+							key = godirectkey(d)
+							local time = convertToLocalTime(media.plannedStart)
+							if time then title = time .. " " .. title end
+							table.insert(urls, {
+								title = title,
+								url = Url,
+								videotoken = videotoken,
+								enabled = true,
+								dkey = key
+							})
+						end
+					elseif node.scheduledMedia and node.scheduledMedia.availableFrom then
+						local id = node.canonical or title
+						if Hurls[id] ~= true then
+							Hurls[id] = true
+							d = d + 1
+							key = godirectkey(d)
+							local time = convertToLocalTime(node.scheduledMedia.availableFrom)
+							if time then title = "ab " .. time .. " " .. title end
+							table.insert(urls, {
+								title = title,
+								enabled = false,
+								videotoken = nil,
+								url = nil,
+								dkey = key
+							})
+						end
+					end
 				end
 			end
 		end
@@ -245,7 +336,7 @@ function getVideoData(url)
 	if url == nil then
 		return 0
 	end
-	local data = getdata(url, true)
+	local data = getdata(url)
 	if data then
 		ret0 = playmenu(data)
 		if ret0 then
