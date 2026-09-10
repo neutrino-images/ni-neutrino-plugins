@@ -324,7 +324,7 @@ end
 
 function epgInfo(xres, yres, aspectRatio, framerate)
 	local dltxt = ''
-	local dl_possible = dl_check(videostream)
+	local dl_possible = dl_check(videostream, videolive)
 	local dl = {}
 	if dl_possible then
 		dl = gen_dl(videostream, audiostream, Title, Epg)
@@ -573,8 +573,11 @@ function dl_stream(dl)
 	return false
 end
 
-function dl_check(streamUrl)
+function dl_check(streamUrl, isLive)
 	local check = false
+	-- a live stream never ends: ffmpeg would run until the disk is full,
+	-- and its lock file would block every other download meanwhile
+	if isLive then return check end
 	local Nconfig = configfile.new()
 	if Nconfig then
 		Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
@@ -799,7 +802,10 @@ end
 
 -- streams[] selection: "default" streams first (sign language "dgs"
 -- only as a last resort), per stream mp4 -> hls -> plain ts (live)
--- -> dash; every level is checked, a nil just moves on
+-- -> dash; every level is checked, a nil just moves on.
+-- the third return value marks a continuous stream (live event or
+-- 24/7 channel) - such a url has no end and must not be offered for
+-- download
 function selectStreamUrl(streams)
 	if type(streams) ~= "table" then
 		return nil, nil
@@ -844,7 +850,7 @@ function selectStreamUrl(streams)
 		-- live events carry a plain transport stream (and dash below)
 		url = urlFromCodec(v.h264_aac_ts_http_na_na, {"q1","q3","q4"})
 		if url then
-			return url, nil
+			return url, nil, true
 		end
 		url = urlFromCodec(v.h264_aac_mp4_http_mpd_http, {"q1","q3","q4"})
 		if url then
@@ -856,11 +862,11 @@ function selectStreamUrl(streams)
 				-- own sound, and the bare master is the safe fallback -
 				-- ffmpeg resolves variants and audio itself
 				if vurl and (aurl or muxed) then
-					return vurl, aurl
+					return vurl, aurl, true
 				end
-				return hls, nil
+				return hls, nil, true
 			end
-			return url, nil
+			return url, nil, true
 		end
 	end
 	return nil, nil
@@ -924,11 +930,18 @@ function getZDFstream(tab)
 	end
 	tab.audiostream = nil
 	tab.stream = nil
+	tab.live = nil
 	if jnTab.streams then
-		tab.stream, tab.audiostream = selectStreamUrl(jnTab.streams)
+		local live
+		tab.stream, tab.audiostream, live = selectStreamUrl(jnTab.streams)
+		-- the document says it outright ("livestream": true on all 24/7
+		-- channels, false on demand videos); the stream selection is
+		-- asked as well so a changed api field cannot silently reopen
+		-- the download of an endless stream
+		tab.live = jnTab.livestream == true or live == true
 	end
 	Epg,Title,Info1,Info2,UrlPic = nil,nil,nil,nil,nil
-	videostream, audiostream = nil,nil
+	videostream, audiostream, videolive = nil,nil,nil
 	if jnTab.text then Epg = xml_entities(jnTab.text) end
 	if jnTab.title then Title = xml_entities(jnTab.title) end
 	if jnTab.cpix and jnTab.cpix.nielsen and jnTab.cpix.nielsen.program then
@@ -967,6 +980,7 @@ function play_video(tab)
 			Epg = tab.Epg or ""
 			Title = tab.Title
 			videostream, audiostream = tab.stream,tab.audiostream
+			videolive = tab.live
 			UrlPic = tab.img
 			os.remove(picfile)
 			vPlay:setInfoFunc("epgInfo")
