@@ -625,11 +625,17 @@ function getVideoUrlM3U8(m3u8_url)
 	local audioUrl = nil
 	local data = getdata(m3u8_url)
 	if data then
-		local host = m3u8_url:match('([%a]+[:]?//[_%w%-%.]+)/')
-		local lastpos = (m3u8_url:reverse()):find("/")
-		local hosttmp = m3u8_url:sub(1,#m3u8_url-lastpos)
-		if hosttmp then
-			host = hosttmp .."/"
+		-- playlist uris come in three shapes: full urls, root-relative
+		-- paths (the zdf live masters use "/hls/live/...") and paths
+		-- relative to the master's directory
+		local root = m3u8_url:match('^(%a+://[^/]+)')
+		local base = m3u8_url:match('^(.*/)')
+		local function resolve(u)
+			if u == nil or u:sub(1, 4) == "http" then return u end
+			if u:sub(1, 1) == "/" then
+				return root and (root .. u) or u
+			end
+			return base and (base .. u) or u
 		end
 		local revision = 0
 		if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
@@ -656,14 +662,20 @@ function getVideoUrlM3U8(m3u8_url)
 				end
 			end
 
-			local l1,l2,l3,l4,l = nil,nil,nil,nil,nil
+			-- l0: preferred language AND marked DEFAULT=YES - keeps the
+			-- plain "TV Ton" ahead of the audio description, which the
+			-- zdf live masters list in the same language
+			local l0,l1,l2,l3,l4,l = nil,nil,nil,nil,nil,nil
 			for adata in data:gmatch('TYPE%=AUDIO.GROUP%-ID=".-",(.-)\n') do
 				local lname = adata:match('NAME="(.-)"')
 				local lang = adata:match('LANGUAGE="(.-)"')
 				local aurl = adata:match('URI="(.-)"')
 				if aurl then
 					local low_lang = lang and lang:lower() or ""
-					if l1 == nil and lname and lang1 and low_lang == lang1 then
+					local is_default = adata:find('DEFAULT=YES', 1, true) ~= nil
+					if l0 == nil and is_default and lname and lang1 and low_lang == lang1 then
+						l0 = aurl
+					elseif l1 == nil and lname and lang1 and low_lang == lang1 then
 						l1 = aurl
 					elseif l2 == nil and lname and lang2 and low_lang == lang2 then
 						l2 = aurl
@@ -676,7 +688,7 @@ function getVideoUrlM3U8(m3u8_url)
 					end
 				end
 			end
-			audio_url = l1 or l2 or l3 or l4 or l
+			audio_url = l0 or l1 or l2 or l3 or l4 or l
 		end
 		local maxRes = getMaxRes()
 		local allres = {}
@@ -697,14 +709,8 @@ function getVideoUrlM3U8(m3u8_url)
 				local nr = tonumber(res1)
 				if (nr <= maxRes and nr > res) then
 					res=nr
-					if host and url:sub(1,4) ~= "http" then
-						url = host .. url
-					end
-					if audio_url and host and audio_url:sub(1,4) ~= "http" then
-						audio_url = host .. audio_url
-					end
-					videoUrl  = url
-					audioUrl  = audio_url
+					videoUrl  = resolve(url)
+					audioUrl  = resolve(audio_url)
 				end
 			end
 		end
@@ -733,6 +739,24 @@ function urlFromCodec(codecTab, qorder)
 		end
 	end
 	return nil
+end
+
+-- the 24/7 live channels come dash-only from the api, but the same cdn
+-- serves them as hls under a stable sibling path (hostname "dash" ->
+-- "hls", live id minus 10; verified for zdf, zdfneo, zdfinfo and
+-- phoenix). ffmpeg's dash demuxer cannot hold a live stream - it runs
+-- into fragment 404s at the live edge and ends in "end-of-stream" -
+-- while its hls demuxer plays the same channel steadily. the pattern is
+-- undocumented, so anything unexpected falls back to the dash url
+function hlsFromDashUrl(mpd)
+	if type(mpd) ~= "string" then return nil end
+	local n, id = mpd:match('^https://zdf%-dash%-(%d+)%.akamaized%.net/dash/live/(%d+)/de/manifest%.mpd$')
+	if n == nil then return nil end
+	local hls = 'https://zdf-hls-' .. n .. '.akamaized.net/hls/live/'
+		.. (tonumber(id) - 10) .. '/de/high/master.m3u8'
+	local data = getdata(hls)
+	if data == nil or data:sub(1, 7) ~= "#EXTM3U" then return nil end
+	return hls
 end
 
 -- streams[] selection: "default" streams first (sign language "dgs"
@@ -786,6 +810,17 @@ function selectStreamUrl(streams)
 		end
 		url = urlFromCodec(v.h264_aac_mp4_http_mpd_http, {"q1","q3","q4"})
 		if url then
+			local hls = hlsFromDashUrl(url)
+			if hls then
+				local vurl, aurl = getVideoUrlM3U8(hls)
+				-- never return the video-only variant without its audio
+				-- rendition (mute picture); the bare master is the safe
+				-- form - ffmpeg resolves variants and audio itself
+				if vurl and aurl then
+					return vurl, aurl
+				end
+				return hls, nil
+			end
 			return url, nil
 		end
 	end
