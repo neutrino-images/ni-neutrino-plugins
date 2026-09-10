@@ -506,6 +506,20 @@ local xml='<?xml version="1.0" encoding="UTF-8"?>\
 	file:close()
 end
 
+-- the popup text travels as one url query value: format first, then
+-- encode the complete message - titles carry spaces, quotes and the
+-- shell would otherwise see them rawly inside the generated script
+function popup_url(fmt, title)
+	if Curl == nil then
+		Curl = curl.new()
+	end
+	local msg = Curl:encodeUri(string.format(fmt, title or ""))
+	if msg == nil then
+		msg = "download"
+	end
+	return 'wget -q "http://127.0.0.1/control/message?popup=' .. msg .. '" -O /dev/null ; \n'
+end
+
 function dl_stream(dl)
 	local Format = nil
 	if dl and dl.streamUrl then
@@ -536,10 +550,10 @@ function dl_stream(dl)
 				end
 			end
 			script:write('if [ $? -eq 0 ]; then \n')
-			script:write('wget -q http://127.0.0.1/control/message?popup="Video ' .. Title .. ' wurde heruntergeladen." -O /dev/null ; \n')
+			script:write(popup_url(l.dl_ok, Title))
 			script:write('mv ' .. filenamexml .. ' ' .. dlname .. '.xml ; \n')
 			script:write('else \n')
-			script:write('wget -q http://127.0.0.1/control/message?popup="Download ' .. Title .. ' FEHLGESCHLAGEN" -O /dev/null ; \n')
+			script:write(popup_url(l.dl_fail, Title))
 			script:write('rm ' .. filenamexml .. ' ; \n')
 			script:write('fi \n')
 			script:write('rm ' .. dls .. '; \n')
