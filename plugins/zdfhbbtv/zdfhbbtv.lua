@@ -251,7 +251,7 @@ function info(infotxt,cap)
 end
 
 function version()
-	local f = io.popen('stat -c %Y ' .. arg[0])
+	local f = io.popen('stat -c %Y ' .. shell_quote(arg[0]))
 	local last_modified = f:read()
 	local mdate = os.date("%c", last_modified)
 	info(string.format(l.version_text, Version, mdate), l.version_caption)
@@ -460,6 +460,14 @@ function xml_entities(s)
 	return s
 end
 
+-- wraps a value so the shell sees it as exactly one word; the embedded
+-- apostrophe is closed, escaped and reopened ('\'')
+function shell_quote(s)
+	if s == nil then return "''" end
+	if type(s) ~= 'string' then s = tostring(s) end
+	return "'" .. s:gsub("'", "'\\''") .. "'"
+end
+
 function writeXML(ch, title, info1, info2, filename)
 	ch = ch or ""
 	title = title or ""
@@ -541,24 +549,24 @@ function dl_stream(dl)
 			local script=io.open(dls,"w")
 			script:write('echo "download start" ;\n')
 			if Format == 'mp4' then
-				script:write('wget -q --continue ' .. dl.streamUrl .. ' -O ' .. dlname .. '.mp4 ;\n')
+				script:write('wget -q --continue ' .. shell_quote(dl.streamUrl) .. ' -O ' .. shell_quote(dlname .. '.mp4') .. ' ;\n')
 			elseif Format == 'ts' or Format == 'mkv' then
 				if dl.streamUrl2 then
-					script:write("ffmpeg -y -nostdin -loglevel 30 -i '" .. dl.streamUrl .. "' -i '" .. dl.streamUrl2  .. "' -c copy  " .. dlname   .. "." .. Format .. "\n")
+					script:write("ffmpeg -y -nostdin -loglevel 30 -i " .. shell_quote(dl.streamUrl) .. " -i " .. shell_quote(dl.streamUrl2) .. " -c copy " .. shell_quote(dlname .. "." .. Format) .. "\n")
 				else
-					script:write("ffmpeg -y -nostdin -loglevel 30 -i '" .. dl.streamUrl .. "' -c copy  " .. dlname   .. "." .. Format .. "\n")
+					script:write("ffmpeg -y -nostdin -loglevel 30 -i " .. shell_quote(dl.streamUrl) .. " -c copy " .. shell_quote(dlname .. "." .. Format) .. "\n")
 				end
 			end
 			script:write('if [ $? -eq 0 ]; then \n')
 			script:write(popup_url(l.dl_ok, Title))
-			script:write('mv ' .. filenamexml .. ' ' .. dlname .. '.xml ; \n')
+			script:write('mv ' .. shell_quote(filenamexml) .. ' ' .. shell_quote(dlname .. '.xml') .. ' ; \n')
 			script:write('else \n')
 			script:write(popup_url(l.dl_fail, Title))
-			script:write('rm ' .. filenamexml .. ' ; \n')
+			script:write('rm ' .. shell_quote(filenamexml) .. ' ; \n')
 			script:write('fi \n')
-			script:write('rm ' .. dls .. '; \n')
+			script:write('rm ' .. shell_quote(dls) .. ' ; \n')
 			script:close()
-			os.execute('sh  ' .. dls .. ' &')
+			os.execute('sh ' .. shell_quote(dls) .. ' &')
 			return true
 		end
 	end
