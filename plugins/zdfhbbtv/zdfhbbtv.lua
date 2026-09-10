@@ -624,7 +624,14 @@ function getVideoUrlM3U8(m3u8_url)
 	local videoUrl = nil
 	local audioUrl = nil
 	local data = getdata(m3u8_url)
+	local muxed = false
 	if data then
+		-- i-frame entries carry their uri inline; left in place they make
+		-- the variant scan below swallow the following stream line
+		data = data:gsub('#EXT%-X%-I%-FRAME%-STREAM%-INF[^\n]*\n?', '')
+		-- no audio renditions with their own uri means the variants carry
+		-- their sound muxed in - a variant alone is then fully playable
+		muxed = data:match('TYPE=AUDIO[^\n]*URI=') == nil
 		-- playlist uris come in three shapes: full urls, root-relative
 		-- paths (the zdf live masters use "/hls/live/...") and paths
 		-- relative to the master's directory
@@ -662,33 +669,42 @@ function getVideoUrlM3U8(m3u8_url)
 				end
 			end
 
+			-- iso 639 comes in two- and three-letter form ("de"/"deu");
+			-- the masters use either, neutrino delivers three letters
+			local function langmatch(a, b)
+				if a == nil or b == nil then return false end
+				return a == b or a:sub(1, 2) == b:sub(1, 2)
+			end
 			-- l0: preferred language AND marked DEFAULT=YES - keeps the
-			-- plain "TV Ton" ahead of the audio description, which the
-			-- zdf live masters list in the same language
-			local l0,l1,l2,l3,l4,l = nil,nil,nil,nil,nil,nil
-			for adata in data:gmatch('TYPE%=AUDIO.GROUP%-ID=".-",(.-)\n') do
+			-- plain tv sound ahead of the audio description, which the
+			-- live masters list in the same language; ldef catches the
+			-- DEFAULT entry when no language matched at all
+			local l0,l1,l2,l3,l4,ldef,l = nil,nil,nil,nil,nil,nil,nil
+			for adata in data:gmatch('TYPE%=AUDIO.-,(.-)\n') do
 				local lname = adata:match('NAME="(.-)"')
 				local lang = adata:match('LANGUAGE="(.-)"')
 				local aurl = adata:match('URI="(.-)"')
 				if aurl then
 					local low_lang = lang and lang:lower() or ""
 					local is_default = adata:find('DEFAULT=YES', 1, true) ~= nil
-					if l0 == nil and is_default and lname and lang1 and low_lang == lang1 then
+					if l0 == nil and is_default and lname and langmatch(low_lang, lang1) then
 						l0 = aurl
-					elseif l1 == nil and lname and lang1 and low_lang == lang1 then
+					elseif l1 == nil and lname and langmatch(low_lang, lang1) then
 						l1 = aurl
-					elseif l2 == nil and lname and lang2 and low_lang == lang2 then
+					elseif l2 == nil and lname and langmatch(low_lang, lang2) then
 						l2 = aurl
-					elseif l3 == nil and lname and lang3 and low_lang == lang3 then
+					elseif l3 == nil and lname and langmatch(low_lang, lang3) then
 						l3 = aurl
-					elseif l4 == nil and lname and low_lang == "deu" then
+					elseif l4 == nil and lname and langmatch(low_lang, "deu") then
 						l4 = aurl
+					elseif ldef == nil and is_default then
+						ldef = aurl
 					elseif l == nil then
 						l = aurl
 					end
 				end
 			end
-			audio_url = l0 or l1 or l2 or l3 or l4 or l
+			audio_url = l0 or l1 or l2 or l3 or l4 or ldef or l
 		end
 		local maxRes = getMaxRes()
 		local allres = {}
@@ -719,7 +735,7 @@ function getVideoUrlM3U8(m3u8_url)
 	end
 	if videoUrl then videoUrl = videoUrl:gsub("\x0d","") end
 	if audioUrl then audioUrl = audioUrl:gsub("\x0d","") end
-	return videoUrl, audioUrl
+	return videoUrl, audioUrl, muxed
 end
 
 -- returns the first url below <codec>.main.deu following the given
@@ -750,10 +766,32 @@ end
 -- undocumented, so anything unexpected falls back to the dash url
 function hlsFromDashUrl(mpd)
 	if type(mpd) ~= "string" then return nil end
-	local n, id = mpd:match('^https://zdf%-dash%-(%d+)%.akamaized%.net/dash/live/(%d+)/de/manifest%.mpd$')
-	if n == nil then return nil end
-	local hls = 'https://zdf-hls-' .. n .. '.akamaized.net/hls/live/'
-		.. (tonumber(id) - 10) .. '/de/high/master.m3u8'
+	local hls = nil
+	-- zdf family (zdf, zdfneo, zdfinfo, phoenix, 3sat): hostname dash ->
+	-- hls, live id minus 10; the language segment varies (de, dach)
+	local n, id, seg = mpd:match('^https://zdf%-dash%-(%d+)%.akamaized%.net/dash/live/(%d+)/([%w_]+)/manifest%.mpd$')
+	if n then
+		hls = 'https://zdf-hls-' .. n .. '.akamaized.net/hls/live/'
+			.. (tonumber(id) - 10) .. '/' .. seg .. '/high/master.m3u8'
+	end
+	-- ard cdn (kika): same host, dash -> hls inside the path
+	if hls == nil then
+		local pre, seg2 = mpd:match('^(https?://[%w%-%.]+%.ard%-mcdn%.de/.-)/dash/([%w_]+)/manifest%.mpd$')
+		if pre then
+			hls = pre .. '/hls/' .. seg2 .. '/master.m3u8'
+		end
+	end
+	-- arte: not derivable - the dash url lives on artelivezdf while the
+	-- open hls twin sits on artesimulcast with its own live id; a fixed
+	-- address, but guarded by the reachability check like every mapping
+	if hls == nil then
+		local lang = mpd:match('^https://artelivezdf%.akamaized%.net/dash/live/%d+/artelive_(%w+)/')
+		if lang then
+			hls = 'https://artesimulcast.akamaized.net/hls/live/2030993/artelive_'
+				.. lang .. '/master.m3u8'
+		end
+	end
+	if hls == nil then return nil end
 	local data = getdata(hls)
 	if data == nil or data:sub(1, 7) ~= "#EXTM3U" then return nil end
 	return hls
@@ -812,11 +850,12 @@ function selectStreamUrl(streams)
 		if url then
 			local hls = hlsFromDashUrl(url)
 			if hls then
-				local vurl, aurl = getVideoUrlM3U8(hls)
-				-- never return the video-only variant without its audio
-				-- rendition (mute picture); the bare master is the safe
-				-- form - ffmpeg resolves variants and audio itself
-				if vurl and aurl then
+				local vurl, aurl, muxed = getVideoUrlM3U8(hls)
+				-- never return a video-only variant without its audio
+				-- rendition (mute picture); a muxed variant carries its
+				-- own sound, and the bare master is the safe fallback -
+				-- ffmpeg resolves variants and audio itself
+				if vurl and (aurl or muxed) then
 					return vurl, aurl
 				end
 				return hls, nil
