@@ -1048,7 +1048,7 @@ function main_menu(liste)
 			local mact = 'selList'
 			local hico = 'hint_next'
 			local mname =  v.titletxt or v.title or v.myid or '## error ##'
-			tname = xml_entities(tname)
+			mname = xml_entities(mname)
 			if mname and type(mname) == 'string' and mname:gsub('%s','') == '' then mname = l.submenu end
 			local vhint = nil
 			if v.headtxt then
@@ -1080,7 +1080,6 @@ function main_menu(liste)
 			if not vhint and ptype[i] == 'page' then
 				vhint = l.submenu
 			end
-			mname = xml_entities(mname)
 			vhint = xml_entities(vhint)
 			menu:addItem{type="forwarder" , name=mname, action=mact,hint=vhint ,hint_icon=hico ,id=v.myid ,directkey=godirectkey(d)}
 		end
