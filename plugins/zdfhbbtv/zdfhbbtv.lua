@@ -53,12 +53,38 @@ function init()
 	if not fh:exist(zdfhbbtv_icon , "f") then
 		zdfhbbtv_icon='streaming'
 	end
+	-- localisation first: everything below speaks through the l table
+	if not load_locale() then
+		-- fixed English text: at this point no locale is available
+		info("Installation incomplete: the locale files below 'zdfhbbtv/locale/' are missing or broken.", "ZDF HbbTV")
+		aktivelist = nil
+		return
+	end
 	-- last: needs json/fh/lastmid and, for error hints, a working info()
 	inittab()
 end
 
+-- one file per language; a broken or missing translation falls back to
+-- english, and only a completely unusable locale directory gives up
+function load_locale()
+	local locdir = script_path() .. "zdfhbbtv/locale/"
+	local function try(name)
+		l = {}
+		local ok = pcall(dofile, locdir .. name .. ".lua")
+		return ok and next(l) ~= nil
+	end
+	local lang = n:GetLanguage()
+	if lang == nil or lang == "" or not fh:exist(locdir .. lang .. ".lua", "f") then
+		lang = "english"
+	end
+	if try(lang) then
+		return true
+	end
+	return lang ~= "english" and try("english")
+end
+
 function inittab()
-	local h = hintbox.new{text="Lese Daten..."}
+	local h = hintbox.new{text=l.reading}
 	if h then
 		h:paint()
 	end
@@ -72,19 +98,19 @@ function inittab()
 		return
 	end
 	-- the api names neither the page nor its stage cluster
-	aktivelist.title = aktivelist.title or 'ZDF Mediathek'
+	aktivelist.title = aktivelist.title or l.mediathek
 	local stage = aktivelist.elems[1]
 	if type(stage) == "table" then
 		local st = stage.title or stage.titletxt
 		if st == nil or (type(st) == "string" and st:gsub('%s','') == '') then
-			stage.title = 'Empfehlungen'
+			stage.title = l.recommendations
 		end
 	end
 	-- optional sources may fail without blocking the start
 	local jnTab = get_zdf_data(al_page_url('special:time'))
 	if jnTab and jnTab.elems and jnTab.elems[1] and jnTab.elems[1].elems then
 		lastmid = lastmid + 1
-		table.insert(aktivelist.elems,{title='Sendung verpasst',myid=lastmid,elems=jnTab.elems[1].elems})
+		table.insert(aktivelist.elems,{title=l.missed,myid=lastmid,elems=jnTab.elems[1].elems})
 	end
 	-- the a-z page carries the letter ranges as dropdown options
 	-- (special:atoz: with a trailing colon is rejected nowadays)
@@ -100,7 +126,7 @@ function inittab()
 			end
 		end
 		lastmid = lastmid + 1
-		table.insert(aktivelist.elems,{title='A to Z',myid=lastmid,elems=a})
+		table.insert(aktivelist.elems,{title=l.atoz,myid=lastmid,elems=a})
 	end
 	if h then
 		h:hide()
@@ -209,7 +235,7 @@ end
 
 function info(infotxt,cap)
 	if cap == nil then
-		cap = 'Information'
+		cap = l.info_caption
 	end
 	local h = hintbox.new{caption=cap, text=infotxt}
 	if h then
@@ -228,7 +254,7 @@ function version()
 	local f = io.popen('stat -c %Y ' .. arg[0])
 	local last_modified = f:read()
 	local mdate = os.date("%c", last_modified)
-	info('Version ' .. Version .. ' von satbaby\nZuletzt modifiziert\n' .. mdate,'ZDF HbbTV Versionsinfo')
+	info(string.format(l.version_text, Version, mdate), l.version_caption)
 end
 
 function godirectkey(d)
@@ -302,7 +328,7 @@ function epgInfo(xres, yres, aspectRatio, framerate)
 	local dl = {}
 	if dl_possible then
 		dl = gen_dl(videostream, audiostream, Title, Epg)
-		dltxt = 'Download Video'
+		dltxt = l.dl_button
 	end
 	local withPic = false
 	if not fh:exist(picfile , "f") then
@@ -364,7 +390,7 @@ function epgInfo(xres, yres, aspectRatio, framerate)
 	wow:hide()
 
 	if dl_possible and msg == RC.red  then
-		local h = hintbox.new{caption="Download gestartet   ", text=Title}
+		local h = hintbox.new{caption=l.dl_started, text=Title}
 		h:paint()
 		dl_stream(dl)
 		sleep(3)
@@ -752,7 +778,7 @@ function doSearch(id, value)
 	if #value == 0 then
 		return
 	end
-	local h = hintbox.new{text="Suche..."}
+	local h = hintbox.new{text=l.searching}
 	if h then
 		h:paint()
 	end
@@ -771,19 +797,19 @@ function doSearch(id, value)
 		h:hide()
 	end
 	if hits == nil then
-		info("Keine Treffer für '" .. value .. "'.", "ZDF HbbTV Suche")
+		info(string.format(l.no_hits, value), l.search_caption)
 		return
 	end
 	-- keep the hits below one stable node in aktivelist so that
 	-- selList/selPlay can find them; a new search replaces the old one
 	if searchTab == nil then
 		lastmid = lastmid + 1
-		searchTab = {title='Suche', myid=lastmid, elems={}}
+		searchTab = {title=l.search, myid=lastmid, elems={}}
 		table.insert(aktivelist.elems, searchTab)
 	end
 	searchTab.elems = hits
 	lastmid = setmid(searchTab.elems, lastmid + 1)
-	searchTab.title = 'Suche: ' .. value
+	searchTab.title = string.format(l.search_title, value)
 	hideMenu(last_menu[hid])
 	main_menu(searchTab)
 end
@@ -854,7 +880,7 @@ function play_video(tab)
 end
 
 function get_zdf_data(link,data)
-	local h = hintbox.new{text="Lese Daten..."}
+	local h = hintbox.new{text=l.reading}
 	if h then
 		h:paint()
 	end
@@ -879,7 +905,7 @@ end
 
 function selPlay(id)
 	hideMenu(last_menu[hid])
-	local h = hintbox.new{text="Lese Daten..."}
+	local h = hintbox.new{text=l.reading}
 	if h then
 		h:paint()
 	end
@@ -896,13 +922,13 @@ function selPlay(id)
 	if vTab and vTab.stream then
 		play_video(vTab)
 	elseif vTab then
-		info("Kein abspielbarer Stream gefunden.", "ZDF HbbTV")
+		info(l.no_stream, l.caption)
 	end
 end
 
 function selList(id)
 	hideMenu(last_menu[hid])
-	local h = hintbox.new{text="Lese Daten..."}
+	local h = hintbox.new{text=l.reading}
 	if h then
 		h:paint()
 	end
@@ -924,7 +950,7 @@ function selList(id)
 			if h then
 				h:hide()
 			end
-			info("Keine Daten vom ZDF-Dienst erhalten.", "ZDF HbbTV")
+			info(l.no_data, l.caption)
 			return
 		end
 		myTab.elems = {}
@@ -988,7 +1014,7 @@ function main_menu(liste)
 
 	local tname = liste.title or liste.titletxt or liste.myid or liste.id
 	tname = xml_entities(tname)
-	if tname and type(tname) == 'string' and #tname == 0 then tname = 'Titel' end
+	if tname and type(tname) == 'string' and #tname == 0 then tname = l.title_fallback end
 	local menu  = menu.new{name = tname, icon=zdfhbbtv_icon}
 	last_menu[hid] = menu
 	menu:addItem{type='back'}
@@ -996,20 +1022,20 @@ function main_menu(liste)
 	menu:addKey{directkey=RC.setup, id="_", action="backToMenu1"}
 	menu:addKey{directkey=RC.info, id="_", action="version"}
 	if hid == 1 then
-		menu:addItem{type="keyboardinput", name="Suche", action="doSearch", id="search", value="", size=30, help="Suchbegriff eingeben"}
+		menu:addItem{type="keyboardinput", name=l.search, action="doSearch", id="search", value="", size=30, help=l.search_help}
 	end
 	local d =  0
 	for i, v in ipairs(liste.elems) do
 		local skip = false
 		if hid > 12 and ptype[i] == 'page' then skip = true end
 		if not skip and v.myid and (v.hasVideo==nil or v.hasVideo==false) and (v.titletxt or v.title) then
-			if d == 0 then menu:addItem{type="subhead", name='Untermenü'} end
+			if d == 0 then menu:addItem{type="subhead", name=l.submenu} end
 			d=d+1
 			local mact = 'selList'
 			local hico = 'hint_next'
 			local mname =  v.titletxt or v.title or v.myid or '## error ##'
 			tname = xml_entities(tname)
-			if mname and type(mname) == 'string' and mname:gsub('%s','') == '' then mname = 'Untermenü' end
+			if mname and type(mname) == 'string' and mname:gsub('%s','') == '' then mname = l.submenu end
 			local vhint = nil
 			if v.headtxt then
 				vhint = v.headtxt
@@ -1029,16 +1055,16 @@ function main_menu(liste)
 				end
 			end
 			if (not vhint and hid > warning and ptype[i] == 'page') or hid > 13 then
-				vhint = 'Untermenü - Zurück zum Start-Menü über Menü-Taste'
+				vhint = l.hint_submenu_home
 			end
 			if not vhint and ptype[i] == 'video' then
-				vhint = 'Video-Untermenü'
+				vhint = l.hint_video_submenu
 			end
 			if (not vhint and ptype[i] == 'video') or hid > 7 then
-				vhint = 'Video-Untermenü - Zum Start-Menü über Menü-Taste'
+				vhint = l.hint_video_submenu_home
 			end
 			if not vhint and ptype[i] == 'page' then
-				vhint = 'Untermenü'
+				vhint = l.submenu
 			end
 			mname = xml_entities(mname)
 			vhint = xml_entities(vhint)
@@ -1048,7 +1074,7 @@ function main_menu(liste)
 	local one = true
 	for i, v in ipairs(liste.elems) do
 		if v.myid and v.hasVideo then
-			if one then 	menu:addItem{type='subhead', name='Videos'} one = false end
+			if one then 	menu:addItem{type='subhead', name=l.videos} one = false end
 			d=d+1
 			local mact = 'selPlay'
 			local hico = 'video'
@@ -1073,7 +1099,7 @@ function main_menu(liste)
 			end
 			mname = xml_entities(mname)
 			vhint = xml_entities(vhint)
-			if mname and type(mname) == 'string' and mname:gsub('%s','') == '' then mname = 'Video' end
+			if mname and type(mname) == 'string' and mname:gsub('%s','') == '' then mname = l.video end
 			menu:addItem{type="forwarder" ,icon="streaming", name=mname, action=mact,hint=vhint,hint_icon=hico ,id=v.myid ,directkey=godirectkey(d)}
 		end
 	end
@@ -1087,7 +1113,7 @@ function main()
 	if aktivelist and aktivelist.elems then
 		main_menu(aktivelist)
 	else
-		info("Der ZDF-Dienst ist zur Zeit nicht erreichbar.", "ZDF HbbTV")
+		info(l.svc_unreachable, l.caption)
 	end
 	os.remove(picfile)
 	collectgarbage()
