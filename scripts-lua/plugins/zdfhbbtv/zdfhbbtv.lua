@@ -3,10 +3,30 @@
 	Copyright (C) 2021 Jacek Jendrzej 'satbaby'
 	Copyright (C) 2022 'bazi98' for Vers. 0.24  - add. UHD and FullHD
 	License: WTFPLv2
+
+	0.26: the old JSON proxy hbbtv.zdf.de/zdfm3/dyn/get.php answers
+	HTTP 500 for every content id; all data now comes from
+	hbbtv.zdf.de/legacy-al/ - the token-free backend of the official
+	ZDFmediathek HbbTV app (1.41.5), which delivers the same elems
+	document format. Adds a search entry (keyboardinput).
 ]]
 
+-- legacy-al base and the start page id of the official HbbTV app;
+-- the app maps "zdf-hbbtv-startseite-100" to this uuid in its xo-*.js
+-- (the readable id itself is not resolvable, the API answers 404)
+local AL_BASE = "https://hbbtv.zdf.de/legacy-al/"
+local START_ID = "8c3f3656-ceff-48ed-a199-9e23c5a3d135"
+
+-- page documents: special:* ids have their own endpoint
+function al_page_url(id)
+	if id ~= nil and id:sub(1, 8) == "special:" then
+		return AL_BASE .. "special-page?id=" .. id
+	end
+	return AL_BASE .. "dispatcher?id=" .. (id or "")
+end
+
 function init()
-	Version = 0.25
+	Version = "0.26"
 	CONF_PATH = "/var/tuxbox/config/"
 	if DIR and DIR.CONFIGDIR then
 		CONF_PATH = DIR.CONFIGDIR .. '/'
@@ -16,7 +36,6 @@ function init()
 	lastmid = 1000
 	json = require "json"
 	fh = filehelpers.new()
-	inittab()
 	n = neutrino()
 	vPlay = video.new()
 	nMisc = misc.new()
@@ -34,36 +53,80 @@ function init()
 	if not fh:exist(zdfhbbtv_icon , "f") then
 		zdfhbbtv_icon='streaming'
 	end
+	-- localisation first: everything below speaks through the l table
+	if not load_locale() then
+		-- fixed English text: at this point no locale is available
+		info("Installation incomplete: the locale files below 'zdfhbbtv/locale/' are missing or broken.", "ZDF HbbTV")
+		aktivelist = nil
+		return
+	end
+	-- last: needs json/fh/lastmid and, for error hints, a working info()
+	inittab()
+end
+
+-- one file per language; a broken or missing translation falls back to
+-- english, and only a completely unusable locale directory gives up
+function load_locale()
+	local locdir = script_path() .. "zdfhbbtv/locale/"
+	local function try(name)
+		l = {}
+		local ok = pcall(dofile, locdir .. name .. ".lua")
+		return ok and next(l) ~= nil
+	end
+	local lang = n:GetLanguage()
+	if lang == nil or lang == "" or not fh:exist(locdir .. lang .. ".lua", "f") then
+		lang = "english"
+	end
+	if try(lang) then
+		return true
+	end
+	return lang ~= "english" and try("english")
 end
 
 function inittab()
-	local h = hintbox.new{text="Lese Daten..."}
+	local h = hintbox.new{text=l.reading}
 	if h then
 		h:paint()
 	end
-	local url = 'http://hbbtv.zdf.de/zdfm3/dyn/get.php'
-	aktivelist = {}
-	aktivelist = get_zdf_data(url)
-	local jnTab = get_zdf_data(url .. '?id=special:time')
+	aktivelist = get_zdf_data(al_page_url(START_ID))
+	if aktivelist == nil or aktivelist.elems == nil then
+		-- no start page, no plugin: main() shows the hint and exits
+		aktivelist = nil
+		if h then
+			h:hide()
+		end
+		return
+	end
+	-- the api names neither the page nor its stage cluster
+	aktivelist.title = aktivelist.title or l.mediathek
+	local stage = aktivelist.elems[1]
+	if type(stage) == "table" then
+		local st = stage.title or stage.titletxt
+		if st == nil or (type(st) == "string" and st:gsub('%s','') == '') then
+			stage.title = l.recommendations
+		end
+	end
+	-- optional sources may fail without blocking the start
+	local jnTab = get_zdf_data(al_page_url('special:time'))
 	if jnTab and jnTab.elems and jnTab.elems[1] and jnTab.elems[1].elems then
 		lastmid = lastmid + 1
-		table.insert(aktivelist.elems,{title='Sendung verpasst',myid=lastmid,elems=jnTab.elems[1].elems})
+		table.insert(aktivelist.elems,{title=l.missed,myid=lastmid,elems=jnTab.elems[1].elems})
 	end
-	local data = getdata(url .. '?id=special:atoz:')
-	if data then
-		local jnTab = json:decode(data)
-		if jnTab and jnTab.elems and jnTab.elems[1] and jnTab.elems[1].options then
-			a={}
-			for k,v in pairs(jnTab.elems[1].options) do
-				a.link = {}
-				local link = {}
+	-- the a-z page carries the letter ranges as dropdown options
+	-- (special:atoz: with a trailing colon is rejected nowadays)
+	jnTab = get_zdf_data(al_page_url('special:atoz'))
+	if jnTab and jnTab.elems and jnTab.elems[1] and jnTab.elems[1].options then
+		local a = {}
+		-- setmid() has tagged the options array with a myid field,
+		-- so plain pairs() also yields that number - skip non-tables
+		for _,v in pairs(jnTab.elems[1].options) do
+			if type(v) == "table" and v.id and v.name then
 				lastmid = lastmid + 1
-				link.id = 'special:atoz:' .. v.id
-				table.insert(a,{title=v.name,myid=lastmid,link=link})
+				table.insert(a,{title=v.name,myid=lastmid,link={id='special:atoz:' .. v.id}})
 			end
-			lastmid = lastmid + 1
-			table.insert(aktivelist.elems,{title='A to Z',myid=lastmid,elems=a})
 		end
+		lastmid = lastmid + 1
+		table.insert(aktivelist.elems,{title=l.atoz,myid=lastmid,elems=a})
 	end
 	if h then
 		h:hide()
@@ -172,7 +235,7 @@ end
 
 function info(infotxt,cap)
 	if cap == nil then
-		cap = 'Information'
+		cap = l.info_caption
 	end
 	local h = hintbox.new{caption=cap, text=infotxt}
 	if h then
@@ -188,10 +251,10 @@ function info(infotxt,cap)
 end
 
 function version()
-	local f = io.popen('stat -c %Y ' .. arg[0])
+	local f = io.popen('stat -c %Y ' .. shell_quote(arg[0]))
 	local last_modified = f:read()
 	local mdate = os.date("%c", last_modified)
-	info('Version ' .. Version .. ' von satbaby\nZuletzt modifiziert\n' .. mdate,'ZDF HbbTV Versionsinfo')
+	info(string.format(l.version_text, Version, mdate), l.version_caption)
 end
 
 function godirectkey(d)
@@ -261,11 +324,11 @@ end
 
 function epgInfo(xres, yres, aspectRatio, framerate)
 	local dltxt = ''
-	local dl_possible = dl_check(videostream)
+	local dl_possible = dl_check(videostream, videolive)
 	local dl = {}
 	if dl_possible then
 		dl = gen_dl(videostream, audiostream, Title, Epg)
-		dltxt = 'Download Video'
+		dltxt = l.dl_button
 	end
 	local withPic = false
 	if not fh:exist(picfile , "f") then
@@ -327,7 +390,7 @@ function epgInfo(xres, yres, aspectRatio, framerate)
 	wow:hide()
 
 	if dl_possible and msg == RC.red  then
-		local h = hintbox.new{caption="Download gestartet   ", text=Title}
+		local h = hintbox.new{caption=l.dl_started, text=Title}
 		h:paint()
 		dl_stream(dl)
 		sleep(3)
@@ -397,6 +460,14 @@ function xml_entities(s)
 	return s
 end
 
+-- wraps a value so the shell sees it as exactly one word; the embedded
+-- apostrophe is closed, escaped and reopened ('\'')
+function shell_quote(s)
+	if s == nil then return "''" end
+	if type(s) ~= 'string' then s = tostring(s) end
+	return "'" .. s:gsub("'", "'\\''") .. "'"
+end
+
 function writeXML(ch, title, info1, info2, filename)
 	ch = ch or ""
 	title = title or ""
@@ -443,6 +514,20 @@ local xml='<?xml version="1.0" encoding="UTF-8"?>\
 	file:close()
 end
 
+-- the popup text travels as one url query value: format first, then
+-- encode the complete message - titles carry spaces, quotes and the
+-- shell would otherwise see them rawly inside the generated script
+function popup_url(fmt, title)
+	if Curl == nil then
+		Curl = curl.new()
+	end
+	local msg = Curl:encodeUri(string.format(fmt, title or ""))
+	if msg == nil then
+		msg = "download"
+	end
+	return 'wget -q "http://127.0.0.1/control/message?popup=' .. msg .. '" -O /dev/null ; \n'
+end
+
 function dl_stream(dl)
 	local Format = nil
 	if dl and dl.streamUrl then
@@ -464,32 +549,35 @@ function dl_stream(dl)
 			local script=io.open(dls,"w")
 			script:write('echo "download start" ;\n')
 			if Format == 'mp4' then
-				script:write('wget -q --continue ' .. dl.streamUrl .. ' -O ' .. dlname .. '.mp4 ;\n')
+				script:write('wget -q --continue ' .. shell_quote(dl.streamUrl) .. ' -O ' .. shell_quote(dlname .. '.mp4') .. ' ;\n')
 			elseif Format == 'ts' or Format == 'mkv' then
 				if dl.streamUrl2 then
-					script:write("ffmpeg -y -nostdin -loglevel 30 -i '" .. dl.streamUrl .. "' -i '" .. dl.streamUrl2  .. "' -c copy  " .. dlname   .. "." .. Format .. "\n")
+					script:write("ffmpeg -y -nostdin -loglevel 30 -i " .. shell_quote(dl.streamUrl) .. " -i " .. shell_quote(dl.streamUrl2) .. " -c copy " .. shell_quote(dlname .. "." .. Format) .. "\n")
 				else
-					script:write("ffmpeg -y -nostdin -loglevel 30 -i '" .. dl.streamUrl .. "' -c copy  " .. dlname   .. "." .. Format .. "\n")
+					script:write("ffmpeg -y -nostdin -loglevel 30 -i " .. shell_quote(dl.streamUrl) .. " -c copy " .. shell_quote(dlname .. "." .. Format) .. "\n")
 				end
 			end
 			script:write('if [ $? -eq 0 ]; then \n')
-			script:write('wget -q http://127.0.0.1/control/message?popup="Video ' .. Title .. ' wurde heruntergeladen." -O /dev/null ; \n')
-			script:write('mv ' .. filenamexml .. ' ' .. dlname .. '.xml ; \n')
+			script:write(popup_url(l.dl_ok, Title))
+			script:write('mv ' .. shell_quote(filenamexml) .. ' ' .. shell_quote(dlname .. '.xml') .. ' ; \n')
 			script:write('else \n')
-			script:write('wget -q http://127.0.0.1/control/message?popup="Download ' .. Title .. ' FEHLGESCHLAGEN" -O /dev/null ; \n')
-			script:write('rm ' .. filenamexml .. ' ; \n')
+			script:write(popup_url(l.dl_fail, Title))
+			script:write('rm ' .. shell_quote(filenamexml) .. ' ; \n')
 			script:write('fi \n')
-			script:write('rm ' .. dls .. '; \n')
+			script:write('rm ' .. shell_quote(dls) .. ' ; \n')
 			script:close()
-			os.execute('sh  ' .. dls .. ' &')
+			os.execute('sh ' .. shell_quote(dls) .. ' &')
 			return true
 		end
 	end
 	return false
 end
 
-function dl_check(streamUrl)
+function dl_check(streamUrl, isLive)
 	local check = false
+	-- a live stream never ends: ffmpeg would run until the disk is full,
+	-- and its lock file would block every other download meanwhile
+	if isLive then return check end
 	local Nconfig = configfile.new()
 	if Nconfig then
 		Nconfig:loadConfig(CONF_PATH .. "neutrino.conf")
@@ -539,12 +627,25 @@ function getVideoUrlM3U8(m3u8_url)
 	local videoUrl = nil
 	local audioUrl = nil
 	local data = getdata(m3u8_url)
+	local muxed = false
 	if data then
-		local host = m3u8_url:match('([%a]+[:]?//[_%w%-%.]+)/')
-		local lastpos = (m3u8_url:reverse()):find("/")
-		local hosttmp = m3u8_url:sub(1,#m3u8_url-lastpos)
-		if hosttmp then
-			host = hosttmp .."/"
+		-- i-frame entries carry their uri inline; left in place they make
+		-- the variant scan below swallow the following stream line
+		data = data:gsub('#EXT%-X%-I%-FRAME%-STREAM%-INF[^\n]*\n?', '')
+		-- no audio renditions with their own uri means the variants carry
+		-- their sound muxed in - a variant alone is then fully playable
+		muxed = data:match('TYPE=AUDIO[^\n]*URI=') == nil
+		-- playlist uris come in three shapes: full urls, root-relative
+		-- paths (the zdf live masters use "/hls/live/...") and paths
+		-- relative to the master's directory
+		local root = m3u8_url:match('^(%a+://[^/]+)')
+		local base = m3u8_url:match('^(.*/)')
+		local function resolve(u)
+			if u == nil or u:sub(1, 4) == "http" then return u end
+			if u:sub(1, 1) == "/" then
+				return root and (root .. u) or u
+			end
+			return base and (base .. u) or u
 		end
 		local revision = 0
 		if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 82 )) then
@@ -571,27 +672,42 @@ function getVideoUrlM3U8(m3u8_url)
 				end
 			end
 
-			local l1,l2,l3,l4,l = nil,nil,nil,nil,nil
-			for adata in data:gmatch('TYPE%=AUDIO.GROUP%-ID=".-",(.-)\n') do
+			-- iso 639 comes in two- and three-letter form ("de"/"deu");
+			-- the masters use either, neutrino delivers three letters
+			local function langmatch(a, b)
+				if a == nil or b == nil then return false end
+				return a == b or a:sub(1, 2) == b:sub(1, 2)
+			end
+			-- l0: preferred language AND marked DEFAULT=YES - keeps the
+			-- plain tv sound ahead of the audio description, which the
+			-- live masters list in the same language; ldef catches the
+			-- DEFAULT entry when no language matched at all
+			local l0,l1,l2,l3,l4,ldef,l = nil,nil,nil,nil,nil,nil,nil
+			for adata in data:gmatch('TYPE%=AUDIO.-,(.-)\n') do
 				local lname = adata:match('NAME="(.-)"')
 				local lang = adata:match('LANGUAGE="(.-)"')
 				local aurl = adata:match('URI="(.-)"')
 				if aurl then
-					local low_lang = lang:lower()
-					if l1 == nil and lname and lang1 and low_lang == lang1 then
+					local low_lang = lang and lang:lower() or ""
+					local is_default = adata:find('DEFAULT=YES', 1, true) ~= nil
+					if l0 == nil and is_default and lname and langmatch(low_lang, lang1) then
+						l0 = aurl
+					elseif l1 == nil and lname and langmatch(low_lang, lang1) then
 						l1 = aurl
-					elseif l2 == nil and lname and lang2 and low_lang == lang2 then
+					elseif l2 == nil and lname and langmatch(low_lang, lang2) then
 						l2 = aurl
-					elseif l3 == nil and lname and lang3 and low_lang == lang3 then
+					elseif l3 == nil and lname and langmatch(low_lang, lang3) then
 						l3 = aurl
-					elseif l4 == nil and lname and low_lang == "deu" then
+					elseif l4 == nil and lname and langmatch(low_lang, "deu") then
 						l4 = aurl
+					elseif ldef == nil and is_default then
+						ldef = aurl
 					elseif l == nil then
 						l = aurl
 					end
 				end
 			end
-			audio_url = l1 or l2 or l3 or l4 or l
+			audio_url = l0 or l1 or l2 or l3 or l4 or ldef or l
 		end
 		local maxRes = getMaxRes()
 		local allres = {}
@@ -612,14 +728,8 @@ function getVideoUrlM3U8(m3u8_url)
 				local nr = tonumber(res1)
 				if (nr <= maxRes and nr > res) then
 					res=nr
-					if host and url:sub(1,4) ~= "http" then
-						url = host .. url
-					end
-					if audio_url and host and audio_url:sub(1,4) ~= "http" then
-						audio_url = host .. audio_url
-					end
-					videoUrl  = url
-					audioUrl  = audio_url
+					videoUrl  = resolve(url)
+					audioUrl  = resolve(audio_url)
 				end
 			end
 		end
@@ -628,130 +738,249 @@ function getVideoUrlM3U8(m3u8_url)
 	end
 	if videoUrl then videoUrl = videoUrl:gsub("\x0d","") end
 	if audioUrl then audioUrl = audioUrl:gsub("\x0d","") end
-	return videoUrl, audioUrl
+	return videoUrl, audioUrl, muxed
+end
+
+-- returns the first url below <codec>.main.deu following the given
+-- quality order; the "ad" audio group (audio description) is not used
+function urlFromCodec(codecTab, qorder)
+	if type(codecTab) ~= "table" then
+		return nil
+	end
+	local m = codecTab.main
+	if type(m) ~= "table" or type(m.deu) ~= "table" then
+		return nil
+	end
+	for _, q in ipairs(qorder) do
+		local e = m.deu[q]
+		if type(e) == "table" and e.url then
+			return e.url
+		end
+	end
+	return nil
+end
+
+-- the 24/7 live channels come dash-only from the api, but the same cdn
+-- serves them as hls under a stable sibling path (hostname "dash" ->
+-- "hls", live id minus 10; verified for zdf, zdfneo, zdfinfo and
+-- phoenix). ffmpeg's dash demuxer cannot hold a live stream - it runs
+-- into fragment 404s at the live edge and ends in "end-of-stream" -
+-- while its hls demuxer plays the same channel steadily. the pattern is
+-- undocumented, so anything unexpected falls back to the dash url
+function hlsFromDashUrl(mpd)
+	if type(mpd) ~= "string" then return nil end
+	local hls = nil
+	-- zdf family (zdf, zdfneo, zdfinfo, phoenix, 3sat): hostname dash ->
+	-- hls, live id minus 10; the language segment varies (de, dach)
+	local n, id, seg = mpd:match('^https://zdf%-dash%-(%d+)%.akamaized%.net/dash/live/(%d+)/([%w_]+)/manifest%.mpd$')
+	if n then
+		hls = 'https://zdf-hls-' .. n .. '.akamaized.net/hls/live/'
+			.. (tonumber(id) - 10) .. '/' .. seg .. '/high/master.m3u8'
+	end
+	-- ard cdn (kika): same host, dash -> hls inside the path
+	if hls == nil then
+		local pre, seg2 = mpd:match('^(https?://[%w%-%.]+%.ard%-mcdn%.de/.-)/dash/([%w_]+)/manifest%.mpd$')
+		if pre then
+			hls = pre .. '/hls/' .. seg2 .. '/master.m3u8'
+		end
+	end
+	-- arte: not derivable - the dash url lives on artelivezdf while the
+	-- open hls twin sits on artesimulcast with its own live id; a fixed
+	-- address, but guarded by the reachability check like every mapping
+	if hls == nil then
+		local lang = mpd:match('^https://artelivezdf%.akamaized%.net/dash/live/%d+/artelive_(%w+)/')
+		if lang then
+			hls = 'https://artesimulcast.akamaized.net/hls/live/2030993/artelive_'
+				.. lang .. '/master.m3u8'
+		end
+	end
+	if hls == nil then return nil end
+	local data = getdata(hls)
+	if data == nil or data:sub(1, 7) ~= "#EXTM3U" then return nil end
+	return hls
+end
+
+-- streams[] selection: "default" streams first (sign language "dgs"
+-- only as a last resort), per stream mp4 -> hls -> plain ts (live)
+-- -> dash; every level is checked, a nil just moves on.
+-- the third return value marks a continuous stream (live event or
+-- 24/7 channel) - such a url has no end and must not be offered for
+-- download
+function selectStreamUrl(streams)
+	if type(streams) ~= "table" then
+		return nil, nil
+	end
+	local maxRes = getMaxRes()
+	local qorder
+	if maxRes > 1921 then
+		qorder = {"q5","q4","q3","q1"}
+	elseif maxRes > 1281 then
+		qorder = {"q4","q3","q1"}
+	else
+		qorder = {"q1","q3"}
+	end
+	local cands = {}
+	for _, v in ipairs(streams) do
+		if type(v) == "table" and v.kind ~= "dgs" then
+			table.insert(cands, v)
+		end
+	end
+	for _, v in ipairs(streams) do
+		if type(v) == "table" and v.kind == "dgs" then
+			table.insert(cands, v)
+		end
+	end
+	for _, v in ipairs(cands) do
+		local url = nil
+		if maxRes > 1281 then
+			url = urlFromCodec(v.h265_aac_mp4_http_na_na, qorder)
+		end
+		url = url or urlFromCodec(v.h264_aac_mp4_http_na_na, qorder)
+		if url then
+			return url, nil
+		end
+		local m3u8 = urlFromCodec(v.h264_aac_ts_http_m3u8_http, {"q3","q1","q4","q5"})
+		if m3u8 then
+			local vurl, aurl = getVideoUrlM3U8(m3u8)
+			if vurl then
+				return vurl, aurl
+			end
+			return m3u8, nil
+		end
+		-- live events carry a plain transport stream (and dash below)
+		url = urlFromCodec(v.h264_aac_ts_http_na_na, {"q1","q3","q4"})
+		if url then
+			return url, nil, true
+		end
+		url = urlFromCodec(v.h264_aac_mp4_http_mpd_http, {"q1","q3","q4"})
+		if url then
+			local hls = hlsFromDashUrl(url)
+			if hls then
+				local vurl, aurl, muxed = getVideoUrlM3U8(hls)
+				-- never return a video-only variant without its audio
+				-- rendition (mute picture); a muxed variant carries its
+				-- own sound, and the bare master is the safe fallback -
+				-- ffmpeg resolves variants and audio itself
+				if vurl and (aurl or muxed) then
+					return vurl, aurl, true
+				end
+				return hls, nil, true
+			end
+			return url, nil, true
+		end
+	end
+	return nil, nil
+end
+
+function doSearch(id, value)
+	if value == nil then
+		return
+	end
+	value = value:gsub("^%s+",""):gsub("%s+$","")
+	if #value == 0 then
+		return
+	end
+	local h = hintbox.new{text=l.searching}
+	if h then
+		h:paint()
+	end
+	if Curl == nil then
+		Curl = curl.new()
+	end
+	local data = getdata(AL_BASE .. "search?t=" .. Curl:encodeUri(value))
+	local hits = nil
+	if data then
+		local ok, js = pcall(function() return json:decode(data) end)
+		if ok and type(js) == "table" and type(js.result) == "table" and #js.result > 0 then
+			hits = js.result
+		end
+	end
+	if h then
+		h:hide()
+	end
+	if hits == nil then
+		info(string.format(l.no_hits, value), l.search_caption)
+		return
+	end
+	-- keep the hits below one stable node in aktivelist so that
+	-- selList/selPlay can find them; a new search replaces the old one
+	if searchTab == nil then
+		lastmid = lastmid + 1
+		searchTab = {title=l.search, myid=lastmid, elems={}}
+		table.insert(aktivelist.elems, searchTab)
+	end
+	searchTab.elems = hits
+	lastmid = setmid(searchTab.elems, lastmid + 1)
+	searchTab.title = string.format(l.search_title, value)
+	hideMenu(last_menu[hid])
+	main_menu(searchTab)
 end
 
 function getZDFstream(tab)
-	local url = 'https://hbbtv.zdf.de/zdfm3/dyn/get.php?id=' .. tab.link.id
-	local jdata = getdata(url)
-	--local vf = nil
-	if jdata then
-		local jnTab = json:decode(jdata)
-		if jnTab and jnTab.streams then
-			local maxRes = getMaxRes()
-			tab.audiostream = nil
-			tab.stream = nil
-			for _, streams in pairs(jnTab.streams) do
-				if streams and tab.stream == nil then
-
-					local h265 = streams.h265_aac_mp4_http_na_na
-					local h264 = streams.h264_aac_mp4_http_na_na
-					local m3u8 = streams.h264_aac_ts_http_m3u8_http
-					local mpd = streams.h264_aac_mp4_http_mpd_http
-
-					if maxRes > 1281 and h265 and h265.main.deu.q5 then
-						tab.stream = h265.main.deu.q5.url
-						--vf = "h265 - UHD"
-						break
-					elseif maxRes > 1281 and h265 and h265.main.deu.q3 then
-						tab.stream = h265.main.deu.q3.url
-						--vf = "h265 - Full HD"
-						break
-					elseif maxRes > 1281 and m3u8 and m3u8.main.deu.q3 then
-						tab.stream , tab.audiostream = getVideoUrlM3U8(m3u8.main.deu.q3.url)
-						--vf = "m3u8"  -- HD or Full HD
-						break
-					elseif maxRes > 1281 and h264 and h264.main.deu.q3 then
-						tab.stream = h264.main.deu.q3.url
-						--vf = "HD"
-						break
-					elseif maxRes < 1281 and h264 and h264.main.deu.q1 then
-						tab.stream = h264.main.deu.q1.url
-						--vf = "mp4 q1"
-						break
-					elseif mpd and mpd.main and mpd.main.deu then
-						tab.stream = mpd.main.deu.url
-						--vf = "mpd"
---[[
-			-- tuxbox-version for loop above
-			for i=1,2,1 do
-				for _, streams in pairs(jnTab.streams) do
-					if streams and tab.stream == nil then
-						local h265 = streams.h265_aac_mp4_http_na_na
-						local h264 = streams.h264_aac_mp4_http_na_na
-						if h265 == nil then
-							mp4 = h264
-							else
-							mp4 = h265
-						end
-						local m3u8 = streams.h264_aac_ts_http_m3u8_http
-						local mpd = streams.h264_aac_mp4_http_mpd_http
-						if maxRes > 1921 and streams.h265_aac_mp4_http_na_na and mp4.main.deu.q5 then
-							tab.stream = mp4.main.deu.q5.url
-							break
-						elseif maxRes > 1281 and streams.h265_aac_mp4_http_na_na and mp4.main.deu.q4 then
-							tab.stream = mp4.main.deu.q4.url
-						elseif maxRes > 1281 and streams.h265_aac_mp4_http_na_na and mp4.main.deu.q3 then
-							tab.stream = mp4.main.deu.q3.url
-						elseif maxRes > 1281 and streams.h264_aac_mp4_http_na_na and mp4.main.deu.q4 then
-							tab.stream = mp4.main.deu.q4.url
-							break
-						elseif maxRes > 1281 and streams.h264_aac_mp4_http_na_na and mp4.main.deu.q3 then
-							tab.stream = mp4.main.deu.q3.url
-							break
-						elseif maxRes < 1281 and mp4 and mp4.main and mp4.main.deu and mp4.main.deu.q1 then
-							tab.stream = mp4.main.deu.q1.url
-						elseif m3u8 and m3u8.main and m3u8.main.deu and m3u8.main.deu.q3 then
-							tab.stream , tab.audiostream = getVideoUrlM3U8(m3u8.main.deu.q3.url)
-						elseif mpd and mpd.main and mpd.main.deu then
-							tab.stream = mpd.main.deu.url
-						end
-						if tab.stream then break end
-						if h265 and tab.stream == nil then
-							streams.h265_aac_mp4_http_na_na = nil
-						end
-]]
-					end
-				end
+	if tab == nil or tab.link == nil or tab.link.id == nil then
+		return
+	end
+	local jdata = getdata(AL_BASE .. 'video?id=' .. tab.link.id)
+	if jdata == nil then
+		return
+	end
+	local ok, jnTab = pcall(function() return json:decode(jdata) end)
+	if not ok or type(jnTab) ~= "table" then
+		return
+	end
+	tab.audiostream = nil
+	tab.stream = nil
+	tab.live = nil
+	if jnTab.streams then
+		local live
+		tab.stream, tab.audiostream, live = selectStreamUrl(jnTab.streams)
+		-- the document says it outright ("livestream": true on all 24/7
+		-- channels, false on demand videos); the stream selection is
+		-- asked as well so a changed api field cannot silently reopen
+		-- the download of an endless stream
+		tab.live = jnTab.livestream == true or live == true
+	end
+	Epg,Title,Info1,Info2,UrlPic = nil,nil,nil,nil,nil
+	videostream, audiostream, videolive = nil,nil,nil
+	if jnTab.text then Epg = xml_entities(jnTab.text) end
+	if jnTab.title then Title = xml_entities(jnTab.title) end
+	if jnTab.cpix and jnTab.cpix.nielsen and jnTab.cpix.nielsen.program then
+		Info1 = jnTab.cpix.nielsen.program
+		if jnTab.cpix.nielsen.nol_c5 then
+			-- nowadays nol_c5 often carries a media url - not a name
+			local c5 = jnTab.cpix.nielsen.nol_c5:match(',(.*)')
+			if c5 and not c5:match('^https?://') then
+				Info2 = c5
 			end
-			Epg,Title,Info1,Info2,UrlPic = nil,nil,nil,nil,nil
-			videostream, audiostream = nil,nil
-			if jnTab.text then Epg = xml_entities(jnTab.text) end
-			if jnTab.title then Title = xml_entities(jnTab.title) end
-			if jnTab.cpix and jnTab.cpix.nielsen and jnTab.cpix.nielsen.program then
-				Info1 = jnTab.cpix.nielsen.program
-				if jnTab.cpix.nielsen.nol_c5 then
-					Info2 = jnTab.cpix.nielsen.nol_c5:match(',(.*)')
-				end
-			end
-			local str = nil
-			if jnTab.displayAvailability then
-				str = getitkey(jnTab.displayAvailability.lineOne,'title',str)
-				str = getitkey(jnTab.displayAvailability.lineTwo,'title',str)
-			end
-			if str then
-				if Info2 then
-					Info2 = Info2 .. ': ' .. str
-				else
-					Info2 = str
-				end
-			end
-			tab.Epg = Epg
-			tab.Title = Title
-			--tab.Title = Title .. " - " .. vf
-			tab.Info1 = Info1
-			tab.Info2 = Info2
 		end
 	end
+	local str = nil
+	if jnTab.displayAvailability then
+		str = getitkey(jnTab.displayAvailability.lineOne,'title',str)
+		str = getitkey(jnTab.displayAvailability.lineTwo,'title',str)
+	end
+	if str then
+		if Info2 then
+			Info2 = Info2 .. ': ' .. str
+		else
+			Info2 = str
+		end
+	end
+	tab.img = tab.img or jnTab.img
+	tab.Epg = Epg
+	tab.Title = Title
+	tab.Info1 = Info1
+	tab.Info2 = Info2
 end
 
 function play_video(tab)
 	if tab.stream then
 		hideMenu(last_menu[hid])
-		if tab.Epg and tab.Title then
-			Epg = tab.Epg
+		if tab.Title then
+			Epg = tab.Epg or ""
 			Title = tab.Title
 			videostream, audiostream = tab.stream,tab.audiostream
+			videolive = tab.live
 			UrlPic = tab.img
 			os.remove(picfile)
 			vPlay:setInfoFunc("epgInfo")
@@ -761,31 +990,32 @@ function play_video(tab)
 end
 
 function get_zdf_data(link,data)
-	local h = hintbox.new{text="Lese Daten..."}
+	local h = hintbox.new{text=l.reading}
 	if h then
 		h:paint()
 	end
 	if data == nil then
 		data = getdata(link)
 	end
+	local jnTab = nil
 	if data then
-		local jnTab = json:decode(data)
-		if jnTab then
+		-- some json libs throw on invalid input, and the API answers
+		-- errors as documents without elems - both count as "no data"
+		local ok, js = pcall(function() return json:decode(data) end)
+		if ok and type(js) == "table" and (js.elems or js.recoElems) then
+			jnTab = js
 			lastmid = setmid(jnTab,lastmid)
 		end
-		if h then
-			h:hide()
-		end
-		return jnTab
 	end
 	if h then
 		h:hide()
 	end
+	return jnTab
 end
 
 function selPlay(id)
 	hideMenu(last_menu[hid])
-	local h = hintbox.new{text="Lese Daten..."}
+	local h = hintbox.new{text=l.reading}
 	if h then
 		h:paint()
 	end
@@ -799,22 +1029,40 @@ function selPlay(id)
 	if h then
 		h:hide()
 	end
-	if vTab.stream  then
+	if vTab and vTab.stream then
 		play_video(vTab)
+	elseif vTab then
+		info(l.no_stream, l.caption)
 	end
 end
 
 function selList(id)
 	hideMenu(last_menu[hid])
-	local h = hintbox.new{text="Lese Daten..."}
+	local h = hintbox.new{text=l.reading}
 	if h then
 		h:paint()
 	end
 
 	id = tonumber(id)
 	local myTab = getmid(aktivelist,id)
+	if myTab == nil then
+		if h then
+			h:hide()
+		end
+		return
+	end
 	if myTab.elems == nil then
-		local newTab = get_zdf_data('https://hbbtv.zdf.de/zdfm3/dyn/get.php?id=' .. myTab.link.id)
+		local newTab = nil
+		if myTab.link and myTab.link.id then
+			newTab = get_zdf_data(al_page_url(myTab.link.id))
+		end
+		if newTab == nil then
+			if h then
+				h:hide()
+			end
+			info(l.no_data, l.caption)
+			return
+		end
 		myTab.elems = {}
 		if newTab.elems == nil and newTab.recoElems then
 			myTab.elems = newTab.recoElems
@@ -825,6 +1073,22 @@ function selList(id)
 			table.insert(myTab.elems,{title=newTab.title,img=newTab.img,hasVideo=true,myid=lastmid,link=link})
 		else
 			myTab.elems = newTab.elems
+		end
+	end
+	-- live stream teasers come without any text (the official app
+	-- shows channel logos instead); fetch their titles from the video
+	-- document once - this also caches the stream for selPlay
+	for _, v in ipairs(myTab.elems or {}) do
+		if type(v) == "table" and v.hasVideo and v.myid and v.link then
+			local t = v.titletxt or v.title
+			if t == nil or (type(t) == 'string' and t:gsub('%s','') == '') then
+				getZDFstream(v)
+				if v.Title then
+					-- titletxt (whitespace) would win over title
+					v.titletxt = nil
+					v.title = v.Title
+				end
+			end
 		end
 	end
 	if h then
@@ -842,7 +1106,7 @@ function backToMenu1(id)
 end
 
 function main_menu(liste)
-	if liste == nil then print('liste error') return end
+	if liste == nil or liste.elems == nil then print('liste error') return end
 	hid = hid + 1
 
 	local ptype = {}
@@ -860,25 +1124,28 @@ function main_menu(liste)
 
 	local tname = liste.title or liste.titletxt or liste.myid or liste.id
 	tname = xml_entities(tname)
-	if tname and type(tname) == 'string' and #tname == 0 then tname = 'Titel' end
+	if tname and type(tname) == 'string' and #tname == 0 then tname = l.title_fallback end
 	local menu  = menu.new{name = tname, icon=zdfhbbtv_icon}
 	last_menu[hid] = menu
 	menu:addItem{type='back'}
 	menu:addItem{type='separatorline'}
 	menu:addKey{directkey=RC.setup, id="_", action="backToMenu1"}
 	menu:addKey{directkey=RC.info, id="_", action="version"}
+	if hid == 1 then
+		menu:addItem{type="keyboardinput", name=l.search, action="doSearch", id="search", value="", size=30, help=l.search_help}
+	end
 	local d =  0
 	for i, v in ipairs(liste.elems) do
 		local skip = false
 		if hid > 12 and ptype[i] == 'page' then skip = true end
 		if not skip and v.myid and (v.hasVideo==nil or v.hasVideo==false) and (v.titletxt or v.title) then
-			if d == 0 then menu:addItem{type="subhead", name='Untermenü'} end
+			if d == 0 then menu:addItem{type="subhead", name=l.submenu} end
 			d=d+1
 			local mact = 'selList'
 			local hico = 'hint_next'
 			local mname =  v.titletxt or v.title or v.myid or '## error ##'
-			tname = xml_entities(tname)
-			if mname and type(mname) == 'string' and #mname == 0 then mname = 'Untermenü' end
+			mname = xml_entities(mname)
+			if mname and type(mname) == 'string' and mname:gsub('%s','') == '' then mname = l.submenu end
 			local vhint = nil
 			if v.headtxt then
 				vhint = v.headtxt
@@ -898,18 +1165,17 @@ function main_menu(liste)
 				end
 			end
 			if (not vhint and hid > warning and ptype[i] == 'page') or hid > 13 then
-				vhint = 'Untermenü - Zurück zum Start-Menü über Menü-Taste'
+				vhint = l.hint_submenu_home
 			end
 			if not vhint and ptype[i] == 'video' then
-				vhint = 'Video-Untermenü'
+				vhint = l.hint_video_submenu
 			end
 			if (not vhint and ptype[i] == 'video') or hid > 7 then
-				vhint = 'Video-Untermenü - Zum Start-Menü über Menü-Taste'
+				vhint = l.hint_video_submenu_home
 			end
 			if not vhint and ptype[i] == 'page' then
-				vhint = 'Untermenü'
+				vhint = l.submenu
 			end
-			mname = xml_entities(mname)
 			vhint = xml_entities(vhint)
 			menu:addItem{type="forwarder" , name=mname, action=mact,hint=vhint ,hint_icon=hico ,id=v.myid ,directkey=godirectkey(d)}
 		end
@@ -917,7 +1183,7 @@ function main_menu(liste)
 	local one = true
 	for i, v in ipairs(liste.elems) do
 		if v.myid and v.hasVideo then
-			if one then 	menu:addItem{type='subhead', name='Videos'} one = false end
+			if one then 	menu:addItem{type='subhead', name=l.videos} one = false end
 			d=d+1
 			local mact = 'selPlay'
 			local hico = 'video'
@@ -942,7 +1208,7 @@ function main_menu(liste)
 			end
 			mname = xml_entities(mname)
 			vhint = xml_entities(vhint)
-			if mname and type(mname) == 'string' and #mname == 0 then mname = 'Video' end
+			if mname and type(mname) == 'string' and mname:gsub('%s','') == '' then mname = l.video end
 			menu:addItem{type="forwarder" ,icon="streaming", name=mname, action=mact,hint=vhint,hint_icon=hico ,id=v.myid ,directkey=godirectkey(d)}
 		end
 	end
@@ -953,7 +1219,11 @@ end
 
 function main()
 	init()
-	main_menu(aktivelist)
+	if aktivelist and aktivelist.elems then
+		main_menu(aktivelist)
+	else
+		info(l.svc_unreachable, l.caption)
+	end
 	os.remove(picfile)
 	collectgarbage()
 end
