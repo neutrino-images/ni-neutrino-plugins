@@ -208,7 +208,14 @@ function playMovie(url, title, info1, info2, enableMovieInfo, url2)
 	M:AudioMute(false, true)
 end
 
-function downloadMovie(url, channel, title, description, theme, duration, date, time)
+-- wrap s in single quotes for the shell; a literal ' becomes '\''
+local function shell_quote(s)
+	local q = tostring(s):gsub("'", "'\\''")
+	return "'" .. q .. "'"
+end
+
+function downloadMovie(url, channel, title, description, theme, duration, date, time, url2)
+	url2 = url2 or ''
 	local function constructXMLFile(channel, title, description, theme, duration, date, time, downloadQuality)
 		local function escape(s, w)
 			local t = ''
@@ -310,11 +317,17 @@ function downloadMovie(url, channel, title, description, theme, duration, date, 
 					end
 				elseif (string.sub(url, -5) == '.m3u8') then
 					local cur_major, cur_minor, cur_patch = getLibavformatVersion()
-					if isFFmpegGreater(cur_major, cur_minor, cur_patch, 58, 8, 99) then
-						download_cmd = 'ffmpeg -y -user_agent \"Mozilla/5.0\" -i ' .. url.. ' -bsf:a aac_adtstoasc -vcodec copy -c copy ' .. fileMP4
-					else
-						download_cmd = 'ffmpeg -y -user-agent \"Mozilla/5.0\" -i ' .. url.. ' -bsf:a aac_adtstoasc -vcodec copy -c copy ' .. fileMP4
+					local uaOpt = '-user_agent \"Mozilla/5.0\"'
+					if not isFFmpegGreater(cur_major, cur_minor, cur_patch, 58, 8, 99) then
+						uaOpt = '-user-agent \"Mozilla/5.0\"'
 					end
+					-- the audio may live in a separate rendition; hand both
+					-- inputs to ffmpeg and map them explicitly
+					local inputs = uaOpt .. ' -i ' .. shell_quote(url)
+					if url2 ~= '' then
+						inputs = inputs .. ' ' .. uaOpt .. ' -i ' .. shell_quote(url2) .. ' -map 0:v -map 1:a'
+					end
+					download_cmd = 'ffmpeg -y ' .. inputs .. ' -bsf:a aac_adtstoasc -vcodec copy -c copy ' .. fileMP4
 				end
 			end
 		else
