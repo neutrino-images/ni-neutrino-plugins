@@ -24,8 +24,20 @@ function parse_m3u8Data(url, parse_mode)
 
 	local current_stream = nil
 	local audio_url = nil
-	local P = require 'posix'
-	local base_url = P.dirname(url)
+
+	-- playlist uris come in four shapes: full urls (http, rtmp, ...),
+	-- scheme-relative "//host/...", root-relative paths (the zdf live
+	-- masters use "/hls/live/...") and paths relative to the master's
+	-- directory
+	local scheme = url:match('^(%a[%w+.-]*):')
+	local root = url:match('^(%a[%w+.-]*://[^/?]+)')
+	local base = url:match('^(.*/)')
+	local function resolve(u)
+		if u == nil or u:find('^%a[%w+.-]*://') then return u end
+		if u:sub(1, 2) == "//" then return scheme and (scheme .. ":" .. u) or u end
+		if u:sub(1, 1) == "/" then return root and (root .. u) or u end
+		return base and (base .. u) or u
+	end
 
 	-- A table to store the audio URIs found
 	local audio_uris = {}
@@ -77,18 +89,13 @@ function parse_m3u8Data(url, parse_mode)
 			end
 			-- Store the URI in the audio_uris table, ensuring it is unique
 			if temp_audio_url then
-				if not temp_audio_url:find("^http") and not temp_audio_url:find("^rtmp") then
-					temp_audio_url = base_url .. "/" .. temp_audio_url
-				end
-				audio_uris.audio = temp_audio_url
+				audio_uris.audio = resolve(temp_audio_url)
 			end
 
-		elseif current_stream and #line > 2 then
-			-- add URL to Stream-Info
-			if not line:find("^http") and not line:find("^rtmp") then
-				line = base_url .. "/" .. line
-			end
-			current_stream.url = line
+		elseif current_stream and #line > 2 and not line:find("^#") then
+			-- add URL to Stream-Info; tag lines between the stream
+			-- info and its uri (i-frame playlists) are not the uri
+			current_stream.url = resolve(line)
 
 			table.insert(streamInfo, current_stream)
 			current_stream = nil -- reset stream
