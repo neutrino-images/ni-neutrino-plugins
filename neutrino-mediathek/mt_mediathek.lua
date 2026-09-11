@@ -626,12 +626,19 @@ function playOrDownloadVideo(playOrDownload)
 		end
 	end
 
+	-- hls entries may point at a video-only variant playlist; look for
+	-- the master next to it so the audio rendition comes along
+	local url2 = ''
+	if not entry.isLocalRecording then
+		url, url2 = resolveHlsVod(url, quality)
+	end
+
 	local screen = saveFullScreen()
 	hideMtWindow()
 	if (playOrDownload == true) then
-		playMovie(url, entry.title, entry.theme, url, true)
+		playMovie(url, entry.title, entry.theme, url, true, url2)
 	else
-		downloadMovie(url, entry.channel, entry.title, entry.description, entry.theme, entry.duration, entry.date, entry.time)
+		downloadMovie(url, entry.channel, entry.title, entry.description, entry.theme, entry.duration, entry.date, entry.time, url2)
 	end
 	restoreFullScreen(screen, true)
 end
