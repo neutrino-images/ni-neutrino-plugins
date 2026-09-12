@@ -1,4 +1,4 @@
--- parse sportschau 0.6 Satbaby
+-- parse sportschau 0.7 Satbaby
 
 local n = neutrino(0, 0, SCREEN.X_RES, SCREEN.Y_RES)
 
@@ -108,8 +108,9 @@ function playmenu(data)
 					end
 					if url then
 						url = url:reverse()
-						if Hurls[url] ~= true then
-							Hurls[url] = true
+
+						local existing_index = Hurls[url]
+						if not existing_index then
 							d = d + 1
 							key = godirectkey(d)
 							table.insert(urls, {
@@ -117,7 +118,11 @@ function playmenu(data)
 								url = url,
 								dkey = key
 							})
--- 							print("URL " .. url)
+							Hurls[url] = #urls
+						else
+							if title < urls[existing_index].title then
+								urls[existing_index].title = title
+							end
 						end
 					end
 				end
