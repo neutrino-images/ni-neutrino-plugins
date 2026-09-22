@@ -4,7 +4,6 @@ AM_CPPFLAGS =  \
 
 bin_PROGRAMS = input
 
-
 input_SOURCES = \
 	input.c \
 	inputd.c \
@@ -18,8 +17,5 @@ input_SOURCES = \
 	png_helper.cpp
 
 input_LDADD = \
-	@FREETYPE_LIBS@
-
-install-exec-local:
-	install -d $(DESTDIR)/usr/bin
-	install -m 0755 input $(DESTDIR)/usr/bin/input
+	@FREETYPE_LIBS@ \
+	@PNG_LIBS@
