@@ -25,6 +25,6 @@ sysinfo_LDADD = \
 
 install-exec-local:
 	install -d $(DESTDIR)/var/tuxbox/plugins
-	install -m 0644 sysinfo.cfg $(DESTDIR)/var/tuxbox/plugins
-	install -m 0644 sysinfo_hint.png $(DESTDIR)/var/tuxbox/plugins
+	install -m 0644 $(srcdir)/sysinfo.cfg $(DESTDIR)/var/tuxbox/plugins
+	install -m 0644 $(srcdir)/sysinfo_hint.png $(DESTDIR)/var/tuxbox/plugins
 	install -m 0755 sysinfo $(DESTDIR)/var/tuxbox/plugins/sysinfo.so
