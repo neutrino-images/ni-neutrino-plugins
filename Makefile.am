@@ -1,22 +1,31 @@
-
-AM_CPPFLAGS =  \
+AM_CPPFLAGS = \
 	@FREETYPE_CFLAGS@ \
 	-I$(top_srcdir)/include
 
-noinst_PROGRAMS = tuxcom
+plugindir = $(PLUGINDIR)
 
-#tuxcom_la_CFLAGS = -DDREAMBOX 
+plugin_PROGRAMS = tuxcom.so
 
-tuxcom_SOURCES = \
+tuxcom_so_SOURCES = \
 	tuxcom.c \
 	rc_device.c
 
-tuxcom_LDADD = \
-	 @FREETYPE_LIBS@
-	 
-install-exec-local:
-	install -d $(DESTDIR)$(PLUGINDIR)
-	install -d $(DESTDIR)$(CONFIGDIR)
-	install -d $(DESTDIR)$(CONFIGDIR)/tuxcom
-	install -m 0755 tuxcom $(DESTDIR)$(PLUGINDIR)/tuxcom.so
-	install -m 0644 $(srcdir)/tuxcom.cfg $(DESTDIR)$(PLUGINDIR)
+tuxcom_so_LDADD = \
+	@FREETYPE_LIBS@
+
+plugin_DATA = \
+	tuxcom.cfg \
+	tuxcom_hint.png
+
+tuxcomdir = $(CONFIGDIR)/tuxcom
+
+#tuxcom_DATA =
+
+#tuxcom_SCRIPTS =
+
+# creating empty tuxcomdir until we have no DATA or SCRIPTS to install
+install-data-hook:
+	install -d $(DESTDIR)$(tuxcomdir)
+
+uninstall-hook:
+	-rmdir $(DESTDIR)$(tuxcomdir)
