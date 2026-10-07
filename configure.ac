@@ -1,6 +1,6 @@
 # explicit defines for calendar version
 define(ver_major, 2026)
-define(ver_minor, 09)
+define(ver_minor, 10)
 
 define(ver_git, m4_esyscmd([
 	GITBRANCH=$(git rev-parse --abbrev-ref HEAD);
