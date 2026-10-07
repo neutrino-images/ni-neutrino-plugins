@@ -739,38 +739,10 @@ init_settings() {
 }
 
 init_webserver() {
-	#Build web server URL for API access including authentication
-	#returns: web server base URL, e. g. http://user:pass@localhost
-	webserver_url=$(awk '
-		BEGIN {
-			FS="=";
-		}
-
-		/^WebsiteMain.port/ {
-			port=$2;
-		}
-
-		/^mod_auth.authenticate=/ {
-			auth=$2;
-		}
-
-		/^mod_auth.username=/ {
-			username=$2;
-		}
-
-		/^mod_auth.password=/ {
-			password=$2;
-		}
-
-		END {
-			if ( auth == "true" ) {
-				printf("http://%s:%s@localhost:%i\n", username, password, port);
-			}
-			else {
-				printf("http://localhost:%i\n", port);
-			}
-		}
-	' /var/tuxbox/config/nhttpd.conf)
+	#Build web server URL for API access
+	local port
+	port=$(sed -n 's/^port=\([0-9]\+\)$/\1/p' /var/tuxbox/config/ni-web.conf 2>/dev/null)
+	webserver_url="http://localhost:${port:-80}"
 }
 
 #END SECTION "Initialization"
