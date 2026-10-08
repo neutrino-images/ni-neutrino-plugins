@@ -48,7 +48,8 @@ local sender_mpd = {
 	["WDR Wuppertal"] = "https://wdrlokalzeit.akamaized.net/dash/live/2018126/wdrlz_wuppertal/dash.mpd",
 	["ZDF"] = "https://zdf-dash-15.akamaized.net/dash/live/2016508/de/manifest.mpd",
 	["ZDFinfo"] = "https://zdf-dash-17.akamaized.net/dash/live/2016510/de/manifest.mpd",
-	["ZDFneo"] = "https://zdf-dash-16.akamaized.net/dash/live/2016509/de/manifest.mpd"
+	["ZDFneo"] = "https://zdf-dash-16.akamaized.net/dash/live/2016509/de/manifest.mpd",
+	["zdf_neo"] = "https://zdf-dash-16.akamaized.net/dash/live/2016509/de/manifest.mpd"
 }
 
 local outputfile = "/tmp/output.mpd"
