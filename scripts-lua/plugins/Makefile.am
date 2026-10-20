@@ -49,6 +49,9 @@ endif
 if ENABLE_NETZKINO
 SUBDIRS += netzkino
 endif
+if ENABLE_XSTREAMITY
+SUBDIRS += ni-xstreamity
+endif
 if ENABLE_OPENVPN_SETUP
 SUBDIRS += openvpn-setup
 endif

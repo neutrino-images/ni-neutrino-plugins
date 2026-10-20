@@ -293,6 +293,12 @@ AC_ARG_ENABLE(netzkino,
 	[enable_netzkino="yes"])
 AM_CONDITIONAL(ENABLE_NETZKINO, test "$enable_netzkino" = "yes")
 
+AC_ARG_ENABLE(xstreamity,
+	AS_HELP_STRING([--enable-xstreamity], [enable xstreamity @<:@default=yes@:>@]),
+	[enable_xstreamity="$enableval"],
+	[enable_xstreamity="yes"])
+AM_CONDITIONAL(ENABLE_XSTREAMITY, test "$enable_xstreamity" = "yes")
+
 AC_ARG_ENABLE(openvpn-setup,
 	AS_HELP_STRING([--enable-openvpn-setup], [enable openvpn-setup @<:@default=yes@:>@]),
 	[enable_openvpn_setup="$enableval"],
@@ -499,6 +505,7 @@ scripts-lua/plugins/mediathek/Makefile
 scripts-lua/plugins/mtv/Makefile
 scripts-lua/plugins/n_libraries/Makefile
 scripts-lua/plugins/netzkino/Makefile
+scripts-lua/plugins/ni-xstreamity/Makefile
 scripts-lua/plugins/openvpn-setup/Makefile
 scripts-lua/plugins/openvpn-setup/openvpn-setup/Makefile
 scripts-lua/plugins/plutotv-update/Makefile
