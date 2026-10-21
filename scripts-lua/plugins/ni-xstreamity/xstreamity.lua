@@ -1,6 +1,7 @@
--- NI-XStreamity 0.20.4 - Live TV, Favoriten per Farbtaste
+-- NI-XStreamity 0.20.7 - Live TV, Favoriten per Farbtaste
 -- Lua 5.2 / cjson / curl
 local config_path = '/var/tuxbox/config/xstreamity.conf'
+local startup_needs_setup = false
 local function trim(s) return (s:gsub('^%s+', ''):gsub('%s+$', '')) end
 local function read_config(path)
   local f, err = io.open(path, 'r')
@@ -63,7 +64,7 @@ local function api_request(cfg, action, category_id, vod_id, series_id, stream_i
   return data
 end
 
--- NI-XStreamity 0.20.4 - single active menu / state-machine navigation.
+-- NI-XStreamity 0.20.7 - single active menu / state-machine navigation.
 -- Requires Neutrino Lua n_gui for graphical operation.
 local cfg, categories, category_by_id
 local server_status = "Unbekannt"
@@ -97,11 +98,80 @@ local active_stream_rows = nil -- zero-based menu index -> stream id
 local add_wrapped_info
 local selected_epg_stream = nil
 local epg_cache = {}
-local favorites_path = '/var/tuxbox/config/xstreamity_favorites.json'
+local legacy_favorites_path = '/var/tuxbox/config/xstreamity_favorites.json'
+local favorites_path = legacy_favorites_path
+local profiles_path = '/var/tuxbox/config/xstreamity_servers.json'
+local profiles, active_profile_id, editing_new_profile = {}, 1, false
+local profiles_error = nil
+local function atomic_json_write(path, data)
+  local ok, encoded = pcall(json.encode, data)
+  if not ok then return false, 'JSON-Kodierung fehlgeschlagen' end
+  local mk = io.popen('mktemp ' .. shellquote(path .. '.XXXXXX'), 'r')
+  if not mk then return false, 'Temporäre Datei nicht moeglich' end
+  local tmp = mk:read('*l'); mk:close()
+  if not tmp or tmp == '' then return false, 'Temporäre Datei nicht moeglich' end
+  local f = io.open(tmp, 'w')
+  if not f then os.remove(tmp); return false, 'Datei nicht beschreibbar' end
+  f:write(encoded, '\n'); f:close()
+  os.execute('chmod 600 ' .. shellquote(tmp))
+  if not os.rename(tmp, path) then os.remove(tmp); return false, 'Speichern fehlgeschlagen' end
+  return true
+end
+local function profile_by_id(id)
+  for _, p in ipairs(profiles) do if p.id == id then return p end end
+end
+local function profile_favorites_path(id)
+  if id == 1 then return legacy_favorites_path end
+  return '/var/tuxbox/config/xstreamity_favorites_' .. tostring(id) .. '.json'
+end
+local function save_profiles()
+  if profiles_error then return false, profiles_error end
+  return atomic_json_write(profiles_path, {version=1, active=active_profile_id, servers=profiles})
+end
+local function load_profiles()
+  local f = io.open(profiles_path, 'r')
+  if not f then
+    profiles = {{id=1, name='Server 1', server=cfg.server, username=cfg.username, password=cfg.password}}
+    active_profile_id = 1
+    return true
+  end
+  local raw = f:read('*a'); f:close()
+  local ok, data = pcall(json.decode, raw)
+  if not ok or type(data) ~= 'table' or type(data.servers) ~= 'table' or #data.servers == 0 then
+    profiles_error = 'Serverprofile-Datei ungueltig (wird nicht ueberschrieben)'
+    return false
+  end
+  local found, ids = {}, {}
+  for _, p in ipairs(data.servers) do
+    if type(p) ~= 'table' or type(p.id) ~= 'number' or p.id < 1 or p.id % 1 ~= 0 or ids[p.id]
+       or type(p.server) ~= 'string' or type(p.username) ~= 'string' or type(p.password) ~= 'string'
+       or type(p.name) ~= 'string' then
+      profiles_error = 'Serverprofile-Daten ungueltig (werden nicht ueberschrieben)'
+      return false
+    end
+    ids[p.id] = true
+    found[#found+1] = p
+  end
+  profiles = found
+  active_profile_id = tonumber(data.active) or 1
+  local active = profile_by_id(active_profile_id)
+  if not active then active_profile_id = profiles[1].id; active = profiles[1] end
+  cfg = {server=active.server, username=active.username, password=active.password}
+  return true
+end
+local function reset_server_cache()
+  categories, category_by_id, stream_cache = {}, {}, {}
+  vod_categories, vod_category_by_id, vod_movie_cache, vod_info_cache = {}, {}, {}, {}
+  series_categories, series_category_by_id, series_list_cache, series_info_cache = {}, {}, {}, {}
+  epg_cache = {}
+  server_status, account_status, expiry_status = 'Unbekannt', 'Unbekannt', nil
+end
 local favorites = {}
 local favorites_index = {}
 local favorites_writable = true
 local function load_favorites()
+  favorites, favorites_index, favorites_writable = {}, {}, true
+  favorites_path = profile_favorites_path(active_profile_id)
   local f = io.open(favorites_path, 'r')
   if not f then return end
   local raw = f:read('*a'); f:close()
@@ -528,6 +598,7 @@ function xs11_changed(id, value)
 end
 
 function xs11_open_settings()
+  editing_new_profile = false
   settings = {server=cfg.server, username=cfg.username, password_changed=false}
   settings_message = 'Noch nicht getestet'
   state = 'settings'
@@ -568,26 +639,76 @@ function xs11_test_settings()
 end
 
 function xs11_save_settings()
-  local ok, err = save_settings(settings)
-  if ok then
-    print('NI-XStreamity: Server-Einstellungen gespeichert')
-    settings = nil
-    state = 'refresh'
-  else
-    settings_message = err
+  if not settings_valid(settings) then
+    settings_message = 'Ungueltige Serveradresse, Benutzername oder Passwort'
     state = 'settings_rebuild'
+    return MENU_RETURN.EXIT_ALL
   end
+  if profiles_error then
+    settings_message = profiles_error
+    state = 'settings_rebuild'
+    return MENU_RETURN.EXIT_ALL
+  end
+  local newcfg = {server=trim(settings.server):gsub('/+$', ''),
+    username=trim(settings.username),
+    password=settings.password_changed and settings.password or cfg.password}
+  if editing_new_profile then
+    local max_id = 0
+    for _, p in ipairs(profiles) do if p.id > max_id then max_id = p.id end end
+    local new_id = max_id + 1
+    local name = 'Server ' .. tostring(new_id)
+    profiles[#profiles+1] = {id=new_id, name=name, server=newcfg.server,
+      username=newcfg.username, password=newcfg.password}
+    local old_id = active_profile_id
+    active_profile_id = new_id
+    local ok, err = save_profiles()
+    if not ok then
+      active_profile_id = old_id; table.remove(profiles)
+      settings_message = err; state = 'settings_rebuild'
+      return MENU_RETURN.EXIT_ALL
+    end
+  else
+    local active = profile_by_id(active_profile_id)
+    if not active then
+      settings_message = 'Aktives Serverprofil nicht gefunden'; state = 'settings_rebuild'
+      return MENU_RETURN.EXIT_ALL
+    end
+    local previous = {server=active.server, username=active.username, password=active.password}
+    active.server, active.username, active.password = newcfg.server, newcfg.username, newcfg.password
+    local ok, err = save_profiles()
+    if not ok then
+      active.server, active.username, active.password = previous.server, previous.username, previous.password
+      settings_message = err; state = 'settings_rebuild'
+      return MENU_RETURN.EXIT_ALL
+    end
+    -- Legacy config is kept in sync only for the original profile.
+    if active_profile_id == 1 then
+      local saved, saveerr = save_settings(settings)
+      if not saved then
+        settings_message = saveerr; state = 'settings_rebuild'
+        return MENU_RETURN.EXIT_ALL
+      end
+    end
+  end
+  cfg = newcfg
+  editing_new_profile = false
+  settings = nil
+  startup_needs_setup = false
+  reset_server_cache()
+  load_favorites()
+  state = 'refresh'
   return MENU_RETURN.EXIT_ALL
 end
 
 function xs11_cancel_settings()
   settings = nil
-  state = 'home'
+  editing_new_profile = false
+  state = startup_needs_setup and 'exit' or 'home'
   return MENU_RETURN.EXIT_ALL
 end
 
 local function settings_menu()
-  local m = menu.new{name='NI-XStreamity 0.20.4 - Server-Einstellungen'}
+  local m = menu.new{name='NI-XStreamity 0.20.7 - Server-Einstellungen'}
   m:addItem{type='forwarder', name='Zurueck (ohne Speichern)',
     action='xs11_cancel_settings', id='cancel'}
   m:addItem{type='separatorline'}
@@ -614,7 +735,7 @@ local function editor_menu(field)
   local is_server = (field == 'server')
   local is_password = (field == 'password')
   local label = is_server and 'Serveradresse' or (is_password and 'Passwort' or 'Benutzername')
-  local m = menu.new{name='NI-XStreamity 0.20.4 - ' .. label}
+  local m = menu.new{name='NI-XStreamity 0.20.7 - ' .. label}
   m:addItem{type='forwarder', name='Zurueck zu Einstellungen',
     action='xs113_editor_back', id='back'}
   m:addItem{type='separatorline'}
@@ -986,15 +1107,74 @@ local function vod_info_menu()
   if state == 'vod_info' then state = 'vod_movies' end
 end
 
+function xs22_profiles_open()
+  state = 'profiles'
+  return MENU_RETURN.EXIT_ALL
+end
+function xs22_profiles_back()
+  state = 'home'
+  return MENU_RETURN.EXIT_ALL
+end
+function xs22_profile_select(id)
+  local new_id = tonumber(id)
+  local p = profile_by_id(new_id)
+  if not p or profiles_error then return MENU_RETURN.REPAINT end
+  if new_id ~= active_profile_id then
+    local old_id = active_profile_id
+    active_profile_id = new_id
+    local ok, err = save_profiles()
+    if not ok then
+      active_profile_id = old_id
+      print('NI-XStreamity: Serverwechsel fehlgeschlagen: ' .. tostring(err))
+      return MENU_RETURN.REPAINT
+    end
+    cfg = {server=p.server, username=p.username, password=p.password}
+    reset_server_cache()
+    load_favorites()
+    state = 'refresh'
+  else
+    state = 'home'
+  end
+  return MENU_RETURN.EXIT_ALL
+end
+function xs22_profile_new()
+  if profiles_error then return MENU_RETURN.REPAINT end
+  editing_new_profile = true
+  settings = {server='http://example.com', username='example', password_changed=true, password=''}
+  settings_message = 'Neuen Server eingeben und speichern'
+  state = 'settings'
+  return MENU_RETURN.EXIT_ALL
+end
+local function profiles_menu()
+  local m = menu.new{name='NI-XStreamity 0.20.7 - Serverauswahl'}
+  m:addItem{type='forwarder', name='Zurueck zum Hauptmenue', action='xs22_profiles_back'}
+  m:addItem{type='separatorline'}
+  if profiles_error then
+    m:addItem{type='subhead', name=profiles_error}
+  else
+    for _, p in ipairs(profiles) do
+      m:addItem{type='forwarder', name=(p.id == active_profile_id and '* ' or '  ') ..
+        p.name .. ' (' .. p.server .. ')', id=tostring(p.id), action='xs22_profile_select'}
+    end
+    m:addItem{type='separatorline'}
+    m:addItem{type='forwarder', name='Neuen Server hinzufuegen', action='xs22_profile_new'}
+  end
+  m:exec()
+  if state == 'profiles' then state = 'home' end
+end
+
 local function home_menu()
-  local m = menu.new{name='NI-XStreamity 0.20.4'}
+  local m = menu.new{name='NI-XStreamity 0.20.7'}
   m:addItem{type='forwarder', name='Beenden', action='xs06_back', id='exit'}
   m:addItem{type='separatorline'}
+  local active = profile_by_id(active_profile_id)
+  m:addItem{type='subhead', name='Profil: ' .. (active and active.name or 'Unbekannt')}
   m:addItem{type='subhead', name='Server: ' .. server_status}
   m:addItem{type='subhead', name='Zugang: ' .. account_status}
   if expiry_status then m:addItem{type='subhead', name='Ablauf: ' .. expiry_status} end
   m:addItem{type='forwarder', name='Serverstatus aktualisieren', action='xs10_refresh', id='refresh'}
   m:addItem{type='forwarder', name='Server-Einstellungen', action='xs11_open_settings', id='settings'}
+  m:addItem{type='forwarder', name='Server wechseln / hinzufuegen', action='xs22_profiles_open', id='profiles'}
   m:addItem{type='separatorline'}
   m:addItem{type='forwarder', name='Live-TV', action='xs13_open_live', id='live'}
   m:addItem{type='forwarder', name='Filme (VOD)', action='xs13_open_vod', id='vod'}
@@ -1030,7 +1210,7 @@ local function load_vod_categories()
 end
 
 local function vod_categories_menu()
-  local m = menu.new{name='NI-XStreamity 0.20.4 - Filme (VOD)'}
+  local m = menu.new{name='NI-XStreamity 0.20.7 - Filme (VOD)'}
   m:addItem{type='forwarder', name='Zurueck zum Hauptmenue', action='xs13_vod_back', id='back'}
   m:addItem{type='separatorline'}
   if vod_error then
@@ -1064,7 +1244,10 @@ local function vod_movies_menu()
       err = err or 'Ungueltige Filmliste'
     end
   end
-  local m = menu.new{name='Filme: ' .. clean(category.category_name)}
+  local m = menu.new{
+    name='Filme: ' .. clean(category.category_name),
+    btnBlue='Filminfo / Vorschau   |   OK: Film starten'
+  }
   m:addItem{type='forwarder', name='Zurueck zu Filmkategorien',
     action='xs131_vod_movies_back', id='back'}
   m:addItem{type='separatorline'}
@@ -1105,7 +1288,7 @@ local function vod_movies_menu()
 end
 
 local function category_menu()
-  local m = menu.new{name='NI-XStreamity 0.20.4 - Live TV'}
+  local m = menu.new{name='NI-XStreamity 0.20.7 - Live TV'}
   add_back(m, 'Zurueck zum Hauptmenue')
   m:addKey{directkey=RC.yellow, id='favorites', action='xs08_favorites'}
   m:addItem{type='forwarder', name='Meine Favoriten (' .. #favorites .. ')', action='xs08_favorites', id='favorites'}
@@ -1176,7 +1359,7 @@ function xs20_diagnostic_back()
 end
 
 local function xs20_categories_menu()
-  local m = menu.new{name='NI-XStreamity 0.20.4 - Mediathek (Test)'}
+  local m = menu.new{name='NI-XStreamity 0.20.7 - Mediathek (Test)'}
   m:addItem{type='forwarder', name='Zurueck zum Hauptmenue', action='xs20_back_home'}
   m:addItem{type='separatorline'}
   m:addItem{type='subhead', name='Catch-up-Sender nach Kategorie pruefen'}
@@ -1726,12 +1909,17 @@ local function run_gui()
   if not ok or not menu or not menu.new or not MENU_RETURN then
     return nil, 'Neutrino-Menuebibliothek nicht verfuegbar'
   end
-  state = 'home'
+  state = startup_needs_setup and 'settings' or 'home'
+  if startup_needs_setup then
+    settings = {server=cfg.server, username=cfg.username, password_changed=false}
+    settings_message = 'Bitte Serverdaten eingeben und speichern'
+  end
   while state ~= 'exit' do
     if state == 'refresh' then
       refresh_categories()
       state = 'home'
     elseif state == 'home' then home_menu()
+    elseif state == 'profiles' then profiles_menu()
     elseif state == 'vod_load' then
       load_vod_categories()
       state = 'vod_categories'
@@ -1769,10 +1957,25 @@ end
 local function main()
   local err
   cfg, err = read_config(config_path)
-  if not cfg then return false, err end
+  local needs_setup = not cfg
+  startup_needs_setup = needs_setup
+  if needs_setup then
+    -- Keep defaults in memory only. Do not create or overwrite a config file
+    -- until the user explicitly chooses "Einstellungen speichern".
+    print('NI-XStreamity: ' .. tostring(err) .. ' - Server-Einstellungen oeffnen')
+    cfg = {server='http://example.com', username='example', password='example'}
+    server_status = 'Nicht konfiguriert'
+    account_status = 'Nicht konfiguriert'
+    categories, category_by_id = {}, {}
+  end
+  if not needs_setup then
+    load_profiles()
+  else
+    profiles = {{id=1, name='Server 1', server=cfg.server, username=cfg.username, password=cfg.password}}
+  end
   load_favorites()
-  refresh_categories()
-  print('NI-XStreamity 0.20.4: Server ' .. server_status .. ', Zugang ' .. account_status)
+  if not needs_setup then refresh_categories() end
+  print('NI-XStreamity 0.20.7: Server ' .. server_status .. ', Zugang ' .. account_status)
   if type(neutrino) == 'function' and type(SCREEN) == 'table' then
     return run_gui()
   end
@@ -1786,7 +1989,7 @@ end
 
 local ok, success, err = pcall(main)
 if not ok then
-  print('NI-XStreamity 0.20.4: Lua-Fehler: ' .. tostring(success))
+  print('NI-XStreamity 0.20.7: Lua-Fehler: ' .. tostring(success))
 elseif not success then
-  print('NI-XStreamity 0.20.4: FEHLER: ' .. tostring(err))
+  print('NI-XStreamity 0.20.7: FEHLER: ' .. tostring(err))
 end
