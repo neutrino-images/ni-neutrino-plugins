@@ -279,6 +279,7 @@ int video=1;
 int webport=80;
 char webuser[32] = "";
 char webpass[32] = "";
+char webtoken[128] = "";	//! token for the ni-web API
 char security[80] = "";
 char configcode[5] = "";
 int  configpincount = 0;

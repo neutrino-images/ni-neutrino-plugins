@@ -149,11 +149,15 @@ void ReadConf()
 		}
 		else if ( ( ptr = strstr ( line_buffer, "WEBUSER=" ) ) )
 		{
-			sscanf ( ptr + 8, "%s", &webuser[0] );
+			sscanf ( ptr + 8, "%31s", &webuser[0] );
 		}
 		else if ( ( ptr = strstr ( line_buffer, "WEBPASS=" ) ) )
 		{
-			sscanf ( ptr + 8, "%s", &webpass[0] );
+			sscanf ( ptr + 8, "%31s", &webpass[0] );
+		}
+		else if ( ( ptr = strstr ( line_buffer, "WEBTOKEN=" ) ) )
+		{
+			sscanf ( ptr + 9, "%127s", &webtoken[0] );
 		}
 		else if ( ( ptr = strstr ( line_buffer, "NAME" ) ) && ( * ( ptr+5 ) == '=' ) )
 		{
@@ -331,6 +335,7 @@ int WriteConf()
 	fprintf ( fd_conf, "WEBPORT=%d\n", webport );
 	fprintf ( fd_conf, "WEBUSER=%s\n", webuser );
 	fprintf ( fd_conf, "WEBPASS=%s\n", webpass );
+	fprintf ( fd_conf, "WEBTOKEN=%s\n", webtoken );
 
 	for ( loop = 0; loop < 10; loop++ )
 	{

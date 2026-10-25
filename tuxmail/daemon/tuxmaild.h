@@ -4,6 +4,7 @@
  ******************************************************************************/
 
 #include <errno.h>
+#include <stdarg.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
@@ -223,6 +224,7 @@ int slog = 0;
 int pid;
 int webport;
 char webuser[32], webpass[32];
+char webtoken[128];					//! token for the ni-web API
 char encodedstring[512], decodedstring[512];
 int startdelay, intervall, skin;
 char logging, logmode, audio, lcd, osd, admin, savedb, mailrd;
