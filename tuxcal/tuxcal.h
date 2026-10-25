@@ -379,6 +379,7 @@ char sigtime[80];			//! fix signal-times
 int webport=80;				//! webport for using webinterface
 char webuser[32] = "";			//! for using webinterface
 char webpass[32] = "";			//! for using webinterface
+char webtoken[128] = "";		//! token for the ni-web API
 char disp_date = 'N';			//! display the date
 char disp_clock = 'Y';			//! display the clock
 char disp_sec = 'Y';			//! display the second

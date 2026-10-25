@@ -141,11 +141,15 @@ void ReadConf()
 		}
 		else if((ptr = strstr(line_buffer, "WEBUSER=")))
 		{
-			sscanf(ptr + 8, "%s", &webuser[0]);
+			sscanf(ptr + 8, "%31s", &webuser[0]);
 		}
 		else if((ptr = strstr(line_buffer, "WEBPASS=")))
 		{
-			sscanf(ptr + 8, "%s", &webpass[0]);
+			sscanf(ptr + 8, "%31s", &webpass[0]);
+		}
+		else if((ptr = strstr(line_buffer, "WEBTOKEN=")))
+		{
+			sscanf(ptr + 9, "%127s", &webtoken[0]);
 		}
 		else if((ptr = strstr(line_buffer, "POS_X=")))
 		{
@@ -258,7 +262,8 @@ int WriteConf()
 	fprintf(fd_conf, "SKIN=%d\n\n", skin);
 	fprintf(fd_conf, "WEBPORT=%d\n", webport);
 	fprintf(fd_conf, "WEBUSER=%s\n", webuser);
-	fprintf(fd_conf, "WEBPASS=%s\n\n", webpass);
+	fprintf(fd_conf, "WEBPASS=%s\n", webpass);
+	fprintf(fd_conf, "WEBTOKEN=%s\n\n", webtoken);
 	fprintf(fd_conf, "POS_X=%d\n", cstartx);
 	fprintf(fd_conf, "POS_Y=%d\n", cstarty);
 	fprintf(fd_conf, "SHOW=%c\n", show_clock);

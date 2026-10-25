@@ -92,11 +92,15 @@ void ReadConf()
 		}
 		else if((ptr = strstr(line_buffer, "WEBUSER=")))
 		{
-			sscanf(ptr + 8, "%s", &webuser[0]);
+			sscanf(ptr + 8, "%31s", &webuser[0]);
 		}
 		else if((ptr = strstr(line_buffer, "WEBPASS=")))
 		{
-			sscanf(ptr + 8, "%s", &webpass[0]);
+			sscanf(ptr + 8, "%31s", &webpass[0]);
+		}
+		else if((ptr = strstr(line_buffer, "WEBTOKEN=")))
+		{
+			sscanf(ptr + 9, "%127s", &webtoken[0]);
 		}
 		else if((ptr = strstr(line_buffer, "POS_X=")))
 		{
@@ -214,7 +218,8 @@ int WriteConf()
 	fprintf(fd_conf, "SKIN=%d\n\n", skin);
 	fprintf(fd_conf, "WEBPORT=%d\n", webport);
 	fprintf(fd_conf, "WEBUSER=%s\n", webuser);
-	fprintf(fd_conf, "WEBPASS=%s\n\n", webpass);
+	fprintf(fd_conf, "WEBPASS=%s\n", webpass);
+	fprintf(fd_conf, "WEBTOKEN=%s\n\n", webtoken);
 	fprintf(fd_conf, "POS_X=%d\n", Startx);
 	fprintf(fd_conf, "POS_Y=%d\n", Starty);
 	fprintf(fd_conf, "SHOW=%c\n", show_clockatstart);
@@ -1868,18 +1873,397 @@ void EncodeBase64(char *DecodedString, int decodedlen)
 }
 
 /******************************************************************************
+ * Web interface
+ ******************************************************************************/
+/*
+ * The daemon talks to the box through its web server on the loopback.
+ *
+ * Current images answer the ni-web API under /api/v1/. That API wants a token
+ * for anything that changes something: showing a message needs one of level
+ * write, starting a plugin one of level system. The token is set up on the box
+ * in /var/tuxbox/config/ni-web.conf, e.g.
+ *
+ *   api_tokens=system:<at least 32 characters of lower case hex>
+ *
+ * and the same token goes into tuxcal.conf as WEBTOKEN=<token>.
+ *
+ * Without a token, or when the API refuses, the old /control/ interface is
+ * asked instead. ni-web still carries it as long as legacy_enabled is on and
+ * trusts a request from the loopback there, and older images have nothing
+ * else.
+ */
+
+#define NIWEBCONF	CONFIGDIR "/ni-web.conf"	//! ni-web keeps its port here
+#define PLUGINNAME	"tuxcal"			//! the plugin's file name, which is what starts it
+#define HTTP_TIMEOUT	5				//! seconds to wait for the web server
+#define MAXMSGLEN	2048				//! raw text, at most twice that as UTF-8
+
+static void LogMsg(const char *fmt, ...)
+{
+	char buf[512];
+	va_list ap;
+
+	va_start(ap, fmt);
+	vsnprintf(buf, sizeof(buf), fmt, ap);
+	va_end(ap);
+
+	slog ? syslog(LOG_DAEMON | LOG_INFO, "%s", buf) : printf("TuxCalD <%s>\n", buf);
+}
+
+/* The port the web server listens on. ni-web writes it to its own file; an
+   image without that file still has the old web server, whose port is the one
+   configured here. */
+static int WebPort(void)
+{
+	FILE *f;
+	char line[128];
+	int port = webport;
+
+	if ((f = fopen(NIWEBCONF, "r")) != NULL)
+	{
+		while (fgets(line, sizeof(line), f))
+		{
+			int p;
+			if (sscanf(line, "port=%d", &p) == 1 && p > 0 && p < 65536)
+			{
+				port = p;
+				break;
+			}
+		}
+		fclose(f);
+	}
+	return port;
+}
+
+static int SendAll(int fd, const char *data, size_t len)
+{
+	while (len)
+	{
+		ssize_t n = send(fd, data, len, MSG_NOSIGNAL);
+		if (n < 0)
+		{
+			if (errno == EINTR)
+				continue;
+			return 0;
+		}
+		data += n;
+		len -= (size_t)n;
+	}
+	return 1;
+}
+
+/* One request to the box's web server. Answers the HTTP status, or -1 when
+   the server could not be reached or did not answer. */
+static int HttpRequest(const char *method, const char *path, const char *auth, const char *body)
+{
+	struct sockaddr_in addr;
+	struct timeval tv;
+	char reply[256], *head;
+	size_t headlen, bodylen = body ? strlen(body) : 0;
+	int fd, port, got = 0, status = -1;
+
+	port = WebPort();
+
+	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+	{
+		LogMsg("could not create socket");
+		return -1;
+	}
+
+	tv.tv_sec = HTTP_TIMEOUT;
+	tv.tv_usec = 0;
+	setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+	setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+
+	memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	inet_aton("127.0.0.1", &addr.sin_addr);
+
+	if (connect(fd, (struct sockaddr*)&addr, sizeof(addr)))
+	{
+		LogMsg("could not connect to web server on port %d", port);
+		close(fd);
+		return -1;
+	}
+
+	headlen = strlen(method) + strlen(path) + (auth ? strlen(auth) : 0) + 256;
+	if ((head = malloc(headlen)) == NULL)
+	{
+		close(fd);
+		return -1;
+	}
+
+	/* A whole HTTP/1.1 request: lines ended by CR LF and a Host header, which
+	   the web server of current images insists on. */
+	snprintf(head, headlen,
+		"%s %s HTTP/1.1\r\n"
+		"Host: 127.0.0.1:%d\r\n"
+		"User-Agent: tuxcald\r\n"
+		"Connection: close\r\n"
+		"%s",
+		method, path, port, auth ? auth : "");
+	if (body || strcmp(method, "POST") == 0)
+	{
+		size_t used = strlen(head);
+		snprintf(head + used, headlen - used,
+			"%sContent-Length: %lu\r\n",
+			body ? "Content-Type: application/json\r\n" : "",
+			(unsigned long)bodylen);
+	}
+	strncat(head, "\r\n", headlen - strlen(head) - 1);
+
+	if (SendAll(fd, head, strlen(head)) && (!bodylen || SendAll(fd, body, bodylen)))
+	{
+		/* Wait for the answer instead of closing right after sending: a
+		   connection closed under a request that is still being read is one
+		   the server drops. */
+		for (;;)
+		{
+			ssize_t n = recv(fd, reply + got, sizeof(reply) - 1 - got, 0);
+			if (n < 0 && errno == EINTR)
+				continue;
+			if (n <= 0)
+				break;
+			got += n;
+			reply[got] = 0;
+			if (strstr(reply, "\r\n") || got == (int)sizeof(reply) - 1)
+				break;
+		}
+		reply[got] = 0;
+		if (sscanf(reply, "HTTP/%*d.%*d %d", &status) != 1)
+			status = -1;
+	}
+
+	free(head);
+	close(fd);
+	return status;
+}
+
+/* Text out of this daemon is mostly Latin-1: its own strings and whatever the
+   plugin wrote to the event list. The box wants UTF-8. A byte that already
+   starts a well formed UTF-8 sequence is passed on as it is, every other byte
+   above ASCII is taken as Latin-1. */
+static void ToUtf8(const char *in, char *out, size_t size)
+{
+	const unsigned char *s = (const unsigned char *)in;
+	size_t o = 0;
+
+	while (*s && o + 1 < size)
+	{
+		int len = 0, i;
+
+		if (*s < 0x80)
+		{
+			out[o++] = *s++;
+			continue;
+		}
+
+		if (*s >= 0xC2 && *s <= 0xDF)
+			len = 2;
+		else if (*s >= 0xE0 && *s <= 0xEF)
+			len = 3;
+		else if (*s >= 0xF0 && *s <= 0xF4)
+			len = 4;
+		for (i = 1; i < len; i++)
+		{
+			if ((s[i] & 0xC0) != 0x80)
+			{
+				len = 0;
+				break;
+			}
+		}
+
+		if (len)
+		{
+			if (o + len >= size)
+				break;
+			memcpy(out + o, s, len);
+			o += len;
+			s += len;
+		}
+		else
+		{
+			if (o + 2 >= size)
+				break;
+			out[o++] = 0xC0 | (*s >> 6);
+			out[o++] = 0x80 | (*s & 0x3F);
+			s++;
+		}
+	}
+	out[o] = 0;
+}
+
+// The text as a JSON string, quotes included. Freed by the caller.
+static char *JsonString(const char *s)
+{
+	char *out = malloc(strlen(s) * 6 + 3), *d;
+
+	if (out == NULL)
+		return NULL;
+
+	d = out;
+	*d++ = '"';
+	for (; *s; s++)
+	{
+		unsigned char c = (unsigned char)*s;
+		switch (c)
+		{
+			case '"':  *d++ = '\\'; *d++ = '"';  break;
+			case '\\': *d++ = '\\'; *d++ = '\\'; break;
+			case '\n': *d++ = '\\'; *d++ = 'n';  break;
+			case '\r': *d++ = '\\'; *d++ = 'r';  break;
+			case '\t': *d++ = '\\'; *d++ = 't';  break;
+			default:
+				if (c < 0x20)
+					d += sprintf(d, "\\u%04x", c);
+				else
+					*d++ = c;
+		}
+	}
+	*d++ = '"';
+	*d = 0;
+	return out;
+}
+
+// The text percent-encoded for a query. Freed by the caller.
+static char *UrlEncode(const char *s)
+{
+	static const char hex[] = "0123456789ABCDEF";
+	char *out = malloc(strlen(s) * 3 + 1), *d;
+
+	if (out == NULL)
+		return NULL;
+
+	for (d = out; *s; s++)
+	{
+		unsigned char c = (unsigned char)*s;
+		if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') ||
+		    c == '-' || c == '_' || c == '.' || c == '~')
+			*d++ = c;
+		else
+		{
+			*d++ = '%';
+			*d++ = hex[c >> 4];
+			*d++ = hex[c & 15];
+		}
+	}
+	*d = 0;
+	return out;
+}
+
+static int Accepted(int status)
+{
+	return status >= 200 && status < 300;
+}
+
+// "Authorization: Bearer <token>" for the ni-web API, empty without a token.
+static void BearerHeader(char *out, size_t size)
+{
+	out[0] = 0;
+	if (webtoken[0])
+		snprintf(out, size, "Authorization: Bearer %s\r\n", webtoken);
+}
+
+// "Authorization: Basic <user:pass>" for the old interface, empty without a user.
+static void BasicHeader(char *out, size_t size)
+{
+	out[0] = 0;
+	if (webuser[0])
+	{
+		snprintf(decodedstring, sizeof(decodedstring), "%s:%s", webuser, webpass);
+		EncodeBase64(decodedstring, strlen(decodedstring));
+		snprintf(out, size, "Authorization: Basic %s\r\n", encodedstring);
+	}
+}
+
+static void Refused(const char *what, int status)
+{
+	if (status == 401 || status == 403)
+		LogMsg("%s refused (%d): the token in WEBTOKEN is missing in api_tokens of ni-web.conf or its level is too low", what, status);
+	else
+		LogMsg("%s failed (%d)", what, status);
+}
+
+/* Shows the text on the television, as a message box that waits to be
+   dismissed or as a hint that goes away by itself. */
+static void ShowOnTv(const char *text, int box)
+{
+	char auth[sizeof(encodedstring) + 64];
+	char *enc;
+	int status;
+
+	if (webtoken[0] && (enc = JsonString(text)) != NULL)
+	{
+		char *body = malloc(strlen(enc) + 32);
+		if (body != NULL)
+		{
+			sprintf(body, "{\"text\":%s,\"kind\":\"%s\"}", enc, box ? "box" : "hint");
+			BearerHeader(auth, sizeof(auth));
+			status = HttpRequest("POST", "/api/v1/osd/message", auth, body);
+			free(body);
+			free(enc);
+			if (Accepted(status))
+				return;
+			Refused("/api/v1/osd/message", status);
+		}
+		else
+			free(enc);
+	}
+
+	if ((enc = UrlEncode(text)) != NULL)
+	{
+		char *path = malloc(strlen(enc) + 32);
+		if (path != NULL)
+		{
+			sprintf(path, "/control/message?%s=%s", box ? "nmsg" : "popup", enc);
+			BasicHeader(auth, sizeof(auth));
+			status = HttpRequest("GET", path, auth, NULL);
+			free(path);
+			if (!Accepted(status))
+				LogMsg("/control/message failed (%d), message not shown", status);
+		}
+		free(enc);
+	}
+}
+
+// Asks the box to start the plugin, as choosing it from the plugin menu would.
+static void StartPlugin(void)
+{
+	char auth[sizeof(encodedstring) + 64];
+	int status;
+
+	if (webtoken[0])
+	{
+		BearerHeader(auth, sizeof(auth));
+		status = HttpRequest("POST", "/api/v1/plugins/" PLUGINNAME "/start", auth, NULL);
+		if (Accepted(status))
+			return;
+		Refused("/api/v1/plugins/" PLUGINNAME "/start", status);
+	}
+
+	BasicHeader(auth, sizeof(auth));
+	status = HttpRequest("GET", "/control/startplugin?name=" PLUGINNAME, auth, NULL);
+	if (!Accepted(status))
+		LogMsg("/control/startplugin failed (%d), plugin not started", status);
+}
+
+static void AppendText(char *dst, size_t size, const char *src)
+{
+	size_t used = strlen(dst);
+
+	if (used + 1 < size)
+		strncat(dst, src, size - used - 1);
+}
+
+/******************************************************************************
  * NotifyUser
  ******************************************************************************/
 void NotifyUser()
 {
-	struct sockaddr_in SockAddr;
-	char http_cmd[1024], tmp_buffer[1024],tmp_buffer1[1024];
-	char *http_cmd1 = "GET /cgi-bin/startPlugin?name=tuxcal.cfg HTTP/1.1\n\n";
-	char *http_cmd2 = "GET /cgi-bin/xmessage?timeout=10&caption=TuxCal%20Information&body=";
-	char *http_cmd3 = "GET /control/message?nmsg=";
-	char *http_cmd4 = "GET /control/message?popup=";
+	char text[MAXMSGLEN], line[256];
 	int iBirthday = 0;
-	
+
 /*
 	{
 		printf("we found %d event today with time info\r\n",iCntEvents[0]);
@@ -1890,173 +2274,105 @@ void NotifyUser()
 	}
 */
 
-	// video notify
-	if(video != 5)
+	// video notify: 1 starts the plugin, 2 to 4 show a message, 5 is off
+	if (video >= 2 && video <= 4)
 	{
-		switch(video)
+		int day, month, year;
+		int i;
+		EVT_DB* pEvt;
+		static char utf8[MAXMSGLEN * 2];
+
+		day = tCheck_day;
+		month = tCheck_mon;
+		year = tCheck_year;
+
+		// start with a newline, as the message always did
+		strcpy(text, http_ln);
+
+		// event now
+		if (iCntTmEvents)
 		{
-			case 4:	strcpy(http_cmd, http_cmd4); break;
-			case 3:	strcpy(http_cmd, http_cmd3); break;
-			case 2:	strcpy(http_cmd, http_cmd2); break;
-			default:	strcpy(http_cmd, http_cmd1);
-		}
+			AppendText(text, sizeof(text), http_br);
+			snprintf(line, sizeof(line), http_lines[MAXCHECKDAYS][osdidx], tCheck_hour, tCheck_min);
+			AppendText(text, sizeof(text), line);
 
-		if(video > 1)
-		{
-			int day, month, year;
-			int i;
-			EVT_DB* pEvt;
-			
-			day = tCheck_day;
-			month = tCheck_mon;
-			year = tCheck_year;
-
-			// start with a newline (because of dreambox-httpd)
-//			tmp_buffer[0]=0;
-			strcpy(tmp_buffer, http_ln);
-
-			// event now
-			if (iCntTmEvents)																	
+			for (i=0;i<iCntTmEvents;i++)
 			{
-				strcat(tmp_buffer, http_br);
-				sprintf(tmp_buffer1,http_lines[MAXCHECKDAYS][osdidx],tCheck_hour,tCheck_min);
-				strcat(tmp_buffer, tmp_buffer1);
-//				printf("TuxCald <%s>\r\n",tmp_buffer);
-				
-				for (i=0;i<iCntTmEvents;i++)
-				{
-					pEvt=&eventdb[iEventType[MAXCHECKDAYS+1][i]];
-					sprintf(tmp_buffer1,infotype[1][osdidx],pEvt->info);
-					strcat(tmp_buffer, tmp_buffer1);
-				}
-				strcat(tmp_buffer, http_ln);
-//				printf("TuxCald <%s>\r\n",tmp_buffer);
+				pEvt=&eventdb[iEventType[MAXCHECKDAYS+1][i]];
+				snprintf(line, sizeof(line), infotype[1][osdidx], pEvt->info);
+				AppendText(text, sizeof(text), line);
 			}
-			else
-			{			
-  			// todays event with time-info
-  			if (iCntEvents[0])																	
-  			{
-  				strcat(tmp_buffer, http_br);
-  				if (osdidx == 0)
-  					sprintf(tmp_buffer1,http_lines[0][osdidx],day,monthmsg[month-1][osdidx],year);
-  				else
-  					sprintf(tmp_buffer1,http_lines[0][osdidx],monthmsg[month-1][osdidx],day,year);
-  				strcat(tmp_buffer, tmp_buffer1);
-  				
-  				for (i=0;i<iCntEvents[0];i++)
-  				{
-  					pEvt=&eventdb[iEventType[0][i]];
-  					sprintf(tmp_buffer1,infotype[2][osdidx],pEvt->info,pEvt->hour,pEvt->min);
-  					strcat(tmp_buffer, tmp_buffer1);
-  				}
-  				strcat(tmp_buffer, http_ln);
-//					printf("TuxCald <%s>\r\n",tmp_buffer);
-  			}
-  			
-				// check events/birthdays/holidays for max. three days
-  			int k;
-  			for (k=1;k<=MAXCHECKDAYS;k++)
-  			{
-  				if (iCntEvents[k])																	
-	  			{
-  					strcat(tmp_buffer, http_br);
-  					if (osdidx == 0)
-  						sprintf(tmp_buffer1,http_lines[k-1][osdidx],day,monthmsg[month-1][osdidx],year);
-  					else
-  						sprintf(tmp_buffer1,http_lines[k-1][osdidx],monthmsg[month-1][osdidx],day,year);
-  					strcat(tmp_buffer, tmp_buffer1);
-  				
-  					for (i=0;i<iCntEvents[k];i++)
-  					{
-  						if (iEventType[k][i]>MAXENTRYS)
-  						{
-	  						sprintf(tmp_buffer1,infotype[3][osdidx],vdaysnames[iEventType[k][i]-MAXENTRYS-1][osdidx]);
-	  					}
-  						else
-  						{
-	  						pEvt=&eventdb[iEventType[k][i]];
-	  						if (pEvt->type == BIRTHDAY)
-  							{
-  								iBirthday = 1;
-  								sprintf(tmp_buffer1,infotype[0][osdidx],pEvt->info,tCheck_year-pEvt->year);
-  							}
-  							else
-	  							sprintf(tmp_buffer1,infotype[1][osdidx],pEvt->info);
-	  					}	
-  						strcat(tmp_buffer, tmp_buffer1);
-  					}
-  					strcat(tmp_buffer, http_ln);
-//					printf("TuxCald <%s>\r\n",tmp_buffer);
-	  			}
-					// step to next day
-  				AddDays(&day,&month,&year,1);
-				}  				
-  		}
-  		
-			// convert spaces and german-characters
-			char *src=tmp_buffer;
-			char *dest=http_cmd+strlen(http_cmd);
-			char c;
-			while ((c=*src++)!=0)
-			{
-				switch (c)
-				{
-					case ' ': strcat(http_cmd,"%20"); 		dest+=3; break;
-					case 'ä': strcat(http_cmd,"%C3%A4");  dest+=6; break;
-					case 'ö': strcat(http_cmd,"%C3%B6");  dest+=6; break;
-					case 'ü': strcat(http_cmd,"%C3%BC");  dest+=6; break;
-					case 'Ä': strcat(http_cmd,"%C3%84");  dest+=6; break;
-					case 'Ö': strcat(http_cmd,"%C3%96");  dest+=6; break;
-					case 'Ü': strcat(http_cmd,"%C3%9C");  dest+=6; break;
-					case 'ß': strcat(http_cmd,"%C3%9F");  dest+=6; break;
-					default:
-						*dest++=c;
-						*dest=0;
-				}
-			}
-		}
-
-		strcat(http_cmd, " HTTP/1.1\n");
-//		printf("TuxCald <%s>\r\n",http_cmd);
-
-		if(webuser[0])
-		{
-			strcat(http_cmd, "Authorization: Basic ");
-
-			strcpy(decodedstring, webuser);
-			strcat(decodedstring, ":");
-			strcat(decodedstring, webpass);
-			EncodeBase64(decodedstring, strlen(decodedstring));
-
-			strcat(http_cmd, encodedstring);
-			strcat(http_cmd, "\n\n");			
+			AppendText(text, sizeof(text), http_ln);
 		}
 		else
 		{
-			strcat(http_cmd, "\n");
-		}
-	}
+			// todays event with time-info
+			if (iCntEvents[0])
+			{
+				AppendText(text, sizeof(text), http_br);
+				if (osdidx == 0)
+					snprintf(line, sizeof(line), http_lines[0][osdidx], day, monthmsg[month-1][osdidx], year);
+				else
+					snprintf(line, sizeof(line), http_lines[0][osdidx], monthmsg[month-1][osdidx], day, year);
+				AppendText(text, sizeof(text), line);
 
-	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-	{
-		slog ? syslog(LOG_DAEMON | LOG_INFO, "could not create Socket") : printf("TuxCalD <could not create Socket>\n");
+				for (i=0;i<iCntEvents[0];i++)
+				{
+					pEvt=&eventdb[iEventType[0][i]];
+					snprintf(line, sizeof(line), infotype[2][osdidx], pEvt->info, pEvt->hour, pEvt->min);
+					AppendText(text, sizeof(text), line);
+				}
+				AppendText(text, sizeof(text), http_ln);
+			}
+
+			// check events/birthdays/holidays for max. three days
+			int k;
+			for (k=1;k<=MAXCHECKDAYS;k++)
+			{
+				if (iCntEvents[k])
+				{
+					AppendText(text, sizeof(text), http_br);
+					if (osdidx == 0)
+						snprintf(line, sizeof(line), http_lines[k-1][osdidx], day, monthmsg[month-1][osdidx], year);
+					else
+						snprintf(line, sizeof(line), http_lines[k-1][osdidx], monthmsg[month-1][osdidx], day, year);
+					AppendText(text, sizeof(text), line);
+
+					for (i=0;i<iCntEvents[k];i++)
+					{
+						if (iEventType[k][i]>MAXENTRYS)
+						{
+							snprintf(line, sizeof(line), infotype[3][osdidx], vdaysnames[iEventType[k][i]-MAXENTRYS-1][osdidx]);
+						}
+						else
+						{
+							pEvt=&eventdb[iEventType[k][i]];
+							if (pEvt->type == BIRTHDAY)
+							{
+								iBirthday = 1;
+								snprintf(line, sizeof(line), infotype[0][osdidx], pEvt->info, tCheck_year-pEvt->year);
+							}
+							else
+								snprintf(line, sizeof(line), infotype[1][osdidx], pEvt->info);
+						}
+						AppendText(text, sizeof(text), line);
+					}
+					AppendText(text, sizeof(text), http_ln);
+				}
+				// step to next day
+				AddDays(&day,&month,&year,1);
+			}
+		}
+
+		ToUtf8(text, utf8, sizeof(utf8));
+
+		/* 2 used to be the dreambox's xmessage, which Neutrino never had; it
+		   gets the message box like 3. */
+		ShowOnTv(utf8, video != 4);
 	}
-	else
+	else if (video != 5)
 	{
-		SockAddr.sin_family = AF_INET;
-		SockAddr.sin_port = htons(webport);
-		inet_aton("127.0.0.1", &SockAddr.sin_addr);
-	
-		if (connect(sock, (struct sockaddr*)&SockAddr, sizeof(SockAddr)))
-		{
-			slog ? syslog(LOG_DAEMON | LOG_INFO, "could not connect to WebServer") : printf("TuxCalD <could not connect to WebServer>\n");
-		}
-		else
-		{
-			send(sock, http_cmd, strlen(http_cmd), 0);
-		}
-		close(sock);
+		StartPlugin();
 	}
 #if 0 //FIXME
 	// audio notify
@@ -2066,10 +2382,10 @@ void NotifyUser()
 		else if (iBirthday) PlaySound(CONFIGDIR SNDFILE1);
 		else PlaySound(CONFIGDIR SNDFILE2);
 	}
-#endif			
-	sprintf(tmp_buffer,"%s %d %d",CONFIGDIR SHELLFILE,iCntTmEvents,iBirthday);
-	system(tmp_buffer);
-}		
+#endif
+	snprintf(text, sizeof(text), "%s %d %d", CONFIGDIR SHELLFILE, iCntTmEvents, iBirthday);
+	system(text);
+}
 
 
 /******************************************************************************

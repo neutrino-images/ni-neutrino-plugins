@@ -8,6 +8,7 @@
 #endif
 #include "config.h"
 #include <errno.h>
+#include <stdarg.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
@@ -124,10 +125,10 @@ char *vdaysnames[][MAXOSD] = {
 };
 
 char *infotype[][MAXOSD] = {
-	{ "*** G e b u r t s t a g  %s (%d)%%0A",	"*** B i r t h d a y  %s (%d)%%0A" },
-	{ "*** T e r m i n  %s%%0A"		,	"*** D a t e  %s%%0A" },
-	{ "*** T e r m i n  %s um %02d:%02d%%0A",	"*** D a t e  %s at %02d:%02d%%0A" },
-	{ "*** F e i e r t a g   %s%%0A"	,	"*** H o l i d a y   %s%%0A" }
+	{ "*** G e b u r t s t a g  %s (%d)\n",	"*** B i r t h d a y  %s (%d)\n" },
+	{ "*** T e r m i n  %s\n"		,	"*** D a t e  %s\n" },
+	{ "*** T e r m i n  %s um %02d:%02d\n",	"*** D a t e  %s at %02d:%02d\n" },
+	{ "*** F e i e r t a g   %s\n"	,	"*** H o l i d a y   %s\n" }
 };
 
 char *infomsg[][MAXOSD] = {
@@ -140,10 +141,10 @@ char *infomsgclock[] = {
 
 #if HAVE_DVB_API_VERSION == 3
 // longer breaking-line for dBox
-char *http_br = {"**************************************************%0A"};
+char *http_br = {"**************************************************\n"};
 #else
 // shorter breaking-line for dreambox
-char *http_br = {"**********************************%0A"};
+char *http_br = {"**********************************\n"};
 #endif
 
 //----------------------------------------------------
@@ -154,14 +155,14 @@ char *http_br = {"**********************************%0A"};
 #define MAXCHECKDAYS	5
 #define MAXSTIMER	5
 
-char *http_ln = {"%0A"};
+char *http_ln = {"\n"};
 char *http_lines[MAXCHECKDAYS+1][MAXOSD] = {
-	{"*** Heute am %d. %s %d ***%%0A"		,	"*** Today at %s, %d %d ***%%0A"},
-	{"*** Morgen am %d. %s %d ***%%0A"		,	"*** Tomorrow at %s, %d %d ***%%0A"},
-	{"*** In zwei Tagen am %d. %s %d ***%%0A"	,	"*** in two days at %s, %d %d ***%%0A"},
-	{"*** In drei Tagen am %d. %s %d ***%%0A"	,	"*** in three days at %s, %d %d ***%%0A"},
-	{"*** In vier Tagen am %d. %s %d ***%%0A"	,	"*** in four days at %s, %d %d ***%%0A"},
-	{"*** Jetzt um %02d:%02d ***%%0A"		,	"*** Now at %02d:%02d ***%%0A"}
+	{"*** Heute am %d. %s %d ***\n"		,	"*** Today at %s, %d %d ***\n"},
+	{"*** Morgen am %d. %s %d ***\n"		,	"*** Tomorrow at %s, %d %d ***\n"},
+	{"*** In zwei Tagen am %d. %s %d ***\n"	,	"*** in two days at %s, %d %d ***\n"},
+	{"*** In drei Tagen am %d. %s %d ***\n"	,	"*** in three days at %s, %d %d ***\n"},
+	{"*** In vier Tagen am %d. %s %d ***\n"	,	"*** in four days at %s, %d %d ***\n"},
+	{"*** Jetzt um %02d:%02d ***\n"		,	"*** Now at %02d:%02d ***\n"}
 };
 
 //----------------------------------------------------
@@ -227,6 +228,7 @@ char sigtime[80];					//! fix signal-times
 int webport=80;						//! webport for using webinterface
 char webuser[32] = "";					//! for using webinterface
 char webpass[32] = "";					//! for using webinterface
+char webtoken[128] = "";				//! token for the ni-web API
 char disp_date = 'N';					//! display the date
 char disp_clock = 'Y';					//! display the clock
 char disp_sec = 'Y';					//! display the second
