@@ -87,24 +87,7 @@ function getVideoData(url) -- Generate stream address and evaluate it according 
 	return count
 end
 
---[[
-function getLogo(url)
-	local data = getdata("http://127.0.0.1/control/getchannelid?format=json")
-	if data then
-		local jd = json:decode(data)
-		if jd and jd.data and jd.data.id and jd.data.id.short_id then
-			local logo = "/var/tuxbox/icons/logo/" .. jd.data.id.short_id .. ".png"
-			local fh = filehelpers.new()
-			if not fh:exist(logo, "f") then
-				getdata("https://images.pluto.tv/channels/" .. url .. "/logo.png?fit=fill&fm=png&h=40", logo)
-			end
-		end
-	end
-end
-]]
-
 if (getVideoData(_url) > 0) then
-	--getLogo(_url)
 	return json:encode(ret)
 end
 
