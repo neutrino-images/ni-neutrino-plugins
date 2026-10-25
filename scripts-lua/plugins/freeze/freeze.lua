@@ -9,22 +9,13 @@
 
 local n = neutrino()
 
+-- video:Screenshot() exists since Lua API 1.92 and only where Neutrino is
+-- built with screenshot support; without it there is nothing to freeze.
 local freeze = false
-if APIVERSION ~= nil and (APIVERSION.MAJOR > 1 or ( APIVERSION.MAJOR == 1 and APIVERSION.MINOR > 91 )) then
-	local v = video.new()
-	if v then
-		v:Screenshot{}
-		freeze = true
-	end
-else
-	if _curl == nil then
-		_curl = curl.new()
-	end
-
-	local ret, data = _curl:download {url = "http://127.0.0.1/control/screenshot", A = "Mozilla/5.0;", maxRedirs = 5, followRedir = true}
-	if ret == CURL.OK and data == "ok" then
-		freeze = true
-	end
+local v = video.new()
+if v and v.Screenshot then
+	v:Screenshot{}
+	freeze = true
 end
 
 if freeze then
