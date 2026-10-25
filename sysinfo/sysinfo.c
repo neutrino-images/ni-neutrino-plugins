@@ -1488,38 +1488,146 @@ int get_mem(void)
 	return 0;
 }
 
-int get_boxinfo(char* vendor,char* boxname, char* boxarch)
+/* The port the web server listens on. ni-web writes it to its own file; an
+   image without that file still has the old web server on port 80. */
+static int get_webport(void)
 {
-	FILE *pipe;
-	int ret = -1;
-	char buffer[128];
+	FILE *f = fopen(CONFIGDIR "/ni-web.conf", "r");
+	char line[128];
+	int port = 80;
 
-	pipe = popen("wget http://127.0.0.1/control/boxinfo -q -O -", "r");
+	if (f != NULL) {
+		while (fgets(line, sizeof(line), f) != NULL) {
+			int p;
+			if (sscanf(line, "port=%d", &p) == 1 && p > 0 && p < 65536) {
+				port = p;
+				break;
+			}
+		}
+		fclose(f);
+	}
+	return port;
+}
+
+/* What the box's web server answers for path, read through wget. 0 when it
+   answered with success, -1 when it could not be reached or refused. */
+static int get_webpage(const char *path, char *out, size_t size)
+{
+	char cmd[128];
+	FILE *pipe;
+	size_t got = 0, n;
+
+	snprintf(cmd, sizeof(cmd), "wget -q -O - http://127.0.0.1:%d%s", get_webport(), path);
+	pipe = popen(cmd, "r");
 	if (pipe == NULL) {
 		perror("popen");
 		return -1;
 	}
+	while (got + 1 < size && (n = fread(out + got, 1, size - 1 - got, pipe)) > 0)
+		got += n;
+	out[got] = '\0';
 
-	while (fgets(buffer, sizeof(buffer), pipe) != NULL) {
-		// Prozessiere jede Zeile der Ausgabe
-		char *equalsign = strchr(buffer, '=');
-		if (equalsign != NULL) {
-			*equalsign = '\0';			// Setze das "="-Zeichen auf Null, um den Key zu terminieren
-			char *value = equalsign + 1;		// Zeiger auf das Value
-			value[strcspn(value, "\n")] = '\0';	// Entferne den Zeilenumbruch, falls vorhanden
+	// wget fails on any answer that is not a success, a refusal included
+	return (pclose(pipe) == 0 && got > 0) ? 0 : -1;
+}
 
-			// Speichere die Werte entsprechend den übergebenen Zeigern
-			if (strcmp(buffer, "vendor") == 0) {
-				strcpy(vendor, value);
-			} else if (strcmp(buffer, "boxname") == 0) {
-				strcpy(boxname, value);
-			} else if (strcmp(buffer, "boxarch") == 0) {
-				strcpy(boxarch, value);
+static void copy_value(char *dst, size_t size, const char *src)
+{
+	snprintf(dst, size, "%s", src);
+}
+
+/* The string the JSON object in json holds under key. Good enough for the flat
+   answer of /api/v1/system/info, which is all it is used for. 0 when found. */
+static int json_string(const char *json, const char *key, char *out, size_t size)
+{
+	char name[64];
+	const char *p = json;
+	size_t o = 0;
+
+	snprintf(name, sizeof(name), "\"%s\"", key);
+	while ((p = strstr(p, name)) != NULL) {
+		p += strlen(name);
+		while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n')
+			p++;
+		if (*p != ':')
+			continue;		// the name was a value, look further
+		p++;
+		while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n')
+			p++;
+		if (*p != '"')
+			return -1;
+		p++;
+		while (*p && *p != '"' && o + 1 < size) {
+			char c = *p++;
+			if (c == '\\' && *p) {
+				c = *p++;
+				switch (c) {
+					case 'n': c = '\n'; break;
+					case 't': c = '\t'; break;
+					case 'r': c = '\r'; break;
+					case 'b': c = '\b'; break;
+					case 'f': c = '\f'; break;
+					case 'u': {
+						unsigned int u;
+						if (sscanf(p, "%4x", &u) != 1)
+							return -1;
+						p += 4;
+						// names are ASCII; anything else is shown as '?'
+						c = (u < 0x80) ? (char)u : '?';
+						break;
+					}
+					default: break;	// '"', '\\' and '/' stand for themselves
+				}
 			}
-			ret = 0;
+			out[o++] = c;
 		}
+		out[o] = '\0';
+		return 0;
 	}
-	pclose(pipe);
+	return -1;
+}
+
+int get_boxinfo(char *vendor, char *boxname, char *boxarch, size_t size)
+{
+	char buffer[1024];
+	char *line, *next;
+	int ret = -1;
+
+	/* The ni-web API answers this to anybody on the box's own network, the
+	   box itself included, without a password or a token. */
+	if (get_webpage("/api/v1/system/info", buffer, sizeof(buffer)) == 0 &&
+	    json_string(buffer, "vendor", vendor, size) == 0 &&
+	    json_string(buffer, "model", boxname, size) == 0 &&
+	    json_string(buffer, "chipset", boxarch, size) == 0)
+		return 0;
+
+	/* Images before ni-web only have the old control interface, which ni-web
+	   still answers while legacy_enabled is on. */
+	if (get_webpage("/control/boxinfo", buffer, sizeof(buffer)) != 0)
+		return -1;
+
+	for (line = buffer; line != NULL && *line; line = next) {
+		char *equalsign, *value;
+
+		next = strchr(line, '\n');
+		if (next != NULL)
+			*next++ = '\0';
+		line[strcspn(line, "\r")] = '\0';
+
+		equalsign = strchr(line, '=');
+		if (equalsign == NULL)
+			continue;
+		*equalsign = '\0';
+		value = equalsign + 1;
+
+		if (strcmp(line, "vendor") == 0)
+			copy_value(vendor, size, value);
+		else if (strcmp(line, "boxname") == 0)
+			copy_value(boxname, size, value);
+		else if (strcmp(line, "boxarch") == 0)
+			copy_value(boxarch, size, value);
+		ret = 0;
+	}
 	return ret;
 }
 
@@ -1554,10 +1662,10 @@ void get_imagename(const char* filename, char* out) {
 void hintergrund(void)
 {
 	char vstr[256];
-	char vendor[32];
+	char vendor[32] = "";
 	char imgname[64];
-	char boxname[32];
-	char boxarch[32];
+	char boxname[32] = "";
+	char boxarch[32] = "";
 
 	setBackground(CMCST);
 	RenderBox(sx, sy, ex, ey, FILL, CMCIT, 0);
@@ -1574,7 +1682,7 @@ void hintergrund(void)
 	RenderString(vstr, sx + 2 * OFFSET_MED, sy + 4 * OFFSET_MED + 4 * OFFSET_MIN, scale2res(300), LEFT, scale2res(38), GREEN);
 
 	get_imagename(VERSION_FILE, imgname);
-	if (get_boxinfo(vendor, boxname, boxarch) == 0) {
+	if (get_boxinfo(vendor, boxname, boxarch, sizeof(vendor)) == 0) {
 		snprintf(vstr, sizeof(vstr), "%s - %s %s (%s)", imgname, vendor, boxname, boxarch);
 	}
 	else {
