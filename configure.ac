@@ -227,6 +227,12 @@ AC_ARG_ENABLE(ard_mediathek,
 	[enable_ard_mediathek="yes"])
 AM_CONDITIONAL(ENABLE_ARD_MEDIATHEK, test "$enable_ard_mediathek" = "yes")
 
+AC_ARG_ENABLE(clevertanken,
+	AS_HELP_STRING([--enable-clevertanken], [enable clevertanken @<:@default=yes@:>@]),
+	[enable_clevertanken="$enableval"],
+	[enable_clevertanken="yes"])
+AM_CONDITIONAL(ENABLE_CLEVERTANKEN, test "$enable_clevertanken" = "yes")
+
 AC_ARG_ENABLE(epgfilter,
 	AS_HELP_STRING([--enable-epgfilter], [enable epgfilter @<:@default=yes@:>@]),
 	[enable_epgfilter="$enableval"],
@@ -493,6 +499,7 @@ scripts-lua/plugins/Makefile
 scripts-lua/plugins/2webTVxml/Makefile
 scripts-lua/plugins/add-locale/Makefile
 scripts-lua/plugins/ard_mediathek/Makefile
+scripts-lua/plugins/clevertanken/Makefile
 scripts-lua/plugins/epgfilter/Makefile
 scripts-lua/plugins/EPGscan-setup/Makefile
 scripts-lua/plugins/favorites2bin/Makefile

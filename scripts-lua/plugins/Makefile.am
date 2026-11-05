@@ -9,6 +9,9 @@ endif
 if ENABLE_ARD_MEDIATHEK
 SUBDIRS += ard_mediathek
 endif
+if ENABLE_CLEVERTANKEN
+SUBDIRS += clevertanken
+endif
 if ENABLE_EPGFILTER
 SUBDIRS += epgfilter
 endif
