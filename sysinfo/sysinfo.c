@@ -658,7 +658,7 @@ void correct_string(char *strg)
 void corr(char *aus, const char *temp, size_t size)
 {
 	char temp_data[256] = {0};
-	snprintf(temp_data, sizeof(temp_data), temp);
+	snprintf(temp_data, sizeof(temp_data), "%s", temp);
 	int z=0;
 	while (temp_data[z]!=0)
 	{
