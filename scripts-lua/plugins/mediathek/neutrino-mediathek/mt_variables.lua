@@ -1,5 +1,9 @@
 NEUTRINO_MEDIATHEK_API_OVERRIDE = nil
 
+-- Backend of the NI images; the tuxbox backend stays as a built-in fallback
+API_BASE_NI	= 'https://mt-api.neutrino-images.de'
+API_BASE_TUXBOX	= 'https://mt.api.tuxbox-neutrino.org/mt-api'
+
 function initLocale()
 	l={}
 	l.key = {}
@@ -21,7 +25,7 @@ local function detectDefaultApiBase()
 		return env
 	end
 	NEUTRINO_MEDIATHEK_API_OVERRIDE = nil
-	local fallback = 'https://mt.api.tuxbox-neutrino.org/mt-api'
+	local fallback = API_BASE_NI
 	H.printf("[neutrino-mediathek] NEUTRINO_MEDIATHEK_API not set, fallback to %s", fallback)
 	return fallback
 end

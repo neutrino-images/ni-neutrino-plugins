@@ -73,6 +73,15 @@ function _loadConfig()
 	if conf.privacyAccepted == nil or conf.privacyAccepted == '' then
 		conf.privacyAccepted = 'off'
 	end
+	-- Many configs still hold the former default, the tuxbox backend. Move
+	-- them to the current default. The backend has a new operator, so the
+	-- privacy notice is shown once again.
+	if NEUTRINO_MEDIATHEK_API_OVERRIDE == nil and conf.apiBaseUrl == API_BASE_TUXBOX
+	   and url_new_default ~= API_BASE_TUXBOX then
+		H.printf("[neutrino-mediathek] apiBaseUrl: former default %s replaced by %s", API_BASE_TUXBOX, url_new_default)
+		conf.apiBaseUrl = url_new_default
+		conf.privacyAccepted = 'off'
+	end
 
 	if NEUTRINO_MEDIATHEK_API_OVERRIDE ~= nil and NEUTRINO_MEDIATHEK_API_OVERRIDE ~= '' then
 		if conf.apiBaseUrl ~= NEUTRINO_MEDIATHEK_API_OVERRIDE then
@@ -245,6 +254,10 @@ function rebuildApiCandidates()
 	addUrl(url_new_default)
 	addUrl(conf.apiFallback1)
 	addUrl(conf.apiFallback2)
+	-- built-in fallback; not while a backend is tested via NEUTRINO_MEDIATHEK_API
+	if NEUTRINO_MEDIATHEK_API_OVERRIDE == nil then
+		addUrl(API_BASE_TUXBOX)
+	end
 	url_new = apiCandidates[1] or url_new_default
 end
 
