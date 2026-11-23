@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# replay-py.py - the Lua plugin scripts-lua/plugins/replay/replay.lua, in Python.
+# replay-py.py - the Lua plugin scripts-lua/plugins/replay-lua/replay-lua.lua, in Python.
 #
 # It offers the live stream of a public broadcaster shifted back by up to the
 # buffer the sender allows: the manifest the box plays is downloaded, its

@@ -64,8 +64,8 @@ endif
 if ENABLE_PLUTOTV_VOD
 SUBDIRS += plutotv-vod
 endif
-if ENABLE_REPLAY
-SUBDIRS += replay
+if ENABLE_REPLAY_LUA
+SUBDIRS += replay-lua
 endif
 if ENABLE_RCU_SWITCHER
 SUBDIRS += rcu_switcher
