@@ -528,6 +528,9 @@ scripts-lua/plugins/userbouquets/Makefile
 scripts-lua/plugins/webradio/Makefile
 scripts-lua/plugins/webtv/Makefile
 scripts-lua/plugins/zdfhbbtv/Makefile
+scripts-py/Makefile
+scripts-py/plugins/Makefile
+scripts-py/plugins/webtv/Makefile
 scripts-sh/Makefile
 scripts-sh/plugins/Makefile
 scripts-sh/plugins/autoreboot/Makefile

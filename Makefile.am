@@ -86,6 +86,10 @@ SUBDIRS += \
 	scripts-lua \
 	scripts-sh
 
+if HAVE_PYTHON
+SUBDIRS += scripts-py
+endif
+
 SUBDIRS += data
 
 install-data-hook:
