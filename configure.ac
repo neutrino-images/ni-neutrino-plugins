@@ -401,6 +401,24 @@ AC_ARG_ENABLE(wortraten,
 	[enable_wortraten="$enableval"])
 AM_CONDITIONAL(ENABLE_WORTRATEN, test "$enable_wortraten" = "yes")
 
+AC_ARG_ENABLE(apiinfo,
+	AS_HELP_STRING([--enable-apiinfo], [enable apiinfo (python) @<:@default=no@:>@]),
+	[enable_apiinfo="$enableval"],
+	[enable_apiinfo="no"])
+AM_CONDITIONAL(ENABLE_APIINFO, test "$enable_apiinfo" = "yes")
+
+AC_ARG_ENABLE(apitest,
+	AS_HELP_STRING([--enable-apitest], [enable apitest (python) @<:@default=no@:>@]),
+	[enable_apitest="$enableval"],
+	[enable_apitest="no"])
+AM_CONDITIONAL(ENABLE_APITEST, test "$enable_apitest" = "yes")
+
+AC_ARG_ENABLE(replay-py,
+	AS_HELP_STRING([--enable-replay-py], [enable replay plugin (python) @<:@default=no@:>@]),
+	[enable_replay_py="$enableval"],
+	[enable_replay_py="no"])
+AM_CONDITIONAL(ENABLE_REPLAY_PY, test "$enable_replay_py" = "yes")
+
 AC_ARG_ENABLE(zdfhbbtv,
 	AS_HELP_STRING([--enable-zdfhbbtv], [enable zdfhbbtv @<:@default=yes@:>@]),
 	[enable_zdfhbbtv="$enableval"],
@@ -531,6 +549,9 @@ scripts-lua/plugins/zdfhbbtv/Makefile
 scripts-py/Makefile
 scripts-py/plugins/Makefile
 scripts-py/plugins/webtv/Makefile
+scripts-py/plugins/apiinfo/Makefile
+scripts-py/plugins/apitest/Makefile
+scripts-py/plugins/replay-py/Makefile
 scripts-sh/Makefile
 scripts-sh/plugins/Makefile
 scripts-sh/plugins/autoreboot/Makefile
