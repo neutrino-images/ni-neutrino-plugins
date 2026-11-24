@@ -1,16 +1,19 @@
-# 23/11/2026
-# Version 0.1.0
+# 24/11/2026
+# Version 0.1.1
 #
 # WebTV-Livestream-Script fuer Neutrino (benoetigt Neutrino mit Python-
 # Unterstuetzung, --enable-python).
 #
 # Neutrino uebergibt die Kanal-URL als sys.argv[1] und erwartet in der
-# globalen Variable 'result' das Ergebnis, z.B. {"url": "..."}.
-# Bleibt 'result' leer, gilt der Aufruf als fehlgeschlagen.
+# globalen Variable 'result' das Ergebnis als JSON-String, wie ihn ein
+# Lua-Script zurueckgibt, z.B. '{"url": "..."}'. Ein dict oder eine Liste
+# wird von Neutrino nicht gelesen. Bleibt 'result' leer, gilt der Aufruf
+# als fehlgeschlagen.
 #
 # Streamlink wird direkt als Python-Modul benutzt. Ist das Modul nicht
 # importierbar, wird wie bisher das streamlink-Kommando aufgerufen.
 
+import json
 import ssl
 import subprocess
 import sys
@@ -102,7 +105,7 @@ def main():
 	if not stream_url:
 		return None
 
-	return {"url": stream_url}
+	return json.dumps({"url": stream_url})
 
 
 result = main()
