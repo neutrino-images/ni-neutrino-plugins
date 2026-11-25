@@ -68,16 +68,9 @@ AC_ARG_WITH(neutrino-build,
 	[NEUTRINO_BUILD=""])
 AC_SUBST(NEUTRINO_BUILD)
 
-# BOXTYPEs that have python
-case "$BOXTYPE" in
-	coolstream)
-		have_python=no
-	;;
-	*)
-		have_python=yes
-	;;
-esac
-AM_CONDITIONAL(HAVE_PYTHON, test "$have_python" = "yes")
+# ----------------------------------------------------------------------------
+# plugins in C/C++: <plugin>/
+# ----------------------------------------------------------------------------
 
 AC_ARG_ENABLE(asc2uni,
 	AS_HELP_STRING([--enable-asc2uni], [enable asc2uni @<:@default=yes@:>@]),
@@ -209,6 +202,10 @@ AC_ARG_ENABLE(vinfo,
 	[enable_vinfo="yes"])
 AM_CONDITIONAL(ENABLE_VINFO, test "$enable_vinfo" = "yes")
 
+# ----------------------------------------------------------------------------
+# Lua: scripts-lua/plugins/<plugin>/
+# ----------------------------------------------------------------------------
+
 AC_ARG_ENABLE(2webtvxml,
 	AS_HELP_STRING([--enable-2webtvxml], [enable 2webTVxml @<:@default=yes@:>@]),
 	[enable_2webtvxml="$enableval"],
@@ -311,17 +308,29 @@ AC_ARG_ENABLE(openvpn-setup,
 	[enable_openvpn_setup="yes"])
 AM_CONDITIONAL(ENABLE_OPENVPN_SETUP, test "$enable_openvpn_setup" = "yes")
 
-AC_ARG_ENABLE(replay-lua,
-	AS_HELP_STRING([--enable-replay-lua], [enable replay plugin (lua) @<:@default=yes@:>@]),
-	[enable_replay_lua="$enableval"],
-	[enable_replay_lua="yes"])
-AM_CONDITIONAL(ENABLE_REPLAY_LUA, test "$enable_replay_lua" = "yes")
+AC_ARG_ENABLE(plutotv-update,
+	AS_HELP_STRING([--enable-plutotv-update], [enable plutotv-update @<:@default=yes@:>@]),
+	[enable_plutotv_update="$enableval"],
+	[enable_plutotv_update="yes"])
+AM_CONDITIONAL(ENABLE_PLUTOTV_UPDATE, test "$enable_plutotv_update" = "yes")
+
+AC_ARG_ENABLE(plutotv-vod,
+	AS_HELP_STRING([--enable-plutotv-vod], [enable plutotv-vod @<:@default=yes@:>@]),
+	[enable_plutotv_vod="$enableval"],
+	[enable_plutotv_vod="yes"])
+AM_CONDITIONAL(ENABLE_PLUTOTV_VOD, test "$enable_plutotv_vod" = "yes")
 
 AC_ARG_ENABLE(rcu_switcher,
 	AS_HELP_STRING([--enable-rcu_switcher], [enable rcu_switcher @<:@default=yes@:>@]),
 	[enable_rcu_switcher="$enableval"],
 	[enable_rcu_switcher="yes"])
 AM_CONDITIONAL(ENABLE_RCU_SWITCHER, test "$enable_rcu_switcher" = "yes")
+
+AC_ARG_ENABLE(replay-lua,
+	AS_HELP_STRING([--enable-replay-lua], [enable replay plugin (lua) @<:@default=yes@:>@]),
+	[enable_replay_lua="$enableval"],
+	[enable_replay_lua="yes"])
+AM_CONDITIONAL(ENABLE_REPLAY_LUA, test "$enable_replay_lua" = "yes")
 
 AC_ARG_ENABLE(rss,
 	AS_HELP_STRING([--enable-rss], [enable rss-reader @<:@default=yes@:>@]),
@@ -352,6 +361,118 @@ AC_ARG_ENABLE(userbouquets,
 	[enable_userbouquets="$enableval"],
 	[enable_userbouquets="yes"])
 AM_CONDITIONAL(ENABLE_USERBOUQUETS, test "$enable_userbouquets" = "yes")
+
+AC_ARG_ENABLE(zdfhbbtv,
+	AS_HELP_STRING([--enable-zdfhbbtv], [enable zdfhbbtv @<:@default=yes@:>@]),
+	[enable_zdfhbbtv="$enableval"],
+	[enable_zdfhbbtv="yes"])
+AM_CONDITIONAL(ENABLE_ZDFHBBTV, test "$enable_zdfhbbtv" = "yes")
+
+dnl enable n_libraries by conditions set above
+AM_CONDITIONAL(ENABLE_N_LIBRARIES, test "$enable_mediathek" = "yes")
+
+# ----------------------------------------------------------------------------
+# Lua: scripts-lua/plugins/webtv/
+# ----------------------------------------------------------------------------
+
+AC_ARG_ENABLE(filmon,
+	AS_HELP_STRING([--enable-filmon], [enable webtv filmon @<:@default=yes@:>@]),
+	[enable_filmon="$enableval"],
+	[enable_filmon="yes"])
+AM_CONDITIONAL(ENABLE_FILMON, test "$enable_filmon" = "yes")
+
+AC_ARG_ENABLE(plutotv,
+	AS_HELP_STRING([--enable-plutotv], [enable webtv plutotv @<:@default=yes@:>@]),
+	[enable_plutotv="$enableval"],
+	[enable_plutotv="yes"])
+AM_CONDITIONAL(ENABLE_PLUTOTV, test "$enable_plutotv" = "yes")
+
+AC_ARG_ENABLE(rakutentv,
+	AS_HELP_STRING([--enable-rakutentv], [enable webtv rakutentv @<:@default=yes@:>@]),
+	[enable_rakutentv="$enableval"],
+	[enable_rakutentv="yes"])
+AM_CONDITIONAL(ENABLE_RAKUTENTV, test "$enable_rakutentv" = "yes")
+
+AC_ARG_ENABLE(sportschau,
+	AS_HELP_STRING([--enable-sportschau], [enable webtv sportschau @<:@default=yes@:>@]),
+	[enable_sportschau="$enableval"],
+	[enable_sportschau="yes"])
+AM_CONDITIONAL(ENABLE_SPORTSCHAU, test "$enable_sportschau" = "yes")
+
+AC_ARG_ENABLE(yt_live,
+	AS_HELP_STRING([--enable-yt_live], [enable webtv yt_live @<:@default=yes@:>@]),
+	[enable_yt_live="$enableval"],
+	[enable_yt_live="yes"])
+AM_CONDITIONAL(ENABLE_YT_LIVE, test "$enable_yt_live" = "yes")
+
+AC_ARG_ENABLE(zdfsport,
+	AS_HELP_STRING([--enable-zdfsport], [enable webtv zdfsport @<:@default=yes@:>@]),
+	[enable_zdfsport="$enableval"],
+	[enable_zdfsport="yes"])
+AM_CONDITIONAL(ENABLE_ZDFSPORT, test "$enable_zdfsport" = "yes")
+
+# ----------------------------------------------------------------------------
+# Python: scripts-py/
+# ----------------------------------------------------------------------------
+
+# BOXTYPEs that have python
+case "$BOXTYPE" in
+	coolstream)
+		have_python=no
+	;;
+	*)
+		have_python=yes
+	;;
+esac
+AM_CONDITIONAL(HAVE_PYTHON, test "$have_python" = "yes")
+
+# ----------------------------------------------------------------------------
+# Python: scripts-py/plugins/<plugin>/
+# ----------------------------------------------------------------------------
+
+AC_ARG_ENABLE(apiinfo,
+	AS_HELP_STRING([--enable-apiinfo], [enable apiinfo (python) @<:@default=yes with python@:>@]),
+	[enable_apiinfo="$enableval"],
+	[enable_apiinfo="$have_python"])
+AM_CONDITIONAL(ENABLE_APIINFO, test "$enable_apiinfo" = "yes" -a "$have_python" = "yes")
+
+AC_ARG_ENABLE(apitest,
+	AS_HELP_STRING([--enable-apitest], [enable apitest (python) @<:@default=no@:>@]),
+	[enable_apitest="$enableval"],
+	[enable_apitest="no"])
+AM_CONDITIONAL(ENABLE_APITEST, test "$enable_apitest" = "yes" -a "$have_python" = "yes")
+
+AC_ARG_ENABLE(replay-py,
+	AS_HELP_STRING([--enable-replay-py], [enable replay plugin (python) @<:@default=yes with python@:>@]),
+	[enable_replay_py="$enableval"],
+	[enable_replay_py="$have_python"])
+AM_CONDITIONAL(ENABLE_REPLAY_PY, test "$enable_replay_py" = "yes" -a "$have_python" = "yes")
+
+# ----------------------------------------------------------------------------
+# Python: scripts-py/plugins/webtv/
+# ----------------------------------------------------------------------------
+
+AC_ARG_ENABLE(streamlink,
+	AS_HELP_STRING([--enable-streamlink], [enable webtv streamlink (python) @<:@default=yes with python@:>@]),
+	[enable_streamlink="$enableval"],
+	[enable_streamlink="$have_python"])
+AM_CONDITIONAL(ENABLE_STREAMLINK, test "$enable_streamlink" = "yes" -a "$have_python" = "yes")
+
+AC_ARG_ENABLE(streamlink-plutotv,
+	AS_HELP_STRING([--enable-streamlink-plutotv], [enable webtv streamlink plutotv (python) @<:@default=yes with python@:>@]),
+	[enable_streamlink_plutotv="$enableval"],
+	[enable_streamlink_plutotv="$have_python"])
+AM_CONDITIONAL(ENABLE_STREAMLINK_PLUTOTV, test "$enable_streamlink_plutotv" = "yes" -a "$enable_streamlink" = "yes" -a "$have_python" = "yes")
+
+AC_ARG_ENABLE(streamlink-samsungtvplus,
+	AS_HELP_STRING([--enable-streamlink-samsungtvplus], [enable webtv streamlink samsungtvplus (python) @<:@default=yes with python@:>@]),
+	[enable_streamlink_samsungtvplus="$enableval"],
+	[enable_streamlink_samsungtvplus="$have_python"])
+AM_CONDITIONAL(ENABLE_STREAMLINK_SAMSUNGTVPLUS, test "$enable_streamlink_samsungtvplus" = "yes" -a "$enable_streamlink" = "yes" -a "$have_python" = "yes")
+
+# ----------------------------------------------------------------------------
+# shell: scripts-sh/plugins/<plugin>/
+# ----------------------------------------------------------------------------
 
 AC_ARG_ENABLE(autoreboot,
 	AS_HELP_STRING([--enable-autoreboot], [enable autoreboot @<:@default=yes@:>@]),
@@ -400,99 +521,6 @@ AC_ARG_ENABLE(wortraten,
 	[enable_wortraten="yes"],
 	[enable_wortraten="$enableval"])
 AM_CONDITIONAL(ENABLE_WORTRATEN, test "$enable_wortraten" = "yes")
-
-AC_ARG_ENABLE(apiinfo,
-	AS_HELP_STRING([--enable-apiinfo], [enable apiinfo (python) @<:@default=yes with python@:>@]),
-	[enable_apiinfo="$enableval"],
-	[enable_apiinfo="$have_python"])
-AM_CONDITIONAL(ENABLE_APIINFO, test "$enable_apiinfo" = "yes" -a "$have_python" = "yes")
-
-AC_ARG_ENABLE(apitest,
-	AS_HELP_STRING([--enable-apitest], [enable apitest (python) @<:@default=no@:>@]),
-	[enable_apitest="$enableval"],
-	[enable_apitest="no"])
-AM_CONDITIONAL(ENABLE_APITEST, test "$enable_apitest" = "yes" -a "$have_python" = "yes")
-
-AC_ARG_ENABLE(replay-py,
-	AS_HELP_STRING([--enable-replay-py], [enable replay plugin (python) @<:@default=yes with python@:>@]),
-	[enable_replay_py="$enableval"],
-	[enable_replay_py="$have_python"])
-AM_CONDITIONAL(ENABLE_REPLAY_PY, test "$enable_replay_py" = "yes" -a "$have_python" = "yes")
-
-AC_ARG_ENABLE(zdfhbbtv,
-	AS_HELP_STRING([--enable-zdfhbbtv], [enable zdfhbbtv @<:@default=yes@:>@]),
-	[enable_zdfhbbtv="$enableval"],
-	[enable_zdfhbbtv="yes"])
-AM_CONDITIONAL(ENABLE_ZDFHBBTV, test "$enable_zdfhbbtv" = "yes")
-
-AC_ARG_ENABLE(filmon,
-	AS_HELP_STRING([--enable-filmon], [enable webtv filmon @<:@default=yes@:>@]),
-	[enable_filmon="$enableval"],
-	[enable_filmon="yes"])
-AM_CONDITIONAL(ENABLE_FILMON, test "$enable_filmon" = "yes")
-
-AC_ARG_ENABLE(plutotv,
-	AS_HELP_STRING([--enable-plutotv], [enable webtv plutotv @<:@default=yes@:>@]),
-	[enable_plutotv="$enableval"],
-	[enable_plutotv="yes"])
-AM_CONDITIONAL(ENABLE_PLUTOTV, test "$enable_plutotv" = "yes")
-
-AC_ARG_ENABLE(plutotv-update,
-	AS_HELP_STRING([--enable-plutotv-update], [enable plutotv-update @<:@default=yes@:>@]),
-	[enable_plutotv_update="$enableval"],
-	[enable_plutotv_update="yes"])
-AM_CONDITIONAL(ENABLE_PLUTOTV_UPDATE, test "$enable_plutotv_update" = "yes")
-
-AC_ARG_ENABLE(plutotv-vod,
-	AS_HELP_STRING([--enable-plutotv-vod], [enable plutotv-vod @<:@default=yes@:>@]),
-	[enable_plutotv_vod="$enableval"],
-	[enable_plutotv_vod="yes"])
-AM_CONDITIONAL(ENABLE_PLUTOTV_VOD, test "$enable_plutotv_vod" = "yes")
-
-AC_ARG_ENABLE(rakutentv,
-	AS_HELP_STRING([--enable-rakutentv], [enable webtv rakutentv @<:@default=yes@:>@]),
-	[enable_rakutentv="$enableval"],
-	[enable_rakutentv="yes"])
-AM_CONDITIONAL(ENABLE_RAKUTENTV, test "$enable_rakutentv" = "yes")
-
-AC_ARG_ENABLE(streamlink,
-	AS_HELP_STRING([--enable-streamlink], [enable webtv streamlink (python) @<:@default=yes with python@:>@]),
-	[enable_streamlink="$enableval"],
-	[enable_streamlink="$have_python"])
-AM_CONDITIONAL(ENABLE_STREAMLINK, test "$enable_streamlink" = "yes" -a "$have_python" = "yes")
-
-AC_ARG_ENABLE(streamlink-plutotv,
-	AS_HELP_STRING([--enable-streamlink-plutotv], [enable webtv streamlink plutotv (python) @<:@default=yes with python@:>@]),
-	[enable_streamlink_plutotv="$enableval"],
-	[enable_streamlink_plutotv="$have_python"])
-AM_CONDITIONAL(ENABLE_STREAMLINK_PLUTOTV, test "$enable_streamlink_plutotv" = "yes" -a "$enable_streamlink" = "yes" -a "$have_python" = "yes")
-
-AC_ARG_ENABLE(streamlink-samsungtvplus,
-	AS_HELP_STRING([--enable-streamlink-samsungtvplus], [enable webtv streamlink samsungtvplus (python) @<:@default=yes with python@:>@]),
-	[enable_streamlink_samsungtvplus="$enableval"],
-	[enable_streamlink_samsungtvplus="$have_python"])
-AM_CONDITIONAL(ENABLE_STREAMLINK_SAMSUNGTVPLUS, test "$enable_streamlink_samsungtvplus" = "yes" -a "$enable_streamlink" = "yes" -a "$have_python" = "yes")
-
-AC_ARG_ENABLE(sportschau,
-	AS_HELP_STRING([--enable-sportschau], [enable webtv sportschau @<:@default=yes@:>@]),
-	[enable_sportschau="$enableval"],
-	[enable_sportschau="yes"])
-AM_CONDITIONAL(ENABLE_SPORTSCHAU, test "$enable_sportschau" = "yes")
-
-AC_ARG_ENABLE(yt_live,
-	AS_HELP_STRING([--enable-yt_live], [enable webtv yt_live @<:@default=yes@:>@]),
-	[enable_yt_live="$enableval"],
-	[enable_yt_live="yes"])
-AM_CONDITIONAL(ENABLE_YT_LIVE, test "$enable_yt_live" = "yes")
-
-AC_ARG_ENABLE(zdfsport,
-	AS_HELP_STRING([--enable-zdfsport], [enable webtv zdfsport @<:@default=yes@:>@]),
-	[enable_zdfsport="$enableval"],
-	[enable_zdfsport="yes"])
-AM_CONDITIONAL(ENABLE_ZDFSPORT, test "$enable_zdfsport" = "yes")
-
-dnl enable n_libraries by conditions set above
-AM_CONDITIONAL(ENABLE_N_LIBRARIES, test "$enable_mediathek" = "yes")
 
 AC_CONFIG_FILES([
 Makefile
