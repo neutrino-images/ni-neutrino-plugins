@@ -27,11 +27,11 @@ endif
 if ENABLE_LOGOVIEW
 SUBDIRS += logoview
 endif
-if ENABLE_OSCAMMON
-SUBDIRS += oscammon
-endif
 if ENABLE_MSGBOX
 SUBDIRS += msgbox
+endif
+if ENABLE_OSCAMMON
+SUBDIRS += oscammon
 endif
 if ENABLE_SATFIND
 SUBDIRS += satfind
@@ -82,13 +82,13 @@ SUBDIRS += initfb
 SUBDIRS += oled_ctrl
 endif
 
-SUBDIRS += \
-	scripts-lua \
-	scripts-sh
+SUBDIRS += scripts-lua
 
 if HAVE_PYTHON
 SUBDIRS += scripts-py
 endif
+
+SUBDIRS += scripts-sh
 
 SUBDIRS += data
 
