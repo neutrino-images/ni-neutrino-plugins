@@ -402,22 +402,22 @@ AC_ARG_ENABLE(wortraten,
 AM_CONDITIONAL(ENABLE_WORTRATEN, test "$enable_wortraten" = "yes")
 
 AC_ARG_ENABLE(apiinfo,
-	AS_HELP_STRING([--enable-apiinfo], [enable apiinfo (python) @<:@default=no@:>@]),
+	AS_HELP_STRING([--enable-apiinfo], [enable apiinfo (python) @<:@default=yes with python@:>@]),
 	[enable_apiinfo="$enableval"],
-	[enable_apiinfo="no"])
-AM_CONDITIONAL(ENABLE_APIINFO, test "$enable_apiinfo" = "yes")
+	[enable_apiinfo="$have_python"])
+AM_CONDITIONAL(ENABLE_APIINFO, test "$enable_apiinfo" = "yes" -a "$have_python" = "yes")
 
 AC_ARG_ENABLE(apitest,
 	AS_HELP_STRING([--enable-apitest], [enable apitest (python) @<:@default=no@:>@]),
 	[enable_apitest="$enableval"],
 	[enable_apitest="no"])
-AM_CONDITIONAL(ENABLE_APITEST, test "$enable_apitest" = "yes")
+AM_CONDITIONAL(ENABLE_APITEST, test "$enable_apitest" = "yes" -a "$have_python" = "yes")
 
 AC_ARG_ENABLE(replay-py,
-	AS_HELP_STRING([--enable-replay-py], [enable replay plugin (python) @<:@default=no@:>@]),
+	AS_HELP_STRING([--enable-replay-py], [enable replay plugin (python) @<:@default=yes with python@:>@]),
 	[enable_replay_py="$enableval"],
-	[enable_replay_py="no"])
-AM_CONDITIONAL(ENABLE_REPLAY_PY, test "$enable_replay_py" = "yes")
+	[enable_replay_py="$have_python"])
+AM_CONDITIONAL(ENABLE_REPLAY_PY, test "$enable_replay_py" = "yes" -a "$have_python" = "yes")
 
 AC_ARG_ENABLE(zdfhbbtv,
 	AS_HELP_STRING([--enable-zdfhbbtv], [enable zdfhbbtv @<:@default=yes@:>@]),
