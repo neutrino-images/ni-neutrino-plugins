@@ -92,10 +92,6 @@ endif
 
 SUBDIRS += data
 
-install-data-hook:
-	$(INSTALL) -d $(DESTDIR)$(LUACLIENTSCRIPTDIR)
-
 uninstall-hook:
 	-rmdir $(DESTDIR)$(GAMESDIR)
 	-rmdir $(DESTDIR)$(PLUGINDIR)
-	-rmdir $(DESTDIR)$(LUACLIENTSCRIPTDIR)
