@@ -144,7 +144,7 @@ def test_constants():
 	check("constants", "POSTMSG['STANDBY_ON']", lambda: POSTMSG["STANDBY_ON"])
 	check("constants", "SCREEN['X_RES']", lambda: SCREEN["X_RES"])
 	check("constants", "DIR['CONFIGDIR']", lambda: DIR["CONFIGDIR"])
-	check("constants", "DIR['PYTHONPLUGINDIR']", lambda: DIR["PYTHONPLUGINDIR"])
+	check("constants", "DIR['PYCLIENTSCRIPTDIR']", lambda: DIR["PYCLIENTSCRIPTDIR"])
 
 
 # ------------------------------------------------------------------- misc
