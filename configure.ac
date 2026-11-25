@@ -441,7 +441,7 @@ AC_ARG_ENABLE(plutotv-update,
 	AS_HELP_STRING([--enable-plutotv-update], [enable plutotv-update @<:@default=yes@:>@]),
 	[enable_plutotv_update="$enableval"],
 	[enable_plutotv_update="yes"])
-AM_CONDITIONAL(ENABLE_PLUTOTV_UPDATE, test "$enable_plutotv_update" = "yes" -a "$enable_plutotv" = "yes")
+AM_CONDITIONAL(ENABLE_PLUTOTV_UPDATE, test "$enable_plutotv_update" = "yes")
 
 AC_ARG_ENABLE(plutotv-vod,
 	AS_HELP_STRING([--enable-plutotv-vod], [enable plutotv-vod @<:@default=yes@:>@]),

@@ -59,7 +59,9 @@ if ENABLE_OPENVPN_SETUP
 SUBDIRS += openvpn-setup
 endif
 if ENABLE_PLUTOTV_UPDATE
+if ENABLE_PLUTOTV
 SUBDIRS += plutotv-update
+endif
 endif
 if ENABLE_PLUTOTV_VOD
 SUBDIRS += plutotv-vod
