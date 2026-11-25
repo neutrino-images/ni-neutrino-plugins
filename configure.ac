@@ -456,22 +456,22 @@ AC_ARG_ENABLE(rakutentv,
 AM_CONDITIONAL(ENABLE_RAKUTENTV, test "$enable_rakutentv" = "yes")
 
 AC_ARG_ENABLE(streamlink,
-	AS_HELP_STRING([--enable-streamlink], [enable webtv streamlink @<:@default=yes@:>@]),
+	AS_HELP_STRING([--enable-streamlink], [enable webtv streamlink (python) @<:@default=yes with python@:>@]),
 	[enable_streamlink="$enableval"],
-	[enable_streamlink="yes"])
-AM_CONDITIONAL(ENABLE_STREAMLINK, test "$enable_streamlink" = "yes")
+	[enable_streamlink="$have_python"])
+AM_CONDITIONAL(ENABLE_STREAMLINK, test "$enable_streamlink" = "yes" -a "$have_python" = "yes")
 
 AC_ARG_ENABLE(streamlink-plutotv,
-	AS_HELP_STRING([--enable-streamlink-plutotv], [enable webtv streamlink plutotv @<:@default=yes@:>@]),
+	AS_HELP_STRING([--enable-streamlink-plutotv], [enable webtv streamlink plutotv (python) @<:@default=yes with python@:>@]),
 	[enable_streamlink_plutotv="$enableval"],
-	[enable_streamlink_plutotv="yes"])
-AM_CONDITIONAL(ENABLE_STREAMLINK_PLUTOTV, test "$enable_streamlink_plutotv" = "yes" -a "$enable_streamlink" = "yes")
+	[enable_streamlink_plutotv="$have_python"])
+AM_CONDITIONAL(ENABLE_STREAMLINK_PLUTOTV, test "$enable_streamlink_plutotv" = "yes" -a "$enable_streamlink" = "yes" -a "$have_python" = "yes")
 
 AC_ARG_ENABLE(streamlink-samsungtvplus,
-	AS_HELP_STRING([--enable-streamlink-samsungtvplus], [enable webtv streamlink samsungtvplus @<:@default=yes@:>@]),
+	AS_HELP_STRING([--enable-streamlink-samsungtvplus], [enable webtv streamlink samsungtvplus (python) @<:@default=yes with python@:>@]),
 	[enable_streamlink_samsungtvplus="$enableval"],
-	[enable_streamlink_samsungtvplus="yes"])
-AM_CONDITIONAL(ENABLE_STREAMLINK_SAMSUNGTVPLUS, test "$enable_streamlink_samsungtvplus" = "yes" -a "$enable_streamlink" = "yes")
+	[enable_streamlink_samsungtvplus="$have_python"])
+AM_CONDITIONAL(ENABLE_STREAMLINK_SAMSUNGTVPLUS, test "$enable_streamlink_samsungtvplus" = "yes" -a "$enable_streamlink" = "yes" -a "$have_python" = "yes")
 
 AC_ARG_ENABLE(sportschau,
 	AS_HELP_STRING([--enable-sportschau], [enable webtv sportschau @<:@default=yes@:>@]),
