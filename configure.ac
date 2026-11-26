@@ -431,9 +431,9 @@ AM_CONDITIONAL(HAVE_PYTHON, test "$have_python" = "yes")
 # ----------------------------------------------------------------------------
 
 AC_ARG_ENABLE(apiinfo,
-	AS_HELP_STRING([--enable-apiinfo], [enable apiinfo (python) @<:@default=yes with python@:>@]),
+	AS_HELP_STRING([--enable-apiinfo], [enable apiinfo (python) @<:@default=no@:>@]),
 	[enable_apiinfo="$enableval"],
-	[enable_apiinfo="$have_python"])
+	[enable_apiinfo="no"])
 AM_CONDITIONAL(ENABLE_APIINFO, test "$enable_apiinfo" = "yes" -a "$have_python" = "yes")
 
 AC_ARG_ENABLE(apitest,
