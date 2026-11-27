@@ -61,12 +61,21 @@ cfg.youtube_video_count=100
 
 youtube_api_url='https://www.googleapis.com/youtube/v3/'
 
-function read_file(filename)
-	local fp = io.open(filename, "r")
-	if fp == nil then error("Error opening file '" .. filename .. "'.") end
-	local data = fp:read("*a")
+-- The key Neutrino keeps for its own YouTube use, from neutrino.conf. It is
+-- youtube_api_key since 2024; youtube_dev_id, its name before, is still read
+-- for a configuration that was not converted. Nil without a usable key.
+local function youtube_api_key()
+	local fp = io.open("/var/tuxbox/config/neutrino.conf", "r")
+	if not fp then
+		return nil
+	end
+	local conf = "\n" .. fp:read("*a")
 	fp:close()
-	return data
+	local key = conf:match("\nyoutube_api_key=([^\r\n]*)") or conf:match("\nyoutube_dev_id=([^\r\n]*)")
+	if not key or key == "" or key:match("^X+$") then
+		return nil
+	end
+	return key
 end
 
 function youtube_updatefeed(feed,friendly_name)
@@ -75,6 +84,12 @@ function youtube_updatefeed(feed,friendly_name)
 	end
 
 	local rc=false
+
+	local api_key = youtube_api_key()
+	if not api_key then
+		if cfg.debug>0 then print('YouTube feed \''..feed..'\' skipped: no youtube_api_key in neutrino.conf') end
+		return rc
+	end
 
 	local feed_url=nil
 	local feed_urn=nil
@@ -105,11 +120,7 @@ function youtube_updatefeed(feed,friendly_name)
 			numA = cfg.youtube_video_count
 		end
 
-		local keyA = '&key=***' -- change *** to your youtube api key from: https://console.developers.google.com
-		if keyA == '&key=***' then
-			local keydata = read_file("/var/tuxbox/config/neutrino.conf") --file with key
-			keyA = "&key=" .. keydata:match("youtube_dev_id=(.-)\n")
-		end
+		local keyA = '&key=' .. api_key
 		local cA = ''
 		local iA = ''
 		local userA = tfeed[1]
@@ -129,7 +140,7 @@ function youtube_updatefeed(feed,friendly_name)
 			--local user_data = url_data:read('*all')
 			--url_data:close()
 			local user_data = http.download(jsonA)
-			local x=json.decode(user_data)
+			local x=user_data and json.decode(user_data)
 			if x and x.items and #x.items > 0 then
 				uploads = x['items'][1]['contentDetails']['relatedPlaylists']['favorites']
 			end
@@ -146,7 +157,7 @@ function youtube_updatefeed(feed,friendly_name)
 			--local user_data = url_data:read('*all')
 			--url_data:close()
 			local user_data = http.download(jsonA)
-			local x=json.decode(user_data)
+			local x=user_data and json.decode(user_data)
 			if x and x.items and #x.items > 0 then
 				uploads = x['items'][1]['contentDetails']['relatedPlaylists']['uploads']
 			end
@@ -165,7 +176,7 @@ function youtube_updatefeed(feed,friendly_name)
 			--local user_data = url_data:read('*all')
 			--url_data:close()
 			local user_data = http.download(jsonA)
-			local x=json.decode(user_data)
+			local x=user_data and json.decode(user_data)
 			if x and x.items and #x.items > 0 then
 				uploads = x['items'][1]['contentDetails']['relatedPlaylists']['uploads']
 			end
