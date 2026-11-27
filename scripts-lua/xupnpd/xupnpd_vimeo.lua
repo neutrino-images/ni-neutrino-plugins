@@ -53,7 +53,9 @@ function vimeo_updatefeed(feed,friendly_name)
 
 --    local x=vimeo_parse_feed(feed_url)
 
-    if x then
+    -- no videos (the site did not answer, or not as expected): no empty
+    -- folder in the clients' lists
+    if x and #x > 0 then
         local dfd=io.open(tmp_m3u_path,'w+')
         if dfd then
             dfd:write('#EXTM3U name=\"',friendly_name or feed_name,'\" type=mp4 plugin=vimeo\n')
