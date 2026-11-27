@@ -176,24 +176,35 @@ function cst_api_get(feed, path)
 	return t
 end
 
--- the bouquets getbouquets?fav=true listed: user bouquets, not hidden, with channels of that mode
+-- the user bouquets that are not hidden and hold channels of the mode, as
+-- getbouquets?fav=true listed them; the provider bouquets only if there is
+-- no such user bouquet
 function cst_api_bouquets(feed, mode)
 	local t = cst_api_get(feed, "bouquets")
 	if not t or type(t.items) ~= "table" then
 		return nil
 	end
-	local list = {}
+	local user = {}
+	local provider = {}
 	for _, b in ipairs(t.items) do
 		local count = b.radio_count
 		if mode == "TV" then
 			count = b.tv_count
 		end
-		if type(b.id) == "number" and b.user_bouquet == true and b.hidden ~= true
+		if type(b.id) == "number" and b.hidden ~= true
 		   and type(count) == "number" and count > 0 then
-			table.insert(list, { id = b.id, name = b.name or "" })
+			if b.user_bouquet == true then
+				table.insert(user, { id = b.id, name = b.name or "" })
+			else
+				table.insert(provider, { id = b.id, name = b.name or "" })
+			end
 		end
 	end
-	return list
+	if #user > 0 then
+		return user
+	end
+	cst_debug(0, "no user bouquets for "..mode..", using provider bouquets")
+	return provider
 end
 
 -- all channels of one bouquet, page by page; nil if a page could not be read
@@ -222,8 +233,8 @@ function cst_api_channels(feed, mode, bouquet)
 end
 
 -- old /control/ interface, for boxes without ni-web
-function cst_legacy_bouquets(feed, mode)
-	local data = cst_read_url('http://'..feed..'/control/getbouquets?fav=true&mode='..mode)
+function cst_legacy_bouquet_list(feed, query)
+	local data = cst_read_url('http://'..feed..'/control/getbouquets?'..query)
 	if data == "" then
 		return nil
 	end
@@ -233,6 +244,16 @@ function cst_legacy_bouquets(feed, mode)
 	end
 	table.sort(list, function(a, b) return a.id < b.id end)
 	return list
+end
+
+-- user bouquets, all visible bouquets only if there is none; without user
+-- bouquets those are the provider bouquets
+function cst_legacy_bouquets(feed, mode)
+	local list = cst_legacy_bouquet_list(feed, 'fav=true&mode='..mode)
+	if list and #list > 0 then
+		return list
+	end
+	return cst_legacy_bouquet_list(feed, 'mode='..mode)
 end
 
 function cst_legacy_channels(feed, mode, bouquet)
@@ -355,7 +376,7 @@ cst_updatefeed("172.16.1.20","tank")
 end
 
 if not cst_test then
-print("xupnpd_neutrino: channel lists from ni-web /api/v1, /control/ as fallback")
+print("xupnpd_neutrino: channel lists from ni-web /api/v1, /control/ as fallback, provider bouquets without user bouquets")
 plugins['neutrino']={}
 plugins.neutrino.name="Neutrino"
 plugins.neutrino.desc="IP address (example: <i>192.168.0.1</i>)"
