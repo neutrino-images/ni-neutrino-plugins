@@ -281,7 +281,11 @@ local function save_bouquets(feed, friendly_name, mode, sysip)
 		local bouquet = read_channels(feed, mode, b.id)
 		if bouquet and #bouquet > 0 then
 			local bnum = string.format("%03d", b.id)
-			local m3ufilename = cfg.tmp_path.."neutrino_"..friendly_name.."_"..mode.."_bouquet_"..bnum..".m3u"
+			-- named after the feed, e.g. Neutrino_TV_bouquet_001.m3u; the name
+			-- goes unquoted into mv, so anything but letters, digits, - and _
+			-- becomes _
+			local fname = string.gsub(friendly_name, "[^%w_-]", "_")
+			local m3ufilename = cfg.tmp_path..fname.."_"..mode.."_bouquet_"..bnum..".m3u"
 			log(0, m3ufilename)
 			local m3ufile = io.open(m3ufilename,"w")
 			m3ufile:write("#EXTM3U name=\""..friendly_name..": "..mode.." - "..trim(b.name).."\" plugin=neutrino type=ts\n")
