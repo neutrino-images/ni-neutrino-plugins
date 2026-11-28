@@ -1,7 +1,8 @@
 -------- cczwei
 -- CC2tv with Wolfgang Rudolph, from the feeds on cc2.tv.
 --
--- The feed name in xupnpd_feeds.lua picks the feed:
+-- The feed name in xupnpd_feeds.lua picks the feed, the friendly name
+-- names the playlist and its file (e.g. CC2tv_Audiocast.m3u):
 --   'audio'  CC2tv-Audio, the audiocast (MP3)
 -- The video feed (feedv.xml) only links to YouTube pages now, which
 -- xupnpd cannot play, so it is not offered.
@@ -9,8 +10,23 @@
 local cczwei_feeds =
 {
 	-- https: http://cc2.tv answers 301, and http.download() follows no redirect
-	audio = { url = 'https://cc2.tv/feed.xml', type = 'mp3' },
+	audio = { url = 'https://cc2.tv/feed.xml', type = 'mp3', label = 'CC2.tv Audiocast' },
 }
+
+local cczwei_months = { Jan = 1, Feb = 2, Mar = 3, Apr = 4, May = 5, Jun = 6,
+	Jul = 7, Aug = 8, Sep = 9, Oct = 10, Nov = 11, Dec = 12 }
+
+-- "Mon, 02 Nov 2026 20:00:00 +0100" -> "02.11.2026", nil if it is not such a date
+local function cczwei_date(pubdate)
+	if not pubdate then
+		return nil
+	end
+	local d, m, y = pubdate:match('(%d+) (%a+) (%d%d%d%d)')
+	if not d or not cczwei_months[m] then
+		return nil
+	end
+	return string.format('%02d.%02d.%s', tonumber(d), cczwei_months[m], y)
+end
 
 -- the ASCII the UPnP clients show without trouble
 local function cczwei_title(title)
@@ -41,17 +57,20 @@ function cczwei_updatefeed(feed, friendly_name)
 
 	-- the name goes unquoted into mv
 	local fname = friendly_name:gsub('[^%w_-]', '_')
-	local tmp_m3u_filename = cfg.tmp_path .. 'cczwei_' .. fname .. '.m3u'
-	local feed_m3u_path = cfg.feeds_path .. 'cczwei_' .. fname .. '.m3u'
+	local tmp_m3u_filename = cfg.tmp_path .. fname .. '.m3u'
+	local feed_m3u_path = cfg.feeds_path .. fname .. '.m3u'
 
 	local entries = {}
 	for item in feed_data:gmatch('<item>(.-)</item>') do
 		local title = item:match('<title>(.-)</title>')
 		local url = item:match('<enclosure[^>]-url="(.-)"')
-		local day = item:match('<pubDate>%w+, (%d+ %w+ %d+)')
+		local day = cczwei_date(item:match('<pubDate>(.-)</pubDate>'))
 		-- direct media only: a link to a web page does not play
 		if title and url and url:match('^https?://') and not url:match('youtu%.?be') then
-			table.insert(entries, { title = cczwei_title(title), url = url, day = day or '' })
+			-- the feed starts each title with "CC2tv Audiocast" or
+			-- "CC2tv-Audiocast"; the label says that once for all
+			title = cczwei_title(title):gsub('^%s*CC2tv[%s-]*Audiocast[%s:-]*', '')
+			table.insert(entries, { title = title, url = url, day = day })
 		end
 	end
 	feed_data = nil
@@ -67,9 +86,13 @@ function cczwei_updatefeed(feed, friendly_name)
 	end
 	m3ufile:write('#EXTM3U name="' .. friendly_name .. '" plugin=cczwei type=' .. f.type .. '\n')
 	for _, e in ipairs(entries) do
-		local name = e.title
-		if e.day ~= '' then
-			name = e.day .. ': ' .. name
+		-- "CC2.tv Audiocast - Folge 710 (02.11.2026)"
+		local name = f.label
+		if e.title ~= '' then
+			name = name .. ' - ' .. e.title
+		end
+		if e.day then
+			name = name .. ' (' .. e.day .. ')'
 		end
 		m3ufile:write('#EXTINF:0,' .. name .. '\n')
 		m3ufile:write(e.url .. '\n')
