@@ -8,7 +8,8 @@
 
 local cczwei_feeds =
 {
-	audio = { url = 'http://cc2.tv/feed.xml', type = 'mp3' },
+	-- https: http://cc2.tv answers 301, and http.download() follows no redirect
+	audio = { url = 'https://cc2.tv/feed.xml', type = 'mp3' },
 }
 
 -- the ASCII the UPnP clients show without trouble
